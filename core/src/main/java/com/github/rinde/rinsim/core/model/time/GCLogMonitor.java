@@ -37,7 +37,7 @@ import com.google.common.primitives.Doubles;
  */
 public final class GCLogMonitor {
   static final long S_TO_NS = 1000000000L;
-  static final long HISTORY_LENGTH = 10 * S_TO_NS;
+  static final long HISTORY_LENGTH = 30 * S_TO_NS;
   static final long LOG_PARSER_DELAY = 200L;
   static final int QUEUE_EXPECTED_SIZE = 50;
   static final String FILTER =
@@ -48,6 +48,7 @@ public final class GCLogMonitor {
 
   Accumulator accum;
   long total;
+  long startTimeNS;
 
   MinMaxPriorityQueue<PauseTime> pauseTimes;
 
@@ -58,6 +59,8 @@ public final class GCLogMonitor {
     pauseTimes = MinMaxPriorityQueue.orderedBy(Ordering.natural().reverse())
         .expectedSize(QUEUE_EXPECTED_SIZE)
         .create();
+
+    startTimeNS = ManagementFactory.getRuntimeMXBean().getStartTime() * 1000000;
   }
 
   public static GCLogMonitor getInstance() {
@@ -87,6 +90,24 @@ public final class GCLogMonitor {
     return duration;
   }
 
+  boolean hasSurpassed(long timeNs) {
+    return !pauseTimes.isEmpty()
+        && pauseTimes.peekFirst().getTime() > timeNs - startTimeNS;
+  }
+
+  long getPauseTimeInInterval(long ts1, long ts2) {
+    final long vmt1 = ts1 - startTimeNS;
+    final long vmt2 = ts2 - startTimeNS;
+    long duration = 0;
+    for (final PauseTime pt : pauseTimes) {
+      if (pt.getTime() > vmt1 && pt.getTime() < vmt2) {
+        break;
+      }
+      duration += pt.getDuration();
+    }
+    return duration;
+  }
+
   class Accumulator extends TailerListenerAdapter {
 
     Accumulator() {}
@@ -96,7 +117,7 @@ public final class GCLogMonitor {
       if (line != null && line.contains(FILTER)) {
         final String[] parts = line.split(": ");
 
-        System.out.println(parts[0] + " " + parts[2]);
+        // System.out.println(parts[0] + " " + parts[2]);
 
         final Double t = Doubles.tryParse(parts[0]);
         if (t == null) {
@@ -116,7 +137,7 @@ public final class GCLogMonitor {
         while (time - pauseTimes.peekLast().getTime() > HISTORY_LENGTH) {
           pauseTimes.pollLast();
         }
-        System.out.println("queue size: " + pauseTimes.size());
+        // System.out.println("queue size: " + pauseTimes.size());
       }
     }
   }
@@ -138,6 +159,5 @@ public final class GCLogMonitor {
     static PauseTime create(long time, long duration) {
       return new AutoValue_GCLogMonitor_PauseTime(time, duration);
     }
-
   }
 }

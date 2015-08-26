@@ -26,6 +26,7 @@ import static com.google.common.base.Preconditions.checkState;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -335,42 +336,12 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         return null;
       }
 
-      final List<Long> interArrivalTimes = new ArrayList<>();
-      final Realtime ref = this;
+      final TimeRunner tr = new TimeRunner(context);
+
       @SuppressWarnings("unchecked")
       final ListenableScheduledFuture<Object> f =
-          (ListenableScheduledFuture<Object>) executor
-              .scheduleAtFixedRate(
-                  new Runnable() {
-                    long prev;
-                    boolean first = true;
-
-                    @Override
-                    public void run() {
-                      final long sysTime = System.nanoTime();
-                      if (!first) {
-                        final long correction = GCLogMonitor.getInstance()
-                            .getPauseTimeInLast(tickNanoSeconds);
-                        final long iat = sysTime - prev - correction;
-                        if (iat >= maxTickDuration) {
-                          throw new IllegalStateException(
-                              iat + " is too much (limit: " + maxTickDuration
-                                  + "). Dump: " + context.printTLDump());
-                        }
-
-                        interArrivalTimes.add(iat);
-                      } else {
-                        first = false;
-                      }
-                      prev = sysTime;
-
-                      checkConsistency(interArrivalTimes);
-                      context.tickImpl();
-                      if (ref.nextTrigger != null) {
-                        executor.shutdown();
-                      }
-                    }
-                  }, 0, tickNanoSeconds, TimeUnit.NANOSECONDS);
+          (ListenableScheduledFuture<Object>) executor.scheduleAtFixedRate(tr,
+              0, tickNanoSeconds, TimeUnit.NANOSECONDS);
 
       Futures.addCallback(f, new FutureCallback<Object>() {
         @Override
@@ -382,7 +353,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         @Override
         public void onSuccess(@Nullable Object result) {}
       });
-      awaitTermination(context);
+      awaitTermination(context, tr);
       final Trigger t = nextTrigger;
       nextTrigger = null;
       return t;
@@ -400,7 +371,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
           Executors.newSingleThreadScheduledExecutor());
     }
 
-    void awaitTermination(RealtimeModel context) {
+    void awaitTermination(RealtimeModel context, TimeRunner timeRunner) {
       try {
         executor.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
       } catch (final InterruptedException e) {
@@ -415,31 +386,101 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         }
         throw new IllegalStateException(exceptions.get(0));
       }
-    }
-
-    void checkConsistency(List<Long> interArrivalTimes) {
-      if (interArrivalTimes.size() < CONSISTENCY_CHECK_LENGTH) {
-        return;
-      }
-
-      final SummaryStatistics ss = new SummaryStatistics();
-      for (final Long n : interArrivalTimes) {
-        ss.addValue(n.longValue());
-      }
-      final StatisticalSummary sum = ss.getSummary();
-
-      checkState(sum.getStandardDeviation() < maxStdNs,
-          "Std is above threshold of %sns: %sns.", maxStdNs,
-          sum.getStandardDeviation(), interArrivalTimes);
-      checkState(
-          Math.abs(tickNanoSeconds - sum.getMean()) < maxMeanDeviationNs,
-          "Mean interval is above threshold of %sns: %s.",
-          maxMeanDeviationNs, sum.getMean());
+      timeRunner.awaitCorrectness();
     }
 
     @Override
     public ClockMode getClockMode() {
       return ClockMode.REAL_TIME;
+    }
+
+    class TimeRunner implements Runnable {
+      final List<Long> interArrivalTimes;
+      final LinkedList<Long> timeStamps;
+      final LinkedList<Long> timeStampsBuffer;
+      final RealtimeModel context;
+
+      GCLogMonitor logMonitor;
+
+      TimeRunner(RealtimeModel rm) {
+        // System.out.println("new time runner");
+        context = rm;
+        interArrivalTimes = new ArrayList<>();
+        timeStamps = new LinkedList<>();
+        timeStampsBuffer = new LinkedList<>();
+        logMonitor = GCLogMonitor.getInstance();
+      }
+
+      @Override
+      public void run() {
+        timeStampsBuffer.add(System.nanoTime());
+        checkConsistency();
+        context.tickImpl();
+        if (nextTrigger != null) {
+          executor.shutdown();
+        }
+      }
+
+      void checkConsistency() {
+        // System.out.println(timeStampsBuffer.size() + " " + timeStamps.size()
+        // + " " + interArrivalTimes.size());
+        // check if GCLogMonitor has a time AFTER the timestamp (in that
+        // case we are sure that we have complete information)
+        while (!timeStampsBuffer.isEmpty() &&
+            logMonitor.hasSurpassed(timeStampsBuffer.peekFirst().longValue())) {
+          // System.out.println("found one");
+          timeStamps.add(timeStampsBuffer.removeFirst());
+        }
+
+        while (timeStamps.size() > 1) {
+          final long ts1 = timeStamps.removeFirst();
+          final long ts2 = timeStamps.peekFirst();
+          checkState(ts1 < ts2);
+
+          // compute correction in interval of [ts1, ts2)
+          final long correction = GCLogMonitor.getInstance()
+              .getPauseTimeInInterval(ts1, ts2);
+          // System.out.println("correction: " + correction);
+          final long interArrivalTime = ts2 - ts1 - correction;
+          if (interArrivalTime >= maxTickDuration) {
+            throw new IllegalStateException(interArrivalTime
+                + " is too much (limit: " + maxTickDuration
+                + "). Dump: " + context.printTLDump());
+          }
+          interArrivalTimes.add(interArrivalTime);
+        }
+
+        if (interArrivalTimes.size() < CONSISTENCY_CHECK_LENGTH) {
+          return;
+        }
+
+        final SummaryStatistics ss = new SummaryStatistics();
+        for (final Long n : interArrivalTimes) {
+          ss.addValue(n.longValue());
+        }
+        final StatisticalSummary sum = ss.getSummary();
+
+        checkState(sum.getStandardDeviation() < maxStdNs,
+            "Std is above threshold of %sns: %sns.", maxStdNs,
+            sum.getStandardDeviation(), interArrivalTimes);
+        checkState(
+            Math.abs(tickNanoSeconds - sum.getMean()) < maxMeanDeviationNs,
+            "Mean interval is above threshold of %sns: %s.",
+            maxMeanDeviationNs, sum.getMean());
+      }
+
+      // TODO is this needed?
+      void awaitCorrectness() {
+        if (!timeStampsBuffer.isEmpty() &&
+            !logMonitor.hasSurpassed(timeStampsBuffer.peekLast().longValue())) {
+          try {
+            Thread.sleep(200);
+          } catch (final InterruptedException e) {
+            throw new IllegalStateException(e);
+          }
+        }
+        checkConsistency();
+      }
     }
   }
 
