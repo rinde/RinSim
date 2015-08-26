@@ -45,8 +45,6 @@ import com.github.rinde.rinsim.fsm.AbstractState;
 import com.github.rinde.rinsim.fsm.StateMachine;
 import com.github.rinde.rinsim.fsm.StateMachine.StateMachineEvent;
 import com.github.rinde.rinsim.fsm.StateMachine.StateTransitionEvent;
-import com.google.common.collect.Iterators;
-import com.google.common.collect.PeekingIterator;
 import com.google.common.math.DoubleMath;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -337,17 +335,36 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         return null;
       }
 
-      final List<Long> timings = new ArrayList<>();
+      final List<Long> interArrivalTimes = new ArrayList<>();
       final Realtime ref = this;
       @SuppressWarnings("unchecked")
       final ListenableScheduledFuture<Object> f =
           (ListenableScheduledFuture<Object>) executor
               .scheduleAtFixedRate(
                   new Runnable() {
+                    long prev;
+                    boolean first = true;
+
                     @Override
                     public void run() {
-                      timings.add(System.nanoTime());
-                      checkConsistency(timings, context);
+                      final long sysTime = System.nanoTime();
+                      if (!first) {
+                        final long correction = GCLogMonitor.getInstance()
+                            .getPauseTimeInLast(tickNanoSeconds);
+                        final long iat = sysTime - prev - correction;
+                        if (iat >= maxTickDuration) {
+                          throw new IllegalStateException(
+                              iat + " is too much (limit: " + maxTickDuration
+                                  + "). Dump: " + context.printTLDump());
+                        }
+
+                        interArrivalTimes.add(iat);
+                      } else {
+                        first = false;
+                      }
+                      prev = sysTime;
+
+                      checkConsistency(interArrivalTimes);
                       context.tickImpl();
                       if (ref.nextTrigger != null) {
                         executor.shutdown();
@@ -400,26 +417,9 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
       }
     }
 
-    void checkConsistency(List<Long> timestamps, RealtimeModel context) {
-      if (timestamps.size() < CONSISTENCY_CHECK_LENGTH) {
+    void checkConsistency(List<Long> interArrivalTimes) {
+      if (interArrivalTimes.size() < CONSISTENCY_CHECK_LENGTH) {
         return;
-      }
-      final PeekingIterator<Long> it = Iterators.peekingIterator(timestamps
-          .subList(timestamps.size() - CONSISTENCY_CHECK_LENGTH,
-              timestamps.size())
-          .iterator());
-
-      final List<Long> interArrivalTimes = new ArrayList<>();
-      for (long l1 = it.next(); it.hasNext(); l1 = it.next()) {
-        final Long l2 = it.peek();
-        final long interArrivalTime = l2 - l1;
-
-        if (interArrivalTime >= maxTickDuration) {
-          throw new IllegalStateException(
-              interArrivalTime + " is too much (limit: " + maxTickDuration
-                  + "). Dump: " + context.printTLDump());
-        }
-        interArrivalTimes.add(interArrivalTime);
       }
 
       final SummaryStatistics ss = new SummaryStatistics();
