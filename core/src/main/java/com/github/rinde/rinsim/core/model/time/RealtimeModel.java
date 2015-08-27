@@ -37,8 +37,6 @@ import javax.annotation.Nullable;
 import javax.measure.Measure;
 import javax.measure.unit.SI;
 
-import net.openhft.affinity.AffinityLock;
-
 import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 
@@ -48,12 +46,15 @@ import com.github.rinde.rinsim.fsm.AbstractState;
 import com.github.rinde.rinsim.fsm.StateMachine;
 import com.github.rinde.rinsim.fsm.StateMachine.StateMachineEvent;
 import com.github.rinde.rinsim.fsm.StateMachine.StateTransitionEvent;
+import com.google.auto.value.AutoValue;
 import com.google.common.math.DoubleMath;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableScheduledFuture;
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
+
+import net.openhft.affinity.AffinityLock;
 
 /**
  * @author Rinde van Lon
@@ -396,8 +397,8 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
 
     class TimeRunner implements Runnable {
       final List<Long> interArrivalTimes;
-      final LinkedList<Long> timeStamps;
-      final LinkedList<Long> timeStampsBuffer;
+      final LinkedList<TimeStamp> timeStamps;
+      final LinkedList<TimeStamp> timeStampsBuffer;
       final RealtimeModel context;
 
       GCLogMonitor logMonitor;
@@ -413,7 +414,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
 
       @Override
       public void run() {
-        timeStampsBuffer.add(System.nanoTime());
+        timeStampsBuffer.add(TimeStamp.now());
         checkConsistency();
         context.tickImpl();
         if (nextTrigger != null) {
@@ -427,20 +428,20 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         // check if GCLogMonitor has a time AFTER the timestamp (in that
         // case we are sure that we have complete information)
         while (!timeStampsBuffer.isEmpty() &&
-            logMonitor.hasSurpassed(timeStampsBuffer.peekFirst().longValue())) {
+            logMonitor.hasSurpassed(timeStampsBuffer.peekFirst().getNanos())) {
           // System.out.println("found one");
           timeStamps.add(timeStampsBuffer.removeFirst());
         }
 
         while (timeStamps.size() > 1) {
-          final long ts1 = timeStamps.removeFirst();
-          final long ts2 = timeStamps.peekFirst();
-          long interArrivalTime = ts2 - ts1;
+          final TimeStamp ts1 = timeStamps.removeFirst();
+          final TimeStamp ts2 = timeStamps.peekFirst();
+          long interArrivalTime = ts2.getNanos() - ts1.getNanos();
           checkState(interArrivalTime > 0);
 
-          // compute correction in interval of [ts1, ts2)
+          // compute correction in interval of [ts1, ts2]
           final long correction = GCLogMonitor.getInstance()
-              .getPauseTimeInInterval(ts1, ts2);
+              .getPauseTimeInInterval(ts1.getMillis(), ts2.getMillis());
           // System.out.println("correction: " + correction);
 
           if (interArrivalTime >= maxTickDuration) {
@@ -487,7 +488,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
       // TODO is this needed?
       void awaitCorrectness() {
         if (!timeStampsBuffer.isEmpty() &&
-            !logMonitor.hasSurpassed(timeStampsBuffer.peekLast().longValue())) {
+            !logMonitor.hasSurpassed(timeStampsBuffer.peekLast().getMillis())) {
           try {
             Thread.sleep(200);
           } catch (final InterruptedException e) {
@@ -495,6 +496,22 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
           }
         }
         checkConsistency();
+      }
+    }
+
+    @AutoValue
+    abstract static class TimeStamp {
+
+      abstract long getMillis();
+
+      abstract long getNanos();
+
+      static TimeStamp now() {
+        return create(System.currentTimeMillis(), System.nanoTime());
+      }
+
+      static TimeStamp create(long millis, long nanos) {
+        return new AutoValue_RealtimeModel_Realtime_TimeStamp(millis, nanos);
       }
     }
   }

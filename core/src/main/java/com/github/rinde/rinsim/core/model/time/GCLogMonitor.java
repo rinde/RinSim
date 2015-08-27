@@ -43,7 +43,6 @@ import com.google.common.primitives.Doubles;
  */
 public final class GCLogMonitor {
   static final long S_TO_NS = 1000000000L;
-  static final long MS_TO_NS = 1000000L;
   static final long HISTORY_LENGTH = 30 * S_TO_NS;
   static final long LOG_PARSER_DELAY = 200L;
   static final int QUEUE_EXPECTED_SIZE = 50;
@@ -55,7 +54,7 @@ public final class GCLogMonitor {
   @Nullable
   private static volatile GCLogMonitor instance;
 
-  final long startTimeNS;
+  final long startTimeMillis;
   final Deque<PauseTime> pauseTimes;
   final Tailer tailer;
 
@@ -88,8 +87,7 @@ public final class GCLogMonitor {
     thread.start();
 
     pauseTimes = Queues.synchronizedDeque(new LinkedList<PauseTime>());
-    startTimeNS =
-        ManagementFactory.getRuntimeMXBean().getStartTime() * MS_TO_NS;
+    startTimeMillis = ManagementFactory.getRuntimeMXBean().getStartTime();
   }
 
   private void close() {
@@ -103,35 +101,38 @@ public final class GCLogMonitor {
 
   /**
    * Checks whether a log entry with the specified time (obtained from
-   * {@link System#nanoTime()}) or a later time exists in the log.
-   * @param timeNs The time in nanoseconds.
+   * {@link System#currentTimeMillis()}) or a later time exists in the log.
+   * @param timeMillis The time in milliseconds.
    * @return <code>true</code> if there is a log entry later than or equal to
    *         the specified time, <code>false</code> otherwise.
    */
-  public boolean hasSurpassed(long timeNs) {
+  public boolean hasSurpassed(long timeMillis) {
     return !pauseTimes.isEmpty()
-        && pauseTimes.peekLast().getTime() - (timeNs - startTimeNS) >= 0;
+        && pauseTimes.peekLast().getTime()
+            - (timeMillis - startTimeMillis) >= 0;
   }
 
   /**
-   * Computes the pause time (aka stop-the-world time) in the specified closed
-   * interval <code>[ts1,ts2]</code>. These pause times can be caused by the GC,
-   * JIT compiler, etc.
+   * Computes the pause duration (aka stop-the-world time) in the specified
+   * closed interval <code>[ts1,ts2]</code>. These pause times can be caused by
+   * the GC, JIT compiler, etc.
    * @param ts1 The start of the interval (inclusive) must be a time obtained
-   *          via {@link System#nanoTime()} since the startup of the VM.
+   *          via {@link System#currentTimeMillis()} since the startup of the
+   *          VM.
    * @param ts2 The end of the interval (inclusive) must be &gt;
    *          <code>ts1</code>.
-   * @return The accumulated duration of pause time in the specified interval.
+   * @return The accumulated duration of pause time (in ns) in the specified
+   *         interval.
    * @throws IllegalArgumentException If an illegal interval is specified.
    */
   public long getPauseTimeInInterval(long ts1, long ts2) {
     // convert system times to vm lifetime
-    final long vmt1 = ts1 - startTimeNS;
-    final long vmt2 = ts2 - startTimeNS;
+    final long vmt1 = ts1 - startTimeMillis;
+    final long vmt2 = ts2 - startTimeMillis;
     checkArgument(vmt1 >= 0,
         "ts1 must indicate a system time (in ns) after the start of the VM, "
             + "VM was started at %sns, ts1 is %sns.",
-        startTimeNS, ts1);
+        startTimeMillis, ts1);
     checkArgument(vmt2 > vmt1, "ts2 must indicate a system time (in ns) after "
         + "ts1, ts1 %sns, ts2 %sns.", ts1, ts2);
     long duration = 0;

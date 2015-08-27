@@ -95,7 +95,7 @@ public class GCLogMonitorTest {
       assertThat(it.hasNext()).isFalse();
     }
 
-    final long st = monitor.startTimeNS;
+    final long st = monitor.startTimeMillis;
 
     assertThat(monitor.hasSurpassed(st)).isTrue();
     assertThat(monitor.hasSurpassed(st + 1000000000)).isTrue();
