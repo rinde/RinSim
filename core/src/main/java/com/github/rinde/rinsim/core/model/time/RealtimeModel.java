@@ -37,6 +37,8 @@ import javax.annotation.Nullable;
 import javax.measure.Measure;
 import javax.measure.unit.SI;
 
+import net.openhft.affinity.AffinityLock;
+
 import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 
@@ -52,8 +54,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableScheduledFuture;
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-
-import net.openhft.affinity.AffinityLock;
 
 /**
  * @author Rinde van Lon
@@ -435,17 +435,32 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         while (timeStamps.size() > 1) {
           final long ts1 = timeStamps.removeFirst();
           final long ts2 = timeStamps.peekFirst();
-          checkState(ts1 < ts2);
+          long interArrivalTime = ts2 - ts1;
+          checkState(interArrivalTime > 0);
 
           // compute correction in interval of [ts1, ts2)
           final long correction = GCLogMonitor.getInstance()
               .getPauseTimeInInterval(ts1, ts2);
           // System.out.println("correction: " + correction);
-          final long interArrivalTime = ts2 - ts1 - correction;
+
           if (interArrivalTime >= maxTickDuration) {
+            // the max is taken because the correction can be too big in certain
+            // situations. Example: if GC took 1500ms, tick size is 1000ms then
+            // the actual inter arrival time is probably in the range
+            // 1500-1600ms. If you apply the correction directly, the inter
+            // arrival time would be incorrectly low, therefore we make sure
+            // that the corrected inter arrival time cannot be lower than the
+            // tick length.
+
+            interArrivalTime =
+                Math.max(interArrivalTime - correction, tickNanoSeconds);
+          }
+          if (interArrivalTime >= maxTickDuration
+              || interArrivalTime <= 800000000) {
             throw new IllegalStateException(interArrivalTime
-                + " is too much (limit: " + maxTickDuration
-                + "). Dump: " + context.printTLDump());
+                + " is invalid (limit: " + maxTickDuration
+                + ", correction: " + correction + "). Dump: "
+                + context.printTLDump());
           }
           interArrivalTimes.add(interArrivalTime);
         }

@@ -15,10 +15,13 @@
  */
 package com.github.rinde.rinsim.core.model.time;
 
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Verify.verifyNotNull;
 
 import java.io.File;
 import java.lang.management.ManagementFactory;
+import java.util.Deque;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 import javax.annotation.Nullable;
 
@@ -27,8 +30,6 @@ import org.apache.commons.io.input.TailerListenerAdapter;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ComparisonChain;
-import com.google.common.collect.MinMaxPriorityQueue;
-import com.google.common.collect.Ordering;
 import com.google.common.primitives.Doubles;
 
 /**
@@ -46,20 +47,16 @@ public final class GCLogMonitor {
   @Nullable
   private static volatile GCLogMonitor instance;
 
-  Accumulator accum;
-  long total;
+  LogListener accum;
   long startTimeNS;
 
-  MinMaxPriorityQueue<PauseTime> pauseTimes;
+  Deque<PauseTime> pauseTimes;
 
   GCLogMonitor() {
-    accum = new Accumulator();
+    accum = new LogListener();
     Tailer.create(new File("gclog.txt"), accum, LOG_PARSER_DELAY);
 
-    pauseTimes = MinMaxPriorityQueue.orderedBy(Ordering.natural().reverse())
-        .expectedSize(QUEUE_EXPECTED_SIZE)
-        .create();
-
+    pauseTimes = new ConcurrentLinkedDeque<>();
     startTimeNS = ManagementFactory.getRuntimeMXBean().getStartTime() * 1000000;
   }
 
@@ -70,47 +67,31 @@ public final class GCLogMonitor {
     return instance = new GCLogMonitor();
   }
 
-  long getNewPauseTimes() {
-    return total;
-  }
-
-  // should return pause time in interval [start,end)
-  long getPauseTimeInLast(long ns) {
-    final long uptime =
-        ManagementFactory.getRuntimeMXBean().getUptime() * S_TO_NS;
-    final long until = uptime - ns;
-
-    long duration = 0;
-    for (final PauseTime pt : pauseTimes) {
-      if (pt.getTime() < until) {
-        break;
-      }
-      duration += pt.getDuration();
-    }
-    return duration;
-  }
-
   boolean hasSurpassed(long timeNs) {
     return !pauseTimes.isEmpty()
-        && pauseTimes.peekFirst().getTime() > timeNs - startTimeNS;
+        && pauseTimes.peekLast().getTime() > timeNs - startTimeNS;
   }
 
   long getPauseTimeInInterval(long ts1, long ts2) {
     final long vmt1 = ts1 - startTimeNS;
     final long vmt2 = ts2 - startTimeNS;
     long duration = 0;
+
+    // iterator starts with oldest times
     for (final PauseTime pt : pauseTimes) {
-      if (pt.getTime() > vmt1 && pt.getTime() < vmt2) {
+      if (vmt2 > pt.getTime()) {
         break;
       }
-      duration += pt.getDuration();
+      if (vmt1 > pt.getTime()) {
+        duration += pt.getDuration();
+      }
     }
     return duration;
   }
 
-  class Accumulator extends TailerListenerAdapter {
+  class LogListener extends TailerListenerAdapter {
 
-    Accumulator() {}
+    LogListener() {}
 
     @Override
     public void handle(@Nullable String line) {
@@ -132,10 +113,14 @@ public final class GCLogMonitor {
         }
         final long duration = (long) (S_TO_NS * d);
 
+        checkState(pauseTimes.peekLast().getTime() <= time,
+            "Time inconsistency detected in the gc log.");
+        // add new info at the back
         pauseTimes.add(PauseTime.create(time, duration));
 
-        while (time - pauseTimes.peekLast().getTime() > HISTORY_LENGTH) {
-          pauseTimes.pollLast();
+        // remove old info at the front
+        while (time - pauseTimes.peekFirst().getTime() > HISTORY_LENGTH) {
+          pauseTimes.pollFirst();
         }
         // System.out.println("queue size: " + pauseTimes.size());
       }
