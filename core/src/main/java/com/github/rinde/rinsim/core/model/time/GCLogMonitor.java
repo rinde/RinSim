@@ -15,13 +15,16 @@
  */
 package com.github.rinde.rinsim.core.model.time;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Verify.verifyNotNull;
 
 import java.io.File;
 import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 import java.util.Deque;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.annotation.Nullable;
 
@@ -29,7 +32,9 @@ import org.apache.commons.io.input.Tailer;
 import org.apache.commons.io.input.TailerListenerAdapter;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ComparisonChain;
+import com.google.common.collect.Queues;
 import com.google.common.primitives.Doubles;
 
 /**
@@ -38,55 +43,136 @@ import com.google.common.primitives.Doubles;
  */
 public final class GCLogMonitor {
   static final long S_TO_NS = 1000000000L;
+  static final long MS_TO_NS = 1000000L;
   static final long HISTORY_LENGTH = 30 * S_TO_NS;
   static final long LOG_PARSER_DELAY = 200L;
   static final int QUEUE_EXPECTED_SIZE = 50;
   static final String FILTER =
       "Total time for which application threads were stopped";
+  static final String PRINT_ARG = "-XX:+PrintGCApplicationStoppedTime";
+  static final String LOG_ARG = "-Xloggc:";
 
   @Nullable
   private static volatile GCLogMonitor instance;
 
-  LogListener accum;
-  long startTimeNS;
+  final long startTimeNS;
+  final Deque<PauseTime> pauseTimes;
+  final Tailer tailer;
 
-  Deque<PauseTime> pauseTimes;
+  GCLogMonitor(@Nullable String path) {
+    final String logPath;
+    if (path == null) {
+      final RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
+      final List<String> arguments = runtimeMxBean.getInputArguments();
 
-  GCLogMonitor() {
-    accum = new LogListener();
-    Tailer.create(new File("gclog.txt"), accum, LOG_PARSER_DELAY);
+      String providedLogFile = null;
+      boolean foundPrintArg = false;
+      for (final String arg : arguments) {
+        if (arg.startsWith(LOG_ARG)) {
+          providedLogFile = arg.substring(LOG_ARG.length());
+        } else if (arg.equals(PRINT_ARG)) {
+          foundPrintArg = true;
+        }
+      }
+      checkArgument(providedLogFile != null && foundPrintArg,
+          "Expected VM arguments: '%s<somefile> %s' but found '%s'.", LOG_ARG,
+          PRINT_ARG, arguments);
 
-    pauseTimes = new ConcurrentLinkedDeque<>();
-    startTimeNS = ManagementFactory.getRuntimeMXBean().getStartTime() * 1000000;
-  }
-
-  public static GCLogMonitor getInstance() {
-    if (instance != null) {
-      return instance;
+      logPath = providedLogFile;
+    } else {
+      logPath = path;
     }
-    return instance = new GCLogMonitor();
+    tailer = new Tailer(new File(logPath), new LogListener(), LOG_PARSER_DELAY);
+    final Thread thread = new Thread(tailer, "gclog-tailer");
+    thread.setDaemon(true);
+    thread.start();
+
+    pauseTimes = Queues.synchronizedDeque(new LinkedList<PauseTime>());
+    startTimeNS =
+        ManagementFactory.getRuntimeMXBean().getStartTime() * MS_TO_NS;
   }
 
-  boolean hasSurpassed(long timeNs) {
+  private void close() {
+    tailer.stop();
+    try {
+      Thread.sleep(LOG_PARSER_DELAY);
+    } catch (final InterruptedException e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
+  /**
+   * Checks whether a log entry with the specified time (obtained from
+   * {@link System#nanoTime()}) or a later time exists in the log.
+   * @param timeNs The time in nanoseconds.
+   * @return <code>true</code> if there is a log entry later than or equal to
+   *         the specified time, <code>false</code> otherwise.
+   */
+  public boolean hasSurpassed(long timeNs) {
     return !pauseTimes.isEmpty()
-        && pauseTimes.peekLast().getTime() > timeNs - startTimeNS;
+        && pauseTimes.peekLast().getTime() - (timeNs - startTimeNS) >= 0;
   }
 
-  long getPauseTimeInInterval(long ts1, long ts2) {
+  /**
+   * Computes the pause time (aka stop-the-world time) in the specified closed
+   * interval <code>[ts1,ts2]</code>. These pause times can be caused by the GC,
+   * JIT compiler, etc.
+   * @param ts1 The start of the interval (inclusive) must be a time obtained
+   *          via {@link System#nanoTime()} since the startup of the VM.
+   * @param ts2 The end of the interval (inclusive) must be &gt;
+   *          <code>ts1</code>.
+   * @return The accumulated duration of pause time in the specified interval.
+   * @throws IllegalArgumentException If an illegal interval is specified.
+   */
+  public long getPauseTimeInInterval(long ts1, long ts2) {
+    // convert system times to vm lifetime
     final long vmt1 = ts1 - startTimeNS;
     final long vmt2 = ts2 - startTimeNS;
+    checkArgument(vmt1 >= 0,
+        "ts1 must indicate a system time (in ns) after the start of the VM, "
+            + "VM was started at %sns, ts1 is %sns.",
+        startTimeNS, ts1);
+    checkArgument(vmt2 > vmt1, "ts2 must indicate a system time (in ns) after "
+        + "ts1, ts1 %sns, ts2 %sns.", ts1, ts2);
     long duration = 0;
-
     // iterator starts with oldest times
-    for (final PauseTime pt : pauseTimes) {
-      if (vmt2 > pt.getTime()) {
-        break;
-      }
-      if (vmt1 > pt.getTime()) {
-        duration += pt.getDuration();
+    synchronized (pauseTimes) {
+      for (final PauseTime pt : pauseTimes) {
+        // if vmt2 < pt time -> we are outside the interval, we can stop the
+        // loop
+        if (vmt2 - pt.getTime() < 0) {
+          break;
+        }
+        // if vmt1 <= pt time -> we are inside the interval, add the times to
+        // the duration
+        if (vmt1 - pt.getTime() <= 0) {
+          duration += pt.getDuration();
+        }
       }
     }
     return duration;
+  }
+
+  @SuppressWarnings("null")
+  public static GCLogMonitor getInstance() {
+    if (instance == null) {
+      synchronized (GCLogMonitor.class) {
+        if (instance == null) {
+          return instance = new GCLogMonitor(null);
+        }
+      }
+    }
+    return instance;
+  }
+
+  @VisibleForTesting
+  static void createInstance(@Nullable String path) {
+    synchronized (GCLogMonitor.class) {
+      if (instance != null) {
+        instance.close();
+      }
+      instance = new GCLogMonitor(path);
+    }
   }
 
   class LogListener extends TailerListenerAdapter {
@@ -98,23 +184,21 @@ public final class GCLogMonitor {
       if (line != null && line.contains(FILTER)) {
         final String[] parts = line.split(": ");
 
-        // System.out.println(parts[0] + " " + parts[2]);
-
         final Double t = Doubles.tryParse(parts[0]);
         if (t == null) {
           return;
         }
         final long time = (long) (S_TO_NS * t);
-
         final Double d =
             Doubles.tryParse(parts[2].substring(0, parts[2].length() - 8));
         if (d == null) {
           return;
         }
         final long duration = (long) (S_TO_NS * d);
-
-        checkState(pauseTimes.peekLast().getTime() <= time,
-            "Time inconsistency detected in the gc log.");
+        if (!pauseTimes.isEmpty()) {
+          checkState(pauseTimes.peekLast().getTime() <= time,
+              "Time inconsistency detected in the gc log.");
+        }
         // add new info at the back
         pauseTimes.add(PauseTime.create(time, duration));
 
@@ -122,8 +206,15 @@ public final class GCLogMonitor {
         while (time - pauseTimes.peekFirst().getTime() > HISTORY_LENGTH) {
           pauseTimes.pollFirst();
         }
-        // System.out.println("queue size: " + pauseTimes.size());
       }
+    }
+
+    @Override
+    public void handle(@SuppressWarnings("null") Exception e) {
+      if (e instanceof RuntimeException) {
+        throw (RuntimeException) e;
+      }
+      throw new IllegalStateException(e);
     }
   }
 

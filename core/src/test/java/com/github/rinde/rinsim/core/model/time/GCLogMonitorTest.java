@@ -1,15 +1,13 @@
 package com.github.rinde.rinsim.core.model.time;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
+import static com.google.common.truth.Truth.assertThat;
+
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.lang.management.ManagementFactory;
-import java.lang.management.RuntimeMXBean;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
+import java.nio.file.StandardOpenOption;
+import java.util.Iterator;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -17,10 +15,14 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.github.rinde.rinsim.core.model.time.GCLogMonitor.PauseTime;
+import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableSet;
+
 public class GCLogMonitorTest {
   static Path tempDir;
   Path gclog;
-  PrintWriter log;
+  GCLogMonitor monitor;
 
   @BeforeClass
   public static void setUpClass() {
@@ -45,16 +47,16 @@ public class GCLogMonitorTest {
     try {
       gclog =
           Files.createFile(Paths.get(tempDir.toString(), "gclog.txt"));
-      log = new PrintWriter(
-          new BufferedWriter(new FileWriter(gclog.toFile(), true)));
     } catch (final IOException e) {
       throw new IllegalStateException(e);
     }
+    GCLogMonitor.createInstance(gclog.toString());
+
+    monitor = GCLogMonitor.getInstance();
   }
 
   @After
   public void tearDown() {
-    log.close();
     try {
       Files.delete(gclog);
     } catch (final IOException e) {
@@ -63,13 +65,91 @@ public class GCLogMonitorTest {
   }
 
   @Test
+  public void testFail() {
+    boolean fail = false;
+    try {
+      GCLogMonitor.createInstance(null);
+    } catch (final IllegalArgumentException e) {
+      assertThat(e.getMessage()).contains("Expected VM arguments: ");
+      fail = true;
+    }
+    assertThat(fail).isTrue();
+  }
+
+  @Test
   public void test() {
-    final RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
-    final List<String> arguments = runtimeMxBean.getInputArguments();
+    log(1, 8);
+    log(2, 0.0001);
+    try {
+      Thread.sleep(250);
+    } catch (final InterruptedException e) {
+      throw new IllegalStateException(e);
+    }
+    GCLogMonitor.getInstance();
+    synchronized (monitor.pauseTimes) {
+      final Iterator<PauseTime> it = monitor.pauseTimes.iterator();
+      assertThat(it.next())
+          .isEqualTo(PauseTime.create(1000000000L, 8000000000L));
+      assertThat(it.next())
+          .isEqualTo(PauseTime.create(2000000000L, 100000L));
+      assertThat(it.hasNext()).isFalse();
+    }
 
-    System.out.println(arguments);
+    final long st = monitor.startTimeNS;
 
-    // GCLogMonitor.getInstance()
+    assertThat(monitor.hasSurpassed(st)).isTrue();
+    assertThat(monitor.hasSurpassed(st + 1000000000)).isTrue();
+    assertThat(monitor.hasSurpassed(st + 2000000000)).isTrue();
+    assertThat(monitor.hasSurpassed(st + 2000000001)).isFalse();
 
+    assertThat(monitor.getPauseTimeInInterval(st, st + 2000000000))
+        .isEqualTo(8000100000L);
+    assertThat(monitor.getPauseTimeInInterval(st, st + 1))
+        .isEqualTo(0L);
+    assertThat(monitor.getPauseTimeInInterval(st + s(1), st + s(2)))
+        .isEqualTo(8000100000L);
+    assertThat(monitor.getPauseTimeInInterval(st + s(1) + 1, st + s(2) - 1))
+        .isEqualTo(0L);
+    assertThat(monitor.getPauseTimeInInterval(st + s(1), st + s(2) - 1))
+        .isEqualTo(8000000000L);
+    assertThat(monitor.getPauseTimeInInterval(st + s(1) + 1, st + s(2)))
+        .isEqualTo(100000L);
+    assertThat(monitor.getPauseTimeInInterval(st + s(2) + 1, st + s(2) + 3))
+        .isEqualTo(0L);
+
+    boolean fail = false;
+    try {
+      monitor.getPauseTimeInInterval(st - 1, st);
+    } catch (final IllegalArgumentException e) {
+      fail = true;
+      assertThat(e.getMessage()).contains(
+          "ts1 must indicate a system time (in ns) after the start of the VM");
+    }
+    assertThat(fail).isTrue();
+
+    fail = false;
+    try {
+      monitor.getPauseTimeInInterval(st + 100, st + 10);
+    } catch (final IllegalArgumentException e) {
+      fail = true;
+      assertThat(e.getMessage())
+          .contains("ts2 must indicate a system time (in ns) after ts1");
+    }
+    assertThat(fail).isTrue();
+  }
+
+  static long s(long ns) {
+    return ns * 1000000000;
+  }
+
+  void log(double time, double duration) {
+    final String line =
+        time + ": " + GCLogMonitor.FILTER + ": " + duration + " seconds";
+    try {
+      Files.write(gclog, ImmutableSet.of(line), Charsets.UTF_8,
+          StandardOpenOption.APPEND);
+    } catch (final IOException e) {
+      throw new IllegalStateException(e);
+    }
   }
 }
