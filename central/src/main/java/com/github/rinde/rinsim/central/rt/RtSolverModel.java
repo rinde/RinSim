@@ -21,11 +21,13 @@ import static com.google.common.base.Preconditions.checkState;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.CheckReturnValue;
+import javax.annotation.Nullable;
 
 import com.github.rinde.rinsim.central.Solver;
 import com.github.rinde.rinsim.central.Solvers;
@@ -55,6 +57,9 @@ import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 
@@ -448,12 +453,31 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
         eventDispatcher.dispatchEvent(new Event(
             RtSimSolverSchedulerImpl.EventType.START_COMPUTING, reference));
         final StateContext sc = converter.convert(args);
-        executor.submit(new Runnable() {
+        final ListenableFuture<?> fut = executor.submit(new Runnable() {
           @Override
           public void run() {
             solver.receiveSnapshot(sc.state);
           }
         });
+        // catch and re-throw any exception occurring during the invocation
+        Futures.addCallback(fut, new FutureCallback<Object>() {
+          @Override
+          public void onSuccess(@Nullable Object result) {}
+
+          @Override
+          public void onFailure(Throwable t) {
+            if (t instanceof CancellationException) {
+              return;
+            }
+            if (t instanceof RuntimeException) {
+              throw (RuntimeException) t;
+            } else if (t instanceof Error) {
+              throw (Error) t;
+            }
+            throw new IllegalStateException(t);
+          }
+        });
+
       }
 
       @Override
