@@ -60,6 +60,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedHashMultiset;
 import com.google.common.collect.Multiset;
+import com.google.common.collect.Sets;
 import com.google.common.math.DoubleMath;
 
 /**
@@ -123,22 +124,36 @@ public class RouteFollowingVehicle extends Vehicle {
 
   private Optional<Measure<Double, Velocity>> speed;
   private final boolean allowDelayedRouteChanges;
+  private final RouteAdjuster routeAdjuster;
 
   /**
    * Initializes the vehicle.
-   * @param pDto The {@link VehicleDTO} that defines this vehicle.
+   * @param dto The {@link VehicleDTO} that defines this vehicle.
    * @param allowDelayedRouteChanging This boolean changes the behavior of the
    *          {@link #setRoute(Iterable)} method.
    */
-  public RouteFollowingVehicle(VehicleDTO pDto,
+  public RouteFollowingVehicle(VehicleDTO dto,
       boolean allowDelayedRouteChanging) {
-    super(pDto);
+    this(dto, allowDelayedRouteChanging, RouteAdjusters.NOP);
+  }
+
+  /**
+   * Initializes the vehicle.
+   * @param dto The {@link VehicleDTO} that defines this vehicle.
+   * @param allowDelayedRouteChanging This boolean changes the behavior of the
+   *          {@link #setRoute(Iterable)} method.
+   * @param adjuster
+   */
+  public RouteFollowingVehicle(VehicleDTO dto,
+      boolean allowDelayedRouteChanging, RouteAdjuster adjuster) {
+    super(dto);
     depot = Optional.absent();
     speed = Optional.absent();
     route = newLinkedList();
     newRoute = Optional.absent();
     currentTime = Optional.absent();
     allowDelayedRouteChanges = allowDelayedRouteChanging;
+    routeAdjuster = adjuster;
 
     stateMachine = createStateMachine();
     waitState = stateMachine.getStateOfType(Wait.class);
@@ -210,25 +225,25 @@ public class RouteFollowingVehicle extends Vehicle {
    *          {@link Iterable} using its iteration order.
    */
   public void setRoute(Iterable<? extends Parcel> r) {
+    final Iterable<Parcel> adjustedRoute = routeAdjuster.adjust(r, this);
+
     // note: the following checks can not detect if a parcel has been set to
     // multiple vehicles at the same time
-
-    final Multiset<Parcel> routeSet = LinkedHashMultiset.create(r);
-
+    final Multiset<Parcel> routeSet = LinkedHashMultiset.create(adjustedRoute);
     for (final Parcel dp : routeSet.elementSet()) {
       final ParcelState state = getPDPModel().getParcelState(dp);
       checkArgument(
         !state.isDelivered(),
         "A parcel that is already delivered can not be part of a route. "
             + "Parcel %s in route %s.",
-        dp, r);
+        dp, adjustedRoute);
       if (state.isTransitionState()) {
         if (state == ParcelState.PICKING_UP) {
           checkArgument(
             getPDPModel().getVehicleState(this) == VehicleState.PICKING_UP,
             "When a parcel in the route is in PICKING UP state the vehicle "
                 + "must also be in that state, route: %s.",
-            r);
+            adjustedRoute);
         } else {
           checkArgument(
             getPDPModel().getVehicleState(this) == VehicleState.DELIVERING,
@@ -257,11 +272,11 @@ public class RouteFollowingVehicle extends Vehicle {
           frequency <= 2,
           "A parcel that is available may not occur more than twice in a "
               + "route, found %s instance(s) of %s (with state %s). Route: %s.",
-          frequency, dp, state, r);
+          frequency, dp, state, adjustedRoute);
       }
     }
 
-    final boolean firstEqualsFirst = firstEqualsFirstInRoute(r);
+    final boolean firstEqualsFirst = firstEqualsFirstInRoute(adjustedRoute);
     final boolean divertable = isDiversionAllowed
         && !stateMachine.stateIs(serviceState);
 
@@ -269,15 +284,15 @@ public class RouteFollowingVehicle extends Vehicle {
         || route.isEmpty()
         || divertable
         || firstEqualsFirst) {
-      route = newLinkedList(r);
+      route = newLinkedList(adjustedRoute);
       newRoute = Optional.absent();
     } else {
       checkArgument(
         allowDelayedRouteChanges,
-        "Diversion is not allowed and delayed route changes are also not "
-            + "allowed, rejected route: %s.",
-        r);
-      newRoute = Optional.of(newLinkedList(r));
+        "Diversion is not allowed in current state and delayed route changes "
+            + "are also not allowed, rejected route: %s.",
+        adjustedRoute);
+      newRoute = Optional.of(newLinkedList(adjustedRoute));
     }
   }
 
@@ -308,33 +323,47 @@ public class RouteFollowingVehicle extends Vehicle {
    * @param r The route to set. The elements are copied from the
    *          {@link Iterable} using its iteration order.
    */
-  public void setRouteSafe(Iterable<Parcel> r) {
-    final List<Parcel> routeList = newArrayList(r);
-    final Multiset<Parcel> routeSet = LinkedHashMultiset.create(r);
-
-    for (final Parcel p : routeSet.elementSet()) {
-      final ParcelState state = getPDPModel().getParcelState(p);
-      if (state.isDelivered()) {
-        // remove all occurrences
-        routeList.removeAll(Collections.singleton(p));
-      } else if (state.isPickedUp()) {
-        // in this case the parcel is either: IN_CARGO or DELIVERING
-        if (!getPDPModel().getContents(this).contains(p)) {
-          // if we don't carry the parcel it must have been picked up by someone
-          // else, remove it from our route
-          routeList.removeAll(Collections.singleton(p));
-        } else if (routeSet.count(p) == 2) {
-          // in this case it is in cargo and it occurs twice in our route
-          // (which is one too many), therefore first occurrence is removed
-          routeList.remove(p);
-        }
-      } else if (state == ParcelState.PICKING_UP && !isPickingUp(p)) {
-        // in this case the parcel is being picked up by another vehicle
-        routeList.removeAll(Collections.singleton(p));
-      }
-    }
-    setRoute(routeList);
-  }
+  // public void setRouteSafe(Iterable<Parcel> r) {
+  // final List<Parcel> routeList = newArrayList(r);
+  // final Multiset<Parcel> routeSet = LinkedHashMultiset.create(r);
+  //
+  // // removals
+  // for (final Parcel p : routeSet.elementSet()) {
+  // final ParcelState state = getPDPModel().getParcelState(p);
+  // if (state.isDelivered()) {
+  // // remove all occurrences
+  // routeList.removeAll(Collections.singleton(p));
+  // } else if (state.isPickedUp()) {
+  // // in this case the parcel is either: IN_CARGO or DELIVERING
+  // if (!getPDPModel().getContents(this).contains(p)) {
+  // // if we don't carry the parcel it must have been picked up by someone
+  // // else, remove it from our route
+  // routeList.removeAll(Collections.singleton(p));
+  // } else if (routeSet.count(p) == 2) {
+  // // in this case it is in cargo and it occurs twice in our route
+  // // (which is one too many), therefore first occurrence is removed
+  // routeList.remove(p);
+  // }
+  // } else if (state == ParcelState.PICKING_UP && !isPickingUp(p)) {
+  // // in this case the parcel is being picked up by another vehicle
+  // routeList.removeAll(Collections.singleton(p));
+  // // } else {
+  // // // in this case the parcel has not been picked up, it should occur
+  // // twice
+  // // checkArgument(routeSet.count(p) == 2, "Specified route is incomplete,
+  // // "
+  // // + "%s with state %s occurs only %s time(s), it should occur twice. ",
+  // // p, state, routeSet.count(p));
+  // }
+  // }
+  //
+  // // additions
+  // // loop through cargo, add all parcels that are not in the list
+  // final Set<Parcel> contents = getPDPModel().getContents(this);
+  // routeList.addAll(Sets.difference(contents, routeSet.elementSet()));
+  //
+  // setRoute(routeList);
+  // }
 
   boolean isPickingUp(Parcel p) {
     return getPDPModel().getVehicleState(this) == VehicleState.PICKING_UP
@@ -597,7 +626,7 @@ public class RouteFollowingVehicle extends Vehicle {
         checkArgument(isDiversionAllowed);
       }
       if (context.newRoute.isPresent()) {
-        context.setRouteSafe(context.newRoute.get());
+        context.setRoute(context.newRoute.get());
       }
     }
 
@@ -777,6 +806,78 @@ public class RouteFollowingVehicle extends Vehicle {
         return DefaultEvent.DONE;
       }
       return null;
+    }
+  }
+
+  interface RouteAdjuster {
+    Iterable<Parcel> adjust(Iterable<? extends Parcel> route,
+        RouteFollowingVehicle vehicle);
+  }
+
+  public static RouteAdjuster delayAdjuster() {
+    return RouteAdjusters.DELAY_ADJUSTER;
+  }
+
+  enum RouteAdjusters implements RouteAdjuster {
+    NOP {
+      @SuppressWarnings("unchecked")
+      @Override
+      public Iterable<Parcel> adjust(Iterable<? extends Parcel> route,
+          RouteFollowingVehicle vehicle) {
+        return (Iterable<Parcel>) route;
+      }
+    },
+
+    DELAY_ADJUSTER {
+      @SuppressWarnings("synthetic-access")
+      @Override
+      public Iterable<Parcel> adjust(Iterable<? extends Parcel> route,
+          RouteFollowingVehicle vehicle) {
+        final List<Parcel> routeList = newArrayList(route);
+        final Multiset<Parcel> routeSet = LinkedHashMultiset.create(route);
+
+        // removals
+        for (final Parcel p : routeSet.elementSet()) {
+          final ParcelState state = vehicle.getPDPModel().getParcelState(p);
+          if (state.isDelivered()) {
+            // remove all occurrences
+            routeList.removeAll(Collections.singleton(p));
+          } else if (state.isPickedUp()) {
+            // in this case the parcel is either: IN_CARGO or DELIVERING
+            if (!vehicle.getPDPModel().getContents(vehicle).contains(p)) {
+              // if we don't carry the parcel it must have been picked up by
+              // someone
+              // else, remove it from our route
+              routeList.removeAll(Collections.singleton(p));
+            } else if (routeSet.count(p) == 2) {
+              // in this case it is in cargo and it occurs twice in our route
+              // (which is one too many), therefore first occurrence is removed
+              routeList.remove(p);
+            }
+          } else
+            if (state == ParcelState.PICKING_UP && !vehicle.isPickingUp(p)) {
+            // in this case the parcel is being picked up by another vehicle
+            routeList.removeAll(Collections.singleton(p));
+            // } else {
+            // // in this case the parcel has not been picked up, it should
+            // occur
+            // twice
+            // checkArgument(routeSet.count(p) == 2, "Specified route is
+            // incomplete,
+            // "
+            // + "%s with state %s occurs only %s time(s), it should occur
+            // twice. ",
+            // p, state, routeSet.count(p));
+          }
+        }
+
+        // additions
+        // loop through cargo, add all parcels that are not in the list
+        final Set<Parcel> contents = vehicle.getPDPModel().getContents(vehicle);
+        routeList.addAll(Sets.difference(contents, routeSet.elementSet()));
+        return routeList;
+      }
+
     }
   }
 }
