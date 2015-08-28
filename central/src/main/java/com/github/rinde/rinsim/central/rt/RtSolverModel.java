@@ -27,9 +27,6 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.CheckReturnValue;
 
-import net.openhft.affinity.AffinityStrategies;
-import net.openhft.affinity.AffinityThreadFactory;
-
 import com.github.rinde.rinsim.central.Solver;
 import com.github.rinde.rinsim.central.Solvers;
 import com.github.rinde.rinsim.central.Solvers.SimulationConverter;
@@ -60,6 +57,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
+
+import net.openhft.affinity.AffinityStrategies;
+import net.openhft.affinity.AffinityThreadFactory;
 
 /**
  * {@link RtSolverModel} allows other models and objects added to the simulator
@@ -217,7 +217,7 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
         threads = threadPoolSize;
       }
       executor = Optional.of(MoreExecutors.listeningDecorator(
-          Executors.newFixedThreadPool(threads, factory)));
+        Executors.newFixedThreadPool(threads, factory)));
     }
   }
 
@@ -320,7 +320,7 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
     SimSolversManager() {
       simSolvers = new LinkedHashSet<>();
       computingSimSolvers = Collections.synchronizedSet(
-          new LinkedHashSet<RtSimSolverSchedulerImpl>());
+        new LinkedHashSet<RtSimSolverSchedulerImpl>());
     }
 
     void register(RtSimSolverSchedulerImpl s) {
@@ -342,13 +342,16 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
         if (e.getEventType() == EventType.START_COMPUTING) {
           clock.switchToRealTime();
           computingSimSolvers.add((RtSimSolverSchedulerImpl) e.getIssuer());
-        } else {
+        } else if (e.getEventType() == EventType.DONE_COMPUTING) {
           // done computing
           checkState(computingSimSolvers.remove(e.getIssuer()),
-            "Internal error", computingSimSolvers, e.getIssuer());
+            "Internal error, computing: %s, all: %s, issuer: %s",
+            computingSimSolvers, e.getIssuer());
           if (!isComputing()) {
             clock.switchToSimulatedTime();
           }
+        } else {
+          throw new IllegalArgumentException("Unexpected event: " + e);
         }
       }
     }
@@ -480,7 +483,7 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
         currentSchedule = Optional.of(routes);
         isUpdated = true;
         simSolverEventDispatcher.dispatchEvent(
-            new Event(RtSimSolver.EventType.NEW_SCHEDULE, rtSimSolver));
+          new Event(RtSimSolver.EventType.NEW_SCHEDULE, rtSimSolver));
       }
 
       @Override
@@ -493,7 +496,7 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
       @Override
       public void doneForNow() {
         eventDispatcher.dispatchEvent(
-            new Event(EventType.DONE_COMPUTING, reference));
+          new Event(EventType.DONE_COMPUTING, reference));
       }
 
       @Override
