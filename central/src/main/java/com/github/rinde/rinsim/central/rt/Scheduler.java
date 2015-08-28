@@ -57,9 +57,10 @@ public abstract class Scheduler {
   public abstract void doneForNow();
 
   /**
-   * This method provides access to the shared listening service (thread pool)
-   * that is used by {@link RtSolverModel}. Since this executor service is
-   * shared, there are several rules that {@link RtSimSolver}s should adhere to:
+   * This method provides access to the shared listening executor service
+   * (thread pool) that is used by {@link RtSolverModel}. Since this executor
+   * service is shared, there are several rules that {@link RtSimSolver}s should
+   * adhere to:
    * <ul>
    * <li>Each {@link RtSimSolver} may have at most one job computing at the same
    * time. If that is not enough, you are allowed to spawn your own threads
