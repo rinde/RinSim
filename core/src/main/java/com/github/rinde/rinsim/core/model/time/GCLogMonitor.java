@@ -198,7 +198,9 @@ public final class GCLogMonitor {
         final long duration = (long) (S_TO_NS * d);
         if (!pauseTimes.isEmpty()) {
           checkState(pauseTimes.peekLast().getTime() <= time,
-              "Time inconsistency detected in the gc log.");
+              "Time inconsistency detected in the gc log. Last entry: %s, "
+                  + "new entry: %s.",
+              pauseTimes.peekLast().getTime(), time);
         }
         // add new info at the back
         pauseTimes.add(PauseTime.create(time, duration));
