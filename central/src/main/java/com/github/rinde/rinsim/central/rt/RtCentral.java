@@ -241,7 +241,8 @@ public final class RtCentral {
     INSTANCE {
       @Override
       public void handleTimedEvent(AddVehicleEvent event, SimulatorAPI sim) {
-        sim.register(new RouteFollowingVehicle(event.getVehicleDTO(), true));
+        sim.register(new RouteFollowingVehicle(event.getVehicleDTO(), true,
+            RouteFollowingVehicle.delayAdjuster()));
       }
 
       @Override
@@ -338,7 +339,7 @@ public final class RtCentral {
         final Iterator<ImmutableList<Parcel>> routes = schedule.iterator();
         boolean inconsistencyDetected = false;
         for (final RouteFollowingVehicle vehicle : vehicles) {
-          vehicle.setRouteSafe(routes.next());
+          vehicle.setRoute(routes.next());
 
           final Set<Parcel> contents = pdpModel.getContents(vehicle);
           final Set<Parcel> routeSet = newHashSet(vehicle.getRoute());
