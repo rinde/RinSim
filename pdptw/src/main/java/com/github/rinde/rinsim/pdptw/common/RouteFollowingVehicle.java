@@ -142,7 +142,7 @@ public class RouteFollowingVehicle extends Vehicle {
    * @param dto The {@link VehicleDTO} that defines this vehicle.
    * @param allowDelayedRouteChanging This boolean changes the behavior of the
    *          {@link #setRoute(Iterable)} method.
-   * @param adjuster
+   * @param adjuster TODO
    */
   public RouteFollowingVehicle(VehicleDTO dto,
       boolean allowDelayedRouteChanging, RouteAdjuster adjuster) {
@@ -210,9 +210,10 @@ public class RouteFollowingVehicle extends Vehicle {
    * immediately. If this is the case the route is changed the next time this
    * vehicle enters its {@link #waitState}. If
    * {@link #isDelayedRouteChangingAllowed()} is set to <code>false</code> any
-   * attempts to to this will result in a runtime exception, in this case the
-   * caller must ensure that a route is always changed immediately. The
-   * situations when the route is changed immediately are:
+   * attempts to do this will result in a runtime exception, in this case the
+   * caller must ensure that a route can be changed immediately or call this
+   * method at a later time. The situations when the route is changed
+   * immediately are:
    * <ul>
    * <li>If the vehicle is waiting.</li>
    * <li>If diversion is allowed and the vehicle is not currently servicing.
@@ -545,6 +546,10 @@ public class RouteFollowingVehicle extends Vehicle {
       getPDPModel().getParcelState(route.peek()));
   }
 
+  public static RouteAdjuster delayAdjuster() {
+    return RouteAdjusters.DELAY_ADJUSTER;
+  }
+
   /**
    * Marker interface for events. When defining new events simply implement this
    * interface.
@@ -814,27 +819,23 @@ public class RouteFollowingVehicle extends Vehicle {
         RouteFollowingVehicle vehicle);
   }
 
-  public static RouteAdjuster delayAdjuster() {
-    return RouteAdjusters.DELAY_ADJUSTER;
-  }
-
   enum RouteAdjusters implements RouteAdjuster {
     NOP {
       @SuppressWarnings("unchecked")
       @Override
-      public Iterable<Parcel> adjust(Iterable<? extends Parcel> route,
+      public Iterable<Parcel> adjust(Iterable<? extends Parcel> r,
           RouteFollowingVehicle vehicle) {
-        return (Iterable<Parcel>) route;
+        return (Iterable<Parcel>) r;
       }
     },
 
     DELAY_ADJUSTER {
       @SuppressWarnings("synthetic-access")
       @Override
-      public Iterable<Parcel> adjust(Iterable<? extends Parcel> route,
+      public Iterable<Parcel> adjust(Iterable<? extends Parcel> r,
           RouteFollowingVehicle vehicle) {
-        final List<Parcel> routeList = newArrayList(route);
-        final Multiset<Parcel> routeSet = LinkedHashMultiset.create(route);
+        final List<Parcel> routeList = newArrayList(r);
+        final Multiset<Parcel> routeSet = LinkedHashMultiset.create(r);
 
         // removals
         for (final Parcel p : routeSet.elementSet()) {
