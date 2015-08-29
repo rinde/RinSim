@@ -45,7 +45,7 @@ public final class PostProcessors {
         final StatisticsDTO stats =
             sim.getModelProvider().getModel(StatsTracker.class).getStatistics();
         checkState(args.getObjectiveFunction().isValidResult(stats),
-            "The simulation did not result in a valid result: %s, AimArgs: %s.",
+            "The simulation did not result in a valid result: %s, SimArgs: %s.",
             stats, args);
         return stats;
       }
@@ -53,7 +53,7 @@ public final class PostProcessors {
       @Override
       public FailureStrategy handleFailure(Exception e, Simulator sim,
           SimArgs args) {
-        return FailureStrategy.INCLUDE;
+        return FailureStrategy.ABORT_EXPERIMENT_RUN;
       }
 
       @Override
