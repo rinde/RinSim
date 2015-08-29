@@ -294,6 +294,8 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
   }
 
   static class Realtime extends AbstractClockState {
+    static final long MIN_TICK_DURATION = 800000000L;
+
     final long tickNanoSeconds;
     final double maxStdNs;
     final double maxMeanDeviationNs;
@@ -396,6 +398,9 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
     }
 
     class TimeRunner implements Runnable {
+
+      static final long THREAD_SLEEP = 200;
+
       final List<Long> interArrivalTimes;
       final LinkedList<TimeStamp> timeStamps;
       final LinkedList<TimeStamp> timeStampsBuffer;
@@ -427,8 +432,9 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         // + " " + interArrivalTimes.size());
         // check if GCLogMonitor has a time AFTER the timestamp (in that
         // case we are sure that we have complete information)
-        while (!timeStampsBuffer.isEmpty() &&
-            logMonitor.hasSurpassed(timeStampsBuffer.peekFirst().getNanos())) {
+        while (!timeStampsBuffer.isEmpty()
+            && logMonitor
+                .hasSurpassed(timeStampsBuffer.peekFirst().getNanos())) {
           // System.out.println("found one");
           timeStamps.add(timeStampsBuffer.removeFirst());
         }
@@ -457,7 +463,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
                 Math.max(interArrivalTime - correction, tickNanoSeconds);
           }
           if (interArrivalTime >= maxTickDuration
-              || interArrivalTime <= 800000000) {
+              || interArrivalTime <= MIN_TICK_DURATION) {
             throw new IllegalStateException(interArrivalTime
                 + " is invalid (limit: " + maxTickDuration
                 + ", correction: " + correction + "). Dump: "
@@ -487,10 +493,11 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
 
       // TODO is this needed?
       void awaitCorrectness() {
-        if (!timeStampsBuffer.isEmpty() &&
-            !logMonitor.hasSurpassed(timeStampsBuffer.peekLast().getMillis())) {
+        if (!timeStampsBuffer.isEmpty()
+            && !logMonitor
+                .hasSurpassed(timeStampsBuffer.peekLast().getMillis())) {
           try {
-            Thread.sleep(200);
+            Thread.sleep(THREAD_SLEEP);
           } catch (final InterruptedException e) {
             throw new IllegalStateException(e);
           }
