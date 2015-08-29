@@ -212,7 +212,11 @@ public class RtSolverModelTest {
 
     boolean fail = false;
     try {
-      model.tick(TimeLapseFactory.create(0, 1000));
+      while (true) {
+        // loop is needed because the solver may be executed at a slightly later
+        // time
+        model.tick(TimeLapseFactory.create(0, 1000));
+      }
     } catch (final IllegalArgumentException e) {
       assertThat(e.getMessage()).isEqualTo("This is a test");
       fail = true;
@@ -237,7 +241,7 @@ public class RtSolverModelTest {
     boolean fail = false;
     try {
       // loop is needed because the solver may be executed at a slightly later
-      // date
+      // time
       while (true) {
         model.tick(TimeLapseFactory.create(0, 1000));
       }
