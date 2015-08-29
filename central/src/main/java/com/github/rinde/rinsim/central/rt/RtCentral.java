@@ -408,30 +408,35 @@ public final class RtCentral {
         for (final Parcel p : routeSet.elementSet()) {
           final ParcelState parcelState = pdpModel.getParcelState(p);
 
-          // PICKING_UP, IN_CARGO -> needs to be in correct vehicle (just once)
-          if (parcelState == ParcelState.PICKING_UP
-              || parcelState == ParcelState.IN_CARGO) {
-
-            // check if parcel is in current vehicle
-            if (vehicleContents.contains(p)
-                || vehicleState == VehicleState.PICKING_UP
-                    && pdpModel.getVehicleActionInfo(vehicle)
-                        .getParcel().equals(p)) {
-              if (routeSet.count(p) == 2
-                  && parcelState == ParcelState.IN_CARGO) {
-                // remove first occurrence of parcel
+          if (parcelState == ParcelState.PICKING_UP) {
+            // PICKING_UP -> needs to be in correct vehicle
+            if (!(vehicleState == VehicleState.PICKING_UP
+                && pdpModel.getVehicleActionInfo(vehicle).getParcel()
+                    .equals(p))) {
+              // it is not being picked up by the current vehicle, remove from
+              // route
+              newSchedule.get(i).removeAll(Collections.singleton(p));
+            }
+          } else if (parcelState == ParcelState.IN_CARGO) {
+            // IN_CARGO -> may appear max once in schedule
+            if (vehicleContents.contains(p)) {
+              if (routeSet.count(p) == 2) {
+                // remove first occurrence of parcel, as it can only be visited
+                // once (for delivery)
                 newSchedule.get(i).remove(p);
               }
             } else {
-              // it belongs to someone else, so remove it from this vehicle's
-              // route
               newSchedule.get(i).removeAll(Collections.singleton(p));
             }
           } else if (parcelState == ParcelState.DELIVERING) {
             // DELIVERING -> may appear max once in schedule
-            if (routeSet.count(p) == 2) {
-              // removes the last occurrence
-              newSchedule.get(i).remove(newSchedule.get(i).lastIndexOf(p));
+            if (vehicleContents.contains(p)) {
+              if (routeSet.count(p) == 2) {
+                // removes the last occurrence
+                newSchedule.get(i).remove(newSchedule.get(i).lastIndexOf(p));
+              }
+            } else {
+              newSchedule.get(i).removeAll(Collections.singleton(p));
             }
           } else if (parcelState == ParcelState.DELIVERED) {
             // DELIVERED -> may not appear in schedule
