@@ -81,13 +81,13 @@ public final class GCLogMonitor {
     } else {
       logPath = path;
     }
+    pauseTimes = Queues.synchronizedDeque(new LinkedList<PauseTime>());
+    startTimeMillis = ManagementFactory.getRuntimeMXBean().getStartTime();
+
     tailer = new Tailer(new File(logPath), new LogListener(), LOG_PARSER_DELAY);
     final Thread thread = new Thread(tailer, "gclog-tailer");
     thread.setDaemon(true);
     thread.start();
-
-    pauseTimes = Queues.synchronizedDeque(new LinkedList<PauseTime>());
-    startTimeMillis = ManagementFactory.getRuntimeMXBean().getStartTime();
   }
 
   private void close() {
