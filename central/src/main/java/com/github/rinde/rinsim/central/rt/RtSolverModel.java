@@ -18,8 +18,10 @@ package com.github.rinde.rinsim.central.rt;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.Executors;
@@ -181,7 +183,9 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
   }
 
   @Override
-  public void tick(TimeLapse timeLapse) {}
+  public void tick(TimeLapse timeLapse) {
+    manager.checkExceptions();
+  }
 
   @Override
   public void afterTick(TimeLapse timeLapse) {
@@ -321,11 +325,25 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
   class SimSolversManager implements Listener {
     final Set<RtSimSolverSchedulerImpl> simSolvers;
     final Set<RtSimSolverSchedulerImpl> computingSimSolvers;
+    final List<Throwable> exceptions;
 
     SimSolversManager() {
       simSolvers = new LinkedHashSet<>();
       computingSimSolvers = Collections.synchronizedSet(
         new LinkedHashSet<RtSimSolverSchedulerImpl>());
+      exceptions = new ArrayList<>();
+    }
+
+    void checkExceptions() {
+      if (!exceptions.isEmpty()) {
+        executor.get().shutdownNow();
+        if (exceptions.get(0) instanceof RuntimeException) {
+          throw (RuntimeException) exceptions.get(0);
+        } else if (exceptions.get(0) instanceof Error) {
+          throw (Error) exceptions.get(0);
+        }
+        throw new IllegalStateException(exceptions.get(0));
+      }
     }
 
     void register(RtSimSolverSchedulerImpl s) {
@@ -360,6 +378,10 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
         }
       }
     }
+
+    void addException(Throwable t) {
+      exceptions.add(t);
+    }
   }
 
   class RtSimSolverBuilderImpl extends RtSimSolverBuilder {
@@ -386,8 +408,8 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
       }
       final RtSimSolverSchedulerImpl s =
         new RtSimSolverSchedulerImpl(clock, solver, roadModel, pdpModel,
-            associatedVehicles, executor.get());
-      manager.register(s);
+            associatedVehicles, executor.get(), manager);
+
       return s.rtSimSolver;
     }
 
@@ -407,12 +429,13 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
     final RtSimSolver rtSimSolver;
     final Scheduler scheduler;
     final RtSimSolverSchedulerImpl reference;
+    final SimSolversManager simSolversManager;
     Optional<ImmutableList<ImmutableList<Parcel>>> currentSchedule;
     boolean isUpdated;
 
     RtSimSolverSchedulerImpl(RealtimeClockController c, RealtimeSolver s,
         PDPRoadModel rm, PDPModel pm, Set<Vehicle> vehicles,
-        ListeningExecutorService ex) {
+        ListeningExecutorService ex, SimSolversManager manager) {
       solver = s;
       clock = c;
       converter = Solvers.converterBuilder()
@@ -431,7 +454,9 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
       executor = ex;
       rtSimSolver = new InternalRtSimSolver();
       scheduler = new InternalScheduler();
+      simSolversManager = manager;
       solver.init(scheduler);
+      simSolversManager.register(this);
     }
 
     public EventAPI getEventAPI() {
@@ -470,12 +495,7 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
             if (t instanceof CancellationException) {
               return;
             }
-            if (t instanceof RuntimeException) {
-              throw (RuntimeException) t;
-            } else if (t instanceof Error) {
-              throw (Error) t;
-            }
-            throw new IllegalStateException(t);
+            simSolversManager.addException(t);
           }
         });
 
@@ -527,6 +547,11 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
       @Override
       public ListeningExecutorService getSharedExecutor() {
         return executor;
+      }
+
+      @Override
+      public void reportException(Throwable t) {
+        simSolversManager.addException(t);
       }
     }
   }

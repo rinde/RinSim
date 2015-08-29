@@ -29,14 +29,19 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.central.GlobalStateObject;
+import com.github.rinde.rinsim.central.Solver;
+import com.github.rinde.rinsim.central.Solvers.SolveArgs;
 import com.github.rinde.rinsim.central.rt.RtSolverModel.Mode;
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.FakeDependencyProvider;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
+import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController;
+import com.github.rinde.rinsim.core.model.time.TimeLapseFactory;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.testutil.TestUtil;
+import com.google.common.collect.ImmutableList;
 
 import autovalue.shaded.com.google.common.common.base.Optional;
 
@@ -182,6 +187,63 @@ public class RtSolverModelTest {
       fail = true;
       assertThat(e.getMessage()).contains(
         "only provides " + RtSimSolverBuilder.class.getSimpleName());
+    }
+    assertThat(fail).isTrue();
+  }
+
+  /**
+   * Tests that exception thrown in a client thread is catched and rethrown in
+   * main thread.
+   */
+  @Test
+  public void testExceptionPropagation() {
+    final RtSimSolver rss =
+      model.get(RtSimSolverBuilder.class).build(new RealtimeSolver() {
+        @Override
+        public void init(Scheduler scheduler) {}
+
+        @Override
+        public void receiveSnapshot(GlobalStateObject snapshot) {
+          throw new IllegalArgumentException("This is a test");
+        }
+      });
+
+    rss.solve(SolveArgs.create());
+
+    boolean fail = false;
+    try {
+      model.tick(TimeLapseFactory.create(0, 1000));
+    } catch (final IllegalArgumentException e) {
+      assertThat(e.getMessage()).isEqualTo("This is a test");
+      fail = true;
+    }
+    assertThat(fail).isTrue();
+  }
+
+  /**
+   * Test exception propagation.
+   */
+  @Test
+  public void testExceptionPropagation2() {
+    final RtSimSolver rss =
+      model.get(RtSimSolverBuilder.class).build(new Solver() {
+        @Override
+        public ImmutableList<ImmutableList<Parcel>> solve(
+            GlobalStateObject state) {
+          throw new IllegalArgumentException("This is a test");
+        }
+      });
+    rss.solve(SolveArgs.create());
+    boolean fail = false;
+    try {
+      // loop is needed because the solver may be executed at a slightly later
+      // date
+      while (true) {
+        model.tick(TimeLapseFactory.create(0, 1000));
+      }
+    } catch (final IllegalArgumentException e) {
+      assertThat(e.getMessage()).isEqualTo("This is a test");
+      fail = true;
     }
     assertThat(fail).isTrue();
   }

@@ -71,4 +71,14 @@ public abstract class Scheduler {
    * @return The executor service.
    */
   public abstract ListeningExecutorService getSharedExecutor();
+
+  /**
+   * Allows an orderly shutdown of the simulator whenever an exception occurred
+   * in a different thread owned by a {@link RealtimeSolver}. By default an
+   * exception thrown in a separate thread only crashes that particular thread,
+   * to improve error diagnosis this method should be used to stop the
+   * simulation and rethrow the exception.
+   * @param t The exception that occurred.
+   */
+  public abstract void reportException(Throwable t);
 }

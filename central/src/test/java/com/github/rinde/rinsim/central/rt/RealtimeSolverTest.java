@@ -522,6 +522,11 @@ public class RealtimeSolverTest {
     public ListeningExecutorService getSharedExecutor() {
       return delegate.getSharedExecutor();
     }
+
+    @Override
+    public void reportException(Throwable t) {
+      delegate.reportException(t);
+    }
   }
 
   static class TestVehicleHandler

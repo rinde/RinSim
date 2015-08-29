@@ -65,8 +65,9 @@ public final class SolverToRealtimeAdapter implements RealtimeSolver {
       currentFuture.get().cancel(true);
     }
     currentFuture = Optional.of(
-        scheduler.get().getSharedExecutor().submit(
-          new SolverComputer(solver, snapshot)));
+      scheduler.get().getSharedExecutor().submit(
+        new SolverComputer(solver, snapshot)));
+
     Futures.addCallback(currentFuture.get(),
       new FutureCallback<ImmutableList<ImmutableList<Parcel>>>() {
         @Override
@@ -86,12 +87,7 @@ public final class SolverToRealtimeAdapter implements RealtimeSolver {
           if (t instanceof CancellationException) {
             return;
           }
-          if (t instanceof RuntimeException) {
-            throw (RuntimeException) t;
-          } else if (t instanceof Error) {
-            throw (Error) t;
-          }
-          throw new IllegalStateException(t);
+          scheduler.get().reportException(t);
         }
       });
   }
