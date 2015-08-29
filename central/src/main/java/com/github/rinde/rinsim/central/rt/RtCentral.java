@@ -301,14 +301,16 @@ public final class RtCentral {
     }
 
     void notifySolverOfChange(TimeLapse timeLapse, boolean sleepAfterNotify) {
-
       // gather current routes
       final ImmutableList.Builder<ImmutableList<Parcel>> currentRouteBuilder =
-        ImmutableList
-            .builder();
+        ImmutableList.builder();
+      // System.out.println("notify -------------");
       for (final RouteFollowingVehicle vehicle : vehicles) {
-        final ImmutableList<Parcel> l = ImmutableList.copyOf(vehicle
-            .getRoute());
+        final ImmutableList<Parcel> l =
+          ImmutableList.copyOf(vehicle.getRoute());
+
+        // System.out.println(vehicle + " " + l);
+
         currentRouteBuilder.add(l);
       }
 
@@ -415,7 +417,8 @@ public final class RtCentral {
                 || vehicleState == VehicleState.PICKING_UP
                     && pdpModel.getVehicleActionInfo(vehicle)
                         .getParcel().equals(p)) {
-              if (routeSet.count(p) == 2) {
+              if (routeSet.count(p) == 2
+                  && parcelState == ParcelState.IN_CARGO) {
                 // remove first occurrence of parcel
                 newSchedule.get(i).remove(p);
               }
@@ -424,9 +427,14 @@ public final class RtCentral {
               // route
               newSchedule.get(i).removeAll(Collections.singleton(p));
             }
-          } else if (parcelState == ParcelState.DELIVERING
-              || parcelState == ParcelState.DELIVERED) {
-            // DELIVERING, DELIVERED -> may not appear in schedule
+          } else if (parcelState == ParcelState.DELIVERING) {
+            // DELIVERING -> may appear max once in schedule
+            if (routeSet.count(p) == 2) {
+              // removes the last occurrence
+              newSchedule.get(i).remove(newSchedule.get(i).lastIndexOf(p));
+            }
+          } else if (parcelState == ParcelState.DELIVERED) {
+            // DELIVERED -> may not appear in schedule
             newSchedule.get(i).removeAll(Collections.singleton(p));
           }
           // else: good: ANNOUNCED, AVAILABLE
@@ -452,6 +460,12 @@ public final class RtCentral {
         }
 
       }
+
+      // System.out.println("*********************");
+      // System.out.println(Joiner.on("\n").join(schedule));
+      // System.out.println("new");
+      // System.out.println(Joiner.on("\n").join(newSchedule));
+
       return newSchedule;
     }
   }
