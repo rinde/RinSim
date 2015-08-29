@@ -71,6 +71,7 @@
 		<test.excludedGroups />
 		<skip.test.categories/>
 		<reference.version>4.1.0-SNAPSHOT</reference.version>
+		<gc.args>-Xloggc:gc.log -XX:+PrintGCApplicationStoppedTime</gc.args>
 	</properties>
 
 	<distributionManagement>
@@ -89,7 +90,7 @@
 					<artifactId>maven-surefire-plugin</artifactId>
 					<version>2.18.1</version>
 					<configuration>
-						<argLine>${argLine}</argLine>
+						<argLine>${argLine} ${gc.args}</argLine>
 						<excludedGroups>${test.excludedGroups}</excludedGroups>
 						<systemPropertyVariables>
 							<jacoco-agent.destfile>target/jacoco.exec</jacoco-agent.destfile>
