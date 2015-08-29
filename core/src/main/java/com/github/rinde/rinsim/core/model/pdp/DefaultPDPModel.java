@@ -205,6 +205,8 @@ public final class DefaultPDPModel extends PDPModel {
           .dispatchEvent(new PDPModelEvent(PDPModelEventType.START_PICKUP,
               self, time.getTime(), parcel, vehicle));
 
+      LOGGER.debug("{} {} starts picking up {}", time, vehicle, parcel);
+
       // remove the parcel such that no other attempts to pickup can be made
       roadModel.removeObject(parcel);
 
@@ -289,6 +291,8 @@ public final class DefaultPDPModel extends PDPModel {
       eventDispatcher.dispatchEvent(new PDPModelEvent(
           PDPModelEventType.START_DELIVERY, self, time.getTime(), parcel,
           vehicle));
+
+      LOGGER.debug("{} {} starts delivering {}", time, vehicle, parcel);
       if (time.getTimeLeft() < parcel.getDeliveryDuration()) {
         vehicleState.put(vehicle, VehicleState.DELIVERING);
         parcelState.put(ParcelState.DELIVERING, parcel);
