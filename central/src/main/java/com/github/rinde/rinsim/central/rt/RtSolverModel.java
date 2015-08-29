@@ -29,11 +29,11 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 
+import com.github.rinde.rinsim.central.GlobalStateObject;
 import com.github.rinde.rinsim.central.Solver;
 import com.github.rinde.rinsim.central.Solvers;
 import com.github.rinde.rinsim.central.Solvers.SimulationConverter;
 import com.github.rinde.rinsim.central.Solvers.SolveArgs;
-import com.github.rinde.rinsim.central.Solvers.StateContext;
 import com.github.rinde.rinsim.central.rt.RtSolverModel.RtSimSolverSchedulerImpl.EventType;
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
@@ -452,11 +452,12 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
           "Clock must be in real-time mode before calling this method.");
         eventDispatcher.dispatchEvent(new Event(
             RtSimSolverSchedulerImpl.EventType.START_COMPUTING, reference));
-        final StateContext sc = converter.convert(args);
+        final GlobalStateObject state = converter.convert(args).state;
+
         final ListenableFuture<?> fut = executor.submit(new Runnable() {
           @Override
           public void run() {
-            solver.receiveSnapshot(sc.state);
+            solver.receiveSnapshot(state);
           }
         });
         // catch and re-throw any exception occurring during the invocation

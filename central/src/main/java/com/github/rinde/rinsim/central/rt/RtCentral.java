@@ -16,11 +16,16 @@
 package com.github.rinde.rinsim.central.rt;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Verify.verify;
-import static com.google.common.collect.Sets.newHashSet;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.github.rinde.rinsim.central.Central;
@@ -34,6 +39,8 @@ import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.PDPModelEventType;
+import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
+import com.github.rinde.rinsim.core.model.pdp.PDPModel.VehicleState;
 import com.github.rinde.rinsim.core.model.pdp.PDPModelEvent;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
@@ -52,7 +59,9 @@ import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.util.StochasticSupplier;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Multiset;
 
 /**
  * Real-time version of {@link com.github.rinde.rinsim.central.Central Central}.
@@ -167,7 +176,7 @@ public final class RtCentral {
     /**
      * If set to <code>true</code> the model will wait half a tick (wall clock
      * time) after it has started a new computation. By sleeping half a tick the
-     * solver has time to do a some computations already, and, if it is fast
+     * solver has time to do some computations already, and, if it is fast
      * enough if may already be finished. When it is already finished computing,
      * the new schedule will be applied immediately. If set to
      * <code>false</code> the model will not wait, this means that a new
@@ -261,6 +270,7 @@ public final class RtCentral {
     private final RtSimSolver solver;
     private final RealtimeClockController clock;
     private final boolean sleepOnChange;
+    private final List<RouteFollowingVehicle> vehicles;
 
     RtCentralModel(RealtimeClockController c, RtSimSolver s, PDPRoadModel rm,
         PDPModel pm, boolean sleepOnC) {
@@ -270,6 +280,7 @@ public final class RtCentral {
       roadModel = rm;
       pdpModel = pm;
       sleepOnChange = sleepOnC;
+      vehicles = new ArrayList<>();
 
       pm.getEventAPI().addListener(VehicleChecker.INSTANCE,
         PDPModelEventType.NEW_VEHICLE);
@@ -290,8 +301,6 @@ public final class RtCentral {
     }
 
     void notifySolverOfChange(TimeLapse timeLapse, boolean sleepAfterNotify) {
-      final Set<RouteFollowingVehicle> vehicles = roadModel
-          .getObjectsOfType(RouteFollowingVehicle.class);
 
       // gather current routes
       final ImmutableList.Builder<ImmutableList<Parcel>> currentRouteBuilder =
@@ -317,6 +326,15 @@ public final class RtCentral {
 
     @Override
     public void tick(TimeLapse timeLapse) {
+      if (vehicles.isEmpty()) {
+        vehicles
+            .addAll(roadModel.getObjectsOfType(RouteFollowingVehicle.class));
+        checkState(!vehicles.isEmpty(),
+          "At least one vehicle must have been added to the simulator in order "
+              + "for %s to work.",
+          RtCentral.class.getSimpleName());
+      }
+
       if (problemHasChanged) {
         verify(clock.getClockMode() == ClockMode.REAL_TIME,
           "Problem detected at %s.", timeLapse);
@@ -325,41 +343,117 @@ public final class RtCentral {
       }
 
       if (solver.isScheduleUpdated()) {
-        final Set<RouteFollowingVehicle> vehicles = roadModel
-            .getObjectsOfType(RouteFollowingVehicle.class);
-
-        final ImmutableList<ImmutableList<Parcel>> schedule = solver
-            .getCurrentSchedule();
+        final List<List<Parcel>> schedule =
+          fixRoutes(solver.getCurrentSchedule());
 
         checkArgument(schedule.size() == vehicles.size(),
           "An invalid schedule was created, a valid schedule should contain "
               + "one route for each vehicle, routes: %s, vehicles: %s.",
           schedule.size(), vehicles.size());
 
-        final Iterator<ImmutableList<Parcel>> routes = schedule.iterator();
-        boolean inconsistencyDetected = false;
+        final Iterator<List<Parcel>> routes = schedule.iterator();
+
+        // boolean inconsistencyDetected = false;
         for (final RouteFollowingVehicle vehicle : vehicles) {
           vehicle.setRoute(routes.next());
 
-          final Set<Parcel> contents = pdpModel.getContents(vehicle);
-          final Set<Parcel> routeSet = newHashSet(vehicle.getRoute());
-          for (final Parcel p : contents) {
-            if (!routeSet.contains(p)) {
-              inconsistencyDetected = true;
-              break;
-            }
-          }
+          // TODO this is unnecessary?
+          // final Set<Parcel> contents = pdpModel.getContents(vehicle);
+          // final Set<Parcel> routeSet = new HashSet<>(vehicle.getRoute());
+          // for (final Parcel p : contents) {
+          // if (!routeSet.contains(p)) {
+          // inconsistencyDetected = true;
+          // break;
+          // }
+          // }
         }
 
-        if (inconsistencyDetected) {
-          // launch solver again
-          notifySolverOfChange(timeLapse, false);
-        }
+        // if (inconsistencyDetected) {
+        // // launch solver again
+        // notifySolverOfChange(timeLapse, false);
+        // }
       }
     }
 
     @Override
     public void afterTick(TimeLapse timeLapse) {}
+
+    // fixes routes. if the schedule
+    List<List<Parcel>> fixRoutes(
+        ImmutableList<ImmutableList<Parcel>> schedule) {
+      // create map of parcel -> vehicle index
+      final Map<Parcel, Integer> parcelOwner = new LinkedHashMap<>();
+      for (int i = 0; i < schedule.size(); i++) {
+        final List<Parcel> route = schedule.get(i);
+        final Set<Parcel> routeSet = ImmutableSet.copyOf(route);
+        for (final Parcel p : routeSet) {
+          parcelOwner.put(p, i);
+        }
+      }
+      // copy schedule into a modifiable structure
+      final List<List<Parcel>> newSchedule = new ArrayList<>();
+      for (final ImmutableList<Parcel> route : schedule) {
+        newSchedule.add(new ArrayList<>(route));
+      }
+      // compare with current vehicle cargo
+      for (int i = 0; i < vehicles.size(); i++) {
+        final RouteFollowingVehicle vehicle = vehicles.get(i);
+        final VehicleState vehicleState = pdpModel.getVehicleState(vehicle);
+        final Set<Parcel> vehicleContents = pdpModel.getContents(vehicle);
+        final Multiset<Parcel> routeSet =
+          ImmutableMultiset.copyOf(schedule.get(i));
+
+        for (final Parcel p : routeSet.elementSet()) {
+          final ParcelState parcelState = pdpModel.getParcelState(p);
+
+          // PICKING_UP, IN_CARGO -> needs to be in correct vehicle (just once)
+          if (parcelState == ParcelState.PICKING_UP
+              || parcelState == ParcelState.IN_CARGO) {
+
+            // check if parcel is in current vehicle
+            if (vehicleContents.contains(p)
+                || vehicleState == VehicleState.PICKING_UP
+                    && pdpModel.getVehicleActionInfo(vehicle)
+                        .getParcel().equals(p)) {
+              if (routeSet.count(p) == 2) {
+                // remove first occurrence of parcel
+                newSchedule.get(i).remove(p);
+              }
+            } else {
+              // it belongs to someone else, so remove it from this vehicle's
+              // route
+              newSchedule.get(i).removeAll(Collections.singleton(p));
+            }
+          } else if (parcelState == ParcelState.DELIVERING
+              || parcelState == ParcelState.DELIVERED) {
+            // DELIVERING, DELIVERED -> may not appear in schedule
+            newSchedule.get(i).removeAll(Collections.singleton(p));
+          }
+          // else: good: ANNOUNCED, AVAILABLE
+        }
+
+        // for all parcels in the vehicle we check if they exist in the
+        // schedule, if not we add them to the end of the route
+        for (final Parcel p : vehicleContents) {
+          // check if the schedule agrees about parcel ownership
+          if (parcelOwner.get(p).intValue() != i) {
+            // if not, we move the parcel to the owner
+            newSchedule.get(i).add(p);
+          }
+        }
+
+        // if current vehicle is picking up a parcel, make sure it appears in
+        // the route once (if it doesn't we add it in the end).
+        if (vehicleState == VehicleState.PICKING_UP && parcelOwner
+            .get(pdpModel.getVehicleActionInfo(vehicle).getParcel())
+            .intValue() != i) {
+          newSchedule.get(i)
+              .add(pdpModel.getVehicleActionInfo(vehicle).getParcel());
+        }
+
+      }
+      return newSchedule;
+    }
   }
 
   @AutoValue
