@@ -85,6 +85,7 @@ public class RealtimeModelTestRT extends TimeModelTest<RealtimeModel> {
 
     final List<Long> timeStamps = new ArrayList<>();
     final List<Long> simTimeStamps = new ArrayList<>();
+    final List<ClockMode> modes = new ArrayList<>();
     getModel().register(new TickListener() {
       @Override
       public void tick(TimeLapse timeLapse) {
@@ -96,6 +97,7 @@ public class RealtimeModelTestRT extends TimeModelTest<RealtimeModel> {
         } else if (timeLapse.getStartTime() == 500) {
           getModel().switchToSimulatedTime();
         }
+        modes.add(getModel().getClockMode());
       }
 
       @Override

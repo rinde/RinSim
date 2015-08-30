@@ -134,7 +134,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         final StateTransitionEvent<Trigger, RealtimeModel> event =
             (StateTransitionEvent<Trigger, RealtimeModel>) e;
 
-        LOGGER.trace("{}", event);
+        LOGGER.trace("{} {}", timeLapse, event);
         if ((event.newState == realtimeState || event.newState == INIT_RT)
             && eventDispatcher.hasListenerFor(SWITCH_TO_REAL_TIME)) {
           eventDispatcher.dispatchEvent(new Event(SWITCH_TO_REAL_TIME, ref));
@@ -148,8 +148,13 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
 
   @Override
   void cleanUpAfterException() {
-    realtimeState.executor.shutdownNow();
+    realtimeState.executor.shutdown();
     affinityLock.release();
+    try {
+      realtimeState.executor.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+    } catch (final InterruptedException e) {
+      throw new IllegalStateException(e);
+    }
     super.cleanUpAfterException();
   }
 
@@ -168,7 +173,6 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         stateMachine.getCurrentState().name());
     stateMachine.handle(Trigger.STOP, this);
     affinityLock.release();
-    realtimeState.executor.shutdownNow();
   }
 
   @SuppressWarnings("deprecation")
@@ -310,6 +314,11 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
     public ClockMode getClockMode() {
       return ClockMode.SIMULATED;
     }
+
+    @Override
+    public String toString() {
+      return "SimulatedTime";
+    }
   }
 
   static class Realtime extends AbstractClockState {
@@ -377,6 +386,9 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         public void onSuccess(@Nullable Object result) {}
       });
       awaitTermination(context, tr);
+      if (nextTrigger == Trigger.STOP) {
+        executor.shutdownNow();
+      }
       final Trigger t = nextTrigger;
       nextTrigger = null;
       return t;
@@ -387,6 +399,9 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
       final ListenableScheduledFuture<?> f = verifyNotNull(schedulerFuture);
       if (!f.isDone()) {
         f.cancel(true);
+      }
+      if (nextTrigger == Trigger.STOP) {
+        nextTrigger = event;
       }
     }
 
@@ -408,7 +423,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         }
         throw new IllegalStateException(exceptions.get(0));
       }
-      timeRunner.awaitCorrectness();
+      timeRunner.checkConsistency(true);
     }
 
     @Override
@@ -416,9 +431,12 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
       return ClockMode.REAL_TIME;
     }
 
-    class TimeRunner implements Runnable {
-      static final long THREAD_SLEEP = 200;
+    @Override
+    public String toString() {
+      return "Realtime";
+    }
 
+    class TimeRunner implements Runnable {
       final List<Long> interArrivalTimes;
       final Deque<TimeStamp> timeStamps;
       final Deque<TimeStamp> timeStampsBuffer;
@@ -508,19 +526,6 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
             Math.abs(tickNanos - sum.getMean()) < maxMeanDeviationNs,
             "Mean interval is above threshold of %sns: %s.",
             maxMeanDeviationNs, sum.getMean());
-      }
-
-      void awaitCorrectness() {
-        if (!timeStampsBuffer.isEmpty()
-            && !logMonitor
-                .hasSurpassed(timeStampsBuffer.peekLast().getMillis())) {
-          try {
-            Thread.sleep(THREAD_SLEEP);
-          } catch (final InterruptedException e) {
-            throw new IllegalStateException(e);
-          }
-        }
-        checkConsistency(true);
       }
     }
 
