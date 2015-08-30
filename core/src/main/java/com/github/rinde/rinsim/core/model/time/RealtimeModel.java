@@ -149,13 +149,17 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
   @Override
   void cleanUpAfterException() {
     realtimeState.executor.shutdown();
-    affinityLock.release();
+    cleanup();
     try {
       realtimeState.executor.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
     } catch (final InterruptedException e) {
       throw new IllegalStateException(e);
     }
     super.cleanUpAfterException();
+  }
+
+  void cleanup() {
+    affinityLock.release();
   }
 
   @Override
@@ -171,8 +175,11 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
     checkState(stateMachine.isSupported(Trigger.STOP),
         "Can not stop time in current state: %s",
         stateMachine.getCurrentState().name());
+    final boolean rt = stateMachine.stateIs(realtimeState);
     stateMachine.handle(Trigger.STOP, this);
-    affinityLock.release();
+    if (!rt) {
+      cleanup();
+    }
   }
 
   @SuppressWarnings("deprecation")
@@ -388,6 +395,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
       awaitTermination(context, tr);
       if (nextTrigger == Trigger.STOP) {
         executor.shutdownNow();
+        context.cleanup();
       }
       final Trigger t = nextTrigger;
       nextTrigger = null;
