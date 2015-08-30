@@ -429,7 +429,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
       @Override
       public void run() {
         timeStampsBuffer.add(TimeStamp.now());
-        checkConsistency();
+        checkConsistency(false);
         context.tickImpl();
         if (nextTrigger != null) {
           final ListenableScheduledFuture<?> fut =
@@ -440,12 +440,14 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         }
       }
 
-      void checkConsistency() {
+      void checkConsistency(boolean forceCheck) {
         // check if GCLogMonitor has a time AFTER the timestamp (in that
         // case we are sure that we have complete information)
+        // unless forceCheck=true -> then we always check all time stamps
         while (!timeStampsBuffer.isEmpty()
-            && logMonitor
-                .hasSurpassed(timeStampsBuffer.peekFirst().getNanos())) {
+            && (logMonitor
+                .hasSurpassed(timeStampsBuffer.peekFirst().getNanos())
+                || forceCheck)) {
           timeStamps.add(timeStampsBuffer.removeFirst());
         }
 
@@ -500,7 +502,6 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
             maxMeanDeviationNs, sum.getMean());
       }
 
-      // TODO is this needed?
       void awaitCorrectness() {
         if (!timeStampsBuffer.isEmpty()
             && !logMonitor
@@ -511,7 +512,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
             throw new IllegalStateException(e);
           }
         }
-        checkConsistency();
+        checkConsistency(true);
       }
     }
 
