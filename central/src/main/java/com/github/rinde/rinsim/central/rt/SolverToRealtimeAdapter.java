@@ -74,9 +74,8 @@ public final class SolverToRealtimeAdapter implements RealtimeSolver {
         public void onSuccess(
             @Nullable ImmutableList<ImmutableList<Parcel>> result) {
           if (result == null) {
-            throw new IllegalArgumentException(
-                "Solver.solve(..) must return a non-null result. Solver: "
-                    + solver);
+            throw new IllegalArgumentException("Solver.solve(..) must return a "
+                + "non-null result. Solver: " + solver);
           }
           scheduler.get().updateSchedule(result);
           scheduler.get().doneForNow();

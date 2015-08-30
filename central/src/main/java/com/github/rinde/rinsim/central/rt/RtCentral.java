@@ -304,13 +304,9 @@ public final class RtCentral {
       // gather current routes
       final ImmutableList.Builder<ImmutableList<Parcel>> currentRouteBuilder =
         ImmutableList.builder();
-      // System.out.println("notify -------------");
       for (final RouteFollowingVehicle vehicle : vehicles) {
         final ImmutableList<Parcel> l =
           ImmutableList.copyOf(vehicle.getRoute());
-
-        // System.out.println(vehicle + " " + l);
-
         currentRouteBuilder.add(l);
       }
 
@@ -354,33 +350,16 @@ public final class RtCentral {
           schedule.size(), vehicles.size());
 
         final Iterator<List<Parcel>> routes = schedule.iterator();
-
-        // boolean inconsistencyDetected = false;
         for (final RouteFollowingVehicle vehicle : vehicles) {
           vehicle.setRoute(routes.next());
-
-          // TODO this is unnecessary?
-          // final Set<Parcel> contents = pdpModel.getContents(vehicle);
-          // final Set<Parcel> routeSet = new HashSet<>(vehicle.getRoute());
-          // for (final Parcel p : contents) {
-          // if (!routeSet.contains(p)) {
-          // inconsistencyDetected = true;
-          // break;
-          // }
-          // }
         }
-
-        // if (inconsistencyDetected) {
-        // // launch solver again
-        // notifySolverOfChange(timeLapse, false);
-        // }
       }
     }
 
     @Override
     public void afterTick(TimeLapse timeLapse) {}
 
-    // fixes routes. if the schedule
+    // fixes routes.
     List<List<Parcel>> fixRoutes(
         ImmutableList<ImmutableList<Parcel>> schedule) {
       // create map of parcel -> vehicle index
@@ -426,6 +405,7 @@ public final class RtCentral {
                 newSchedule.get(i).remove(p);
               }
             } else {
+              // parcel is owned by someone else
               newSchedule.get(i).removeAll(Collections.singleton(p));
             }
           } else if (parcelState == ParcelState.DELIVERING) {
@@ -463,14 +443,7 @@ public final class RtCentral {
           newSchedule.get(i)
               .add(pdpModel.getVehicleActionInfo(vehicle).getParcel());
         }
-
       }
-
-      // System.out.println("*********************");
-      // System.out.println(Joiner.on("\n").join(schedule));
-      // System.out.println("new");
-      // System.out.println(Joiner.on("\n").join(newSchedule));
-
       return newSchedule;
     }
   }

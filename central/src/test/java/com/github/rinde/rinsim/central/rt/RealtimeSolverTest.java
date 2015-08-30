@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -308,17 +307,13 @@ public class RealtimeSolverTest {
   }
 
   /**
-   * Tests the consistency checker in {@link RtCentral}. The test simulates a
-   * scenario where a parcel p0 has been picked up by v0 but the solver assigns
-   * it to v1 (due to the delay of the solver). v1 will automatically discard
-   * the assignment of p0 because it recognizes that it is no longer available.
-   * This leads to a situation where p0 would never be delivered, the
-   * consistency check should recognize this situation and ask the solver to
-   * solve the problem again (but then in its new form).
+   * Tests the route fixer in {@link RtCentral}. The test simulates a scenario
+   * where a parcel p0 has been picked up by v0 but the solver assigns it to v1
+   * (due to the delay of the solver). The fixer should fix the parcel
+   * assignment.
    */
   @Test
-  @Ignore
-  public void testConsistencyChecker() {
+  public void testRouteFixer() {
     final List<TimedEvent> events = asList(
       AddParcelEvent.create(Parcel.builder(new Point(1, 1), new Point(9, 9))
           .orderAnnounceTime(200)
