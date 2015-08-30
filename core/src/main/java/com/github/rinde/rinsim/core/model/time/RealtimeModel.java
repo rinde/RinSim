@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
@@ -353,7 +354,13 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
       allowedTickDuration = tickDur;
       exceptions = new ArrayList<>();
       executor = MoreExecutors.listeningDecorator(
-          Executors.newSingleThreadScheduledExecutor());
+          Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {
+            @Override
+            public Thread newThread(@Nullable Runnable r) {
+              return new Thread(r,
+                  Thread.currentThread().getName() + "-RealtimeModel");
+            }
+          }));
     }
 
     @Override
@@ -384,6 +391,8 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         @Override
         public void onFailure(Throwable t) {
           if (t instanceof CancellationException) {
+            executor.shutdownNow();
+            context.cleanup();
             return;
           }
           exceptions.add(t);
@@ -393,10 +402,6 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         public void onSuccess(@Nullable Object result) {}
       });
       awaitTermination(context, tr);
-      if (nextTrigger == Trigger.STOP) {
-        executor.shutdownNow();
-        context.cleanup();
-      }
       final Trigger t = nextTrigger;
       nextTrigger = null;
       return t;
@@ -407,9 +412,6 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
       final ListenableScheduledFuture<?> f = verifyNotNull(schedulerFuture);
       if (!f.isDone()) {
         f.cancel(true);
-      }
-      if (nextTrigger == Trigger.STOP) {
-        nextTrigger = event;
       }
     }
 
