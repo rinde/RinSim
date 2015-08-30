@@ -142,7 +142,8 @@ public class RouteFollowingVehicle extends Vehicle {
    * @param dto The {@link VehicleDTO} that defines this vehicle.
    * @param allowDelayedRouteChanging This boolean changes the behavior of the
    *          {@link #setRoute(Iterable)} method.
-   * @param adjuster TODO
+   * @param adjuster Allows to set a route adjuster to 'fix' routes if
+   *          necessary.
    */
   public RouteFollowingVehicle(VehicleDTO dto,
       boolean allowDelayedRouteChanging, RouteAdjuster adjuster) {
@@ -297,33 +298,6 @@ public class RouteFollowingVehicle extends Vehicle {
     }
   }
 
-  /**
-   * Safe version of {@link #setRoute(Iterable)}. This method can be used when
-   * there is a possibility that a computed route for a vehicle may no longer be
-   * valid because of progressing of time. This can for example occur in case of
-   * a real-time simulation where the route is calculated in a separate thread,
-   * in this case it is possible that the simulated world has already changed in
-   * such a way that the route is invalid. This method detects such changes and
-   * adapts the specified route to make it valid again. Note that this method
-   * assumes that the specified route was valid at some point in the past, if
-   * this isn't true this method may yield unexpected results. If the route is
-   * valid calling this method is equivalent to calling
-   * {@link #setRoute(Iterable)} directly.
-   * <p>
-   * There are generally three events that can cause a route to become invalid:
-   * <ul>
-   * <li>A parcel that occurs in the route has been delivered, all occurrences
-   * of this parcel will be removed from the route.</li>
-   * <li>A parcel that occurs in the route has been picked up by another vehicle
-   * (or is in the process of being picked up), all occurrences of this parcel
-   * will be removed from the route.</li>
-   * <li>A parcel that occurs twice in the route but has already been picked up
-   * by this vehicle, the first occurrence in the route will be removed.</li>
-   * </ul>
-   *
-   * @param r The route to set. The elements are copied from the
-   *          {@link Iterable} using its iteration order.
-   */
   // public void setRouteSafe(Iterable<Parcel> r) {
   // final List<Parcel> routeList = newArrayList(r);
   // final Multiset<Parcel> routeSet = LinkedHashMultiset.create(r);
@@ -546,6 +520,31 @@ public class RouteFollowingVehicle extends Vehicle {
       getPDPModel().getParcelState(route.peek()));
   }
 
+  /**
+   * Fixes routes that have become invalid due to natural progressing of time.
+   * Invalidation over time can for example occur in case of a real-time
+   * simulation where the route is calculated in a separate thread, in this case
+   * it is possible that the simulated world has already changed in such a way
+   * that the route is invalid. This method detects such changes and adapts the
+   * specified route to make it valid again. Note that this method assumes that
+   * the specified route was valid at some point in the past, if this isn't true
+   * this {@link RouteAdjuster} may yield unexpected results. If the route is
+   * valid at the time this adjuster is used the route will be left unchanged.
+   * <p>
+   * There are four situations that are fixed by this adjuster:
+   * <ul>
+   * <li>A parcel that occurs in the route has been delivered, all occurrences
+   * of this parcel will be removed from the route.</li>
+   * <li>A parcel that occurs in the route has been picked up by another vehicle
+   * (or is in the process of being picked up), all occurrences of this parcel
+   * will be removed from the route.</li>
+   * <li>A parcel that occurs twice in the route but has already been picked up
+   * by this vehicle, the first occurrence in the route will be removed.</li>
+   * <li>A parcel that no longer occurs in the route but is in the cargo of the
+   * vehicle, the parcel will be added at the end of the route.</li>
+   * </ul>
+   * @return The route adjuster.
+   */
   public static RouteAdjuster delayAdjuster() {
     return RouteAdjusters.DELAY_ADJUSTER;
   }
@@ -814,7 +813,19 @@ public class RouteFollowingVehicle extends Vehicle {
     }
   }
 
-  interface RouteAdjuster {
+  /**
+   * Implementations can modify the incoming route and return the modified
+   * version.
+   * @author Rinde van Lon
+   */
+  public interface RouteAdjuster {
+    /**
+     * Adjusts the route. Implementations should be pure functions, i.e. have no
+     * side-effects.
+     * @param route The incoming route.
+     * @param vehicle The vehicle which is owner of the route.
+     * @return The outgoing possibly modified route
+     */
     Iterable<Parcel> adjust(Iterable<? extends Parcel> route,
         RouteFollowingVehicle vehicle);
   }
@@ -859,16 +870,6 @@ public class RouteFollowingVehicle extends Vehicle {
             if (state == ParcelState.PICKING_UP && !vehicle.isPickingUp(p)) {
             // in this case the parcel is being picked up by another vehicle
             routeList.removeAll(Collections.singleton(p));
-            // } else {
-            // // in this case the parcel has not been picked up, it should
-            // occur
-            // twice
-            // checkArgument(routeSet.count(p) == 2, "Specified route is
-            // incomplete,
-            // "
-            // + "%s with state %s occurs only %s time(s), it should occur
-            // twice. ",
-            // p, state, routeSet.count(p));
           }
         }
 
@@ -879,6 +880,10 @@ public class RouteFollowingVehicle extends Vehicle {
         return routeList;
       }
 
+      @Override
+      public String toString() {
+        return RouteFollowingVehicle.class.getSimpleName() + ".delayAdjuster()";
+      }
     }
   }
 }

@@ -98,6 +98,7 @@ public class RouteFollowingVehicleTest {
    * Create test.
    * @param allowDiversion Is vehicle diversion allowed.
    * @param allowDelayedRouteChange Are delayed route changes allowed.
+   * @param adj The route adjuster.
    */
   @SuppressWarnings("null")
   public RouteFollowingVehicleTest(boolean allowDiversion,
@@ -115,7 +116,7 @@ public class RouteFollowingVehicleTest {
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
         {true, true, RouteAdjusters.NOP},
-        {true, true, RouteAdjusters.DELAY_ADJUSTER},
+        {true, true, RouteFollowingVehicle.delayAdjuster()},
         {true, false, RouteAdjusters.NOP},
         {true, false, RouteAdjusters.DELAY_ADJUSTER},
         {false, true, RouteAdjusters.NOP},
@@ -723,9 +724,11 @@ public class RouteFollowingVehicleTest {
     assertThat(routeAdjuster == RouteAdjusters.NOP).isEqualTo(fail);
   }
 
+  /**
+   * Tests that the delay adjuster adds parcels in cargo.
+   */
   @Test
   public void setRouteSafeTest6() {
-
     d.setRoute(asList(p1, p1));
     tick(0, 8);
     assertThat(pm.getParcelState(p1)).isSameAs(ParcelState.IN_CARGO);
@@ -736,7 +739,6 @@ public class RouteFollowingVehicleTest {
     } else {
       assertThat(d.getRoute()).containsExactly(p2, p2).inOrder();
     }
-
   }
 
   /**
