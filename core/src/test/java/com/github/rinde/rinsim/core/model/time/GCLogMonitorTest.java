@@ -28,7 +28,6 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.core.model.time.GCLogMonitor.PauseTime;
@@ -78,19 +77,6 @@ public class GCLogMonitorTest {
     } catch (final IOException e) {
       throw new IllegalStateException(e);
     }
-  }
-
-  @Ignore
-  @Test
-  public void testFail() {
-    boolean fail = false;
-    try {
-      GCLogMonitor.createInstance(null);
-    } catch (final IllegalArgumentException e) {
-      assertThat(e.getMessage()).contains("Expected VM arguments: ");
-      fail = true;
-    }
-    assertThat(fail).isTrue();
   }
 
   @Test
