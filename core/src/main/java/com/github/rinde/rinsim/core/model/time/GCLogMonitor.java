@@ -22,6 +22,7 @@ import static com.google.common.base.Verify.verifyNotNull;
 import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
@@ -33,6 +34,7 @@ import org.apache.commons.io.input.TailerListenerAdapter;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Optional;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Queues;
 import com.google.common.primitives.Doubles;
@@ -51,14 +53,15 @@ public final class GCLogMonitor {
   static final String PRINT_ARG = "-XX:+PrintGCApplicationStoppedTime";
   static final String LOG_ARG = "-Xloggc:";
 
-  @Nullable
-  private static volatile GCLogMonitor instance;
+  private static volatile Optional<GCLogMonitor> instance = Optional.absent();
 
   final long startTimeMillis;
   final Deque<PauseTime> pauseTimes;
   final Tailer tailer;
+  final List<Throwable> exceptions;
 
   GCLogMonitor(@Nullable String path) {
+    exceptions = new ArrayList<>();
     final String logPath;
     if (path == null) {
       final RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
@@ -90,7 +93,7 @@ public final class GCLogMonitor {
     thread.start();
   }
 
-  private void close() {
+  void close() {
     tailer.stop();
     try {
       Thread.sleep(LOG_PARSER_DELAY);
@@ -107,6 +110,7 @@ public final class GCLogMonitor {
    *         the specified time, <code>false</code> otherwise.
    */
   public boolean hasSurpassed(long timeMillis) {
+    checkInternalState();
     return !pauseTimes.isEmpty()
         && pauseTimes.peekLast().getTime()
             - (timeMillis - startTimeMillis) >= 0;
@@ -126,6 +130,7 @@ public final class GCLogMonitor {
    * @throws IllegalArgumentException If an illegal interval is specified.
    */
   public long getPauseTimeInInterval(long ts1, long ts2) {
+    checkInternalState();
     // convert system times to vm lifetime
     final long vmt1 = ts1 - startTimeMillis;
     final long vmt2 = ts2 - startTimeMillis;
@@ -154,25 +159,34 @@ public final class GCLogMonitor {
     return duration;
   }
 
-  @SuppressWarnings("null")
+  GCLogMonitor checkInternalState() {
+    if (!exceptions.isEmpty()) {
+      if (exceptions.get(0) instanceof RuntimeException) {
+        throw (RuntimeException) exceptions.get(0);
+      }
+      throw new IllegalStateException(exceptions.get(0));
+    }
+    return this;
+  }
+
   public static GCLogMonitor getInstance() {
-    if (instance == null) {
+    if (!instance.isPresent()) {
       synchronized (GCLogMonitor.class) {
-        if (instance == null) {
-          return instance = new GCLogMonitor(null);
+        if (!instance.isPresent()) {
+          return (instance = Optional.of(new GCLogMonitor(null))).get();
         }
       }
     }
-    return instance;
+    return instance.get().checkInternalState();
   }
 
   @VisibleForTesting
   static void createInstance(@Nullable String path) {
     synchronized (GCLogMonitor.class) {
-      if (instance != null) {
-        instance.close();
+      if (instance.isPresent()) {
+        instance.get().close();
       }
-      instance = new GCLogMonitor(path);
+      instance = Optional.of(new GCLogMonitor(path));
     }
   }
 
@@ -214,10 +228,8 @@ public final class GCLogMonitor {
 
     @Override
     public void handle(@SuppressWarnings("null") Exception e) {
-      if (e instanceof RuntimeException) {
-        throw (RuntimeException) e;
-      }
-      throw new IllegalStateException(e);
+      exceptions.add(e);
+      close();
     }
   }
 
