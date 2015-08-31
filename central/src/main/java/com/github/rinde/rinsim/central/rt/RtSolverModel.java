@@ -31,6 +31,9 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.github.rinde.rinsim.central.GlobalStateObject;
 import com.github.rinde.rinsim.central.Solver;
 import com.github.rinde.rinsim.central.Solvers;
@@ -106,6 +109,8 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
    */
   public static final int DEFAULT_NUM_THREADS_IN_SINGLE_MODE = 2;
 
+  static final Logger LOGGER = LoggerFactory.getLogger(RtSolverModel.class);
+
   final RealtimeClockController clock;
   final PDPRoadModel roadModel;
   final PDPModel pdpModel;
@@ -135,6 +140,7 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
     clock.getEventAPI().addListener(new Listener() {
       @Override
       public void handleEvent(Event event) {
+        manager.checkExceptions();
         if (executor.isPresent()) {
           executor.get().shutdownNow();
           try {
@@ -194,6 +200,7 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
         && clock.isTicking()) {
       clock.switchToSimulatedTime();
     }
+    manager.checkExceptions();
   }
 
   @Override
@@ -207,6 +214,7 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
 
   void initExecutor() {
     if (!executor.isPresent() && mode != Mode.UNKNOWN) {
+
       final ThreadFactory factory;
       final String newName =
         Thread.currentThread().getName() + "-" + getClass().getSimpleName();
@@ -227,6 +235,8 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
       } else {
         threads = threadPoolSize;
       }
+      LOGGER.trace("create executor with {} threads and factory {}", threads,
+        factory);
       executor = Optional.of(MoreExecutors.listeningDecorator(
         Executors.newFixedThreadPool(threads, factory)));
     }
@@ -372,7 +382,7 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
           checkState(computingSimSolvers.remove(e.getIssuer()),
             "Internal error, computing: %s, all: %s, issuer: %s",
             computingSimSolvers, e.getIssuer());
-          if (!isComputing()) {
+          if (!isComputing() && clock.isTicking()) {
             clock.switchToSimulatedTime();
           }
         } else {
@@ -484,6 +494,7 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
         final ListenableFuture<?> fut = executor.submit(new Runnable() {
           @Override
           public void run() {
+            LOGGER.trace("calling RealtimeSolver.receiveSnapshot(..)");
             solver.receiveSnapshot(state);
           }
         });
@@ -495,6 +506,7 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
           @Override
           public void onFailure(Throwable t) {
             if (t instanceof CancellationException) {
+              LOGGER.trace("RealtimeSolver execution got cancelled");
               return;
             }
             simSolversManager.addException(t);
@@ -542,8 +554,13 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
 
       @Override
       public void doneForNow() {
-        eventDispatcher.dispatchEvent(
-          new Event(EventType.DONE_COMPUTING, reference));
+        LOGGER.trace("doneForNow");
+        try {
+          eventDispatcher.dispatchEvent(
+            new Event(EventType.DONE_COMPUTING, reference));
+        } catch (final RuntimeException e) {
+          reportException(e);
+        }
       }
 
       @Override

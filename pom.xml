@@ -379,6 +379,7 @@
 				<version>2.5</version>
 				<executions>
 					<execution>
+						<phase>package</phase>
 						<goals>
 							<goal>test-jar</goal>
 						</goals>

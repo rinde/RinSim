@@ -22,6 +22,9 @@ import java.util.concurrent.CancellationException;
 
 import javax.annotation.Nullable;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.github.rinde.rinsim.central.GlobalStateObject;
 import com.github.rinde.rinsim.central.Solver;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
@@ -40,9 +43,15 @@ import com.google.common.util.concurrent.ListenableFuture;
  * {@link Scheduler#updateSchedule(ImmutableList)} is called to provide the
  * updated schedule. The scheduler is also notified that no computations are
  * currently taking place by calling {@link Scheduler#doneForNow()}.
+ * <p>
+ * TODO talk about interrupt in solver
+ *
  * @author Rinde van Lon
  */
 public final class SolverToRealtimeAdapter implements RealtimeSolver {
+  static final Logger LOGGER =
+    LoggerFactory.getLogger(SolverToRealtimeAdapter.class);
+
   Optional<Scheduler> scheduler;
   Optional<ListenableFuture<ImmutableList<ImmutableList<Parcel>>>> currentFuture;
   private final Solver solver;
@@ -62,6 +71,7 @@ public final class SolverToRealtimeAdapter implements RealtimeSolver {
   public void receiveSnapshot(GlobalStateObject snapshot) {
     checkState(scheduler.isPresent(), "Not yet initialized.");
     if (currentFuture.isPresent() && !currentFuture.get().isDone()) {
+      LOGGER.trace("attempt to cancel running Solver..");
       currentFuture.get().cancel(true);
     }
     currentFuture = Optional.of(
@@ -73,9 +83,12 @@ public final class SolverToRealtimeAdapter implements RealtimeSolver {
         @Override
         public void onSuccess(
             @Nullable ImmutableList<ImmutableList<Parcel>> result) {
+          LOGGER.trace("onSuccess: " + result);
           if (result == null) {
-            throw new IllegalArgumentException("Solver.solve(..) must return a "
-                + "non-null result. Solver: " + solver);
+            scheduler.get().reportException(
+              new IllegalArgumentException("Solver.solve(..) must return a "
+                  + "non-null result. Solver: " + solver));
+            return;
           }
           scheduler.get().updateSchedule(result);
           scheduler.get().doneForNow();
@@ -84,6 +97,7 @@ public final class SolverToRealtimeAdapter implements RealtimeSolver {
         @Override
         public void onFailure(Throwable t) {
           if (t instanceof CancellationException) {
+            LOGGER.trace("Solver execution got cancelled");
             return;
           }
           scheduler.get().reportException(t);
