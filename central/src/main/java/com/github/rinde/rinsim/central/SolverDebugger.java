@@ -41,7 +41,8 @@ public final class SolverDebugger implements Solver {
   }
 
   @Override
-  public ImmutableList<ImmutableList<Parcel>> solve(GlobalStateObject state) {
+  public ImmutableList<ImmutableList<Parcel>> solve(GlobalStateObject state)
+      throws InterruptedException {
     if (print) {
       System.out.println(state);
     }

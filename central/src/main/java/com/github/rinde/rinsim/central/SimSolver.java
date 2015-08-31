@@ -76,7 +76,12 @@ public final class SimSolver implements SimulationConverter {
    * @return A list of routes, one for each vehicle.
    */
   public List<Queue<Parcel>> solve(StateContext state) {
-    return Solvers.convertRoutes(state, solver.get().solve(state.state));
+    try {
+      return Solvers.convertRoutes(state, solver.get().solve(state.state));
+    } catch (final InterruptedException e) {
+      throw new IllegalStateException(
+          "The solver is interrupted, can't continue.", e);
+    }
   }
 
   @Override
@@ -86,13 +91,13 @@ public final class SimSolver implements SimulationConverter {
     final Set<Parcel> ps = args.parcels.isPresent()
         ? args.parcels.get()
         : ImmutableSet.copyOf(pdpModel.getParcels(ANNOUNCED, AVAILABLE,
-            PICKING_UP));
+          PICKING_UP));
     return Solvers.convert(roadModel, pdpModel, vs, ps, time(),
-        args.currentRoutes);
+      args.currentRoutes);
   }
 
   Measure<Long, Duration> time() {
     return Measure.valueOf(clock.getCurrentTime(),
-        clock.getTimeUnit());
+      clock.getTimeUnit());
   }
 }

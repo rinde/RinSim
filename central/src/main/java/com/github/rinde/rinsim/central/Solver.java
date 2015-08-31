@@ -35,5 +35,6 @@ public interface Solver {
    * @return A list of routes, one for every vehicle in the
    *         {@link GlobalStateObject}.
    */
-  ImmutableList<ImmutableList<Parcel>> solve(GlobalStateObject state);
+  ImmutableList<ImmutableList<Parcel>> solve(GlobalStateObject state)
+      throws InterruptedException;
 }

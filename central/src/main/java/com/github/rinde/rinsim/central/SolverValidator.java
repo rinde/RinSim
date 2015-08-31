@@ -262,7 +262,8 @@ public final class SolverValidator {
     }
 
     @Override
-    public ImmutableList<ImmutableList<Parcel>> solve(GlobalStateObject state) {
+    public ImmutableList<ImmutableList<Parcel>> solve(GlobalStateObject state)
+        throws InterruptedException {
       return validateOutputs(delegateSolver.solve(validateInputs(state)),
         state);
     }

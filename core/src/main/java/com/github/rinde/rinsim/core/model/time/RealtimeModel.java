@@ -554,8 +554,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
             throw new IllegalStateException(
                 interArrivalTime + " is invalid (allowed: "
                     + allowedTickDuration + ", correction: " + correction
-                    + ", forceCheck: " + forceCheck + ") Dump: "
-                    + context.printTLDump());
+                    + ", forceCheck: " + forceCheck + ")");
           }
           interArrivalTimes.add(interArrivalTime);
         }

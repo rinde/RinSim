@@ -35,12 +35,9 @@ public class SleepySolver implements Solver {
   }
 
   @Override
-  public ImmutableList<ImmutableList<Parcel>> solve(GlobalStateObject state) {
-    try {
-      Thread.sleep(sleepTime);
-    } catch (final InterruptedException e) {
-      throw new IllegalStateException(e);
-    }
+  public ImmutableList<ImmutableList<Parcel>> solve(GlobalStateObject state)
+      throws InterruptedException {
+    Thread.sleep(sleepTime);
     return delegate.solve(state);
   }
 

@@ -537,7 +537,7 @@ public class SolverValidatorTest {
   }
 
   @Test
-  public void testWrap() {
+  public void testWrap() throws InterruptedException {
     TestUtil.testPrivateConstructor(SolverValidator.class);
     final ImmutableSet<Parcel> empty = ImmutableSet.of();
     final VehicleStateObject vs1 = VehicleStateObject.create(vdto(),

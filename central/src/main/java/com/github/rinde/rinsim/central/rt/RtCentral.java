@@ -153,7 +153,7 @@ public final class RtCentral {
         .addModel(builder(AdapterSupplier.create(solverSupplier))
             .withThreadGrouping(threadGrouping))
         .addEventHandler(AddVehicleEvent.class, vehicleHandler())
-        .setName(String.format("RtCentral-%s%s", solverSupplier, nameSuffix))
+        .setName(String.format("RtCentral-%s%s-", solverSupplier, nameSuffix))
         .build();
   }
 
