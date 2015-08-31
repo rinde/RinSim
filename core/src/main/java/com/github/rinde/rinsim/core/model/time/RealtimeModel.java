@@ -73,8 +73,8 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
   static final int CONSISTENCY_CHECK_LENGTH = 50;
   static final double MAX_STD_PERC = .1;
   static final double MAX_MEAN_DEVIATION_PERC = .05;
-  static final double MAX_TICK_LENGTH_FACTOR = 1.2d;
-  static final double MIN_TICK_LENGTH_FACTOR = .8d;
+  static final double MAX_TICK_LENGTH_FACTOR = 1.1d;
+  static final double MIN_TICK_LENGTH_FACTOR = .9d;
   static final Logger LOGGER = LoggerFactory.getLogger(RealtimeModel.class);
 
   final StateMachine<Trigger, RealtimeModel> stateMachine;
@@ -343,8 +343,9 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
   }
 
   static class Realtime extends AbstractClockState {
-    static final long MIN_TICK_DURATION = 80000000L;
     static final long THREAD_SLEEP_MS = 50L;
+    // waiting 50ms seems to improve reliability of interarrival times
+    static final long STARTUP_DELAY = 50000000L;
 
     final long tickNanos;
     final double maxStdNs;
@@ -379,6 +380,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
     @Override
     public void onEntry(Trigger event, RealtimeModel context) {
       if (executor == null) {
+        LOGGER.trace("starting executor..");
         executor = MoreExecutors.listeningDecorator(
             Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {
               @Override
@@ -410,7 +412,8 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
       taskIsRunning.set(true);
       final TimeRunner tr = new TimeRunner(context);
       schedulerFuture =
-          verifyNotNull(executor).scheduleAtFixedRate(tr, 0, tickNanos,
+          verifyNotNull(executor).scheduleAtFixedRate(tr, STARTUP_DELAY,
+              tickNanos,
               TimeUnit.NANOSECONDS);
       final ListenableScheduledFuture<?> future = schedulerFuture;
       Futures.addCallback(future, new FutureCallback<Object>() {
@@ -436,20 +439,24 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
 
     @Override
     public void onExit(Trigger event, RealtimeModel context) {
-      final ListenableScheduledFuture<?> f = verifyNotNull(schedulerFuture);
-      if (!f.isDone()) {
-        LOGGER.trace("initiate cancel task");
-        f.cancel(true);
-      }
+      cancelTask();
       if (event == Trigger.STOP) {
         isShuttingDown.set(true);
       }
     }
 
+    void cancelTask() {
+      final ListenableScheduledFuture<?> f = verifyNotNull(schedulerFuture);
+      if (!f.isDone()) {
+        LOGGER.trace("initiate cancel task");
+        f.cancel(true);
+      }
+    }
+
     void awaitTermination(RealtimeModel context, TimeRunner timeRunner) {
-      LOGGER.trace("await termination");
+      LOGGER.trace("awaiting clock termination..");
       try {
-        while (taskIsRunning.get() && !isShuttingDown.get()) {
+        while (taskIsRunning.get()) {
           Thread.sleep(THREAD_SLEEP_MS);
         }
 
@@ -503,12 +510,9 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         timeStampsBuffer.add(TimeStamp.now());
         checkConsistency(false);
         context.tickImpl();
+
         if (nextTrigger != null) {
-          final ListenableScheduledFuture<?> fut =
-              verifyNotNull(schedulerFuture);
-          if (!fut.isDone()) {
-            fut.cancel(true);
-          }
+          cancelTask();
         }
       }
 
@@ -550,7 +554,8 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
             throw new IllegalStateException(
                 interArrivalTime + " is invalid (allowed: "
                     + allowedTickDuration + ", correction: " + correction
-                    + "). Dump: " + context.printTLDump());
+                    + ", forceCheck: " + forceCheck + ") Dump: "
+                    + context.printTLDump());
           }
           interArrivalTimes.add(interArrivalTime);
         }

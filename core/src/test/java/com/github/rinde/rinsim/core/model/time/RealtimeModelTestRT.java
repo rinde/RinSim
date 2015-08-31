@@ -29,6 +29,7 @@ import org.junit.runners.Parameterized.Parameters;
 import com.github.rinde.rinsim.core.model.time.Clock.ClockEventType;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController.ClockMode;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController.RtClockEventType;
+import com.github.rinde.rinsim.core.model.time.RealtimeModel.Realtime;
 import com.github.rinde.rinsim.core.model.time.TimeModel.AbstractBuilder;
 import com.github.rinde.rinsim.event.ListenerEventHistory;
 import com.github.rinde.rinsim.testutil.RealtimeTests;
@@ -69,7 +70,7 @@ public class RealtimeModelTestRT extends TimeModelTest<RealtimeModel> {
     getModel().register(new LimitingTickListener(getModel(), 3));
     final long start = System.nanoTime();
     getModel().start();
-    final long duration = System.nanoTime() - start;
+    final long duration = System.nanoTime() - start - Realtime.STARTUP_DELAY;
     // duration should be somewhere between 200 and 300 ms
     assertThat(duration).isAtLeast(200000000L);
     assertThat(duration).isLessThan(300000000L);
