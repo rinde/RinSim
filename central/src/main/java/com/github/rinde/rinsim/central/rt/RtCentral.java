@@ -88,7 +88,7 @@ public final class RtCentral {
    */
   public static Builder builder(
       StochasticSupplier<? extends RealtimeSolver> solverSupplier) {
-    return Builder.create(solverSupplier, DEFAULT_SLEEP_ON_CHANGE);
+    return Builder.create(solverSupplier, DEFAULT_SLEEP_ON_CHANGE, false);
   }
 
   /**
@@ -126,6 +126,7 @@ public final class RtCentral {
         .setName(String.format("RtCentral-%s%s", solverSupplier, nameSuffix))
         .build();
   }
+  // TODO create builder
 
   /**
    * Constructs a new {@link MASConfiguration} that uses a {@link Solver}
@@ -143,6 +144,17 @@ public final class RtCentral {
       StochasticSupplier<? extends Solver> solverSupplier, String nameSuffix) {
     return solverConfiguration(AdapterSupplier.create(solverSupplier),
       nameSuffix);
+  }
+
+  public static MASConfiguration solverConfigurationAdapt(
+      StochasticSupplier<? extends Solver> solverSupplier, String nameSuffix,
+      boolean threadGrouping) {
+    return MASConfiguration.pdptwBuilder()
+        .addModel(builder(AdapterSupplier.create(solverSupplier))
+            .withThreadGrouping(threadGrouping))
+        .addEventHandler(AddVehicleEvent.class, vehicleHandler())
+        .setName(String.format("RtCentral-%s%s", solverSupplier, nameSuffix))
+        .build();
   }
 
   static TimedEventHandler<AddVehicleEvent> vehicleHandler() {
@@ -173,6 +185,8 @@ public final class RtCentral {
 
     abstract boolean getSleepOnChange();
 
+    abstract boolean getThreadGrouping();
+
     /**
      * If set to <code>true</code> the model will wait half a tick (wall clock
      * time) after it has started a new computation. By sleeping half a tick the
@@ -187,7 +201,11 @@ public final class RtCentral {
      * @return A new builder instance with the flag.
      */
     public Builder withSleepOnChange(boolean flag) {
-      return create(getSolverSupplier(), flag);
+      return create(getSolverSupplier(), flag, getThreadGrouping());
+    }
+
+    public Builder withThreadGrouping(boolean flag) {
+      return create(getSolverSupplier(), getSleepOnChange(), flag);
     }
 
     @Override
@@ -207,7 +225,8 @@ public final class RtCentral {
 
     @Override
     public ImmutableSet<ModelBuilder<?, ?>> getChildren() {
-      return ImmutableSet.<ModelBuilder<?, ?>>of(RtSolverModel.builder());
+      return ImmutableSet.<ModelBuilder<?, ?>>of(
+        RtSolverModel.builder().withThreadGrouping(getThreadGrouping()));
     }
 
     @Override
@@ -218,9 +237,10 @@ public final class RtCentral {
     @SuppressWarnings("unchecked")
     static Builder create(
         StochasticSupplier<? extends RealtimeSolver> solverSupplier,
-        boolean sleepOnChange) {
+        boolean sleepOnChange, boolean threadGrouping) {
       return new AutoValue_RtCentral_Builder(
-          (StochasticSupplier<RealtimeSolver>) solverSupplier, sleepOnChange);
+          (StochasticSupplier<RealtimeSolver>) solverSupplier, sleepOnChange,
+          threadGrouping);
     }
   }
 

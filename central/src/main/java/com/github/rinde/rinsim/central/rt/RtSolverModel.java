@@ -219,8 +219,7 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
       final String newName =
         Thread.currentThread().getName() + "-" + getClass().getSimpleName();
       if (threadGroupingEnabled) {
-        factory =
-          new AffinityGroupThreadFactory(newName);
+        factory = new AffinityGroupThreadFactory(newName);
       } else {
         factory = new AffinityThreadFactory(newName, AffinityStrategies.ANY);
       }
