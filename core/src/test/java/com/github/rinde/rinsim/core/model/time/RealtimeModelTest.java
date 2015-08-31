@@ -82,6 +82,7 @@ public class RealtimeModelTest extends TimeModelTest<RealtimeModel> {
       assertThat(e.getMessage()).contains("can be started only once");
     }
     assertThat(fail).isTrue();
+    assertThat(getModel().isExecutorAlive()).isFalse();
   }
 
   /**
@@ -98,6 +99,7 @@ public class RealtimeModelTest extends TimeModelTest<RealtimeModel> {
       assertThat(e.getMessage()).contains("not supported");
     }
     assertThat(fail).isTrue();
+    assertThat(getModel().isExecutorAlive()).isFalse();
   }
 
   /**
@@ -133,6 +135,7 @@ public class RealtimeModelTest extends TimeModelTest<RealtimeModel> {
       fail = true;
     }
     assertThat(fail).isTrue();
+    assertThat(getModel().isExecutorAlive()).isFalse();
   }
 
   /**
@@ -161,6 +164,7 @@ public class RealtimeModelTest extends TimeModelTest<RealtimeModel> {
       fail = true;
     }
     assertThat(fail).isTrue();
+    assertThat(getModel().isExecutorAlive()).isFalse();
   }
 
   /**
@@ -195,6 +199,7 @@ public class RealtimeModelTest extends TimeModelTest<RealtimeModel> {
       fail = true;
     }
     assertThat(fail).isTrue();
+    assertThat(getModel().isExecutorAlive()).isFalse();
   }
 
   /**
@@ -214,6 +219,7 @@ public class RealtimeModelTest extends TimeModelTest<RealtimeModel> {
           .contains("does not provide instances of java.lang.Object");
     }
     assertThat(fail).isTrue();
+    assertThat(getModel().isExecutorAlive()).isFalse();
   }
 
 }

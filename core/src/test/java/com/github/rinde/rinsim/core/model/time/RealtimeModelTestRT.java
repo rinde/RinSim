@@ -74,6 +74,7 @@ public class RealtimeModelTestRT extends TimeModelTest<RealtimeModel> {
     assertThat(duration).isAtLeast(200000000L);
     assertThat(duration).isLessThan(300000000L);
     assertThat(getModel().getCurrentTime()).isEqualTo(300);
+    assertThat(getModel().isExecutorAlive()).isFalse();
   }
 
   /**
@@ -136,6 +137,7 @@ public class RealtimeModelTestRT extends TimeModelTest<RealtimeModel> {
     assertThat(interArrivalTimes.get(3)).isIn(Range.openClosed(90d, 110d));
     assertThat(interArrivalTimes.get(4)).isIn(Range.openClosed(90d, 110d));
     assertThat(sum(interArrivalTimes.subList(5, 7))).isAtMost(100d);
+    assertThat(getModel().isExecutorAlive()).isFalse();
   }
 
   /**
@@ -313,6 +315,7 @@ public class RealtimeModelTestRT extends TimeModelTest<RealtimeModel> {
     assertThat(interArrivalTimes.get(2)).isAtMost(500d);
 
     assertThat(interArrivalTimes.get(3)).isAtMost(500d);
+    assertThat(getModel().isExecutorAlive()).isFalse();
   }
 
   static double sum(List<Double> list) {

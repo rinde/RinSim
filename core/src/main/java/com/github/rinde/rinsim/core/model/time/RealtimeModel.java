@@ -35,6 +35,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -78,7 +79,9 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
 
   final StateMachine<Trigger, RealtimeModel> stateMachine;
   final Map<TickListener, TickListenerTimingChecker> decoratorMap;
-  final AffinityLock affinityLock;
+
+  @Nullable
+  AffinityLock affinityLock;
   final long maxTickDuration;
   final long minTickDuration;
   final Realtime realtimeState;
@@ -103,8 +106,6 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         DoubleMath.roundToLong(tickNanos * MAX_STD_PERC, RoundingMode.UP);
     final long maxMeanDeviationNs = DoubleMath.roundToLong(
         tickNanos * MAX_MEAN_DEVIATION_PERC, RoundingMode.UP);
-
-    affinityLock = AffinityLock.acquireLock();
 
     realtimeState =
         new Realtime(tickNanos, maxStdNs, maxMeanDeviationNs, tickDuration);
@@ -149,18 +150,28 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
 
   @Override
   void cleanUpAfterException() {
-    realtimeState.executor.shutdown();
-    cleanup();
-    try {
-      realtimeState.executor.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
-    } catch (final InterruptedException e) {
-      throw new IllegalStateException(e);
-    }
+    LOGGER.trace("cleanUpAfterException");
+    shutdownExecutor();
     super.cleanUpAfterException();
   }
 
-  void cleanup() {
-    affinityLock.release();
+  void shutdownExecutor() {
+    LOGGER.trace("shutdownExecutor");
+    final ListeningScheduledExecutorService ex = realtimeState.executor;
+    if (ex != null) {
+      ex.shutdown();
+      try {
+        ex.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+      } catch (final InterruptedException e) {
+        throw new IllegalStateException(e);
+      }
+    }
+    verifyNotNull(affinityLock).release();
+  }
+
+  boolean isExecutorAlive() {
+    return realtimeState.executor != null
+        && !realtimeState.executor.isTerminated();
   }
 
   @Override
@@ -168,18 +179,20 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
     checkState(stateMachine.isSupported(Trigger.START),
         "%s can be started only once",
         getClass().getSimpleName());
+    affinityLock = AffinityLock.acquireLock();
     stateMachine.handle(Trigger.START, this);
   }
 
   @Override
   public void stop() {
+    LOGGER.trace("stop");
     checkState(stateMachine.isSupported(Trigger.STOP),
         "Can not stop time in current state: %s",
         stateMachine.getCurrentState().name());
     final boolean rt = stateMachine.stateIs(realtimeState);
     stateMachine.handle(Trigger.STOP, this);
     if (!rt) {
-      cleanup();
+      shutdownExecutor();
     }
   }
 
@@ -340,9 +353,14 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
     final List<Throwable> exceptions;
     @Nullable
     Trigger nextTrigger;
-    final ListeningScheduledExecutorService executor;
+    @Nullable
+    ListeningScheduledExecutorService executor;
+
     @Nullable
     ListenableScheduledFuture<?> schedulerFuture;
+
+    AtomicBoolean taskIsRunning;
+    AtomicBoolean isShuttingDown;
 
     // keeps time for last real-time request while in RT mode
     long lastRtRequest;
@@ -352,19 +370,25 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
       maxStdNs = maxStd;
       maxMeanDeviationNs = maxMeanDevNs;
       allowedTickDuration = tickDur;
+      taskIsRunning = new AtomicBoolean();
+      isShuttingDown = new AtomicBoolean();
       exceptions = new ArrayList<>();
-      executor = MoreExecutors.listeningDecorator(
-          Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {
-            @Override
-            public Thread newThread(@Nullable Runnable r) {
-              return new Thread(r,
-                  Thread.currentThread().getName() + "-RealtimeModel");
-            }
-          }));
+
     }
 
     @Override
-    public void onEntry(Trigger event, RealtimeModel context) {}
+    public void onEntry(Trigger event, RealtimeModel context) {
+      if (executor == null) {
+        executor = MoreExecutors.listeningDecorator(
+            Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {
+              @Override
+              public Thread newThread(@Nullable Runnable r) {
+                return new Thread(r,
+                    Thread.currentThread().getName() + "-RealtimeModel");
+              }
+            }));
+      }
+    }
 
     @Override
     @Nullable
@@ -383,25 +407,28 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         return null;
       }
 
+      taskIsRunning.set(true);
       final TimeRunner tr = new TimeRunner(context);
       schedulerFuture =
-          executor.scheduleAtFixedRate(tr, 0, tickNanos, TimeUnit.NANOSECONDS);
+          verifyNotNull(executor).scheduleAtFixedRate(tr, 0, tickNanos,
+              TimeUnit.NANOSECONDS);
       final ListenableScheduledFuture<?> future = schedulerFuture;
       Futures.addCallback(future, new FutureCallback<Object>() {
         @Override
         public void onFailure(Throwable t) {
-          if (t instanceof CancellationException) {
-            executor.shutdownNow();
-            context.cleanup();
-            return;
+          if (!(t instanceof CancellationException)) {
+            exceptions.add(t);
+          } else {
+            LOGGER.trace("{} cancel execution", context.timeLapse);
           }
-          exceptions.add(t);
+          taskIsRunning.set(false);
         }
 
         @Override
         public void onSuccess(@Nullable Object result) {}
       });
       awaitTermination(context, tr);
+      LOGGER.trace("end of realtime, next trigger {}", nextTrigger);
       final Trigger t = nextTrigger;
       nextTrigger = null;
       return t;
@@ -411,16 +438,21 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
     public void onExit(Trigger event, RealtimeModel context) {
       final ListenableScheduledFuture<?> f = verifyNotNull(schedulerFuture);
       if (!f.isDone()) {
+        LOGGER.trace("initiate cancel task");
         f.cancel(true);
+      }
+      if (event == Trigger.STOP) {
+        isShuttingDown.set(true);
       }
     }
 
     void awaitTermination(RealtimeModel context, TimeRunner timeRunner) {
-      final ListenableScheduledFuture<?> fut = verifyNotNull(schedulerFuture);
+      LOGGER.trace("await termination");
       try {
-        while (!fut.isDone()) {
+        while (taskIsRunning.get() && !isShuttingDown.get()) {
           Thread.sleep(THREAD_SLEEP_MS);
         }
+
       } catch (final InterruptedException e) {
         throw new IllegalStateException(e);
       }
@@ -434,6 +466,10 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         throw new IllegalStateException(exceptions.get(0));
       }
       timeRunner.checkConsistency(true);
+      LOGGER.trace("done waiting");
+      if (isShuttingDown.get()) {
+        context.shutdownExecutor();
+      }
     }
 
     @Override

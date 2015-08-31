@@ -236,6 +236,8 @@ public abstract class TimeModelTest<T extends TimeModel> {
       }
     });
     getModel().start();
+
+    assertThat(getModel().isTicking()).isFalse();
     assertThat(failures).hasSize(3);
   }
 
