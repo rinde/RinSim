@@ -213,7 +213,8 @@ public final class GCLogMonitor {
         if (!pauseTimes.isEmpty()) {
           checkState(pauseTimes.peekLast().getTime() <= time,
               "Time inconsistency detected in the gc log. Last entry: %s, "
-                  + "new entry: %s.",
+                  + "new entry: %s. This may occur if multiple VMs are writing "
+                  + "to the same log file.",
               pauseTimes.peekLast().getTime(), time);
         }
         // add new info at the back
