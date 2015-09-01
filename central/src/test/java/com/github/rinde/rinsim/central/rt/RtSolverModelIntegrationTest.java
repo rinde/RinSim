@@ -105,36 +105,8 @@ public class RtSolverModelIntegrationTest {
   @Test
   public void test() {
     final RtSimSolverBuilder builder = model.get(RtSimSolverBuilder.class);
-
-    final RtSimSolver simSolver = builder.build(new Solver() {
-      @Override
-      public ImmutableList<ImmutableList<Parcel>> solve(
-          GlobalStateObject state) {
-
-        // quick! act busy!
-
-        // 3 seconds
-        final long waitTime = 3000000000L;
-        final long start = System.nanoTime();
-        LOGGER.trace("start computing");
-        while (System.nanoTime() - start < waitTime) {
-          if (Thread.interrupted()) {
-            Thread.currentThread().interrupt();
-            LOGGER.trace("interrupt");
-            return ImmutableList.of();
-          }
-          final List<Integer> list = new ArrayList<>();
-          for (int i = 0; i < 100; i++) {
-            list.add(new Integer(i));
-          }
-        }
-
-        final ImmutableList<ImmutableList<Parcel>> result =
-          ImmutableList.of(state.getAvailableParcels().asList());
-        LOGGER.trace("done computing: {}", result);
-        return result;
-      }
-    });
+    final RtSimSolver simSolver =
+      builder.build(new InterruptibleBusySolver(3L));
 
     sim.addTickListener(new TickListener() {
       @Override
@@ -176,6 +148,32 @@ public class RtSolverModelIntegrationTest {
     assertThat(sim.getCurrentTime()).isEqualTo(6100);
   }
 
+  @Test
+  public void test2() {
+    final RtSimSolverBuilder builder = model.get(RtSimSolverBuilder.class);
+    final RtSimSolver simSolver =
+      builder.build(new InterruptibleBusySolver(3L));
+
+    sim.addTickListener(new TickListener() {
+      @Override
+      public void tick(TimeLapse timeLapse) {
+        if (timeLapse.getTime() == 100) {
+          rtClock.switchToRealTime();
+        } else if (timeLapse.getTime() == 200) {
+          sim.register(
+            Parcel.builder(new Point(0, 0), new Point(4, 4)).build());
+          simSolver.solve(SolveArgs.create());
+        } else if (timeLapse.getTime() == 500) {
+          throw new IllegalStateException("This is a test");
+        }
+      }
+
+      @Override
+      public void afterTick(TimeLapse timeLapse) {}
+    });
+    sim.start();
+  }
+
   void assertNoSchedule(RtSimSolver ss) {
     boolean fail = false;
     try {
@@ -185,6 +183,41 @@ public class RtSolverModelIntegrationTest {
       fail = true;
     }
     assertThat(fail).isTrue();
+  }
+
+  static class InterruptibleBusySolver implements Solver {
+    static final Logger LOGGER2 =
+      LoggerFactory.getLogger(InterruptibleBusySolver.class);
+    final long busyNs;
+
+    InterruptibleBusySolver(long busySeconds) {
+      busyNs = 1000000000L * busySeconds;
+    }
+
+    @Override
+    public ImmutableList<ImmutableList<Parcel>> solve(
+        GlobalStateObject state) throws InterruptedException {
+      // quick! act busy!
+
+      final long start = System.nanoTime();
+      LOGGER2.trace("start computing");
+      while (System.nanoTime() - start < busyNs) {
+        if (Thread.interrupted()) {
+          Thread.currentThread().interrupt();
+          LOGGER2.trace("interrupt");
+          throw new InterruptedException();
+        }
+        final List<Integer> list = new ArrayList<>();
+        for (int i = 0; i < 100; i++) {
+          list.add(new Integer(i));
+        }
+      }
+
+      final ImmutableList<ImmutableList<Parcel>> result =
+        ImmutableList.of(state.getAvailableParcels().asList());
+      LOGGER2.trace("done computing: {}", result);
+      return result;
+    }
   }
 
 }

@@ -141,14 +141,7 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
       @Override
       public void handleEvent(Event event) {
         manager.checkExceptions();
-        if (executor.isPresent()) {
-          executor.get().shutdownNow();
-          try {
-            executor.get().awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
-          } catch (final InterruptedException e) {
-            throw new IllegalStateException(e);
-          }
-        }
+        shutdown();
       }
     }, ClockEventType.STOPPED);
     pdpModel.getEventAPI().addListener(new Listener() {
@@ -158,6 +151,17 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
       }
     }, PDPModelEventType.NEW_PARCEL);
     initExecutor();
+  }
+
+  void shutdown() {
+    if (executor.isPresent()) {
+      executor.get().shutdownNow();
+      try {
+        executor.get().awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+      } catch (final InterruptedException e) {
+        throw new IllegalStateException(e);
+      }
+    }
   }
 
   @Override
@@ -347,7 +351,7 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
 
     void checkExceptions() {
       if (!exceptions.isEmpty()) {
-        executor.get().shutdownNow();
+        shutdown();
         if (exceptions.get(0) instanceof RuntimeException) {
           throw (RuntimeException) exceptions.get(0);
         } else if (exceptions.get(0) instanceof Error) {
