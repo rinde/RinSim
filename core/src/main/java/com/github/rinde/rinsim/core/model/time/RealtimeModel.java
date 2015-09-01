@@ -20,17 +20,14 @@ import static com.github.rinde.rinsim.core.model.time.RealtimeClockController.Rt
 import static com.github.rinde.rinsim.core.model.time.RealtimeModel.SimpleState.INIT_RT;
 import static com.github.rinde.rinsim.core.model.time.RealtimeModel.SimpleState.INIT_ST;
 import static com.github.rinde.rinsim.core.model.time.RealtimeModel.SimpleState.STOPPED;
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Verify.verifyNotNull;
 
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Deque;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -78,7 +75,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
   static final Logger LOGGER = LoggerFactory.getLogger(RealtimeModel.class);
 
   final StateMachine<Trigger, RealtimeModel> stateMachine;
-  final Map<TickListener, TickListenerTimingChecker> decoratorMap;
+  // final Map<TickListener, TickListenerTimingChecker> decoratorMap;
 
   @Nullable
   AffinityLock affinityLock;
@@ -89,7 +86,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
   RealtimeModel(RealtimeBuilder builder) {
     super(builder, RtClockEventType.values());
     LOGGER.trace("Constructor");
-    decoratorMap = new LinkedHashMap<>();
+    // decoratorMap = new LinkedHashMap<>();
 
     final long tickNanos = Measure.valueOf(timeLapse.getTickLength(),
         timeLapse.getTimeUnit()).longValue(SI.NANO(SI.SECOND));
@@ -230,21 +227,21 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
     return ((ClockState) stateMachine.getCurrentState()).getClockMode();
   }
 
-  @Override
-  public boolean register(TickListener tickListener) {
-    checkArgument(!decoratorMap.containsKey(tickListener),
-        "A TickListener can not be registered more than once: %s.",
-        tickListener);
-    final TickListenerTimingChecker decorated = new TickListenerTimingChecker(
-        tickListener, maxTickDuration);
-    decoratorMap.put(tickListener, decorated);
-    return super.register(decorated);
-  }
+  // @Override
+  // public boolean register(TickListener tickListener) {
+  // checkArgument(!decoratorMap.containsKey(tickListener),
+  // "A TickListener can not be registered more than once: %s.",
+  // tickListener);
+  // final TickListenerTimingChecker decorated = new TickListenerTimingChecker(
+  // tickListener, maxTickDuration);
+  // decoratorMap.put(tickListener, decorated);
+  // return super.register(decorated);
+  // }
 
-  @Override
-  public boolean unregister(TickListener tickListener) {
-    return super.unregister(decoratorMap.remove(tickListener));
-  }
+  // @Override
+  // public boolean unregister(TickListener tickListener) {
+  // return super.unregister(decoratorMap.remove(tickListener));
+  // }
 
   @Override
   @Nonnull
@@ -255,23 +252,23 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
     return super.get(clazz);
   }
 
-  String printTLDump() {
-    long sumDuration = 0;
-    final StringBuilder sb = new StringBuilder();
-    for (final TickListenerTimingChecker tl : decoratorMap.values()) {
-      sb.append(tl.delegate)
-          .append(" took ")
-          .append(tl.tickDuration)
-          .append(" ns")
-          .append(System.lineSeparator());
-      sumDuration += tl.tickDuration;
-    }
-    sb.append("sum duration ")
-        .append(sumDuration)
-        .append(" nano seconds")
-        .append(System.lineSeparator());
-    return sb.toString();
-  }
+  // String printTLDump() {
+  // long sumDuration = 0;
+  // final StringBuilder sb = new StringBuilder();
+  // for (final TickListenerTimingChecker tl : decoratorMap.values()) {
+  // sb.append(tl.delegate)
+  // .append(" took ")
+  // .append(tl.tickDuration)
+  // .append(" ns")
+  // .append(System.lineSeparator());
+  // sumDuration += tl.tickDuration;
+  // }
+  // sb.append("sum duration ")
+  // .append(sumDuration)
+  // .append(" nano seconds")
+  // .append(System.lineSeparator());
+  // return sb.toString();
+  // }
 
   enum Trigger {
     START, STOP, SIMULATE, DO_SIMULATE, REAL_TIME, DO_REAL_TIME;
@@ -472,7 +469,17 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         }
         throw new IllegalStateException(exceptions.get(0));
       }
-      timeRunner.checkConsistency(true);
+      try {
+        Thread.sleep(THREAD_SLEEP_MS);
+      } catch (final InterruptedException e) {
+        throw new IllegalStateException(e);
+      }
+      try {
+        timeRunner.checkConsistency();
+      } catch (final IllegalStateException e) {
+        context.cleanUpAfterException();
+        throw e;
+      }
       LOGGER.trace("done waiting");
       if (isShuttingDown.get()) {
         context.shutdownExecutor();
@@ -508,7 +515,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
       @Override
       public void run() {
         timeStampsBuffer.add(TimeStamp.now());
-        checkConsistency(false);
+        checkConsistency();
         context.tickImpl();
 
         if (nextTrigger != null) {
@@ -516,14 +523,13 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         }
       }
 
-      void checkConsistency(boolean forceCheck) {
+      void checkConsistency() {
         // check if GCLogMonitor has a time AFTER the timestamp (in that
         // case we are sure that we have complete information)
         // unless forceCheck=true -> then we always check all time stamps
         while (!timeStampsBuffer.isEmpty()
-            && (logMonitor
-                .hasSurpassed(timeStampsBuffer.peekFirst().getNanos())
-                || forceCheck)) {
+            && logMonitor
+                .hasSurpassed(timeStampsBuffer.peekFirst().getNanos())) {
           timeStamps.add(timeStampsBuffer.removeFirst());
         }
 
@@ -554,7 +560,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
             throw new IllegalStateException(
                 interArrivalTime + " is invalid (allowed: "
                     + allowedTickDuration + ", correction: " + correction
-                    + ", forceCheck: " + forceCheck + ")");
+                    + ")" + interArrivalTimes);
           }
           interArrivalTimes.add(interArrivalTime);
         }
