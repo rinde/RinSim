@@ -30,7 +30,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import org.apache.commons.io.input.Tailer;
-import org.apache.commons.io.input.TailerListenerAdapter;
+import org.apache.commons.io.input.TailerListener;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
@@ -44,8 +44,8 @@ import com.google.common.primitives.Doubles;
  * @author Rinde van Lon
  */
 public final class GCLogMonitor {
-  static final long S_TO_NS = 1000000000L;
-  static final long HISTORY_LENGTH = 30 * S_TO_NS;
+  static final long S_TO_MS = 1000L;
+  static final long HISTORY_LENGTH = 30 * S_TO_MS;
   static final long LOG_PARSER_DELAY = 200L;
   static final int QUEUE_EXPECTED_SIZE = 50;
   static final String FILTER =
@@ -59,10 +59,10 @@ public final class GCLogMonitor {
   final Deque<PauseTime> pauseTimes;
   final Tailer tailer;
   final List<Throwable> exceptions;
+  final String logPath;
 
   GCLogMonitor(@Nullable String path) {
     exceptions = new ArrayList<>();
-    final String logPath;
     if (path == null) {
       final RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
       final List<String> arguments = runtimeMxBean.getInputArguments();
@@ -147,6 +147,7 @@ public final class GCLogMonitor {
         // if vmt2 < pt time -> we are outside the interval, we can stop the
         // loop
         if (vmt2 - pt.getTime() < 0) {
+
           break;
         }
         // if vmt1 <= pt time -> we are inside the interval, add the times to
@@ -190,7 +191,7 @@ public final class GCLogMonitor {
     }
   }
 
-  class LogListener extends TailerListenerAdapter {
+  class LogListener implements TailerListener {
 
     LogListener() {}
 
@@ -203,18 +204,18 @@ public final class GCLogMonitor {
         if (t == null) {
           return;
         }
-        final long time = (long) (S_TO_NS * t);
+        final long time = (long) (S_TO_MS * t);
         final Double d =
             Doubles.tryParse(parts[2].substring(0, parts[2].length() - 8));
         if (d == null) {
           return;
         }
-        final long duration = (long) (S_TO_NS * d);
+        final long duration = (long) (S_TO_MS * d);
         if (!pauseTimes.isEmpty()) {
           checkState(pauseTimes.peekLast().getTime() <= time,
               "Time inconsistency detected in the gc log. Last entry: %s, "
                   + "new entry: %s. This may occur if multiple VMs are writing "
-                  + "to the same log file.",
+                  + "to the same log file (" + logPath + ").",
               pauseTimes.peekLast().getTime(), time);
         }
         // add new info at the back
@@ -231,6 +232,22 @@ public final class GCLogMonitor {
     public void handle(@SuppressWarnings("null") Exception e) {
       exceptions.add(e);
       close();
+    }
+
+    @Override
+    public void init(@Nullable Tailer tl) {}
+
+    @Override
+    public void fileNotFound() {
+      exceptions.add(new IllegalStateException(
+          "The gc log file was not found:" + logPath));
+    }
+
+    @Override
+    public void fileRotated() {
+      exceptions.add(new IllegalStateException(
+          "The gc log file (" + logPath + ") is rotated, presumably another VM "
+              + "is writing to the same file."));
     }
   }
 

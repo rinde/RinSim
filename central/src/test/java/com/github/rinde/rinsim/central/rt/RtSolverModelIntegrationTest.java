@@ -102,8 +102,11 @@ public class RtSolverModelIntegrationTest {
     sim.register(new RouteFollowingVehicle(VehicleDTO.builder().build(), true));
   }
 
+  /**
+   * Tests correct interruption of a running solver.
+   */
   @Test
-  public void test() {
+  public void testSolverInterruption() {
     final RtSimSolverBuilder builder = model.get(RtSimSolverBuilder.class);
     final RtSimSolver simSolver =
       builder.build(new InterruptibleBusySolver(3L));
@@ -148,8 +151,11 @@ public class RtSolverModelIntegrationTest {
     assertThat(sim.getCurrentTime()).isEqualTo(6100);
   }
 
+  /**
+   * Test that an exception is correctly propagated to outside.
+   */
   @Test
-  public void test2() {
+  public void testMisbehavingTickListener() {
     final RtSimSolverBuilder builder = model.get(RtSimSolverBuilder.class);
     final RtSimSolver simSolver =
       builder.build(new InterruptibleBusySolver(3L));
@@ -171,7 +177,14 @@ public class RtSolverModelIntegrationTest {
       @Override
       public void afterTick(TimeLapse timeLapse) {}
     });
-    sim.start();
+    boolean fail = false;
+    try {
+      sim.start();
+    } catch (final IllegalStateException e) {
+      assertThat(e.getMessage()).isEqualTo("This is a test");
+      fail = true;
+    }
+    assertThat(fail).isTrue();
   }
 
   void assertNoSchedule(RtSimSolver ss) {

@@ -368,8 +368,8 @@ public abstract class TimeModelTest<T extends TimeModel> {
         .getTimeUnit());
   }
 
-  LimitingTickListener limiter(int limit) {
-    return new LimitingTickListener(getModel(), limit);
+  LimitingTickListener limiter(int tickLimit) {
+    return new LimitingTickListener(getModel(), tickLimit);
   }
 
   /**

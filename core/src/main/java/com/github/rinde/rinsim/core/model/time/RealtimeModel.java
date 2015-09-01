@@ -363,6 +363,8 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
     // keeps time for last real-time request while in RT mode
     long lastRtRequest;
 
+    TimeRunner timeRunner;
+
     Realtime(long tickNs, long maxStd, long maxMeanDevNs, Range<Long> tickDur) {
       tickNanos = tickNs;
       maxStdNs = maxStd;
@@ -407,9 +409,9 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
       }
 
       taskIsRunning.set(true);
-      final TimeRunner tr = new TimeRunner(context);
+      timeRunner = new TimeRunner(context);
       schedulerFuture =
-          verifyNotNull(executor).scheduleAtFixedRate(tr, STARTUP_DELAY,
+          verifyNotNull(executor).scheduleAtFixedRate(timeRunner, STARTUP_DELAY,
               tickNanos,
               TimeUnit.NANOSECONDS);
       final ListenableScheduledFuture<?> future = schedulerFuture;
@@ -427,7 +429,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         @Override
         public void onSuccess(@Nullable Object result) {}
       });
-      awaitTermination(context, tr);
+      awaitTermination(context);
       LOGGER.trace("end of realtime, next trigger {}", nextTrigger);
       final Trigger t = nextTrigger;
       nextTrigger = null;
@@ -450,7 +452,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
       }
     }
 
-    void awaitTermination(RealtimeModel context, TimeRunner timeRunner) {
+    void awaitTermination(RealtimeModel context) {
       LOGGER.trace("awaiting clock termination..");
       try {
         while (taskIsRunning.get()) {
@@ -497,7 +499,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
     }
 
     class TimeRunner implements Runnable {
-      final List<Long> interArrivalTimes;
+      final Deque<InterarrivalTime> interArrivalTimes;
       final Deque<TimeStamp> timeStamps;
       final Deque<TimeStamp> timeStampsBuffer;
       final RealtimeModel context;
@@ -506,7 +508,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
 
       TimeRunner(RealtimeModel rm) {
         context = rm;
-        interArrivalTimes = new ArrayList<>();
+        interArrivalTimes = new LinkedList<>();
         timeStamps = new LinkedList<>();
         timeStampsBuffer = new LinkedList<>();
         logMonitor = GCLogMonitor.getInstance();
@@ -562,7 +564,8 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
                     + allowedTickDuration + ", correction: " + correction
                     + ")" + interArrivalTimes);
           }
-          interArrivalTimes.add(interArrivalTime);
+          interArrivalTimes
+              .addLast(InterarrivalTime.create(interArrivalTime, correction));
         }
 
         if (interArrivalTimes.size() < CONSISTENCY_CHECK_LENGTH) {
@@ -570,8 +573,8 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         }
 
         final SummaryStatistics ss = new SummaryStatistics();
-        for (final Long n : interArrivalTimes) {
-          ss.addValue(n.longValue());
+        for (final InterarrivalTime iat : interArrivalTimes) {
+          ss.addValue(iat.getInterarrivalTime());
         }
         final StatisticalSummary sum = ss.getSummary();
 
@@ -582,6 +585,23 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
             Math.abs(tickNanos - sum.getMean()) < maxMeanDeviationNs,
             "Mean interval is above threshold of %sns: %s.",
             maxMeanDeviationNs, sum.getMean());
+
+        // remove old values to free memory
+        while (interArrivalTimes.size() > CONSISTENCY_CHECK_LENGTH) {
+          interArrivalTimes.removeFirst();
+        }
+      }
+    }
+
+    @AutoValue
+    abstract static class InterarrivalTime {
+
+      abstract long getInterarrivalTime();
+
+      abstract long getCorrection();
+
+      static InterarrivalTime create(long iat, long corr) {
+        return new AutoValue_RealtimeModel_Realtime_InterarrivalTime(iat, corr);
       }
     }
 

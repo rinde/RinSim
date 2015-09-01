@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static java.util.Arrays.asList;
 
 import java.util.Collection;
+import java.util.Deque;
 
 import javax.measure.unit.NonSI;
 
@@ -28,6 +29,7 @@ import org.junit.runners.Parameterized.Parameters;
 import com.github.rinde.rinsim.core.model.FakeDependencyProvider;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController.ClockMode;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController.RtClockEventType;
+import com.github.rinde.rinsim.core.model.time.RealtimeModel.Realtime.InterarrivalTime;
 import com.github.rinde.rinsim.core.model.time.TimeModel.AbstractBuilder;
 import com.github.rinde.rinsim.core.model.time.TimeModel.RealtimeBuilder;
 import com.github.rinde.rinsim.testutil.TestUtil;
@@ -133,6 +135,42 @@ public class RealtimeModelTest extends TimeModelTest<RealtimeModel> {
     }
     assertThat(fail).isTrue();
     assertThat(getModel().isExecutorAlive()).isFalse();
+  }
+
+  /**
+   * Tests that a correction was supplied.
+   */
+  @Test
+  public void testGCLogCorrection() {
+    getModel().register(limiter(20));
+    getModel().register(new TickListener() {
+      @Override
+      public void tick(TimeLapse timeLapse) {
+        if (timeLapse.getTime() == 0) {
+          getModel().switchToRealTime();
+        } else if (timeLapse.getTime() >= 300) {
+          System.gc();
+        }
+      }
+
+      @Override
+      public void afterTick(TimeLapse timeLapse) {}
+    });
+    getModel().start();
+
+    assertThat(getModel().getCurrentTime()).isEqualTo(2000);
+    final Deque<InterarrivalTime> interArrivalTimes =
+        getModel().realtimeState.timeRunner.interArrivalTimes;
+    // impossible to give guarantees, but 10 seems low enough
+    assertThat(interArrivalTimes.size()).isAtLeast(10);
+    boolean containsCorrection = false;
+    for (final InterarrivalTime iat : interArrivalTimes) {
+      if (iat.getCorrection() > 0) {
+        containsCorrection = true;
+      }
+    }
+    // a time correction must have been applied (but probably very small!)
+    assertThat(containsCorrection).isTrue();
   }
 
   /**
