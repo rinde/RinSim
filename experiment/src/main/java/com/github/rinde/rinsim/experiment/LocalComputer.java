@@ -103,11 +103,13 @@ final class LocalComputer implements Computer {
   }
 
   static class LocalThreadFactory implements ThreadFactory {
-    static final AtomicInteger threadId = new AtomicInteger(0);
+    static final AtomicInteger THREAD_ID = new AtomicInteger(0);
+
+    LocalThreadFactory() {}
 
     @Override
     public Thread newThread(@Nullable Runnable r) {
-      return new Thread(r, "RinSim-exp-" + threadId.getAndIncrement());
+      return new Thread(r, "RinSim-exp-" + THREAD_ID.getAndIncrement());
     }
   }
 
