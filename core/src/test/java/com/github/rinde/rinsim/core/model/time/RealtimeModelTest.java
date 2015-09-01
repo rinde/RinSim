@@ -178,14 +178,16 @@ public class RealtimeModelTest extends TimeModelTest<RealtimeModel> {
    */
   @Test
   public void testTimingChecker() {
+    getModel().register(limiter(100));
     getModel().register(new TickListener() {
       @Override
       public void tick(TimeLapse timeLapse) {
         try {
-          Thread.sleep(121L);
+          Thread.sleep(150L);
         } catch (final InterruptedException e) {
           throw new IllegalStateException(e);
         }
+        System.gc();
       }
 
       @Override

@@ -83,7 +83,7 @@ public class FakeGCLogMonitorTest {
   @Test
   public void test() {
     log(1, 8);
-    log(2, 0.0001);
+    log(2, 0.001);
     try {
       Thread.sleep(250);
     } catch (final InterruptedException e) {
@@ -93,31 +93,31 @@ public class FakeGCLogMonitorTest {
     synchronized (monitor.pauseTimes) {
       final Iterator<PauseTime> it = monitor.pauseTimes.iterator();
       assertThat(it.next())
-          .isEqualTo(PauseTime.create(1000000000L, 8000000000L));
+          .isEqualTo(PauseTime.create(1000L, 8000L));
       assertThat(it.next())
-          .isEqualTo(PauseTime.create(2000000000L, 100000L));
+          .isEqualTo(PauseTime.create(2000L, 1L));
       assertThat(it.hasNext()).isFalse();
     }
 
     final long st = monitor.startTimeMillis;
 
     assertThat(monitor.hasSurpassed(st)).isTrue();
-    assertThat(monitor.hasSurpassed(st + 1000000000)).isTrue();
-    assertThat(monitor.hasSurpassed(st + 2000000000)).isTrue();
-    assertThat(monitor.hasSurpassed(st + 2000000001)).isFalse();
+    assertThat(monitor.hasSurpassed(st + 1000)).isTrue();
+    assertThat(monitor.hasSurpassed(st + 2000)).isTrue();
+    assertThat(monitor.hasSurpassed(st + 2001)).isFalse();
 
-    assertThat(monitor.getPauseTimeInInterval(st, st + 2000000000))
-        .isEqualTo(8000100000L);
+    assertThat(monitor.getPauseTimeInInterval(st, st + 2000))
+        .isEqualTo(8001L);
     assertThat(monitor.getPauseTimeInInterval(st, st + 1))
         .isEqualTo(0L);
     assertThat(monitor.getPauseTimeInInterval(st + s(1), st + s(2)))
-        .isEqualTo(8000100000L);
+        .isEqualTo(8001L);
     assertThat(monitor.getPauseTimeInInterval(st + s(1) + 1, st + s(2) - 1))
         .isEqualTo(0L);
     assertThat(monitor.getPauseTimeInInterval(st + s(1), st + s(2) - 1))
-        .isEqualTo(8000000000L);
+        .isEqualTo(8000L);
     assertThat(monitor.getPauseTimeInInterval(st + s(1) + 1, st + s(2)))
-        .isEqualTo(100000L);
+        .isEqualTo(1L);
     assertThat(monitor.getPauseTimeInInterval(st + s(2) + 1, st + s(2) + 3))
         .isEqualTo(0L);
 
@@ -143,7 +143,7 @@ public class FakeGCLogMonitorTest {
   }
 
   static long s(long ns) {
-    return ns * 1000000000;
+    return ns * 1000;
   }
 
   void log(double time, double duration) {
