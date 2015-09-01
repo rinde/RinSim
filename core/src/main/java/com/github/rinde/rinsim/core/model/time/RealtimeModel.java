@@ -529,7 +529,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         // unless forceCheck=true -> then we always check all time stamps
         while (!timeStampsBuffer.isEmpty()
             && logMonitor
-                .hasSurpassed(timeStampsBuffer.peekFirst().getNanos())) {
+                .hasSurpassed(timeStampsBuffer.peekFirst().getMillis())) {
           timeStamps.add(timeStampsBuffer.removeFirst());
         }
 

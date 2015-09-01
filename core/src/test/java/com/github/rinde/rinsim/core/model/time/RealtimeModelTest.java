@@ -18,7 +18,6 @@ package com.github.rinde.rinsim.core.model.time;
 import static com.google.common.truth.Truth.assertThat;
 import static java.util.Arrays.asList;
 
-import java.math.RoundingMode;
 import java.util.Collection;
 
 import javax.measure.unit.NonSI;
@@ -32,7 +31,6 @@ import com.github.rinde.rinsim.core.model.time.RealtimeClockController.RtClockEv
 import com.github.rinde.rinsim.core.model.time.TimeModel.AbstractBuilder;
 import com.github.rinde.rinsim.core.model.time.TimeModel.RealtimeBuilder;
 import com.github.rinde.rinsim.testutil.TestUtil;
-import com.google.common.math.DoubleMath;
 
 /**
  * @author Rinde van Lon
@@ -107,12 +105,8 @@ public class RealtimeModelTest extends TimeModelTest<RealtimeModel> {
    */
   @Test
   public void testConsistencyCheck() {
-    getModel().register(limiter(150));
-
-    final int t = RealtimeModel.CONSISTENCY_CHECK_LENGTH + DoubleMath
-        .roundToInt(.5 * RealtimeModel.CONSISTENCY_CHECK_LENGTH,
-            RoundingMode.HALF_DOWN);
-
+    final int t = RealtimeModel.CONSISTENCY_CHECK_LENGTH;
+    getModel().register(limiter(t * 3));
     getModel().register(new TickListener() {
       @Override
       public void tick(TimeLapse timeLapse) {
@@ -122,6 +116,9 @@ public class RealtimeModelTest extends TimeModelTest<RealtimeModel> {
           } catch (final InterruptedException e) {
             throw new IllegalStateException(e);
           }
+        } else
+          if (timeLapse.getStartTime() >= timeLapse.getTickLength() * t * 2) {
+          System.gc();
         }
       }
 
@@ -160,7 +157,7 @@ public class RealtimeModelTest extends TimeModelTest<RealtimeModel> {
     try {
       getModel().start();
     } catch (final IllegalStateException e) {
-      assertThat(e.getMessage()).contains("took too much time");
+      assertThat(e.getMessage()).contains("is invalid");
       fail = true;
     }
     assertThat(fail).isTrue();
