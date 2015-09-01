@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.Nullable;
 
@@ -60,7 +62,7 @@ final class LocalComputer implements Computer {
       executor = MoreExecutors.newDirectExecutorService();
     } else {
       executor = MoreExecutors.listeningDecorator(
-          Executors.newFixedThreadPool(threads));
+          Executors.newFixedThreadPool(threads, new LocalThreadFactory()));
     }
     final List<SimulationResult> results =
         Collections.synchronizedList(new ArrayList<SimulationResult>());
@@ -98,6 +100,15 @@ final class LocalComputer implements Computer {
     executor.shutdown();
 
     return ExperimentResults.create(builder, ImmutableSet.copyOf(results));
+  }
+
+  static class LocalThreadFactory implements ThreadFactory {
+    static final AtomicInteger threadId = new AtomicInteger(0);
+
+    @Override
+    public Thread newThread(@Nullable Runnable r) {
+      return new Thread(r, "RinSim-exp-" + threadId.getAndIncrement());
+    }
   }
 
   static class ResultCollector implements FutureCallback<SimulationResult> {
