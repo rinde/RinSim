@@ -30,9 +30,9 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.github.rinde.rinsim.core.model.time.GCLogMonitor.PauseTime;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Range;
 
 public class FakeGCLogMonitorTest {
   static Path tempDir;
@@ -82,7 +82,7 @@ public class FakeGCLogMonitorTest {
 
   @Test
   public void test() {
-    log(1, 8);
+    log(1, .8);
     log(2, 0.001);
     try {
       Thread.sleep(250);
@@ -90,12 +90,12 @@ public class FakeGCLogMonitorTest {
       throw new IllegalStateException(e);
     }
     GCLogMonitor.getInstance();
-    synchronized (monitor.pauseTimes) {
-      final Iterator<PauseTime> it = monitor.pauseTimes.iterator();
+    synchronized (monitor.pauseIntervals) {
+      final Iterator<Range<Long>> it = monitor.pauseIntervals.iterator();
       assertThat(it.next())
-          .isEqualTo(PauseTime.create(1000L, 8000000000L));
+          .isEqualTo(Range.closedOpen(200000000L, 1000000000L));
       assertThat(it.next())
-          .isEqualTo(PauseTime.create(2000L, 1000000L));
+          .isEqualTo(Range.closedOpen(1999000000L, 2000000000L));
       assertThat(it.hasNext()).isFalse();
     }
 
@@ -107,15 +107,15 @@ public class FakeGCLogMonitorTest {
     assertThat(monitor.hasSurpassed(st + 2001)).isFalse();
 
     assertThat(monitor.getPauseTimeInInterval(st, st + 2000))
-        .isEqualTo(8001000000L);
+        .isEqualTo(801000000L);
     assertThat(monitor.getPauseTimeInInterval(st, st + 1))
         .isEqualTo(0L);
     assertThat(monitor.getPauseTimeInInterval(st + s(1), st + s(2)))
-        .isEqualTo(8001000000L);
+        .isEqualTo(1000000L);
     assertThat(monitor.getPauseTimeInInterval(st + s(1) + 1, st + s(2) - 1))
         .isEqualTo(0L);
-    assertThat(monitor.getPauseTimeInInterval(st + s(1), st + s(2) - 1))
-        .isEqualTo(8000000000L);
+    assertThat(monitor.getPauseTimeInInterval(st + s(.5), st + s(2)))
+        .isEqualTo(501000000L);
     assertThat(monitor.getPauseTimeInInterval(st + s(1) + 1, st + s(2)))
         .isEqualTo(1000000L);
     assertThat(monitor.getPauseTimeInInterval(st + s(2) + 1, st + s(2) + 3))
@@ -127,7 +127,7 @@ public class FakeGCLogMonitorTest {
     } catch (final IllegalArgumentException e) {
       fail = true;
       assertThat(e.getMessage()).contains(
-          "ts1 must indicate a system time (in ns) after the start of the VM");
+          "ts1 must indicate a system time (in ms) since the start of the VM");
     }
     assertThat(fail).isTrue();
 
@@ -137,13 +137,13 @@ public class FakeGCLogMonitorTest {
     } catch (final IllegalArgumentException e) {
       fail = true;
       assertThat(e.getMessage())
-          .contains("ts2 must indicate a system time (in ns) after ts1");
+          .contains("ts2 must indicate a system time (in ms) since ts1");
     }
     assertThat(fail).isTrue();
   }
 
-  static long s(long ns) {
-    return ns * 1000;
+  static long s(double s) {
+    return (long) (s * 1000);
   }
 
   void log(double time, double duration) {

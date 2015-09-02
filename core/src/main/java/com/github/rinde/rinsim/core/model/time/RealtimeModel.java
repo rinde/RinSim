@@ -547,20 +547,22 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
           final TimeStamp ts1 = timeStamps.removeFirst();
           final long expectedTs1ns =
               firstTimeStamp.getNanos() + ts1.getTickCount() * tickNanos;
+          final long expectedTs1ms = firstTimeStamp.getMillis()
+              + ts1.getTickCount() * (tickNanos / 1000000);
 
           final TimeStamp ts2 = timeStamps.peekFirst();
           final long expectedTs2ns = expectedTs1ns + tickNanos;
 
-          final long deviation = expectedTs2ns - ts2.getNanos();
+          final long deviationNs = ts2.getNanos() - expectedTs2ns;
 
-          long interArrivalTime = ts2.getNanos() - ts1.getNanos();
-          checkState(interArrivalTime > 0);
+          long interArrivalTimeNs = ts2.getNanos() - ts1.getNanos();
+          checkState(interArrivalTimeNs > 0);
 
           // compute correction in interval of [ts1, ts2]
           final long correctionNs = GCLogMonitor.getInstance()
-              .getPauseTimeInInterval(ts1.getMillis(), ts2.getMillis());
+              .getPauseTimeInInterval(expectedTs1ms, ts2.getMillis());
 
-          if (interArrivalTime >= allowedTickDuration.upperEndpoint()
+          if (interArrivalTimeNs >= allowedTickDuration.upperEndpoint()
               .longValue()) {
             // the max is taken because the correction can be too big in certain
             // situations. Example: if GC took 1500ms, tick size is 1000ms then
@@ -570,17 +572,34 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
             // that the corrected inter arrival time cannot be lower than the
             // tick length.
 
-            interArrivalTime =
-                Math.max(interArrivalTime - correctionNs, tickNanos);
+            interArrivalTimeNs =
+                Math.max(interArrivalTimeNs - correctionNs, tickNanos);
           }
-          if (!allowedTickDuration.contains(interArrivalTime)) {
+          // if (!allowedTickDuration.contains(interArrivalTimeNs)) {
+
+          long correctedDeviationNs = deviationNs;
+          if (Math.abs(deviationNs) > 100000000L) {
+            correctedDeviationNs = Math.max(0, deviationNs - correctionNs);
+          }
+
+          if (Math.abs(correctedDeviationNs) > 100000000L) {
+
             throw new IllegalStateException(
-                interArrivalTime + " is invalid (allowed: "
-                    + allowedTickDuration + ", correction: " + correctionNs
-                    + ", deviation: " + deviation + ")" + interArrivalTimes);
+                // interArrivalTimeNs / 1000000d + " is invalid (allowed: "
+                // + allowedTickDuration +
+                "correction: "
+                    + correctionNs / 1000000d
+                    + ", deviation: " + deviationNs / 1000000d + ")"
+                    + "interval " + logMonitor.toVMTime(expectedTs1ms)
+                    + " " + logMonitor.toVMTime(ts2.getMillis())
+                    + "\n"
+                    + logMonitor.getPauseIntervals()
+                    + "\n"
+                    + interArrivalTimes);
           }
           interArrivalTimes
-              .addLast(InterarrivalTime.create(interArrivalTime, correctionNs));
+              .addLast(
+                  InterarrivalTime.create(interArrivalTimeNs, correctionNs));
         }
 
         if (interArrivalTimes.size() < CONSISTENCY_CHECK_LENGTH) {

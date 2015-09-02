@@ -37,7 +37,10 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Queues;
+import com.google.common.collect.Range;
 import com.google.common.primitives.Doubles;
+
+import autovalue.shaded.com.google.common.common.collect.ImmutableList;
 
 /**
  *
@@ -46,7 +49,7 @@ import com.google.common.primitives.Doubles;
 public final class GCLogMonitor {
   static final long S_TO_MS = 1000L;
   static final long S_TO_NS = 1000000000L;
-  static final long HISTORY_LENGTH_MS = 30 * S_TO_MS;
+  static final long HISTORY_LENGTH_NS = 30 * S_TO_NS;
   static final long LOG_PARSER_DELAY_MS = 200L;
   static final int QUEUE_EXPECTED_SIZE = 50;
   static final String FILTER =
@@ -57,7 +60,7 @@ public final class GCLogMonitor {
   private static volatile Optional<GCLogMonitor> instance = Optional.absent();
 
   final long startTimeMillis;
-  final Deque<PauseTime> pauseTimes;
+  final Deque<Range<Long>> pauseIntervals;
   final Tailer tailer;
   final List<Throwable> exceptions;
   final String logPath;
@@ -85,7 +88,7 @@ public final class GCLogMonitor {
     } else {
       logPath = path;
     }
-    pauseTimes = Queues.synchronizedDeque(new LinkedList<PauseTime>());
+    pauseIntervals = Queues.synchronizedDeque(new LinkedList<Range<Long>>());
     startTimeMillis = ManagementFactory.getRuntimeMXBean().getStartTime();
 
     tailer =
@@ -113,9 +116,10 @@ public final class GCLogMonitor {
    */
   public boolean hasSurpassed(long timeMillis) {
     checkInternalState();
-    return !pauseTimes.isEmpty()
-        && pauseTimes.peekLast().getTimeMs()
-            - (timeMillis - startTimeMillis) >= 0;
+    final long timeNs = (timeMillis - startTimeMillis) * 1000000L;
+
+    return !pauseIntervals.isEmpty()
+        && pauseIntervals.peekLast().upperEndpoint() - timeNs >= 0;
   }
 
   /**
@@ -134,31 +138,48 @@ public final class GCLogMonitor {
   public long getPauseTimeInInterval(long ts1, long ts2) {
     checkInternalState();
     // convert system times to vm lifetime
-    final long vmt1 = ts1 - startTimeMillis;
-    final long vmt2 = ts2 - startTimeMillis;
+    final long vmt1 = (ts1 - startTimeMillis) * 1000000;
+    final long vmt2 = (ts2 - startTimeMillis) * 1000000;
     checkArgument(vmt1 >= 0,
-        "ts1 must indicate a system time (in ns) after the start of the VM, "
-            + "VM was started at %sns, ts1 is %sns.",
+        "ts1 must indicate a system time (in ms) since the start of the VM, "
+            + "VM was started at %sms, ts1 is %sms.",
         startTimeMillis, ts1);
-    checkArgument(vmt2 > vmt1, "ts2 must indicate a system time (in ns) after "
-        + "ts1, ts1 %sns, ts2 %sns.", ts1, ts2);
+    checkArgument(vmt2 > vmt1, "ts2 must indicate a system time (in ms) since "
+        + "ts1, ts1 %sms, ts2 %sms.", ts1, ts2);
     long durationNs = 0;
+
+    final Range<Long> intervalOfInterest = Range.closedOpen(vmt1, vmt2);
+
     // iterator starts with oldest times
-    synchronized (pauseTimes) {
-      for (final PauseTime pt : pauseTimes) {
+    synchronized (pauseIntervals) {
+      for (final Range<Long> pt : pauseIntervals) {
         // if vmt2 < pt time -> we are outside the interval, we can stop the
         // loop
-        if (vmt2 - pt.getTimeMs() < 0) {
+
+        if (intervalOfInterest.upperEndpoint() < pt.lowerEndpoint()) {
           break;
         }
-        // if vmt1 <= pt time -> we are inside the interval, add the times to
-        // the duration
-        if (vmt1 - pt.getTimeMs() <= 0) {
-          durationNs += pt.getDurationNs();
+        // if vmt1 <= pt time -> we are inside the interval, add the
+        // intersection to the duration
+
+        if (intervalOfInterest.isConnected(pt)) {
+          final Range<Long> intersect = intervalOfInterest.intersection(pt);
+          durationNs += intersect.upperEndpoint() - intersect.lowerEndpoint();
         }
       }
     }
     return durationNs;
+  }
+
+  public long toVMTime(long time) {
+    return time - startTimeMillis;
+  }
+
+  public List<Range<Long>> getPauseIntervals() {
+    synchronized (pauseIntervals) {
+
+      return ImmutableList.copyOf(pauseIntervals);
+    }
   }
 
   GCLogMonitor checkInternalState() {
@@ -205,26 +226,31 @@ public final class GCLogMonitor {
         if (t == null) {
           return;
         }
-        final long timeMs = (long) (S_TO_MS * t);
+        final long timeNs = (long) (S_TO_NS * t);
         final Double d =
             Doubles.tryParse(parts[2].substring(0, parts[2].length() - 8));
         if (d == null) {
           return;
         }
         final long durationNs = (long) (S_TO_NS * d);
-        if (!pauseTimes.isEmpty()) {
-          checkState(pauseTimes.peekLast().getTimeMs() <= timeMs,
+        if (!pauseIntervals.isEmpty()) {
+          checkState(pauseIntervals.peekLast().upperEndpoint() <= timeNs,
               "Time inconsistency detected in the gc log. Last entry: %s, "
                   + "new entry: %s. This may occur if multiple VMs are writing "
-                  + "to the same log file (" + logPath + ").",
-              pauseTimes.peekLast().getTimeMs(), timeMs);
+                  + "to the same log file (%s).",
+              pauseIntervals.peekLast().upperEndpoint(), timeNs, logPath);
         }
+
+        final long startNs = timeNs - durationNs;
+        final long endNs = timeNs;
+
         // add new info at the back
-        pauseTimes.add(PauseTime.create(timeMs, durationNs));
+        pauseIntervals.add(Range.closedOpen(startNs, endNs));
 
         // remove old info at the front
-        while (timeMs - pauseTimes.peekFirst().getTimeMs() > HISTORY_LENGTH_MS) {
-          pauseTimes.pollFirst();
+        while (timeNs
+            - pauseIntervals.peekFirst().upperEndpoint() > HISTORY_LENGTH_NS) {
+          pauseIntervals.pollFirst();
         }
       }
     }
