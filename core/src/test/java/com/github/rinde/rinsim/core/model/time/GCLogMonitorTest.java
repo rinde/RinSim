@@ -57,8 +57,8 @@ public class GCLogMonitorTest {
     final long time = 123;
     final long duration = 456;
     final PauseTime pt = PauseTime.create(time, duration);
-    assertThat(pt.getTime()).isEqualTo(time);
-    assertThat(pt.getDuration()).isEqualTo(duration);
+    assertThat(pt.getTimeMs()).isEqualTo(time);
+    assertThat(pt.getDurationNs()).isEqualTo(duration);
   }
 
   static void sleep(long ms) {

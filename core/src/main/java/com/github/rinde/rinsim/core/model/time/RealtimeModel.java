@@ -542,7 +542,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
           checkState(interArrivalTime > 0);
 
           // compute correction in interval of [ts1, ts2]
-          final long correction = GCLogMonitor.getInstance()
+          final long correctionNs = GCLogMonitor.getInstance()
               .getPauseTimeInInterval(ts1.getMillis(), ts2.getMillis());
 
           if (interArrivalTime >= allowedTickDuration.upperEndpoint()
@@ -556,16 +556,16 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
             // tick length.
 
             interArrivalTime =
-                Math.max(interArrivalTime - correction, tickNanos);
+                Math.max(interArrivalTime - correctionNs, tickNanos);
           }
           if (!allowedTickDuration.contains(interArrivalTime)) {
             throw new IllegalStateException(
                 interArrivalTime + " is invalid (allowed: "
-                    + allowedTickDuration + ", correction: " + correction
+                    + allowedTickDuration + ", correction: " + correctionNs
                     + ")" + interArrivalTimes);
           }
           interArrivalTimes
-              .addLast(InterarrivalTime.create(interArrivalTime, correction));
+              .addLast(InterarrivalTime.create(interArrivalTime, correctionNs));
         }
 
         if (interArrivalTimes.size() < CONSISTENCY_CHECK_LENGTH) {

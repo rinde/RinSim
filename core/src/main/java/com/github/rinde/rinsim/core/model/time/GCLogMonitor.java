@@ -45,8 +45,9 @@ import com.google.common.primitives.Doubles;
  */
 public final class GCLogMonitor {
   static final long S_TO_MS = 1000L;
-  static final long HISTORY_LENGTH = 30 * S_TO_MS;
-  static final long LOG_PARSER_DELAY = 200L;
+  static final long S_TO_NS = 1000000000L;
+  static final long HISTORY_LENGTH_MS = 30 * S_TO_MS;
+  static final long LOG_PARSER_DELAY_MS = 200L;
   static final int QUEUE_EXPECTED_SIZE = 50;
   static final String FILTER =
       "Total time for which application threads were stopped";
@@ -87,7 +88,8 @@ public final class GCLogMonitor {
     pauseTimes = Queues.synchronizedDeque(new LinkedList<PauseTime>());
     startTimeMillis = ManagementFactory.getRuntimeMXBean().getStartTime();
 
-    tailer = new Tailer(new File(logPath), new LogListener(), LOG_PARSER_DELAY);
+    tailer =
+        new Tailer(new File(logPath), new LogListener(), LOG_PARSER_DELAY_MS);
     final Thread thread = new Thread(tailer, "gclog-tailer");
     thread.setDaemon(true);
     thread.start();
@@ -96,7 +98,7 @@ public final class GCLogMonitor {
   void close() {
     tailer.stop();
     try {
-      Thread.sleep(LOG_PARSER_DELAY);
+      Thread.sleep(LOG_PARSER_DELAY_MS);
     } catch (final InterruptedException e) {
       throw new IllegalStateException(e);
     }
@@ -112,7 +114,7 @@ public final class GCLogMonitor {
   public boolean hasSurpassed(long timeMillis) {
     checkInternalState();
     return !pauseTimes.isEmpty()
-        && pauseTimes.peekLast().getTime()
+        && pauseTimes.peekLast().getTimeMs()
             - (timeMillis - startTimeMillis) >= 0;
   }
 
@@ -140,24 +142,23 @@ public final class GCLogMonitor {
         startTimeMillis, ts1);
     checkArgument(vmt2 > vmt1, "ts2 must indicate a system time (in ns) after "
         + "ts1, ts1 %sns, ts2 %sns.", ts1, ts2);
-    long duration = 0;
+    long durationNs = 0;
     // iterator starts with oldest times
     synchronized (pauseTimes) {
       for (final PauseTime pt : pauseTimes) {
         // if vmt2 < pt time -> we are outside the interval, we can stop the
         // loop
-        if (vmt2 - pt.getTime() < 0) {
-
+        if (vmt2 - pt.getTimeMs() < 0) {
           break;
         }
         // if vmt1 <= pt time -> we are inside the interval, add the times to
         // the duration
-        if (vmt1 - pt.getTime() <= 0) {
-          duration += pt.getDuration();
+        if (vmt1 - pt.getTimeMs() <= 0) {
+          durationNs += pt.getDurationNs();
         }
       }
     }
-    return duration;
+    return durationNs;
   }
 
   GCLogMonitor checkInternalState() {
@@ -204,25 +205,25 @@ public final class GCLogMonitor {
         if (t == null) {
           return;
         }
-        final long time = (long) (S_TO_MS * t);
+        final long timeMs = (long) (S_TO_MS * t);
         final Double d =
             Doubles.tryParse(parts[2].substring(0, parts[2].length() - 8));
         if (d == null) {
           return;
         }
-        final long duration = (long) (S_TO_MS * d);
+        final long durationNs = (long) (S_TO_NS * d);
         if (!pauseTimes.isEmpty()) {
-          checkState(pauseTimes.peekLast().getTime() <= time,
+          checkState(pauseTimes.peekLast().getTimeMs() <= timeMs,
               "Time inconsistency detected in the gc log. Last entry: %s, "
                   + "new entry: %s. This may occur if multiple VMs are writing "
                   + "to the same log file (" + logPath + ").",
-              pauseTimes.peekLast().getTime(), time);
+              pauseTimes.peekLast().getTimeMs(), timeMs);
         }
         // add new info at the back
-        pauseTimes.add(PauseTime.create(time, duration));
+        pauseTimes.add(PauseTime.create(timeMs, durationNs));
 
         // remove old info at the front
-        while (time - pauseTimes.peekFirst().getTime() > HISTORY_LENGTH) {
+        while (timeMs - pauseTimes.peekFirst().getTimeMs() > HISTORY_LENGTH_MS) {
           pauseTimes.pollFirst();
         }
       }
@@ -253,15 +254,17 @@ public final class GCLogMonitor {
 
   @AutoValue
   abstract static class PauseTime implements Comparable<PauseTime> {
-    abstract long getTime();
+    // the time in millis at which the pause was reported
+    abstract long getTimeMs();
 
-    abstract long getDuration();
+    // the duration in nanos of the pause
+    abstract long getDurationNs();
 
     @Override
     public int compareTo(@Nullable PauseTime o) {
       final PauseTime other = verifyNotNull(o);
-      return ComparisonChain.start().compare(getTime(), other.getTime())
-          .compare(getDuration(), other.getDuration())
+      return ComparisonChain.start().compare(getTimeMs(), other.getTimeMs())
+          .compare(getDurationNs(), other.getDurationNs())
           .result();
     }
 
