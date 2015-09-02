@@ -51,7 +51,6 @@ import com.github.rinde.rinsim.fsm.StateMachine;
 import com.github.rinde.rinsim.fsm.StateMachine.StateMachineEvent;
 import com.github.rinde.rinsim.fsm.StateMachine.StateTransitionEvent;
 import com.google.auto.value.AutoValue;
-import com.google.common.collect.Range;
 import com.google.common.math.DoubleMath;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -70,17 +69,21 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
   static final int CONSISTENCY_CHECK_LENGTH = 50;
   static final double MAX_STD_PERC = .1;
   static final double MAX_MEAN_DEVIATION_PERC = .05;
-  static final double MAX_TICK_LENGTH_FACTOR = 1.1d;
-  static final double MIN_TICK_LENGTH_FACTOR = .9d;
+
+  static final double MAX_DEVIATION_FACTOR = .1d;
+  // static final double MAX_TICK_LENGTH_FACTOR = 1.1d;
+  // static final double MIN_TICK_LENGTH_FACTOR = .9d;
   static final Logger LOGGER = LoggerFactory.getLogger(RealtimeModel.class);
+  static final double MS_TO_NS = 1000000d;
 
   final StateMachine<Trigger, RealtimeModel> stateMachine;
   // final Map<TickListener, TickListenerTimingChecker> decoratorMap;
 
   @Nullable
   AffinityLock affinityLock;
-  final long maxTickDuration;
-  final long minTickDuration;
+  // final long maxTickDuration;
+  // final long minTickDuration;
+  final long maxTickDeviationNs;
   final Realtime realtimeState;
 
   RealtimeModel(RealtimeBuilder builder) {
@@ -91,13 +94,17 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
     final long tickNanos = Measure.valueOf(timeLapse.getTickLength(),
         timeLapse.getTimeUnit()).longValue(SI.NANO(SI.SECOND));
 
-    maxTickDuration = DoubleMath.roundToLong(
-        MAX_TICK_LENGTH_FACTOR * tickNanos, RoundingMode.UP);
-    minTickDuration = DoubleMath.roundToLong(MIN_TICK_LENGTH_FACTOR * tickNanos,
-        RoundingMode.DOWN);
+    // maxTickDuration = DoubleMath.roundToLong(
+    // MAX_TICK_LENGTH_FACTOR * tickNanos, RoundingMode.UP);
+    // minTickDuration = DoubleMath.roundToLong(MIN_TICK_LENGTH_FACTOR *
+    // tickNanos,
+    // RoundingMode.DOWN);
+    maxTickDeviationNs =
+        DoubleMath.roundToLong(MAX_DEVIATION_FACTOR * tickNanos,
+            RoundingMode.UP);
 
-    final Range<Long> tickDuration =
-        Range.closed(minTickDuration, maxTickDuration);
+    // final Range<Long> tickDuration =
+    // Range.closed(minTickDuration, maxTickDuration);
 
     final long maxStdNs =
         DoubleMath.roundToLong(tickNanos * MAX_STD_PERC, RoundingMode.UP);
@@ -105,7 +112,8 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         tickNanos * MAX_MEAN_DEVIATION_PERC, RoundingMode.UP);
 
     realtimeState =
-        new Realtime(tickNanos, maxStdNs, maxMeanDeviationNs, tickDuration);
+        new Realtime(tickNanos, maxStdNs, maxMeanDeviationNs,
+            maxTickDeviationNs);
     final SimulatedTime st = new SimulatedTime();
     stateMachine = StateMachine
         .create(
@@ -347,7 +355,8 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
     final long tickNanos;
     final double maxStdNs;
     final double maxMeanDeviationNs;
-    final Range<Long> allowedTickDuration;
+    // final Range<Long> allowedTickDuration;
+    final long maxTickDeviationNs;
     final List<Throwable> exceptions;
     @Nullable
     Trigger nextTrigger;
@@ -365,11 +374,12 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
 
     TimeRunner timeRunner;
 
-    Realtime(long tickNs, long maxStd, long maxMeanDevNs, Range<Long> tickDur) {
+    Realtime(long tickNs, long maxStd, long maxMeanDevNs, long maxTickDevNs) {
       tickNanos = tickNs;
       maxStdNs = maxStd;
       maxMeanDeviationNs = maxMeanDevNs;
-      allowedTickDuration = tickDur;
+      maxTickDeviationNs = maxTickDevNs;
+      // allowedTickDuration = tickDur;
       taskIsRunning = new AtomicBoolean();
       isShuttingDown = new AtomicBoolean();
       exceptions = new ArrayList<>();
@@ -555,47 +565,48 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
 
           final long deviationNs = ts2.getNanos() - expectedTs2ns;
 
-          long interArrivalTimeNs = ts2.getNanos() - ts1.getNanos();
+          final long interArrivalTimeNs = ts2.getNanos() - ts1.getNanos();
           checkState(interArrivalTimeNs > 0);
 
           // compute correction in interval of [ts1, ts2]
           final long correctionNs = GCLogMonitor.getInstance()
               .getPauseTimeInInterval(expectedTs1ms, ts2.getMillis());
 
-          if (interArrivalTimeNs >= allowedTickDuration.upperEndpoint()
-              .longValue()) {
-            // the max is taken because the correction can be too big in certain
-            // situations. Example: if GC took 1500ms, tick size is 1000ms then
-            // the actual inter arrival time is probably in the range
-            // 1500-1600ms. If you apply the correction directly, the inter
-            // arrival time would be incorrectly low, therefore we make sure
-            // that the corrected inter arrival time cannot be lower than the
-            // tick length.
+          // if (interArrivalTimeNs >= allowedTickDuration.upperEndpoint()
+          // .longValue()) {
+          // the max is taken because the correction can be too big in certain
+          // situations. Example: if GC took 1500ms, tick size is 1000ms then
+          // the actual inter arrival time is probably in the range
+          // 1500-1600ms. If you apply the correction directly, the inter
+          // arrival time would be incorrectly low, therefore we make sure
+          // that the corrected inter arrival time cannot be lower than the
+          // tick length.
 
-            interArrivalTimeNs =
-                Math.max(interArrivalTimeNs - correctionNs, tickNanos);
-          }
+          // interArrivalTimeNs =
+          // Math.max(interArrivalTimeNs - correctionNs, tickNanos);
+          // }
           // if (!allowedTickDuration.contains(interArrivalTimeNs)) {
 
           long correctedDeviationNs = deviationNs;
-          if (Math.abs(deviationNs) > 100000000L) {
+          if (Math.abs(deviationNs) > maxTickDeviationNs) {
             correctedDeviationNs = Math.max(0, deviationNs - correctionNs);
           }
 
-          if (Math.abs(correctedDeviationNs) > 100000000L) {
+          if (Math.abs(correctedDeviationNs) > maxTickDeviationNs) {
 
             throw new IllegalStateException(
                 // interArrivalTimeNs / 1000000d + " is invalid (allowed: "
                 // + allowedTickDuration +
-                "correction: "
-                    + correctionNs / 1000000d
-                    + ", deviation: " + deviationNs / 1000000d + ")"
-                    + "interval " + logMonitor.toVMTime(expectedTs1ms)
-                    + " " + logMonitor.toVMTime(ts2.getMillis())
-                    + "\n"
-                    + logMonitor.getPauseIntervals()
-                    + "\n"
-                    + interArrivalTimes);
+
+            "deviation is too much: " + deviationNs / MS_TO_NS
+                + " max allowed: " + maxTickDeviationNs / MS_TO_NS
+                + " correction: " + correctionNs / MS_TO_NS
+                + " interval " + logMonitor.toVMTime(expectedTs1ms)
+                + " " + logMonitor.toVMTime(ts2.getMillis())
+                + System.lineSeparator()
+                + logMonitor.getPauseIntervals()
+                + System.lineSeparator()
+                + interArrivalTimes);
           }
           interArrivalTimes
               .addLast(

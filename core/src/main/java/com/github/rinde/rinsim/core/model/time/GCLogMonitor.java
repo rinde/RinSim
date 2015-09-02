@@ -223,15 +223,13 @@ public final class GCLogMonitor {
         final String[] parts = line.split(": ");
 
         final Double t = Doubles.tryParse(parts[0]);
-        if (t == null) {
-          return;
+        final Double d = Doubles.tryParse(parts[2].split(" ")[0]);
+        if (t == null || d == null) {
+          throw new IllegalStateException(
+              "Encountered GC log entry in unknown format: " + line);
         }
+
         final long timeNs = (long) (S_TO_NS * t);
-        final Double d =
-            Doubles.tryParse(parts[2].substring(0, parts[2].length() - 8));
-        if (d == null) {
-          return;
-        }
         final long durationNs = (long) (S_TO_NS * d);
         if (!pauseIntervals.isEmpty()) {
           checkState(pauseIntervals.peekLast().upperEndpoint() <= timeNs,

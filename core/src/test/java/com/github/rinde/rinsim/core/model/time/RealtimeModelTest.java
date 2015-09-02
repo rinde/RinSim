@@ -197,7 +197,7 @@ public class RealtimeModelTest extends TimeModelTest<RealtimeModel> {
     try {
       getModel().start();
     } catch (final IllegalStateException e) {
-      assertThat(e.getMessage()).contains("is invalid");
+      assertThat(e.getMessage()).contains("deviation is too much");
       fail = true;
     }
     assertThat(fail).isTrue();

@@ -51,7 +51,7 @@ public class GCLogMonitorTest {
     System.gc();
     sleep(300);
     System.gc();
-    sleep(3000);
+    sleep(300);
 
     logMonitor.checkInternalState();
 
