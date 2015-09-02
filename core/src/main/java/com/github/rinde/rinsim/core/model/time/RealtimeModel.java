@@ -505,6 +505,8 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
       final RealtimeModel context;
 
       GCLogMonitor logMonitor;
+      long counter;
+      TimeStamp firstTimeStamp;
 
       TimeRunner(RealtimeModel rm) {
         context = rm;
@@ -516,13 +518,19 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
 
       @Override
       public void run() {
-        timeStampsBuffer.add(TimeStamp.now());
+        final TimeStamp ts = TimeStamp.now(counter);
+        if (counter == 0) {
+          firstTimeStamp = ts;
+        }
+        timeStampsBuffer.add(ts);
+
         checkConsistency();
         context.tickImpl();
 
         if (nextTrigger != null) {
           cancelTask();
         }
+        counter++;
       }
 
       void checkConsistency() {
@@ -537,7 +545,14 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
 
         while (timeStamps.size() > 1) {
           final TimeStamp ts1 = timeStamps.removeFirst();
+          final long expectedTs1ns =
+              firstTimeStamp.getNanos() + ts1.getTickCount() * tickNanos;
+
           final TimeStamp ts2 = timeStamps.peekFirst();
+          final long expectedTs2ns = expectedTs1ns + tickNanos;
+
+          final long deviation = expectedTs2ns - ts2.getNanos();
+
           long interArrivalTime = ts2.getNanos() - ts1.getNanos();
           checkState(interArrivalTime > 0);
 
@@ -562,7 +577,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
             throw new IllegalStateException(
                 interArrivalTime + " is invalid (allowed: "
                     + allowedTickDuration + ", correction: " + correctionNs
-                    + ")" + interArrivalTimes);
+                    + ", deviation: " + deviation + ")" + interArrivalTimes);
           }
           interArrivalTimes
               .addLast(InterarrivalTime.create(interArrivalTime, correctionNs));
@@ -608,16 +623,19 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
     @AutoValue
     abstract static class TimeStamp {
 
+      abstract long getTickCount();
+
       abstract long getMillis();
 
       abstract long getNanos();
 
-      static TimeStamp now() {
-        return create(System.currentTimeMillis(), System.nanoTime());
+      static TimeStamp now(long tickCount) {
+        return create(tickCount, System.currentTimeMillis(), System.nanoTime());
       }
 
-      static TimeStamp create(long millis, long nanos) {
-        return new AutoValue_RealtimeModel_Realtime_TimeStamp(millis, nanos);
+      static TimeStamp create(long tickCount, long millis, long nanos) {
+        return new AutoValue_RealtimeModel_Realtime_TimeStamp(tickCount, millis,
+            nanos);
       }
     }
   }
