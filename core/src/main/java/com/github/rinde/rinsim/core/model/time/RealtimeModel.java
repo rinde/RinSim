@@ -67,9 +67,9 @@ import net.openhft.affinity.AffinityLock;
 class RealtimeModel extends TimeModel implements RealtimeClockController {
   // number of ticks that will be checked for consistency
   static final int CONSISTENCY_CHECK_LENGTH = 50;
-  static final double MAX_STD_PERC = .1;
-  static final double MAX_MEAN_DEVIATION_PERC = .05;
+  // static final double MAX_MEAN_DEVIATION_PERC = .05;
 
+  static final double MAX_AVG_DEV_FACTOR = .01;
   static final double MAX_DEVIATION_FACTOR = .1d;
   // static final double MAX_TICK_LENGTH_FACTOR = 1.1d;
   // static final double MIN_TICK_LENGTH_FACTOR = .9d;
@@ -107,13 +107,12 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
     // Range.closed(minTickDuration, maxTickDuration);
 
     final long maxStdNs =
-        DoubleMath.roundToLong(tickNanos * MAX_STD_PERC, RoundingMode.UP);
-    final long maxMeanDeviationNs = DoubleMath.roundToLong(
-        tickNanos * MAX_MEAN_DEVIATION_PERC, RoundingMode.UP);
+        DoubleMath.roundToLong(tickNanos * MAX_AVG_DEV_FACTOR, RoundingMode.UP);
+    // final long maxMeanDeviationNs = DoubleMath.roundToLong(
+    // tickNanos * MAX_MEAN_DEVIATION_PERC, RoundingMode.UP);
 
     realtimeState =
-        new Realtime(tickNanos, maxStdNs, maxMeanDeviationNs,
-            maxTickDeviationNs);
+        new Realtime(tickNanos, maxStdNs, maxTickDeviationNs);
     final SimulatedTime st = new SimulatedTime();
     stateMachine = StateMachine
         .create(
@@ -353,8 +352,8 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
     static final long STARTUP_DELAY = 50000000L;
 
     final long tickNanos;
-    final double maxStdNs;
-    final double maxMeanDeviationNs;
+    final double maxAvgDeviationNs;
+    // final double maxMeanDeviationNs;
     // final Range<Long> allowedTickDuration;
     final long maxTickDeviationNs;
     final List<Throwable> exceptions;
@@ -374,10 +373,10 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
 
     TimeRunner timeRunner;
 
-    Realtime(long tickNs, long maxStd, long maxMeanDevNs, long maxTickDevNs) {
+    Realtime(long tickNs, long maxAvgTickDevNs, long maxTickDevNs) {
       tickNanos = tickNs;
-      maxStdNs = maxStd;
-      maxMeanDeviationNs = maxMeanDevNs;
+      maxAvgDeviationNs = maxAvgTickDevNs;
+      // maxMeanDeviationNs = maxMeanDevNs;
       maxTickDeviationNs = maxTickDevNs;
       // allowedTickDuration = tickDur;
       taskIsRunning = new AtomicBoolean();
@@ -509,7 +508,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
     }
 
     class TimeRunner implements Runnable {
-      final Deque<InterarrivalTime> interArrivalTimes;
+      final Deque<MeasuredDeviation> measuredDeviations;
       final Deque<TimeStamp> timeStamps;
       final Deque<TimeStamp> timeStampsBuffer;
       final RealtimeModel context;
@@ -520,7 +519,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
 
       TimeRunner(RealtimeModel rm) {
         context = rm;
-        interArrivalTimes = new LinkedList<>();
+        measuredDeviations = new LinkedList<>();
         timeStamps = new LinkedList<>();
         timeStampsBuffer = new LinkedList<>();
         logMonitor = GCLogMonitor.getInstance();
@@ -606,47 +605,49 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
                 + System.lineSeparator()
                 + logMonitor.getPauseIntervals()
                 + System.lineSeparator()
-                + interArrivalTimes);
+                + measuredDeviations);
           }
-          interArrivalTimes
-              .addLast(
-                  InterarrivalTime.create(interArrivalTimeNs, correctionNs));
+          measuredDeviations.addLast(
+              MeasuredDeviation.create(correctedDeviationNs, correctionNs));
         }
 
-        if (interArrivalTimes.size() < CONSISTENCY_CHECK_LENGTH) {
+        if (measuredDeviations.size() < CONSISTENCY_CHECK_LENGTH) {
           return;
         }
 
         final SummaryStatistics ss = new SummaryStatistics();
-        for (final InterarrivalTime iat : interArrivalTimes) {
-          ss.addValue(iat.getInterarrivalTime());
+        for (final MeasuredDeviation iat : measuredDeviations) {
+          ss.addValue(iat.getDeviationNs());
         }
         final StatisticalSummary sum = ss.getSummary();
 
-        checkState(sum.getStandardDeviation() < maxStdNs,
-            "Std is above threshold of %sns: %sns.", maxStdNs,
-            sum.getStandardDeviation(), interArrivalTimes);
-        checkState(
-            Math.abs(tickNanos - sum.getMean()) < maxMeanDeviationNs,
-            "Mean interval is above threshold of %sns: %s.",
-            maxMeanDeviationNs, sum.getMean());
+        final double avgDeviation = sum.getMean();
+        checkState(Math.abs(avgDeviation) < maxAvgDeviationNs,
+            "Avg deviation is above threshold of %sns: %sns.",
+            maxAvgDeviationNs,
+            avgDeviation, measuredDeviations);
+            // checkState(
+            // Math.abs(tickNanos - sum.getMean()) < maxMeanDeviationNs,
+            // "Mean interval is above threshold of %sns: %s.",
+            // maxMeanDeviationNs, sum.getMean());
 
         // remove old values to free memory
-        while (interArrivalTimes.size() > CONSISTENCY_CHECK_LENGTH) {
-          interArrivalTimes.removeFirst();
+        while (measuredDeviations.size() > CONSISTENCY_CHECK_LENGTH) {
+          measuredDeviations.removeFirst();
         }
       }
     }
 
     @AutoValue
-    abstract static class InterarrivalTime {
+    abstract static class MeasuredDeviation {
 
-      abstract long getInterarrivalTime();
+      abstract long getDeviationNs();
 
-      abstract long getCorrection();
+      abstract long getCorrectionNs();
 
-      static InterarrivalTime create(long iat, long corr) {
-        return new AutoValue_RealtimeModel_Realtime_InterarrivalTime(iat, corr);
+      static MeasuredDeviation create(long dev, long corr) {
+        return new AutoValue_RealtimeModel_Realtime_MeasuredDeviation(dev,
+            corr);
       }
     }
 

@@ -29,7 +29,7 @@ import org.junit.runners.Parameterized.Parameters;
 import com.github.rinde.rinsim.core.model.FakeDependencyProvider;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController.ClockMode;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController.RtClockEventType;
-import com.github.rinde.rinsim.core.model.time.RealtimeModel.Realtime.InterarrivalTime;
+import com.github.rinde.rinsim.core.model.time.RealtimeModel.Realtime.MeasuredDeviation;
 import com.github.rinde.rinsim.core.model.time.TimeModel.AbstractBuilder;
 import com.github.rinde.rinsim.core.model.time.TimeModel.RealtimeBuilder;
 import com.github.rinde.rinsim.testutil.TestUtil;
@@ -159,13 +159,13 @@ public class RealtimeModelTest extends TimeModelTest<RealtimeModel> {
     getModel().start();
 
     assertThat(getModel().getCurrentTime()).isEqualTo(2000);
-    final Deque<InterarrivalTime> interArrivalTimes =
-        getModel().realtimeState.timeRunner.interArrivalTimes;
+    final Deque<MeasuredDeviation> interArrivalTimes =
+        getModel().realtimeState.timeRunner.measuredDeviations;
     // impossible to give guarantees, but 10 seems low enough
     assertThat(interArrivalTimes.size()).isAtLeast(10);
     boolean containsCorrection = false;
-    for (final InterarrivalTime iat : interArrivalTimes) {
-      if (iat.getCorrection() > 0) {
+    for (final MeasuredDeviation iat : interArrivalTimes) {
+      if (iat.getCorrectionNs() > 0) {
         containsCorrection = true;
       }
     }
