@@ -93,9 +93,9 @@ public class FakeGCLogMonitorTest {
     synchronized (monitor.pauseTimes) {
       final Iterator<PauseTime> it = monitor.pauseTimes.iterator();
       assertThat(it.next())
-          .isEqualTo(PauseTime.create(1000L, 8000L));
+          .isEqualTo(PauseTime.create(1000L, 8000000000L));
       assertThat(it.next())
-          .isEqualTo(PauseTime.create(2000L, 1L));
+          .isEqualTo(PauseTime.create(2000L, 1000000L));
       assertThat(it.hasNext()).isFalse();
     }
 
@@ -107,17 +107,17 @@ public class FakeGCLogMonitorTest {
     assertThat(monitor.hasSurpassed(st + 2001)).isFalse();
 
     assertThat(monitor.getPauseTimeInInterval(st, st + 2000))
-        .isEqualTo(8001L);
+        .isEqualTo(8001000000L);
     assertThat(monitor.getPauseTimeInInterval(st, st + 1))
         .isEqualTo(0L);
     assertThat(monitor.getPauseTimeInInterval(st + s(1), st + s(2)))
-        .isEqualTo(8001L);
+        .isEqualTo(8001000000L);
     assertThat(monitor.getPauseTimeInInterval(st + s(1) + 1, st + s(2) - 1))
         .isEqualTo(0L);
     assertThat(monitor.getPauseTimeInInterval(st + s(1), st + s(2) - 1))
-        .isEqualTo(8000L);
+        .isEqualTo(8000000000L);
     assertThat(monitor.getPauseTimeInInterval(st + s(1) + 1, st + s(2)))
-        .isEqualTo(1L);
+        .isEqualTo(1000000L);
     assertThat(monitor.getPauseTimeInInterval(st + s(2) + 1, st + s(2) + 3))
         .isEqualTo(0L);
 

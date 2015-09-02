@@ -17,6 +17,9 @@ package com.github.rinde.rinsim.core.model.time;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -40,10 +43,18 @@ public class GCLogMonitorTest {
     final long startTime = System.currentTimeMillis();
     assertThat(logMonitor.hasSurpassed(startTime + 500)).isFalse();
 
+    List<Object> objects = new ArrayList<>();
+    for (int i = 0; i < 100; i++) {
+      objects.add(new Object());
+    }
+    objects = null;
     System.gc();
     sleep(300);
     System.gc();
-    sleep(300);
+    sleep(3000);
+
+    logMonitor.checkInternalState();
+
     // after two GC calls and sleeps we are confident that we will find some
     // evidence of GC activity in the log
     assertThat(logMonitor.hasSurpassed(startTime)).isTrue();
