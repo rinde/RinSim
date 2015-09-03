@@ -418,7 +418,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
       taskIsRunning.set(true);
       timeRunner = new TimeRunner(context);
       schedulerFuture =
-          verifyNotNull(executor).scheduleAtFixedRate(timeRunner, STARTUP_DELAY,
+          verifyNotNull(executor).scheduleAtFixedRate(timeRunner, 0,
               tickNanos,
               TimeUnit.NANOSECONDS);
       final ListenableScheduledFuture<?> future = schedulerFuture;
@@ -600,6 +600,8 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
                 + " correction: " + correctionNs / MS_TO_NS
                 + " interval " + logMonitor.toVMTime(expectedTs1ms)
                 + " " + logMonitor.toVMTime(ts2.getMillis())
+                + " expected event time: " + expectedTs2ns
+                + " actual event time: " + ts2.getNanos()
                 + System.lineSeparator()
                 + logMonitor.getPauseIntervals()
                 + System.lineSeparator()
