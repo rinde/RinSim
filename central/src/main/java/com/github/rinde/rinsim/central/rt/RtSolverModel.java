@@ -384,7 +384,7 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
           // done computing
           checkState(computingSimSolvers.remove(e.getIssuer()),
             "Internal error, computing: %s, all: %s, issuer: %s",
-            computingSimSolvers, e.getIssuer());
+            computingSimSolvers, simSolvers, e.getIssuer());
           if (!isComputing() && clock.isTicking()) {
             clock.switchToSimulatedTime();
           }
