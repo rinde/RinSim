@@ -39,8 +39,6 @@ import javax.annotation.Nullable;
 import javax.measure.Measure;
 import javax.measure.unit.SI;
 
-import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
-import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -615,13 +613,13 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
           return;
         }
 
-        final SummaryStatistics ss = new SummaryStatistics();
-        for (final MeasuredDeviation iat : measuredDeviations) {
-          ss.addValue(iat.getDeviationNs());
-        }
-        final StatisticalSummary sum = ss.getSummary();
+        // final SummaryStatistics ss = new SummaryStatistics();
 
-        final double avgDeviation = sum.getMean();
+        long sum = 0;
+        for (final MeasuredDeviation md : measuredDeviations) {
+          sum += md.getDeviationNs();
+        }
+        final double avgDeviation = sum / (double) measuredDeviations.size();
         checkState(Math.abs(avgDeviation) < maxAvgDeviationNs,
             "Avg deviation is above threshold of %sns: %sns.",
             maxAvgDeviationNs,
