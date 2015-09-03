@@ -173,7 +173,7 @@ public final class SolverValidator {
       } else {
         checkArgument(
           freq == 2,
-          "A parcel that is still available should occur twice in the route, "
+          "A parcel that is not yet in cargo should occur twice in the route, "
               + "found %s instance(s). Parcel: %s, route: %s.",
           freq, dp, vs.getRoute().get(), vs.getRemainingServiceTime());
       }

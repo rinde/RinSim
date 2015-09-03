@@ -15,6 +15,7 @@
  */
 package com.github.rinde.rinsim.central.rt;
 
+import com.github.rinde.rinsim.central.GlobalStateObject;
 import com.github.rinde.rinsim.central.Solvers.SolveArgs;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.event.EventAPI;
@@ -43,6 +44,8 @@ public abstract class RtSimSolver {
    *           time of calling this method.
    */
   public abstract void solve(SolveArgs args);
+
+  public abstract GlobalStateObject getCurrentState(SolveArgs args);
 
   /**
    * @return <code>true</code> indicates that a new schedule has been computed

@@ -18,6 +18,7 @@ package com.github.rinde.rinsim.central.rt;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,6 +63,8 @@ public class RtSolverModelTestRT extends RtSolverModelTest {
 
     verify(clock, times(0)).switchToRealTime();
     verify(clock, times(0)).switchToSimulatedTime();
+
+    when(clock.isTicking()).thenReturn(true);
 
     final ListenerEventHistory eventHistory = new ListenerEventHistory();
     solvers.get(0).solve(SolveArgs.create());

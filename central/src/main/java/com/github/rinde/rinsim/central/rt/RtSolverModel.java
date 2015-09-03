@@ -377,6 +377,8 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
     @Override
     public void handleEvent(Event e) {
       synchronized (computingSimSolvers) {
+        LOGGER.trace("receive: {}, computing: {}, clock is ticking: {}, {}", e,
+          isComputing(), clock.isTicking(), computingSimSolvers);
         if (e.getEventType() == EventType.START_COMPUTING) {
           clock.switchToRealTime();
           computingSimSolvers.add((RtSimSolverSchedulerImpl) e.getIssuer());
@@ -395,6 +397,7 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
     }
 
     void addException(Throwable t) {
+      LOGGER.warn("exception occured: {}", t);
       exceptions.add(t);
     }
   }
@@ -516,6 +519,11 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
           }
         });
 
+      }
+
+      @Override
+      public GlobalStateObject getCurrentState(SolveArgs args) {
+        return converter.convert(args).state;
       }
 
       @Override
