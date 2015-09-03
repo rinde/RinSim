@@ -69,7 +69,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
   static final int CONSISTENCY_CHECK_LENGTH = 50;
   // static final double MAX_MEAN_DEVIATION_PERC = .05;
 
-  static final double MAX_AVG_DEV_FACTOR = .01;
+  static final double MAX_AVG_DEV_FACTOR = .05;
   static final double MAX_DEVIATION_FACTOR = .1d;
   // static final double MAX_TICK_LENGTH_FACTOR = 1.1d;
   // static final double MIN_TICK_LENGTH_FACTOR = .9d;
