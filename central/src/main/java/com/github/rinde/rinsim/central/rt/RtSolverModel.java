@@ -212,7 +212,8 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
     if (e.getEventType() == RtClockEventType.SWITCH_TO_REAL_TIME) {
       // when a switch to RT has been made, we should check the next tick if it
       // is still needed.
-      timeToCheckIfComputing = clock.getCurrentTime() + clock.getTickLength();
+      timeToCheckIfComputing =
+        clock.getCurrentTime() + 2 * clock.getTickLength();
     }
   }
 
@@ -388,6 +389,7 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
             "Internal error, computing: %s, all: %s, issuer: %s",
             computingSimSolvers, simSolvers, e.getIssuer());
           if (!isComputing() && clock.isTicking()) {
+            LOGGER.trace("request to switch to sim time");
             clock.switchToSimulatedTime();
           }
         } else {

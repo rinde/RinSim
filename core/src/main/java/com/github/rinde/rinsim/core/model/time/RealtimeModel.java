@@ -402,10 +402,12 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
     @Nullable
     public Trigger handle(@Nullable Trigger event,
         final RealtimeModel context) {
+      LOGGER.trace("Realtime.handle {}", event);
       if (event == Trigger.SIMULATE) {
         // RT takes precedence over ST, if a request for RT has been made during
         // the same tick, all ST requests are ignored.
         if (context.getCurrentTime() > lastRtRequest) {
+          LOGGER.trace("set trigger");
           nextTrigger = Trigger.DO_SIMULATE;
         }
         return null;
@@ -445,6 +447,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
 
     @Override
     public void onExit(Trigger event, RealtimeModel context) {
+      LOGGER.trace("Realtime onExit {}", event);
       cancelTask();
       if (event == Trigger.STOP) {
         isShuttingDown.set(true);
@@ -534,6 +537,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         checkConsistency();
         context.tickImpl();
 
+        LOGGER.trace("tick {} is done, nextTrigger: {} ", counter, nextTrigger);
         if (nextTrigger != null) {
           cancelTask();
         }
