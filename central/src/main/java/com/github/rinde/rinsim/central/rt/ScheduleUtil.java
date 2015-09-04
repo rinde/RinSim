@@ -111,10 +111,10 @@ public final class ScheduleUtil {
             && expectedOccurrences > 0) {
           if (expectedOccurrences == 1 && actualOccurences == 2) {
             newSchedule.get(i).remove(p);
-          } else if (expectedOccurrences == 1 || expectedOccurrences == 2) {
+          } else {
+            // expected occurr = 1 or 2
             final boolean destinationIsCurrent =
-              vehicle.getDestination().isPresent() &&
-                  vehicle.getDestination().get().equals(p);
+              vehicle.getDestination().asSet().contains(p);
 
             int toAdd = expectedOccurrences - actualOccurences;
 
@@ -128,14 +128,14 @@ public final class ScheduleUtil {
             if (toAdd > 0) {
               newSchedule.get(i).add(p);
             }
-
-            // if the parcel is in another vehicle's schedule, we have to
-            // remove it there
-            if (parcelOwner.containsKey(p) && parcelOwner.get(p) != i) {
-              newSchedule.get(parcelOwner.get(p))
-                  .removeAll(Collections.singleton(p));
-            }
           }
+        }
+
+        // if the parcel is in another vehicle's schedule, we have to
+        // remove it there
+        if (parcelOwner.containsKey(p) && parcelOwner.get(p) != i) {
+          newSchedule.get(parcelOwner.get(p))
+              .removeAll(Collections.singleton(p));
         }
 
         // final ParcelState parcelState = pdpModel.getParcelState(p);

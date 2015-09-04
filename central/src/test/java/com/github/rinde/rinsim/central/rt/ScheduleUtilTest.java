@@ -28,6 +28,7 @@ import org.junit.Test;
 import com.github.rinde.rinsim.central.GlobalStateObject;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.geom.Point;
+import com.github.rinde.rinsim.testutil.TestUtil;
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -41,6 +42,8 @@ public class ScheduleUtilTest {
 
   @Before
   public void setUp() {
+    TestUtil.testPrivateConstructor(ScheduleUtil.class);
+
     p1 = new ParcelDecorator(Parcel.builder(new Point(0, 0), new Point(1, 1))
         .serviceDuration(100)
         .build(), "p1");
@@ -143,6 +146,46 @@ public class ScheduleUtilTest {
 
     assertThat(fix(schedule(route(p1, p2, p3, p1, p2), route()), state))
         .isEqualTo(schedule(route(p1, p1, p2), route()));
+  }
+
+  /**
+   * Situations where a parcel occurs in multiple routes.
+   */
+  @Test
+  public void testFixSchedule4() {
+    final GlobalStateObject state = globalBuilder()
+        .addAvailableParcels(p1)
+        .addVehicle(vehicleBuilder()
+            .addToContents(p2)
+            .setRemainingServiceTime(10L)
+            .build())
+        .addVehicle(vehicleBuilder().build())
+        .build();
+
+    assertThat(fix(schedule(route(p2, p1), route(p3, p2)), state))
+        .isEqualTo(schedule(route(p2, p1), route()));
+
+    assertThat(fix(schedule(route(p2, p1), route(p3, p2, p2)), state))
+        .isEqualTo(schedule(route(p2, p1), route()));
+
+    assertThat(fix(schedule(route(p2, p1, p2), route(p3, p2, p2)), state))
+        .isEqualTo(schedule(route(p1, p2), route()));
+  }
+
+  @Test
+  public void testFixSchedule5() {
+    final GlobalStateObject state = globalBuilder()
+        .addAvailableParcels(p1)
+        .addVehicle(vehicleBuilder()
+            .addToContents(p2)
+            .setDestination(p2)
+            .setRemainingServiceTime(10L)
+            .build())
+        .addVehicle(vehicleBuilder().build())
+        .build();
+
+    assertThat(fix(schedule(route(p3, p2, p1), route(p3, p2)), state))
+        .isEqualTo(schedule(route(p2, p1), route()));
   }
 
   static List<List<Parcel>> fix(ImmutableList<ImmutableList<Parcel>> schedule,
