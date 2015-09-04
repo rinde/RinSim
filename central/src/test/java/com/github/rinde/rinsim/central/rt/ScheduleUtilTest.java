@@ -185,6 +185,9 @@ public class ScheduleUtilTest {
         .isEqualTo(schedule(route(p2, p1), route(p3)));
   }
 
+  /**
+   * Tests situation where destination is not first in route.
+   */
   @Test
   public void testFixSchedule6() {
     final GlobalStateObject state = globalBuilder()
@@ -209,9 +212,20 @@ public class ScheduleUtilTest {
         route(p5, p2, p3, p4, p5)),
         state))
             .isEqualTo(schedule(
-              route(p1, p2, p1),
+              route(p2, p1, p1),
               route(p3),
               route(p5, p4, p5)));
+
+    assertThat(
+      fix(schedule(
+        route(),
+        route(),
+        route()),
+        state))
+            .isEqualTo(schedule(
+              route(p2),
+              route(p3),
+              route(p4)));
 
   }
 

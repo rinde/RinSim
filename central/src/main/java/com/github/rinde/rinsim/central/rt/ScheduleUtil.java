@@ -141,6 +141,13 @@ public final class ScheduleUtil {
           }
         }
       }
+
+      if (vehicle.getDestination().isPresent()
+          && !newSchedule.get(i).get(0)
+              .equals(vehicle.getDestination().get())) {
+        newSchedule.get(i).remove(vehicle.getDestination().get());
+        newSchedule.get(i).add(0, vehicle.getDestination().get());
+      }
     }
     return newSchedule;
   }
