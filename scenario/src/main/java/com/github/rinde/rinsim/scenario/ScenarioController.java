@@ -482,7 +482,8 @@ public final class ScenarioController extends AbstractModel<StopModel>
         "Found redundant event handlers for event type(s): %s, no event with "
             + "these type(s) was found. All added handlers: %s, all event types"
             + " in the scenario: %s. Scenario (problem class:'%s', instance "
-            + "id:'%s').", covered, m.entrySet(), required, s.getProblemClass(), 
+            + "id:'%s').", 
+            covered, m.entrySet(), required, s.getProblemClass(),  
         s.getProblemInstanceId());
       return new ScenarioController(sim, clockController, s,
           ImmutableMap.copyOf(m), getNumberOfTicks());
