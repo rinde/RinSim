@@ -38,7 +38,7 @@ import com.google.common.collect.ImmutableList;
 public class ScheduleUtilTest {
 
   @SuppressWarnings("null")
-  Parcel p1, p2, p3;
+  Parcel p1, p2, p3, p4, p5;
 
   @Before
   public void setUp() {
@@ -53,21 +53,12 @@ public class ScheduleUtilTest {
     p3 = new ParcelDecorator(Parcel.builder(new Point(1, 3), new Point(1, 2))
         .serviceDuration(100)
         .build(), "p3");
-  }
-
-  static class ParcelDecorator extends Parcel {
-
-    private final String name;
-
-    public ParcelDecorator(Parcel p, String parcelName) {
-      super(p.getDto());
-      name = parcelName;
-    }
-
-    @Override
-    public String toString() {
-      return name;
-    }
+    p4 = new ParcelDecorator(Parcel.builder(new Point(1, 3), new Point(1, 2))
+        .serviceDuration(100)
+        .build(), "p4");
+    p5 = new ParcelDecorator(Parcel.builder(new Point(1, 3), new Point(1, 2))
+        .serviceDuration(100)
+        .build(), "p5");
   }
 
   /**
@@ -194,6 +185,72 @@ public class ScheduleUtilTest {
         .isEqualTo(schedule(route(p2, p1), route(p3)));
   }
 
+  @Test
+  public void testFixSchedule6() {
+    final GlobalStateObject state = globalBuilder()
+        .addAvailableParcels(p1, p5)
+        .addVehicle(vehicleBuilder()
+            .addToContents(p2)
+            .setDestination(p2)
+            .setRemainingServiceTime(10L)
+            .build())
+        .addVehicle(vehicleBuilder()
+            .addToContents(p3)
+            .build())
+        .addVehicle(vehicleBuilder()
+            .addToContents(p4)
+            .build())
+        .build();
+
+    assertThat(
+      fix(schedule(
+        route(p1, p3, p2, p4, p1),
+        route(p3, p2, p4),
+        route(p5, p2, p3, p4, p5)),
+        state))
+            .isEqualTo(schedule(
+              route(p1, p2, p1),
+              route(p3),
+              route(p5, p4, p5)));
+
+  }
+
+  /**
+   * Tests defensive checks.
+   */
+  @Test
+  public void testFixScheduleWrongInputs() {
+    final GlobalStateObject state = globalBuilder()
+        .addAvailableParcels(p1)
+        .addVehicle(vehicleBuilder()
+            .build())
+        .addVehicle(vehicleBuilder()
+            .build())
+        .build();
+
+    boolean fail = false;
+    try {
+      fix(schedule(route()), state);
+    } catch (final IllegalArgumentException e) {
+      assertThat(e.getMessage()).contains("The number of routes");
+      fail = true;
+    }
+    assertThat(fail).isTrue();
+
+    final GlobalStateObject wrongState = globalBuilder()
+        .addVehicle(vehicleBuilder().setRoute(route()).build()).build();
+
+    fail = false;
+    try {
+      fix(schedule(route()), wrongState);
+    } catch (final IllegalArgumentException e) {
+      assertThat(e.getMessage())
+          .isEqualTo("A state object without routes is expected.");
+      fail = true;
+    }
+    assertThat(fail).isTrue();
+  }
+
   static List<List<Parcel>> fix(ImmutableList<ImmutableList<Parcel>> schedule,
       GlobalStateObject state) {
     return ScheduleUtil.fixSchedule(schedule, state);
@@ -207,5 +264,20 @@ public class ScheduleUtilTest {
   static ImmutableList<ImmutableList<Parcel>> schedule(
       ImmutableList<Parcel>... rs) {
     return ImmutableList.copyOf(rs);
+  }
+
+  static class ParcelDecorator extends Parcel {
+
+    private final String name;
+
+    public ParcelDecorator(Parcel p, String parcelName) {
+      super(p.getDto());
+      name = parcelName;
+    }
+
+    @Override
+    public String toString() {
+      return name;
+    }
   }
 }

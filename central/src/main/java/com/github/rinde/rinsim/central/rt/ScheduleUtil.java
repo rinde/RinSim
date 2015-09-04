@@ -53,7 +53,8 @@ public final class ScheduleUtil {
       "The number of routes (%s) and the number of vehicles (%s) must "
           + "be equal.",
       schedule.size(), state.getVehicles().size());
-    checkArgument(!state.getVehicles().get(0).getRoute().isPresent());
+    checkArgument(!state.getVehicles().get(0).getRoute().isPresent(),
+      "A state object without routes is expected.");
 
     // only parcels in this set may occur in the schedule
     final Set<Parcel> undeliveredParcels = new HashSet<>();
@@ -127,7 +128,6 @@ public final class ScheduleUtil {
             if (toAdd > 0) {
               newSchedule.get(i).add(p);
             }
-
           }
         }
 
@@ -140,66 +140,7 @@ public final class ScheduleUtil {
             }
           }
         }
-
-        // final ParcelState parcelState = pdpModel.getParcelState(p);
-        //
-        // if (parcelState == ParcelState.PICKING_UP) {
-        // // PICKING_UP -> needs to be in correct vehicle
-        // if (!(vehicleState == VehicleState.PICKING_UP
-        // && pdpModel.getVehicleActionInfo(vehicle).getParcel()
-        // .equals(p))) {
-        // // it is not being picked up by the current vehicle, remove from
-        // // route
-        // newSchedule.get(i).removeAll(Collections.singleton(p));
-        // }
-        // } else if (parcelState == ParcelState.IN_CARGO) {
-        // // IN_CARGO -> may appear max once in schedule
-        // if (vehicleContents.contains(p)) {
-        // if (routeSet.count(p) == 2) {
-        // // remove first occurrence of parcel, as it can only be visited
-        // // once (for delivery)
-        // newSchedule.get(i).remove(p);
-        // }
-        // } else {
-        // // parcel is owned by someone else
-        // newSchedule.get(i).removeAll(Collections.singleton(p));
-        // }
-        // } else if (parcelState == ParcelState.DELIVERING) {
-        // // DELIVERING -> may appear max once in schedule
-        // if (vehicleContents.contains(p)) {
-        // if (routeSet.count(p) == 2) {
-        // // removes the last occurrence
-        // newSchedule.get(i).remove(newSchedule.get(i).lastIndexOf(p));
-        // }
-        // } else {
-        // newSchedule.get(i).removeAll(Collections.singleton(p));
-        // }
-        // } else if (parcelState == ParcelState.DELIVERED) {
-        // // DELIVERED -> may not appear in schedule
-        // newSchedule.get(i).removeAll(Collections.singleton(p));
-        // }
-        // else: good: ANNOUNCED, AVAILABLE
       }
-
-      // for all parcels in the vehicle we check if they exist in the
-      // schedule, if not we add them to the end of the route
-      // for (final Parcel p : vehicleContents) {
-      // // check if the schedule agrees about parcel ownership
-      // if (parcelOwner.get(p).intValue() != i) {
-      // // if not, we move the parcel to the owner
-      // newSchedule.get(i).add(p);
-      // // TODO remove old
-      // }
-      // }
-
-      // if current vehicle is picking up a parcel, make sure it appears in
-      // the route once (if it doesn't we add it in the end).
-      // if (vehicleState == VehicleState.PICKING_UP && parcelOwner
-      // .get(pdpModel.getVehicleActionInfo(vehicle).getParcel())
-      // .intValue() != i) {
-      // newSchedule.get(i)
-      // .add(pdpModel.getVehicleActionInfo(vehicle).getParcel());
-      // }
     }
     return newSchedule;
   }
