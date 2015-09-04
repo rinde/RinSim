@@ -21,9 +21,7 @@ import static com.google.common.base.Preconditions.checkState;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import com.github.rinde.rinsim.central.GlobalStateObject;
@@ -33,6 +31,8 @@ import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
 
@@ -75,7 +75,7 @@ public final class ScheduleUtil {
     }
 
     // create map of parcel -> vehicle index
-    final Map<Parcel, Integer> parcelOwner = new LinkedHashMap<>();
+    final Multimap<Parcel, Integer> parcelOwner = LinkedHashMultimap.create();
     for (int i = 0; i < schedule.size(); i++) {
       final List<Parcel> route = schedule.get(i);
       final Set<Parcel> routeSet = ImmutableSet.copyOf(route);
@@ -83,6 +83,7 @@ public final class ScheduleUtil {
         parcelOwner.put(p, i);
       }
     }
+
     // copy schedule into a modifiable structure
     final List<List<Parcel>> newSchedule = new ArrayList<>();
     for (final ImmutableList<Parcel> route : schedule) {
@@ -91,8 +92,6 @@ public final class ScheduleUtil {
     // compare with current vehicle cargo
     for (int i = 0; i < state.getVehicles().size(); i++) {
       final VehicleStateObject vehicle = state.getVehicles().get(i);
-      // final VehicleState vehicleState = pdpModel.getVehicleState(vehicle);
-      // final Set<Parcel> vehicleContents = pdpModel.getContents(vehicle);
       final Multiset<Parcel> routeSet =
         ImmutableMultiset.copyOf(schedule.get(i));
 
@@ -128,14 +127,18 @@ public final class ScheduleUtil {
             if (toAdd > 0) {
               newSchedule.get(i).add(p);
             }
+
           }
         }
 
-        // if the parcel is in another vehicle's schedule, we have to
-        // remove it there
-        if (parcelOwner.containsKey(p) && parcelOwner.get(p) != i) {
-          newSchedule.get(parcelOwner.get(p))
-              .removeAll(Collections.singleton(p));
+        // if the parcel is expected in the current vehicle, but it also appears
+        // in (an) other vehicle(s), we have to remove it there
+        if (expectedOccurrences > 0 && parcelOwner.containsKey(p)) {
+          for (final Integer v : parcelOwner.get(p)) {
+            if (!v.equals(i)) {
+              newSchedule.get(v).removeAll(Collections.singleton(p));
+            }
+          }
         }
 
         // final ParcelState parcelState = pdpModel.getParcelState(p);

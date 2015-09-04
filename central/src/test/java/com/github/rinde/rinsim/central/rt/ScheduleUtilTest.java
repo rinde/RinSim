@@ -172,6 +172,10 @@ public class ScheduleUtilTest {
         .isEqualTo(schedule(route(p1, p2), route()));
   }
 
+  /**
+   * Tests situation where first item in route is not the actual destination of
+   * the vehicle.
+   */
   @Test
   public void testFixSchedule5() {
     final GlobalStateObject state = globalBuilder()
@@ -181,11 +185,13 @@ public class ScheduleUtilTest {
             .setDestination(p2)
             .setRemainingServiceTime(10L)
             .build())
-        .addVehicle(vehicleBuilder().build())
+        .addVehicle(vehicleBuilder()
+            .addToContents(p3)
+            .build())
         .build();
 
     assertThat(fix(schedule(route(p3, p2, p1), route(p3, p2)), state))
-        .isEqualTo(schedule(route(p2, p1), route()));
+        .isEqualTo(schedule(route(p2, p1), route(p3)));
   }
 
   static List<List<Parcel>> fix(ImmutableList<ImmutableList<Parcel>> schedule,
