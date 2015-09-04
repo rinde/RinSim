@@ -162,6 +162,13 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
     final ListeningScheduledExecutorService ex = realtimeState.executor;
     if (ex != null) {
       ex.shutdown();
+
+      // in case the future could not be cancelled before, do it now
+      final ListenableScheduledFuture<?> fut = realtimeState.schedulerFuture;
+      if (fut != null && !fut.isDone()) {
+        realtimeState.cancelTask();
+      }
+
       try {
         ex.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
       } catch (final InterruptedException e) {
