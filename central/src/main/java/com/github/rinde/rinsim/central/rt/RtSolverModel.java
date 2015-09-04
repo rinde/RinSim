@@ -397,7 +397,8 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
     }
 
     void addException(Throwable t) {
-      LOGGER.warn("exception occured: {}", t);
+      LOGGER.warn("exception occured: {}: {}", t.getClass().getName(),
+        t.getMessage());
       exceptions.add(t);
     }
   }

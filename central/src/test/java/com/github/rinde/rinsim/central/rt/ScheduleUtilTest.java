@@ -40,6 +40,9 @@ public class ScheduleUtilTest {
   @SuppressWarnings("null")
   Parcel p1, p2, p3, p4, p5;
 
+  /**
+   * Setup.
+   */
   @Before
   public void setUp() {
     TestUtil.testPrivateConstructor(ScheduleUtil.class);

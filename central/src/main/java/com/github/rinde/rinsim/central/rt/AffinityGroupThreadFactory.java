@@ -22,6 +22,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.Nullable;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import net.openhft.affinity.AffinityLock;
 import net.openhft.affinity.AffinitySupport;
 
@@ -32,6 +35,9 @@ import net.openhft.affinity.AffinitySupport;
  * @author Rinde van Lon
  */
 public final class AffinityGroupThreadFactory implements ThreadFactory {
+  static final Logger LOGGER =
+    LoggerFactory.getLogger(AffinityGroupThreadFactory.class);
+
   private final String threadNamePrefix;
   private final boolean createDaemonThreads;
   private final AtomicInteger numThreads;
@@ -69,6 +75,7 @@ public final class AffinityGroupThreadFactory implements ThreadFactory {
     final String threadName =
       id == 0 ? threadNamePrefix : threadNamePrefix + '-' + id;
     numThreads.incrementAndGet();
+    LOGGER.info("{} create new thread with '{}'.", this, threadName);
     final Thread t = new Thread(new Runnable() {
       @Override
       public void run() {
@@ -82,15 +89,16 @@ public final class AffinityGroupThreadFactory implements ThreadFactory {
     }, threadName);
     t.setDaemon(createDaemonThreads);
     return t;
-
   }
 
   void acquireLock() {
     synchronized (lock) {
       if (lastAffinityLock != null) {
         final AffinityLock al = lastAffinityLock;
+        LOGGER.info("{} reuse lock on CPU {}.", this, al.cpuId());
         AffinitySupport.setAffinity(1 << al.cpuId());
       } else {
+        LOGGER.info("{} acquire a lock on a CPU.", this);
         lastAffinityLock = AffinityLock.acquireLock();
       }
     }
@@ -99,9 +107,17 @@ public final class AffinityGroupThreadFactory implements ThreadFactory {
   void releaseLock() {
     synchronized (lock) {
       if (numThreads.decrementAndGet() == 0 && lastAffinityLock != null) {
-        lastAffinityLock.release();
+        final AffinityLock al = lastAffinityLock;
         lastAffinityLock = null;
+        LOGGER.info("{} releasing lock on CPU {}.", this, al.cpuId());
+        al.release();
       }
     }
+  }
+
+  @Override
+  public String toString() {
+    return String.format("%s{%s}", getClass().getSimpleName(),
+      threadNamePrefix);
   }
 }

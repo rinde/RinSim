@@ -283,7 +283,6 @@ public final class RtCentral {
     private boolean problemHasChanged;
 
     private final PDPRoadModel roadModel;
-    private final PDPModel pdpModel;
     private final RtSimSolver solver;
     private final RealtimeClockController clock;
     private final boolean sleepOnChange;
@@ -295,7 +294,6 @@ public final class RtCentral {
       clock = c;
       solver = s;
       roadModel = rm;
-      pdpModel = pm;
       sleepOnChange = sleepOnC;
       vehicles = new ArrayList<>();
 
@@ -382,16 +380,17 @@ public final class RtCentral {
             LOGGER.warn("something went wrong");
             LOGGER.warn("state");
             LOGGER.warn("available: " + state.getAvailableParcels());
-            LOGGER
-                .warn("vehicles:" + Joiner.on("\n").join(state.getVehicles()));
+            LOGGER.warn("vehicles:" + Joiner.on(System.lineSeparator())
+                .join(state.getVehicles()));
             LOGGER.warn("current schedule: ");
-            LOGGER.warn(Joiner.on("\n").join(solver.getCurrentSchedule()));
+            LOGGER.warn(Joiner.on(System.lineSeparator())
+                .join(solver.getCurrentSchedule()));
             LOGGER.warn("fixed");
-            LOGGER.warn(Joiner.on("\n").join(schedule));
+            LOGGER.warn(Joiner.on(System.lineSeparator()).join(schedule));
             LOGGER.warn("problem in vehicle" + i);
             throw new IllegalStateException(
-                "Route was not applied correctly, new route: " + newRoute +
-                    " but result is: " + vehicle.getRoute());
+                "Route was not applied correctly, new route: " + newRoute
+                    + " but result is: " + vehicle.getRoute());
           }
           i++;
         }
