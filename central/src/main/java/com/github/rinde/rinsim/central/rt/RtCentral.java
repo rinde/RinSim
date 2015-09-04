@@ -24,6 +24,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.github.rinde.rinsim.central.Central;
 import com.github.rinde.rinsim.central.GlobalStateObject;
 import com.github.rinde.rinsim.central.Solver;
@@ -53,6 +56,7 @@ import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.util.StochasticSupplier;
 import com.google.auto.value.AutoValue;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
@@ -66,6 +70,7 @@ import com.google.common.collect.ImmutableSet;
 public final class RtCentral {
 
   private static final boolean DEFAULT_SLEEP_ON_CHANGE = false;
+  private static final Logger LOGGER = LoggerFactory.getLogger(RtCentral.class);
 
   private RtCentral() {}
 
@@ -263,8 +268,7 @@ public final class RtCentral {
     INSTANCE {
       @Override
       public void handleTimedEvent(AddVehicleEvent event, SimulatorAPI sim) {
-        sim.register(new RouteFollowingVehicle(event.getVehicleDTO(), true,
-            RouteFollowingVehicle.delayAdjuster()));
+        sim.register(new RouteFollowingVehicle(event.getVehicleDTO(), true));
       }
 
       @Override
@@ -368,8 +372,28 @@ public final class RtCentral {
           schedule.size(), vehicles.size());
 
         final Iterator<List<Parcel>> routes = schedule.iterator();
+        int i = 0;
         for (final RouteFollowingVehicle vehicle : vehicles) {
-          vehicle.setRoute(routes.next());
+          final List<Parcel> newRoute = routes.next();
+          vehicle.setRoute(newRoute);
+          final List<Parcel> actualRoute = new ArrayList<>(vehicle.getRoute());
+
+          if (!actualRoute.equals(newRoute)) {
+            LOGGER.warn("something went wrong");
+            LOGGER.warn("state");
+            LOGGER.warn("available: " + state.getAvailableParcels());
+            LOGGER
+                .warn("vehicles:" + Joiner.on("\n").join(state.getVehicles()));
+            LOGGER.warn("current schedule: ");
+            LOGGER.warn(Joiner.on("\n").join(solver.getCurrentSchedule()));
+            LOGGER.warn("fixed");
+            LOGGER.warn(Joiner.on("\n").join(schedule));
+            LOGGER.warn("problem in vehicle" + i);
+            throw new IllegalStateException(
+                "Route was not applied correctly, new route: " + newRoute +
+                    " but result is: " + vehicle.getRoute());
+          }
+          i++;
         }
       }
     }
