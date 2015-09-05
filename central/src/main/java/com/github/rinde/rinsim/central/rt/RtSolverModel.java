@@ -19,7 +19,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -62,6 +61,8 @@ import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.LinkedHashMultiset;
+import com.google.common.collect.Multiset;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -340,13 +341,12 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
 
   class SimSolversManager implements Listener {
     final Set<RtSimSolverSchedulerImpl> simSolvers;
-    final Set<RtSimSolverSchedulerImpl> computingSimSolvers;
+    final Multiset<RtSimSolverSchedulerImpl> computingSimSolvers;
     final List<Throwable> exceptions;
 
     SimSolversManager() {
       simSolvers = new LinkedHashSet<>();
-      computingSimSolvers = Collections.synchronizedSet(
-        new LinkedHashSet<RtSimSolverSchedulerImpl>());
+      computingSimSolvers = LinkedHashMultiset.create();
       exceptions = new ArrayList<>();
     }
 
