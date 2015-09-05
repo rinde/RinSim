@@ -385,9 +385,9 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
           computingSimSolvers.add((RtSimSolverSchedulerImpl) e.getIssuer());
         } else if (e.getEventType() == EventType.DONE_COMPUTING) {
           // done computing
-          checkState(computingSimSolvers.remove(e.getIssuer()),
-            "Internal error, computing: %s, all: %s, issuer: %s",
-            computingSimSolvers, simSolvers, e.getIssuer());
+          // it may be the case that the issuer is already removed, we ignore
+          // this as it can happen due to threading issues.
+          computingSimSolvers.remove(e.getIssuer());
           if (!isComputing() && clock.isTicking()) {
             LOGGER.trace("request to switch to sim time");
             clock.switchToSimulatedTime();
