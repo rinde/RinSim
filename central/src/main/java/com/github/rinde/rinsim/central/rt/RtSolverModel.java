@@ -345,8 +345,8 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
 
     SimSolversManager() {
       simSolvers = new LinkedHashSet<>();
-      computingSimSolvers = Collections.synchronizedSet(
-        new LinkedHashSet<RtSimSolverSchedulerImpl>());
+      computingSimSolvers = Collections
+          .synchronizedSet(new LinkedHashSet<RtSimSolverSchedulerImpl>());
       exceptions = new ArrayList<>();
     }
 
