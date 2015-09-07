@@ -18,6 +18,7 @@ package com.github.rinde.rinsim.central.rt;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -224,7 +225,7 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
       final String newName =
         Thread.currentThread().getName() + "-" + getClass().getSimpleName();
       if (threadGroupingEnabled) {
-        factory = new AffinityGroupThreadFactory(newName);
+        factory = new AffinityGroupThreadFactory(newName, manager);
       } else {
         factory = new AffinityThreadFactory(newName, AffinityStrategies.ANY);
       }
@@ -338,7 +339,7 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
     }
   }
 
-  class SimSolversManager implements Listener {
+  class SimSolversManager implements Listener, UncaughtExceptionHandler {
     final Set<RtSimSolverSchedulerImpl> simSolvers;
     final Set<RtSimSolverSchedulerImpl> computingSimSolvers;
     final List<Throwable> exceptions;
@@ -402,6 +403,12 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
       LOGGER.warn("exception occured: {}: {}", t.getClass().getName(),
         t.getMessage());
       exceptions.add(t);
+    }
+
+    @Override
+    public void uncaughtException(@SuppressWarnings("null") Thread t,
+        @SuppressWarnings("null") Throwable e) {
+      addException(e);
     }
   }
 

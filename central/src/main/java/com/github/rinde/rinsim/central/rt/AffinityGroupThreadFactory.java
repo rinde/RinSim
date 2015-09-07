@@ -17,6 +17,7 @@ package com.github.rinde.rinsim.central.rt;
 
 import static com.google.common.base.Verify.verifyNotNull;
 
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -42,6 +43,7 @@ public final class AffinityGroupThreadFactory implements ThreadFactory {
   private final boolean createDaemonThreads;
   private final AtomicInteger numThreads;
   private final Object lock;
+  private final UncaughtExceptionHandler exceptionHandler;
   @Nullable
   private AffinityLock lastAffinityLock;
   private int id;
@@ -51,19 +53,26 @@ public final class AffinityGroupThreadFactory implements ThreadFactory {
    * created threads are daemon threads, see {@link Thread#setDaemon(boolean)}
    * for more information.
    * @param name The thread name prefix.
+   * @param uncaughtExceptionHandler The handler for exceptions that are not
+   *          caught on the threads created by this factory.
    */
-  public AffinityGroupThreadFactory(String name) {
-    this(name, true);
+  public AffinityGroupThreadFactory(String name,
+      UncaughtExceptionHandler uncaughtExceptionHandler) {
+    this(name, uncaughtExceptionHandler, true);
   }
 
   /**
    * Create a new instance where threads get the specified name prefix. The
    * daemon property is set using {@link Thread#setDaemon(boolean)}.
    * @param name The thread name prefix.
+   * @param uncaughtExceptionHandler The handler for exceptions that are not
+   *          caught on the threads created by this factory.
    * @param daemon Indicates whether all threads created by this factory are
    *          daemon threads.
    */
-  public AffinityGroupThreadFactory(String name, boolean daemon) {
+  public AffinityGroupThreadFactory(String name,
+      UncaughtExceptionHandler uncaughtExceptionHandler, boolean daemon) {
+    exceptionHandler = uncaughtExceptionHandler;
     numThreads = new AtomicInteger();
     threadNamePrefix = name;
     createDaemonThreads = daemon;
@@ -87,6 +96,7 @@ public final class AffinityGroupThreadFactory implements ThreadFactory {
         }
       }
     }, threadName);
+    t.setUncaughtExceptionHandler(exceptionHandler);
     t.setDaemon(createDaemonThreads);
     return t;
   }
