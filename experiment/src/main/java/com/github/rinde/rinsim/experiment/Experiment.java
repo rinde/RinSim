@@ -387,7 +387,7 @@ public final class Experiment {
 
     /**
      * Specify the number of threads to use for computing the experiments, the
-     * default is <code>1</code>.
+     * default equals {@link Runtime#availableProcessors()}.
      * @param threads The number of threads to use.
      * @return This, as per the builder pattern.
      */
