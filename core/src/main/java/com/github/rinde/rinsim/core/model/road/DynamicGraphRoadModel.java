@@ -130,7 +130,7 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
 
   /**
    * Checks whether there is a {@link RoadUser} on the connection between
-   * <code>from</code> and <code>to</code>.
+   * <code>from</code> and <code>to</code> (inclusive).
    * @param from The start point of a connection.
    * @param to The end point of a connection.
    * @return <code>true</code> if a {@link RoadUser} occupies either
@@ -148,7 +148,7 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
 
   /**
    * Returns all {@link RoadUser}s that are on the connection between
-   * <code>from</code> and <code>to</code>.
+   * <code>from</code> and <code>to</code> (inclusive).
    * @param from The start point of a connection.
    * @param to The end point of a connection.
    * @return The {@link RoadUser}s that are on the connection, or an empty set
@@ -171,6 +171,24 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
       builder.addAll(posMap.get(to));
     }
     return builder.build();
+  }
+
+  /**
+   * Returns all {@link RoadUser}s that are on the specified node.
+   * @param node A node in the graph.
+   * @return The set of {@link RoadUser}s that are <i>exactly</i> at the
+   *         position of the node, or an empty set if there are no
+   *         {@link RoadUser}s on the node.
+   * @throws IllegalArgumentException if the specified point is not a node in
+   *           the graph.
+   */
+  public ImmutableSet<RoadUser> getRoadUsersOnNode(Point node) {
+    checkArgument(graph.containsNode(node),
+        "The specified point (%s) is not a node in the graph.", node);
+    if (posMap.containsKey(node)) {
+      return ImmutableSet.copyOf(posMap.get(node));
+    }
+    return ImmutableSet.of();
   }
 
   void checkConnectionsExists(Point from, Point to) {
