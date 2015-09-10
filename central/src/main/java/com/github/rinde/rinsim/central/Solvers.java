@@ -102,7 +102,7 @@ public final class Solvers {
    * @return The statistics that will be generated when executing this
    *         simulation.
    */
-  public static StatisticsDTO computeStats(GlobalStateObject state,
+  public static ExtendedStats computeStats(GlobalStateObject state,
       @Nullable ImmutableList<ImmutableList<Parcel>> routes) {
     final Optional<ImmutableList<ImmutableList<Parcel>>> r = Optional
         .fromNullable(routes);
@@ -127,8 +127,7 @@ public final class Solvers {
     final Set<Parcel> parcels = newHashSet();
 
     final ImmutableList.Builder<ImmutableList<Long>> arrivalTimesBuilder =
-      ImmutableList
-          .builder();
+      ImmutableList.builder();
 
     for (int i = 0; i < state.getVehicles().size(); i++) {
       final VehicleStateObject vso = state.getVehicles().get(i);
@@ -179,8 +178,7 @@ public final class Solvers {
           totalDistance += distance.getValue();
           vehicleLocation = nextLoc;
           final long tt = DoubleMath.roundToLong(
-            RoadModels.computeTravelTime(speed, distance,
-              state.getTimeUnit()),
+            RoadModels.computeTravelTime(speed, distance, state.getTimeUnit()),
             RoundingMode.CEILING);
           time += tt;
         }
@@ -618,8 +616,12 @@ public final class Solvers {
     }
   }
 
-  // only used for testing
-  static class ExtendedStats extends StatisticsDTO {
+  /**
+   *
+   *
+   * @author Rinde van Lon
+   */
+  public static class ExtendedStats extends StatisticsDTO {
     private static final long serialVersionUID = 3682772955122186862L;
     final ImmutableList<ImmutableList<Long>> arrivalTimes;
 
@@ -631,6 +633,10 @@ public final class Solvers {
       super(dist, pick, del, parc, accP, pickTar, delTar, compT, simT, finish,
           atDepot, overT, total, moved, time, distUnit, speed);
       arrivalTimes = pArrivalTimes;
+    }
+
+    public ImmutableList<ImmutableList<Long>> getArrivalTimes() {
+      return arrivalTimes;
     }
   }
 }
