@@ -166,9 +166,8 @@ public final class Experiment {
    * @return The {@link Simulator} instance.
    */
   @VisibleForTesting
-  static Simulator init(Scenario scenario,
-      MASConfiguration config, long seed, boolean showGui,
-      Optional<ModelBuilder<?, ?>> uiCreator) {
+  static Simulator init(Scenario scenario, MASConfiguration config, long seed,
+      boolean showGui, Optional<ModelBuilder<?, ?>> uiCreator) {
 
     ScenarioController.Builder scenContrBuilder = ScenarioController.builder(
         scenario)

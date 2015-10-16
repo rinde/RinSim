@@ -18,6 +18,7 @@ package com.github.rinde.rinsim.central.rt;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
+import java.io.Serializable;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -262,7 +263,10 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
    */
   @AutoValue
   public abstract static class Builder
-      extends AbstractModelBuilder<RtSolverModel, RtSolverUser> {
+      extends AbstractModelBuilder<RtSolverModel, RtSolverUser>
+      implements Serializable {
+
+    private static final long serialVersionUID = 961117045872153221L;
 
     Builder() {
       setDependencies(RealtimeClockController.class, PDPRoadModel.class,
@@ -348,7 +352,7 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
       simSolvers = new LinkedHashSet<>();
       computingSimSolvers = Collections
           .synchronizedSet(new LinkedHashSet<RtSimSolverSchedulerImpl>());
-      exceptions = new ArrayList<>();
+      exceptions = Collections.synchronizedList(new ArrayList<Throwable>());
     }
 
     void checkExceptions() {
@@ -528,7 +532,6 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
             simSolversManager.addException(t);
           }
         });
-
       }
 
       @Override

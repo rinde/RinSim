@@ -15,6 +15,7 @@
  */
 package com.github.rinde.rinsim.central;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
@@ -48,6 +49,7 @@ public final class RandomSolver implements Solver {
 
   @Override
   public ImmutableList<ImmutableList<Parcel>> solve(GlobalStateObject state) {
+    checkArgument(!state.getVehicles().isEmpty(), "Need at least one vehicle.");
     final LinkedListMultimap<VehicleStateObject, Parcel> map =
       LinkedListMultimap.create();
 

@@ -18,6 +18,7 @@ package com.github.rinde.rinsim.central.rt;
 import com.github.rinde.rinsim.central.GlobalStateObject;
 import com.github.rinde.rinsim.central.Solver;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
+import com.github.rinde.rinsim.util.StochasticSupplier;
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -50,5 +51,32 @@ public class SleepySolver implements Solver {
    */
   public static Solver create(long sleepTime, Solver delegate) {
     return new SleepySolver(sleepTime, delegate);
+  }
+
+  /**
+   * Create a new supplier for {@link SleepySolver} instances..
+   * @param sleepTime The time to sleep each time
+   *          {@link Solver#solve(GlobalStateObject)} is called.
+   * @param delegate The {@link Solver} to delegate the actual solving to.
+   * @return A new supplier instance.
+   */
+  public static StochasticSupplier<Solver> create(long sleepTime,
+      StochasticSupplier<Solver> delegate) {
+    return new Sup(sleepTime, delegate);
+  }
+
+  static class Sup implements StochasticSupplier<Solver> {
+    final long sleep;
+    final StochasticSupplier<Solver> solver;
+
+    Sup(long slp, StochasticSupplier<Solver> s) {
+      sleep = slp;
+      solver = s;
+    }
+
+    @Override
+    public Solver get(long seed) {
+      return new SleepySolver(sleep, solver.get(seed));
+    }
   }
 }

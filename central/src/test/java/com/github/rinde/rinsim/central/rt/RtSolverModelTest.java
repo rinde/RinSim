@@ -22,6 +22,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
 
@@ -31,17 +34,24 @@ import org.junit.Test;
 import com.github.rinde.rinsim.central.GlobalStateObject;
 import com.github.rinde.rinsim.central.Solver;
 import com.github.rinde.rinsim.central.Solvers.SolveArgs;
+import com.github.rinde.rinsim.central.rt.RtSimSolver.EventType;
 import com.github.rinde.rinsim.central.rt.RtSolverModel.Mode;
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.FakeDependencyProvider;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController;
+import com.github.rinde.rinsim.core.model.time.TickListener;
+import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.model.time.TimeLapseFactory;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
+import com.github.rinde.rinsim.event.Event;
+import com.github.rinde.rinsim.event.Listener;
+import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.testutil.TestUtil;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 import autovalue.shaded.com.google.common.common.base.Optional;
 
@@ -82,6 +92,7 @@ public class RtSolverModelTest {
         .build();
 
     model = RtSolverModel.builder().build(dependencyProvider);
+    ((TimeModel) clock).register(model);
     assertThat(model.mode).isEqualTo(Mode.UNKNOWN);
 
     TestUtil.testEnum(Mode.class);
@@ -266,6 +277,75 @@ public class RtSolverModelTest {
         .withSingleMode()
         .build(dependencyProvider);
     assertThat(m2.mode).isEqualTo(Mode.SINGLE_MODE);
+  }
+
+  /**
+   * Test that two consecutive invocation of the same sim solver is handled
+   * correctly. The correct behavior is that the calculation of the first
+   * invocation is cancelled.
+   */
+  @Test
+  public void testConcurrentSolvers() {
+    final RtSimSolverBuilder b = model.get(RtSimSolverBuilder.class);
+    final RtSimSolver simSolver = b.build(SolverToRealtimeAdapter
+        .create(SleepySolver.create(500, new NopSolver())));
+    final Parcel p = Parcel.builder(new Point(0, 0), new Point(1, 1))
+        .build();
+
+    final List<Event> events = new ArrayList<>();
+    simSolver.getEventAPI().addListener(new Listener() {
+      @Override
+      public void handleEvent(Event e) {
+        events.add(e);
+      }
+    });
+
+    ((TimeModel) clock).register(new TickListener() {
+      @Override
+      public void tick(TimeLapse timeLapse) {
+        if (timeLapse.getStartTime() == 0L) {
+          simSolver.solve(SolveArgs.create().useParcels(ImmutableSet.of(p)));
+          simSolver.solve(SolveArgs.create().useParcels(ImmutableSet.of(p)));
+        }
+      }
+
+      @Override
+      public void afterTick(TimeLapse timeLapse) {
+        if (timeLapse.getStartTime() == 3000L) {
+          clock.stop();
+        }
+      }
+    });
+    clock.start();
+
+    assertThat(events).hasSize(1);
+    assertThat(events.get(0).getEventType()).isEqualTo(EventType.NEW_SCHEDULE);
+  }
+
+  static class NopRtSolver implements RealtimeSolver {
+
+    public NopRtSolver() {}
+
+    @Override
+    public void init(Scheduler scheduler) {}
+
+    @Override
+    public void receiveSnapshot(GlobalStateObject snapshot) {}
+  }
+
+  static class NopSolver implements Solver {
+
+    @Override
+    public ImmutableList<ImmutableList<Parcel>> solve(GlobalStateObject state)
+        throws InterruptedException {
+
+      final ImmutableList.Builder<ImmutableList<Parcel>> b =
+        ImmutableList.builder();
+      for (int i = 0; i < state.getVehicles().size(); i++) {
+        b.add(ImmutableList.<Parcel>of());
+      }
+      return b.build();
+    }
   }
 
   static class FakeRealtimeSolver implements RealtimeSolver {

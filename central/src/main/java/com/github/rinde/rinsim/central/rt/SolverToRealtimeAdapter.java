@@ -28,6 +28,8 @@ import org.slf4j.LoggerFactory;
 import com.github.rinde.rinsim.central.GlobalStateObject;
 import com.github.rinde.rinsim.central.Solver;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
+import com.github.rinde.rinsim.util.StochasticSupplier;
+import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.FutureCallback;
@@ -116,6 +118,11 @@ public final class SolverToRealtimeAdapter implements RealtimeSolver {
     return new SolverToRealtimeAdapter(solver);
   }
 
+  public static StochasticSupplier<RealtimeSolver> create(
+      StochasticSupplier<? extends Solver> solver) {
+    return new Sup(solver);
+  }
+
   static class SolverComputer
       implements Callable<ImmutableList<ImmutableList<Parcel>>> {
     final Solver solver;
@@ -129,6 +136,25 @@ public final class SolverToRealtimeAdapter implements RealtimeSolver {
     @Override
     public ImmutableList<ImmutableList<Parcel>> call() throws Exception {
       return solver.solve(snapshot);
+    }
+  }
+
+  static class Sup implements StochasticSupplier<RealtimeSolver> {
+    StochasticSupplier<? extends Solver> solver;
+
+    Sup(StochasticSupplier<? extends Solver> s) {
+      solver = s;
+    }
+
+    @Override
+    public RealtimeSolver get(long seed) {
+      return new SolverToRealtimeAdapter(solver.get(seed));
+    }
+
+    @Override
+    public String toString() {
+      return Joiner.on("").join(SolverToRealtimeAdapter.class.getSimpleName(),
+        ".create(", solver, ")");
     }
   }
 }

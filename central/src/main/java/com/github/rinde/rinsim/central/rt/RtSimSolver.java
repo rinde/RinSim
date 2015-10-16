@@ -37,7 +37,10 @@ public abstract class RtSimSolver {
   RtSimSolver() {}
 
   /**
-   * Tells the underlying real-time solver to start computing.
+   * Tells the underlying real-time solver to start computing. If the solver is
+   * currently calculating (because it is not yet finished with a previous solve
+   * operation) the previous operation will be cancelled and a new calculation
+   * will start.
    * @param args Object that allows to specify the information that will be used
    *          by the solver.
    * @throws IllegalStateException If the clock is not in real-time mode at the
