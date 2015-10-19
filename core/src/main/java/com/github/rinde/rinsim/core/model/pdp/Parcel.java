@@ -221,7 +221,8 @@ public class Parcel extends PDPObjectImpl implements IParcel {
     }
 
     /**
-     * Sets the capacity that is needed for this parcel.
+     * Sets the capacity that is needed for this parcel. Default value:
+     * <code>0</code>.
      * @param capacity The capacity to set.
      * @return This, as per the builder pattern.
      */
@@ -232,7 +233,7 @@ public class Parcel extends PDPObjectImpl implements IParcel {
     }
 
     /**
-     * Sets the order announce time.
+     * Sets the order announce time. Default value: <code>0</code>.
      * @param time The announce time.
      * @return This, as per the builder pattern.
      */
@@ -243,7 +244,7 @@ public class Parcel extends PDPObjectImpl implements IParcel {
 
     /**
      * Sets the duration of both the pickup and delivery process, must be
-     * <code>&gt;= 0</code>.
+     * <code>&gt;= 0</code>. Default value: <code>0</code>.
      * @param duration The duration of the service process.
      * @return This, as per the builder pattern.
      */
@@ -252,7 +253,8 @@ public class Parcel extends PDPObjectImpl implements IParcel {
     }
 
     /**
-     * Sets the duration of the pickup, must be <code>&gt;=0</code>.
+     * Sets the duration of the pickup, must be <code>&gt;=0</code>. Default
+     * value: <code>0</code>.
      * @param duration The duration of the pickup.
      * @return This, as per the builder pattern.
      */
@@ -264,7 +266,8 @@ public class Parcel extends PDPObjectImpl implements IParcel {
     }
 
     /**
-     * Sets the duration of the delivery, must be <code>&gt;=0</code>.
+     * Sets the duration of the delivery, must be <code>&gt;=0</code>. Default
+     * value: <code>0</code>.
      * @param duration The duration of the delivery.
      * @return This, as per the builder pattern.
      */
