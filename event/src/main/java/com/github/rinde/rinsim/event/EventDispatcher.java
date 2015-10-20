@@ -20,12 +20,13 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Arrays.asList;
 
 import java.util.HashSet;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.SetMultimap;
 
 /**
  * Basic event dispatcher for easily dispatching {@link Event}s to
@@ -38,7 +39,7 @@ public final class EventDispatcher implements EventAPI {
   /**
    * A map of event types to registered {@link Listener}s.
    */
-  protected final Multimap<Enum<?>, Listener> listeners;
+  protected final SetMultimap<Enum<?>, Listener> listeners;
 
   /**
    * The set of event types that this event dispatcher supports.
@@ -52,6 +53,9 @@ public final class EventDispatcher implements EventAPI {
    */
   protected final PublicEventAPI publicAPI;
 
+  private int dispatching;
+  private final SetMultimap<Enum<?>, Listener> toRemove;
+
   /**
    * Creates a new {@link EventDispatcher} instance which is capable of
    * dispatching any {@link Event} with a <code>type</code> attribute that is
@@ -63,6 +67,8 @@ public final class EventDispatcher implements EventAPI {
     listeners = LinkedHashMultimap.create();
     supportedTypes = ImmutableSet.copyOf(supportedEventTypes);
     publicAPI = new PublicEventAPI(this);
+    dispatching = 0;
+    toRemove = LinkedHashMultimap.create();
   }
 
   /**
@@ -83,6 +89,7 @@ public final class EventDispatcher implements EventAPI {
    *          be dispatched.
    */
   public void dispatchEvent(Event e) {
+    dispatching++;
     checkArgument(
         supportedTypes.contains(e.getEventType()),
         "Cannot dispatch an event of type %s since it was not registered at "
@@ -90,6 +97,14 @@ public final class EventDispatcher implements EventAPI {
         e.getEventType());
     for (final Listener l : listeners.get(e.getEventType())) {
       l.handleEvent(e);
+    }
+    dispatching--;
+
+    if (!toRemove.isEmpty()) {
+      for (final Entry<Enum<?>, Listener> entry : toRemove.entries()) {
+        removeListener(entry.getValue(), entry.getKey());
+      }
+      toRemove.clear();
     }
   }
 
@@ -167,7 +182,12 @@ public final class EventDispatcher implements EventAPI {
             "The listener %s for the type %s cannot be removed because it does "
                 + "not exist.",
             listener, eventType);
-        listeners.remove(eventType, listener);
+
+        if (dispatching > 0) {
+          toRemove.put(eventType, listener);
+        } else {
+          listeners.remove(eventType, listener);
+        }
       }
     }
   }
