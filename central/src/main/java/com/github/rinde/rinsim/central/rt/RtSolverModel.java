@@ -506,7 +506,9 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
       @Override
       public void solve(SolveArgs args) {
         checkState(clock.getClockMode() == ClockMode.REAL_TIME,
-          "Clock must be in real-time mode before calling this method.");
+          "Clock must be in real-time mode before calling this method, but it "
+              + "is in %s mode.",
+          clock.getClockMode());
         eventDispatcher.dispatchEvent(new Event(
             RtSimSolverSchedulerImpl.EventType.START_COMPUTING, reference));
         final GlobalStateObject state = converter.convert(args).state;
