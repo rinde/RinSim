@@ -70,6 +70,18 @@ public final class StochasticSuppliers {
   }
 
   /**
+   * Creates a {@link StochasticSupplier} that will always throw an
+   * {@link IllegalArgumentException} with the specified <code>errorMsg</code>.
+   * This can be useful when a default 'empty' supplier is needed.
+   * @param errorMsg The error message of the exception.
+   * @param <T> The type this supplier generates.
+   * @return A supplier that always throws an exception.
+   */
+  public static <T> StochasticSupplier<T> empty(String errorMsg) {
+    return new EmptySupplier<>(errorMsg);
+  }
+
+  /**
    * Decorates the specified {@link StochasticSupplier} such that when it
    * produces values which are not allowed by the specified predicate an
    * {@link IllegalArgumentException} is thrown.
@@ -584,8 +596,8 @@ public final class StochasticSuppliers {
     }
   }
 
-  private static final class ConstantSupplier<T> extends
-      AbstractStochasticSupplier<T> {
+  private static final class ConstantSupplier<T>
+      extends AbstractStochasticSupplier<T> {
     private static final long serialVersionUID = -5017806121674846656L;
     private final T value;
 
@@ -604,6 +616,28 @@ public final class StochasticSuppliers {
       return String.format("%s.constant(%s)",
           StochasticSuppliers.class.getSimpleName(),
           value);
+    }
+  }
+
+  private static final class EmptySupplier<T>
+      extends AbstractStochasticSupplier<T> {
+    private static final long serialVersionUID = 1993638453016457007L;
+    private final String message;
+
+    EmptySupplier(String msg) {
+      message = msg;
+    }
+
+    @Override
+    @Nonnull
+    public T get(long seed) {
+      throw new IllegalArgumentException(message);
+    }
+
+    @Override
+    public String toString() {
+      return String.format("%s.empty()",
+          StochasticSuppliers.class.getSimpleName());
     }
   }
 

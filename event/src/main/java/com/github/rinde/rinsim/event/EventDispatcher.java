@@ -64,6 +64,8 @@ public final class EventDispatcher implements EventAPI {
    *          supports.
    */
   public EventDispatcher(Set<Enum<?>> supportedEventTypes) {
+    checkArgument(!supportedEventTypes.isEmpty(),
+        "At least one event type must be supported.");
     listeners = LinkedHashMultimap.create();
     supportedTypes = ImmutableSet.copyOf(supportedEventTypes);
     publicAPI = new PublicEventAPI(this);

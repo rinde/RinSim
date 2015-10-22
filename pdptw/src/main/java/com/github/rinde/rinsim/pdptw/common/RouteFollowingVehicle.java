@@ -84,10 +84,7 @@ import com.google.common.math.DoubleMath;
  */
 public class RouteFollowingVehicle extends Vehicle {
 
-  /**
-   * The logger of the vehicle.
-   */
-  protected static final Logger LOGGER = LoggerFactory
+  private static final Logger LOGGER = LoggerFactory
       .getLogger(RouteFollowingVehicle.class);
 
   /**
@@ -207,7 +204,7 @@ public class RouteFollowingVehicle extends Vehicle {
    * models normally <i>should</i> throw exceptions whenever a vehicle attempts
    * to revisit an already delivered parcel.
    * <p>
-   * In some case the models do not allow this vehicle to change its route
+   * In some cases the models do not allow this vehicle to change its route
    * immediately. If this is the case the route is changed the next time this
    * vehicle enters its {@link #waitState}. If
    * {@link #isDelayedRouteChangingAllowed()} is set to <code>false</code> any
@@ -245,7 +242,7 @@ public class RouteFollowingVehicle extends Vehicle {
             getPDPModel().getVehicleState(this) == VehicleState.PICKING_UP,
             "When a parcel in the route is in PICKING UP state the vehicle "
                 + "must also be in that state, route: %s.",
-            adjustedRoute);
+            adjustedRoute, getPDPModel().getVehicleState(this));
         } else {
           checkArgument(
             getPDPModel().getVehicleState(this) == VehicleState.DELIVERING,
@@ -547,6 +544,10 @@ public class RouteFollowingVehicle extends Vehicle {
    */
   public static RouteAdjuster delayAdjuster() {
     return RouteAdjusters.DELAY_ADJUSTER;
+  }
+
+  public static RouteAdjuster nopAdjuster() {
+    return RouteAdjusters.NOP;
   }
 
   /**
