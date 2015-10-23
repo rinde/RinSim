@@ -433,6 +433,14 @@ public class RealtimeSolverTest {
           public String toString() {
             return "THEsupplier";
           }
+
+          @Override
+          public void cancel() {}
+
+          @Override
+          public boolean isComputing() {
+            return false;
+          }
         }), "hallo").getName();
 
     assertThat(name2)
@@ -482,6 +490,16 @@ public class RealtimeSolverTest {
     public void receiveSnapshot(GlobalStateObject snapshot) {
       receiveSnapshotCalls++;
       delegate.receiveSnapshot(snapshot);
+    }
+
+    @Override
+    public void cancel() {
+      delegate.cancel();
+    }
+
+    @Override
+    public boolean isComputing() {
+      return delegate.isComputing();
     }
   }
 
@@ -590,6 +608,16 @@ public class RealtimeSolverTest {
       scheduler.get().updateSchedule(schedule);
       assertThat(scheduler.get().getCurrentSchedule()).isEqualTo(schedule);
       scheduler.get().doneForNow();
+    }
+
+    @Override
+    public void cancel() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isComputing() {
+      throw new UnsupportedOperationException();
     }
   }
 }

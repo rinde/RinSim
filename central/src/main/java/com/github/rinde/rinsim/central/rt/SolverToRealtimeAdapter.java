@@ -72,10 +72,7 @@ public final class SolverToRealtimeAdapter implements RealtimeSolver {
   @Override
   public void receiveSnapshot(GlobalStateObject snapshot) {
     checkState(scheduler.isPresent(), "Not yet initialized.");
-    if (currentFuture.isPresent() && !currentFuture.get().isDone()) {
-      LOGGER.trace("attempt to cancel running Solver..");
-      currentFuture.get().cancel(true);
-    }
+    cancel();
     currentFuture = Optional.of(
       scheduler.get().getSharedExecutor().submit(
         new SolverComputer(solver, snapshot)));
@@ -105,6 +102,19 @@ public final class SolverToRealtimeAdapter implements RealtimeSolver {
           scheduler.get().reportException(t);
         }
       });
+  }
+
+  @Override
+  public void cancel() {
+    if (isComputing()) {
+      LOGGER.trace("attempt to cancel running Solver..");
+      currentFuture.get().cancel(true);
+    }
+  }
+
+  @Override
+  public boolean isComputing() {
+    return currentFuture.isPresent() && !currentFuture.get().isDone();
   }
 
   /**

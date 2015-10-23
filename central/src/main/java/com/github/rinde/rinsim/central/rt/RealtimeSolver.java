@@ -71,4 +71,8 @@ public interface RealtimeSolver {
    */
   void receiveSnapshot(GlobalStateObject snapshot);
 
+  void cancel();
+
+  boolean isComputing();
+
 }

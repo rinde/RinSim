@@ -67,6 +67,10 @@ public abstract class RtSimSolver {
    */
   public abstract ImmutableList<ImmutableList<Parcel>> getCurrentSchedule();
 
+  public abstract boolean isComputing();
+
+  public abstract void cancel();
+
   /**
    * The event API, the supported event types are documented in
    * {@link EventType}.

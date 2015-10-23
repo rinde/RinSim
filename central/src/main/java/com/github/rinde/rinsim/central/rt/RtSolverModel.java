@@ -558,6 +558,16 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
       public EventAPI getEventAPI() {
         return simSolverEventDispatcher;
       }
+
+      @Override
+      public void cancel() {
+        solver.cancel();
+      }
+
+      @Override
+      public boolean isComputing() {
+        return solver.isComputing();
+      }
     }
 
     class InternalScheduler extends Scheduler {
