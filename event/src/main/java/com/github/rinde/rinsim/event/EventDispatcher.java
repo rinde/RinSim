@@ -55,6 +55,7 @@ public final class EventDispatcher implements EventAPI {
 
   private int dispatching;
   private final SetMultimap<Enum<?>, Listener> toRemove;
+  private final SetMultimap<Enum<?>, Listener> toAdd;
 
   /**
    * Creates a new {@link EventDispatcher} instance which is capable of
@@ -71,6 +72,7 @@ public final class EventDispatcher implements EventAPI {
     publicAPI = new PublicEventAPI(this);
     dispatching = 0;
     toRemove = LinkedHashMultimap.create();
+    toAdd = LinkedHashMultimap.create();
   }
 
   /**
@@ -102,11 +104,20 @@ public final class EventDispatcher implements EventAPI {
     }
     dispatching--;
 
-    if (!toRemove.isEmpty()) {
-      for (final Entry<Enum<?>, Listener> entry : toRemove.entries()) {
-        removeListener(entry.getValue(), entry.getKey());
+    if (dispatching == 0) {
+      if (!toRemove.isEmpty()) {
+        for (final Entry<Enum<?>, Listener> entry : toRemove.entries()) {
+          removeListener(entry.getValue(), entry.getKey());
+        }
+        toRemove.clear();
       }
-      toRemove.clear();
+      if (!toAdd.isEmpty()) {
+        for (final Entry<Enum<?>, Listener> entry : toAdd.entries()) {
+          addListener(entry.getValue(),
+              ImmutableSet.<Enum<?>>of(entry.getKey()), false);
+        }
+        toAdd.clear();
+      }
     }
   }
 
@@ -146,10 +157,16 @@ public final class EventDispatcher implements EventAPI {
       boolean all) {
     final Set<Enum<?>> theTypes =
         all ? supportedTypes : ImmutableSet.copyOf(eventTypes);
+
     for (final Enum<?> eventType : theTypes) {
       checkArgument(supportedTypes.contains(eventType),
           "A listener for type %s is not allowed.", eventType);
-      listeners.put(eventType, listener);
+
+      if (dispatching == 0) {
+        listeners.put(eventType, listener);
+      } else {
+        toAdd.put(eventType, listener);
+      }
     }
   }
 
