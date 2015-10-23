@@ -26,7 +26,6 @@ import java.util.List;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import com.github.rinde.rinsim.central.RandomSolver;
 import com.github.rinde.rinsim.central.Solvers.SolveArgs;
 import com.github.rinde.rinsim.central.rt.RtSimSolver.EventType;
 import com.github.rinde.rinsim.event.ListenerEventHistory;
@@ -50,14 +49,14 @@ public class RtSolverModelTestRT extends RtSolverModelTest {
       @Override
       public void setSolverProvider(RtSimSolverBuilder builder) {
         solvers.add(
-          builder.build(SleepySolver.create(500L, RandomSolver.create(123))));
+          builder.build(SleepySolver.create(500L, new NopSolver())));
       }
     });
     model.register(new RtSolverUser() {
       @Override
       public void setSolverProvider(RtSimSolverBuilder builder) {
         solvers.add(
-          builder.build(SleepySolver.create(1000L, RandomSolver.create(123))));
+          builder.build(SleepySolver.create(1000L, new NopSolver())));
       }
     });
 
@@ -91,6 +90,7 @@ public class RtSolverModelTestRT extends RtSolverModelTest {
     final long start = System.nanoTime();
     while (model.manager.isComputing()) {
       verify(clock, times(0)).switchToSimulatedTime();
+      model.manager.checkExceptions();
       try {
         Thread.sleep(10);
       } catch (final InterruptedException e) {
