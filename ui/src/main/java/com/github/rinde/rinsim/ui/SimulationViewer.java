@@ -61,6 +61,7 @@ import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.ModelReceiver;
 import com.github.rinde.rinsim.core.model.time.ClockController;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController;
+import com.github.rinde.rinsim.core.model.time.RealtimeClockController.ClockMode;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
@@ -626,13 +627,16 @@ final class SimulationViewer extends Composite implements TickListener,
   @Override
   public void afterTick(final TimeLapse timeLapse) {
     if (clock.isTicking()
+        // when in realtime mode ignore the gui speed up
+        && !(isRealtime && ((RealtimeClockController) clock)
+            .getClockMode() == ClockMode.REAL_TIME)
         && lastRefresh + timeLapse.getTickLength() * speedUp > timeLapse
             .getStartTime()) {
       return;
     }
     lastRefresh = timeLapse.getStartTime();
     // TODO sleep should be relative to speedUp as well?
-    if (!(clock instanceof RealtimeClockController)) {
+    if (!isRealtime) {
       try {
         Thread.sleep(SLEEP_MS);
       } catch (final InterruptedException e) {
