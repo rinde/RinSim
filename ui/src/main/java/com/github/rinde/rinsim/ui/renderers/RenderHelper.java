@@ -37,8 +37,8 @@ class RenderHelper {
 
   void drawLine(Point p1, Point p2) {
     gc.get().drawLine(
-        vp.get().toCoordX(p1.x), vp.get().toCoordY(p1.y),
-        vp.get().toCoordX(p2.x), vp.get().toCoordY(p2.y));
+      vp.get().toCoordX(p1.x), vp.get().toCoordY(p1.y),
+      vp.get().toCoordX(p2.x), vp.get().toCoordY(p2.y));
   }
 
   void setForegroundSysCol(int next) {
@@ -53,42 +53,42 @@ class RenderHelper {
     final Path path = new Path(gc.get().getDevice());
     path.moveTo(vp.get().toCoordX(p1.x), vp.get().toCoordY(p1.y));
     path.quadTo(
-        vp.get().toCoordX(control.x), vp.get().toCoordY(control.y),
-        vp.get().toCoordX(p2.x), vp.get().toCoordY(p2.y));
+      vp.get().toCoordX(control.x), vp.get().toCoordY(control.y),
+      vp.get().toCoordX(p2.x), vp.get().toCoordY(p2.y));
     gc.get().drawPath(path);
     path.dispose();
   }
 
   void drawCircle(Point p, double radius) {
     gc.get().drawOval(
-        vp.get().toCoordX(p.x - radius),
-        vp.get().toCoordY(p.y - radius),
-        vp.get().scale(radius * 2),
-        vp.get().scale(radius * 2));
+      vp.get().toCoordX(p.x - radius),
+      vp.get().toCoordY(p.y - radius),
+      vp.get().scale(radius * 2),
+      vp.get().scale(radius * 2));
   }
 
   void fillCircle(Point p, double radius) {
     gc.get().fillOval(
-        vp.get().toCoordX(p.x - radius),
-        vp.get().toCoordY(p.y - radius),
-        vp.get().scale(radius * 2),
-        vp.get().scale(radius * 2));
+      vp.get().toCoordX(p.x - radius),
+      vp.get().toCoordY(p.y - radius),
+      vp.get().scale(radius * 2),
+      vp.get().scale(radius * 2));
   }
 
   void fillCircle(Point p, int radiusInPixels) {
     gc.get().fillOval(
-        vp.get().toCoordX(p.x) - radiusInPixels,
-        vp.get().toCoordY(p.y) - radiusInPixels,
-        radiusInPixels * 2,
-        radiusInPixels * 2);
+      vp.get().toCoordX(p.x) - radiusInPixels,
+      vp.get().toCoordY(p.y) - radiusInPixels,
+      radiusInPixels * 2,
+      radiusInPixels * 2);
   }
 
   void drawCircle(Point p, int radius) {
     gc.get().drawOval(
-        vp.get().toCoordX(p.x) - radius,
-        vp.get().toCoordY(p.y) - radius,
-        radius * 2,
-        radius * 2);
+      vp.get().toCoordX(p.x) - radius,
+      vp.get().toCoordY(p.y) - radius,
+      radius * 2,
+      radius * 2);
   }
 
   void drawRect(Point corner1, Point corner2) {
@@ -105,6 +105,21 @@ class RenderHelper {
     final int x2 = vp.get().toCoordX(corner2.x);
     final int y2 = vp.get().toCoordY(corner2.y);
     gc.get().fillPolygon(new int[] {x1, y1, x2, y1, x2, y2, x1, y2});
+  }
+
+  void fillRect(Point corner, double radius) {
+    final int x1 = vp.get().toCoordX(corner.x - radius);
+    final int y1 = vp.get().toCoordY(corner.y - radius);
+    final int x2 = vp.get().toCoordX(corner.x + radius);
+    final int y2 = vp.get().toCoordY(corner.y + radius);
+    gc.get().fillPolygon(new int[] {x1, y1, x2, y1, x2, y2, x1, y2});
+  }
+
+  void fillRect(Point corner, int radius) {
+    final int cx = vp.get().toCoordX(corner.x);
+    final int cy = vp.get().toCoordY(corner.y);
+    final int diameter = radius * 2;
+    gc.get().fillRectangle(cx - radius, cy - radius, diameter, diameter);
   }
 
   int[] toCoordinates(Point... points) {
@@ -152,8 +167,8 @@ class RenderHelper {
   void drawString(String string, Point pos, boolean isTransparent, int xOffset,
       int yOffset) {
     gc.get().drawString(string,
-        vp.get().toCoordX(pos.x) + xOffset,
-        vp.get().toCoordY(pos.y) + yOffset,
-        isTransparent);
+      vp.get().toCoordX(pos.x) + xOffset,
+      vp.get().toCoordY(pos.y) + yOffset,
+      isTransparent);
   }
 }
