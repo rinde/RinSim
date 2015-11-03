@@ -580,6 +580,9 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
       }
 
       class SnapshotCallback implements FutureCallback<Object> {
+
+        SnapshotCallback() {}
+
         @Override
         public void onSuccess(@Nullable Object result) {}
 
