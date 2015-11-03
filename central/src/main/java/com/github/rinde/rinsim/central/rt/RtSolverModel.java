@@ -501,18 +501,40 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
 
     class InternalRtSimSolver extends RtSimSolver {
 
-      InternalRtSimSolver() {}
+      final SnapshotCallback callback;
+
+      InternalRtSimSolver() {
+        callback = new SnapshotCallback();
+      }
 
       @Override
       public void solve(SolveArgs args) {
+        realtimeCheck();
+        eventDispatcher.dispatchEvent(new Event(
+            RtSimSolverSchedulerImpl.EventType.START_COMPUTING, reference));
+        final GlobalStateObject state = converter.convert(args).state;
+        final ListenableFuture<?> fut = executor.submit(new Runnable() {
+          @Override
+          public void run() {
+            LOGGER.trace("calling RealtimeSolver.problemChanged(..)");
+            solver.problemChanged(state);
+          }
+        });
+        // catch and re-throw any exception occurring during the invocation
+        Futures.addCallback(fut, callback);
+      }
+
+      void realtimeCheck() {
         checkState(clock.getClockMode() == ClockMode.REAL_TIME,
           "Clock must be in real-time mode before calling this method, but it "
               + "is in %s mode.",
           clock.getClockMode());
-        eventDispatcher.dispatchEvent(new Event(
-            RtSimSolverSchedulerImpl.EventType.START_COMPUTING, reference));
-        final GlobalStateObject state = converter.convert(args).state;
+      }
 
+      @Override
+      public void sendSnapshot(SolveArgs args) {
+        realtimeCheck();
+        final GlobalStateObject state = converter.convert(args).state;
         final ListenableFuture<?> fut = executor.submit(new Runnable() {
           @Override
           public void run() {
@@ -521,19 +543,7 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
           }
         });
         // catch and re-throw any exception occurring during the invocation
-        Futures.addCallback(fut, new FutureCallback<Object>() {
-          @Override
-          public void onSuccess(@Nullable Object result) {}
-
-          @Override
-          public void onFailure(Throwable t) {
-            if (t instanceof CancellationException) {
-              LOGGER.trace("RealtimeSolver execution got cancelled");
-              return;
-            }
-            simSolversManager.addException(t);
-          }
-        });
+        Futures.addCallback(fut, callback);
       }
 
       @Override
@@ -567,6 +577,20 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
       @Override
       public boolean isComputing() {
         return solver.isComputing();
+      }
+
+      class SnapshotCallback implements FutureCallback<Object> {
+        @Override
+        public void onSuccess(@Nullable Object result) {}
+
+        @Override
+        public void onFailure(Throwable t) {
+          if (t instanceof CancellationException) {
+            LOGGER.trace("RealtimeSolver execution got cancelled");
+            return;
+          }
+          simSolversManager.addException(t);
+        }
       }
     }
 

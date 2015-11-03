@@ -49,7 +49,7 @@ public abstract class Scheduler {
    * switch the simulator clock into simulated time mode in the next tick. The
    * clock will go back to real-time as soon as the problem changes again (as
    * notified via
-   * {@link RealtimeSolver#receiveSnapshot(com.github.rinde.rinsim.central.GlobalStateObject)}
+   * {@link RealtimeSolver#problemChanged(com.github.rinde.rinsim.central.GlobalStateObject)}
    * . Calling this method can greatly increase the speed of a simulation
    * because real-time is only used when it is needed, and the simulation is
    * fast forwarded when it is not needed.

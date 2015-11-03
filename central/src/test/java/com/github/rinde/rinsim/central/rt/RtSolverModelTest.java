@@ -214,8 +214,13 @@ public class RtSolverModelTest {
         public void init(Scheduler scheduler) {}
 
         @Override
-        public void receiveSnapshot(GlobalStateObject snapshot) {
+        public void problemChanged(GlobalStateObject snapshot) {
           throw new IllegalArgumentException("This is a test");
+        }
+
+        @Override
+        public void receiveSnapshot(GlobalStateObject snapshot) {
+          throw new UnsupportedOperationException();
         }
 
         @Override
@@ -227,6 +232,7 @@ public class RtSolverModelTest {
         public boolean isComputing() {
           throw new UnsupportedOperationException();
         }
+
       });
 
     rss.solve(SolveArgs.create());
@@ -343,12 +349,16 @@ public class RtSolverModelTest {
     public void receiveSnapshot(GlobalStateObject snapshot) {}
 
     @Override
+    public void problemChanged(GlobalStateObject snapshot) {}
+
+    @Override
     public void cancel() {}
 
     @Override
     public boolean isComputing() {
       return false;
     }
+
   }
 
   static class NopSolver implements Solver {
@@ -381,6 +391,9 @@ public class RtSolverModelTest {
     }
 
     @Override
+    public void problemChanged(GlobalStateObject snapshot) {}
+
+    @Override
     public void receiveSnapshot(GlobalStateObject snapshot) {}
 
     @Override
@@ -390,6 +403,7 @@ public class RtSolverModelTest {
     public boolean isComputing() {
       return false;
     }
+
   }
 
 }

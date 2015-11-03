@@ -22,7 +22,9 @@ import static com.google.common.base.Verify.verify;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +33,7 @@ import com.github.rinde.rinsim.central.Central;
 import com.github.rinde.rinsim.central.GlobalStateObject;
 import com.github.rinde.rinsim.central.Solver;
 import com.github.rinde.rinsim.central.Solvers.SolveArgs;
+import com.github.rinde.rinsim.central.rt.RtCentral.Builder.Options;
 import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.CompositeModelBuilder;
 import com.github.rinde.rinsim.core.model.DependencyProvider;
@@ -69,7 +72,8 @@ import com.google.common.collect.ImmutableSet;
  */
 public final class RtCentral {
 
-  private static final boolean DEFAULT_SLEEP_ON_CHANGE = false;
+  private static final ImmutableSet<Options> DEFAULT_OPTIONS =
+    ImmutableSet.of();
   private static final Logger LOGGER = LoggerFactory.getLogger(RtCentral.class);
 
   private RtCentral() {}
@@ -86,7 +90,7 @@ public final class RtCentral {
    */
   public static Builder builder(
       StochasticSupplier<? extends RealtimeSolver> solverSupplier) {
-    return Builder.create(solverSupplier, DEFAULT_SLEEP_ON_CHANGE, false);
+    return Builder.create(solverSupplier, DEFAULT_OPTIONS);
   }
 
   /**
@@ -181,9 +185,11 @@ public final class RtCentral {
 
     abstract StochasticSupplier<RealtimeSolver> getSolverSupplier();
 
-    abstract boolean getSleepOnChange();
+    enum Options {
+      SLEEP_ON_CHANGE, THREAD_GROUPING, CONTINUOUS_UPDATES;
+    }
 
-    abstract boolean getThreadGrouping();
+    abstract ImmutableSet<Options> getOptions();
 
     /**
      * If set to <code>true</code> the model will wait half a tick (wall clock
@@ -199,11 +205,25 @@ public final class RtCentral {
      * @return A new builder instance with the flag.
      */
     public Builder withSleepOnChange(boolean flag) {
-      return create(getSolverSupplier(), flag, getThreadGrouping());
+      return change(Options.SLEEP_ON_CHANGE, flag);
     }
 
     public Builder withThreadGrouping(boolean flag) {
-      return create(getSolverSupplier(), getSleepOnChange(), flag);
+      return change(Options.THREAD_GROUPING, flag);
+    }
+
+    public Builder withContinuousUpdates(boolean flag) {
+      return change(Options.CONTINUOUS_UPDATES, flag);
+    }
+
+    Builder change(Options option, boolean toAdd) {
+      final Set<Options> opts = new LinkedHashSet<>(getOptions());
+      if (toAdd) {
+        opts.add(option);
+      } else {
+        opts.remove(option);
+      }
+      return create(getSolverSupplier(), opts);
     }
 
     @Override
@@ -218,13 +238,14 @@ public final class RtCentral {
           .get(RealtimeClockController.class);
       final PDPRoadModel rm = dependencyProvider.get(PDPRoadModel.class);
       final PDPModel pm = dependencyProvider.get(PDPModel.class);
-      return new RtCentral.RtCentralModel(clock, s, rm, pm, getSleepOnChange());
+      return new RtCentral.RtCentralModel(clock, s, rm, pm, getOptions());
     }
 
     @Override
     public ImmutableSet<ModelBuilder<?, ?>> getChildren() {
       return ImmutableSet.<ModelBuilder<?, ?>>of(
-        RtSolverModel.builder().withThreadGrouping(getThreadGrouping()));
+        RtSolverModel.builder().withThreadGrouping(
+          getOptions().contains(Options.THREAD_GROUPING)));
     }
 
     @Override
@@ -235,10 +256,10 @@ public final class RtCentral {
     @SuppressWarnings("unchecked")
     static Builder create(
         StochasticSupplier<? extends RealtimeSolver> solverSupplier,
-        boolean sleepOnChange, boolean threadGrouping) {
+        Set<Options> options) {
       return new AutoValue_RtCentral_Builder(
-          (StochasticSupplier<RealtimeSolver>) solverSupplier, sleepOnChange,
-          threadGrouping);
+          (StochasticSupplier<RealtimeSolver>) solverSupplier,
+          ImmutableSet.copyOf(options));
     }
   }
 
@@ -287,14 +308,16 @@ public final class RtCentral {
     private final RealtimeClockController clock;
     private final boolean sleepOnChange;
     private final List<RouteFollowingVehicle> vehicles;
+    private final boolean continuousUpdates;
 
     RtCentralModel(RealtimeClockController c, RtSimSolver s, PDPRoadModel rm,
-        PDPModel pm, boolean sleepOnC) {
+        PDPModel pm, ImmutableSet<Options> opts) {
       problemHasChanged = false;
       clock = c;
       solver = s;
       roadModel = rm;
-      sleepOnChange = sleepOnC;
+      sleepOnChange = opts.contains(Options.SLEEP_ON_CHANGE);
+      continuousUpdates = opts.contains(Options.CONTINUOUS_UPDATES);
       vehicles = new ArrayList<>();
 
       pm.getEventAPI().addListener(VehicleChecker.INSTANCE,
@@ -342,8 +365,8 @@ public final class RtCentral {
     @Override
     public void tick(TimeLapse timeLapse) {
       if (vehicles.isEmpty()) {
-        vehicles
-            .addAll(roadModel.getObjectsOfType(RouteFollowingVehicle.class));
+        vehicles.addAll(
+          roadModel.getObjectsOfType(RouteFollowingVehicle.class));
         checkState(!vehicles.isEmpty(),
           "At least one vehicle must have been added to the simulator in order "
               + "for %s to work.",
@@ -355,6 +378,10 @@ public final class RtCentral {
           "Problem detected at %s.", timeLapse);
         problemHasChanged = false;
         notifySolverOfChange(timeLapse, sleepOnChange);
+      } else if (continuousUpdates
+          && clock.getClockMode() == ClockMode.REAL_TIME) {
+        solver.sendSnapshot(
+          SolveArgs.create().useCurrentRoutes(getCurrentRoutes()));
       }
 
       if (solver.isScheduleUpdated()) {

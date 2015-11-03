@@ -301,7 +301,7 @@ public class RealtimeSolverTest {
     final SchedulerChecker schedulerChecker =
       solverChecker.schedulerChecker.get();
     assertThat(solverChecker.initCalls).isEqualTo(1);
-    assertThat(solverChecker.receiveSnapshotCalls).isEqualTo(2);
+    assertThat(solverChecker.problemChangedCalls).isEqualTo(2);
     assertThat(schedulerChecker.doneForNowCalls).isEqualTo(1);
     assertThat(schedulerChecker.updateScheduleCalls).isEqualTo(1);
   }
@@ -368,7 +368,7 @@ public class RealtimeSolverTest {
               }
             })))
 
-    .build();
+          .build();
 
     final List<PDPModelEvent> pdpEvents = new ArrayList<>();
     sim.getModelProvider().getModel(PDPModel.class).getEventAPI()
@@ -424,6 +424,9 @@ public class RealtimeSolverTest {
     final String name2 = RtCentral
         .solverConfiguration(StochasticSuppliers.constant(new RealtimeSolver() {
           @Override
+          public void problemChanged(GlobalStateObject snapshot) {}
+
+          @Override
           public void receiveSnapshot(GlobalStateObject snapshot) {}
 
           @Override
@@ -441,6 +444,7 @@ public class RealtimeSolverTest {
           public boolean isComputing() {
             return false;
           }
+
         }), "hallo").getName();
 
     assertThat(name2)
@@ -470,7 +474,7 @@ public class RealtimeSolverTest {
     final RealtimeSolver delegate;
 
     int initCalls;
-    int receiveSnapshotCalls;
+    int problemChangedCalls;
     Optional<SchedulerChecker> schedulerChecker;
 
     RealtimeSolverChecker(RealtimeSolver s) {
@@ -487,9 +491,14 @@ public class RealtimeSolverTest {
     }
 
     @Override
+    public void problemChanged(GlobalStateObject snapshot) {
+      problemChangedCalls++;
+      delegate.problemChanged(snapshot);
+    }
+
+    @Override
     public void receiveSnapshot(GlobalStateObject snapshot) {
-      receiveSnapshotCalls++;
-      delegate.receiveSnapshot(snapshot);
+
     }
 
     @Override
@@ -501,6 +510,7 @@ public class RealtimeSolverTest {
     public boolean isComputing() {
       return delegate.isComputing();
     }
+
   }
 
   static class SchedulerChecker extends Scheduler {
@@ -593,7 +603,7 @@ public class RealtimeSolverTest {
     }
 
     @Override
-    public void receiveSnapshot(GlobalStateObject snapshot) {
+    public void problemChanged(GlobalStateObject snapshot) {
       assertThat(scheduler.isPresent()).isTrue();
       try {
         Thread.sleep(sleep);
@@ -611,6 +621,9 @@ public class RealtimeSolverTest {
     }
 
     @Override
+    public void receiveSnapshot(GlobalStateObject snapshot) {}
+
+    @Override
     public void cancel() {
       throw new UnsupportedOperationException();
     }
@@ -619,5 +632,6 @@ public class RealtimeSolverTest {
     public boolean isComputing() {
       throw new UnsupportedOperationException();
     }
+
   }
 }

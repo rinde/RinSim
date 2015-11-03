@@ -48,6 +48,8 @@ public abstract class RtSimSolver {
    */
   public abstract void solve(SolveArgs args);
 
+  public abstract void sendSnapshot(SolveArgs args);
+
   public abstract GlobalStateObject getCurrentState(SolveArgs args);
 
   /**

@@ -39,7 +39,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 /**
  * Adapter of {@link Solver} to {@link RealtimeSolver}. This real-time solver
  * behaves as follows, upon receiving a new snapshot
- * {@link RealtimeSolver#receiveSnapshot(GlobalStateObject)} the underlying
+ * {@link RealtimeSolver#problemChanged(GlobalStateObject)} the underlying
  * {@link Solver} is called to solve the problem. Any ongoing computation of a
  * previous snapshot is cancelled. When the solver completes its computation,
  * {@link Scheduler#updateSchedule(ImmutableList)} is called to provide the
@@ -70,7 +70,7 @@ public final class SolverToRealtimeAdapter implements RealtimeSolver {
   }
 
   @Override
-  public void receiveSnapshot(GlobalStateObject snapshot) {
+  public void problemChanged(GlobalStateObject snapshot) {
     checkState(scheduler.isPresent(), "Not yet initialized.");
     cancel();
     currentFuture = Optional.of(
@@ -116,6 +116,9 @@ public final class SolverToRealtimeAdapter implements RealtimeSolver {
   public boolean isComputing() {
     return currentFuture.isPresent() && !currentFuture.get().isDone();
   }
+
+  @Override
+  public void receiveSnapshot(GlobalStateObject snapshot) {}
 
   /**
    * Constructs an adapter of {@link Solver} to {@link RealtimeSolver}. The
@@ -167,4 +170,5 @@ public final class SolverToRealtimeAdapter implements RealtimeSolver {
         ".create(", solver, ")");
     }
   }
+
 }

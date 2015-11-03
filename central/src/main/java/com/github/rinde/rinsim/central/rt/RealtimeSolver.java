@@ -20,7 +20,7 @@ import com.github.rinde.rinsim.central.GlobalStateObject;
 /**
  * Real-time version of {@link com.github.rinde.rinsim.central.Solver Solver}. A
  * real-time solver receives a static view of the problem via
- * {@link #receiveSnapshot(GlobalStateObject)}.
+ * {@link #problemChanged(GlobalStateObject)}.
  * <p>
  * A {@link RealtimeSolver} can be used to schedule all vehicles in a simulation
  * via {@link RtCentral}, or it can be used to compute a route for a single
@@ -31,7 +31,7 @@ import com.github.rinde.rinsim.central.GlobalStateObject;
  * {@link #init(Scheduler)} is called. Via this method a {@link Scheduler} is
  * made available that can be used to update the schedule of the vehicle(s).
  * Each time the problem definition changes,
- * {@link #receiveSnapshot(GlobalStateObject)} is called with a new view of the
+ * {@link #problemChanged(GlobalStateObject)} is called with a new view of the
  * current state. Using the received {@link GlobalStateObject} a new route
  * assignment should be computed which can be set to the vehicle(s) using
  * {@link Scheduler#updateSchedule(com.google.common.collect.ImmutableList)}.
@@ -42,9 +42,9 @@ public interface RealtimeSolver {
 
   /**
    * This method is called only once and before any calls to
-   * {@link #receiveSnapshot(GlobalStateObject)}. Implementations of this method
+   * {@link #problemChanged(GlobalStateObject)}. Implementations of this method
    * should store the reference to {@link Scheduler} such that it can be used in
-   * {@link #receiveSnapshot(GlobalStateObject)}.
+   * {@link #problemChanged(GlobalStateObject)}.
    * @param scheduler The scheduler that allows assigning routes to vehicles.
    */
   void init(Scheduler scheduler);
@@ -69,6 +69,8 @@ public interface RealtimeSolver {
    * </ul>
    * @param snapshot The snapshot that describes the current view of the world.
    */
+  void problemChanged(GlobalStateObject snapshot);
+
   void receiveSnapshot(GlobalStateObject snapshot);
 
   void cancel();
