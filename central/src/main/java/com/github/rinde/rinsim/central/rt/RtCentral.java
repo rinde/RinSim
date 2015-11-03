@@ -33,13 +33,11 @@ import com.github.rinde.rinsim.central.Central;
 import com.github.rinde.rinsim.central.GlobalStateObject;
 import com.github.rinde.rinsim.central.Solver;
 import com.github.rinde.rinsim.central.Solvers.SolveArgs;
-import com.github.rinde.rinsim.central.rt.RtCentral.Builder.Options;
 import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.CompositeModelBuilder;
 import com.github.rinde.rinsim.core.model.DependencyProvider;
-import com.github.rinde.rinsim.core.model.Model.AbstractModel;
+import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
-import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.PDPModelEventType;
 import com.github.rinde.rinsim.core.model.pdp.PDPModelEvent;
@@ -71,9 +69,6 @@ import com.google.common.collect.ImmutableSet;
  * @author Rinde van Lon
  */
 public final class RtCentral {
-
-  private static final ImmutableSet<Options> DEFAULT_OPTIONS =
-    ImmutableSet.of();
   private static final Logger LOGGER = LoggerFactory.getLogger(RtCentral.class);
 
   private RtCentral() {}
@@ -90,7 +85,7 @@ public final class RtCentral {
    */
   public static Builder builder(
       StochasticSupplier<? extends RealtimeSolver> solverSupplier) {
-    return Builder.create(solverSupplier, DEFAULT_OPTIONS);
+    return Builder.create(solverSupplier, ImmutableSet.<Options>of());
   }
 
   /**
@@ -163,13 +158,17 @@ public final class RtCentral {
     return VehicleCreator.INSTANCE;
   }
 
+  enum Options {
+    SLEEP_ON_CHANGE, THREAD_GROUPING, CONTINUOUS_UPDATES;
+  }
+
   /**
    * Builder for central model.
    * @author Rinde van Lon
    */
   @AutoValue
   public abstract static class Builder
-      extends AbstractModelBuilder<RtCentralModel, Parcel>
+      extends ModelBuilder.AbstractModelBuilder<RtCentralModel, Parcel>
       implements CompositeModelBuilder<RtCentralModel, Parcel>, Serializable {
 
     private static final long serialVersionUID = -3900188597329698413L;
@@ -184,10 +183,6 @@ public final class RtCentral {
     }
 
     abstract StochasticSupplier<RealtimeSolver> getSolverSupplier();
-
-    enum Options {
-      SLEEP_ON_CHANGE, THREAD_GROUPING, CONTINUOUS_UPDATES;
-    }
 
     abstract ImmutableSet<Options> getOptions();
 
@@ -299,7 +294,7 @@ public final class RtCentral {
     }
   }
 
-  static final class RtCentralModel extends AbstractModel<Parcel>
+  static final class RtCentralModel extends Model.AbstractModel<Parcel>
       implements TickListener {
     private boolean problemHasChanged;
 
