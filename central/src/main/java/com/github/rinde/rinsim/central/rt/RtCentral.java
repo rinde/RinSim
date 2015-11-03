@@ -159,7 +159,7 @@ public final class RtCentral {
         .build();
   }
 
-  static TimedEventHandler<AddVehicleEvent> vehicleHandler() {
+  public static TimedEventHandler<AddVehicleEvent> vehicleHandler() {
     return VehicleCreator.INSTANCE;
   }
 
