@@ -120,6 +120,7 @@ public final class TimeLinePanel extends AbstractModelVoid implements
       public void handleEvent(Event e) {
         if (e.getEventType() == PDPModelEventType.NEW_PARCEL) {
           verify(e instanceof PDPModelEvent);
+
           final PDPModelEvent event = (PDPModelEvent) e;
           timeline.addParcel(new ParcelInfo(event.time,
               verifyNotNull(event.parcel)));
@@ -168,7 +169,12 @@ public final class TimeLinePanel extends AbstractModelVoid implements
         final int timeX = DoubleMath.roundToInt(origin.x + currentTime
             / TIME_PER_PIXEL,
           RoundingMode.HALF_UP);
+
+        final int height = timeline.getHeight();
         timeline.update(timeX);
+
+        final boolean shouldScroll = timeline.getHeight() > height
+            && vBar.getMaximum() == vBar.getSelection() + vBar.getThumb();
 
         e.gc.setBackground(
           e.display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
@@ -185,6 +191,17 @@ public final class TimeLinePanel extends AbstractModelVoid implements
             .getClientArea().width));
         vBar.setThumb(Math.min(timeline.getHeight() + V_THUMB_SIZE, canvas
             .get().getClientArea().height));
+
+        // if view is currently scrolled down, automatically scroll down when
+        // view is expanded downward (similar to the behavior of a terminal)
+        if (shouldScroll) {
+          vBar.setSelection(vBar.getMaximum());
+          final int vSelection = vBar.getSelection();
+          final int destY = -vSelection - origin.y;
+          canvas.get().scroll(0, destY, 0, 0, timeline.getWidth(),
+            timeline.getHeight(), false);
+          origin.y = -vSelection;
+        }
       }
     });
 
@@ -457,6 +474,7 @@ public final class TimeLinePanel extends AbstractModelVoid implements
 
       parcels.addAll(copyNewParcels);
       height = parcels.size() * ROW_HEIGHT;
+
       width = Math.max(width, timeX);
       ensureImg();
       for (int i = 0; i < copyNewParcels.size(); i++) {
