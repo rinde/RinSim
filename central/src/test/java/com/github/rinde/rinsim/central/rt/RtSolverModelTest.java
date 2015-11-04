@@ -197,7 +197,7 @@ public class RtSolverModelTest {
     } catch (final IllegalArgumentException e) {
       fail = true;
       assertThat(e.getMessage()).contains(
-        "only provides " + RtSimSolverBuilder.class.getSimpleName());
+        " does not provide " + Object.class.toString());
     }
     assertThat(fail).isTrue();
   }

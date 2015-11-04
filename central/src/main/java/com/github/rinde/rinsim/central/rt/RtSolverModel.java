@@ -52,7 +52,6 @@ import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.time.Clock.ClockEventType;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController.ClockMode;
-import com.github.rinde.rinsim.core.model.time.RealtimeClockController.RtClockEventType;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.Event;
@@ -103,8 +102,9 @@ import net.openhft.affinity.AffinityThreadFactory;
  * </ul>
  * @author Rinde van Lon
  */
-public final class RtSolverModel extends AbstractModel<RtSolverUser>
-    implements TickListener, Listener {
+public final class RtSolverModel
+    extends AbstractModel<RtSolverUser>
+    implements TickListener {
 
   /**
    * Default number of threads in 'single mode'.
@@ -121,7 +121,6 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
   final boolean threadGroupingEnabled;
   Optional<ListeningExecutorService> executor;
   Mode mode;
-  long timeToCheckIfComputing;
 
   enum Mode {
     MULTI_MODE, SINGLE_MODE, UNKNOWN;
@@ -138,7 +137,6 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
     threadGroupingEnabled = threadGrouping;
     threadPoolSize = threads;
 
-    clock.getEventAPI().addListener(this, RtClockEventType.values());
     clock.getEventAPI().addListener(new Listener() {
       @Override
       public void handleEvent(Event event) {
@@ -184,14 +182,17 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
 
   @Override
   public <U> U get(Class<U> clazz) {
-    checkArgument(clazz == RtSimSolverBuilder.class,
-      "%s only provides %s, not %s.", getClass().getSimpleName(),
-      RtSimSolverBuilder.class.getSimpleName(), clazz);
-    if (mode == Mode.UNKNOWN) {
-      mode = Mode.SINGLE_MODE;
-      initExecutor();
+    if (clazz == RtSolverModelAPI.class) {
+      return clazz.cast(new RtSolverModelAPI());
+    } else if (clazz == RtSimSolverBuilder.class) {
+      if (mode == Mode.UNKNOWN) {
+        mode = Mode.SINGLE_MODE;
+        initExecutor();
+      }
+      return clazz.cast(new RtSimSolverBuilderImpl());
     }
-    return clazz.cast(new RtSimSolverBuilderImpl());
+    throw new IllegalArgumentException(
+        getClass().getSimpleName() + " does not provide " + clazz);
   }
 
   @Override
@@ -201,22 +202,10 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
 
   @Override
   public void afterTick(TimeLapse timeLapse) {
-    if (timeLapse.getStartTime() == timeToCheckIfComputing
-        && !manager.isComputing()
-        && clock.isTicking()) {
+    if (!manager.isComputing() && clock.isTicking()) {
       clock.switchToSimulatedTime();
     }
     manager.checkExceptions();
-  }
-
-  @Override
-  public void handleEvent(Event e) {
-    if (e.getEventType() == RtClockEventType.SWITCH_TO_REAL_TIME) {
-      // when a switch to RT has been made, we should check the next tick if it
-      // is still needed.
-      timeToCheckIfComputing =
-        clock.getCurrentTime() + 2 * clock.getTickLength();
-    }
   }
 
   void initExecutor() {
@@ -271,7 +260,7 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
     Builder() {
       setDependencies(RealtimeClockController.class, PDPRoadModel.class,
         PDPModel.class);
-      setProvidingTypes(RtSimSolverBuilder.class);
+      setProvidingTypes(RtSimSolverBuilder.class, RtSolverModelAPI.class);
     }
 
     abstract Mode getMode();
@@ -340,6 +329,26 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
 
     static Builder create(Mode m, int t, boolean g) {
       return new AutoValue_RtSolverModel_Builder(m, t, g);
+    }
+  }
+
+  public final class RtSolverModelAPI {
+
+    RtSolverModelAPI() {}
+
+    public boolean isComputing() {
+      return manager.isComputing();
+    }
+
+    public ImmutableSet<RealtimeSolver> getComputingSolvers() {
+      final ImmutableSet.Builder<RealtimeSolver> solvers =
+        ImmutableSet.builder();
+      synchronized (manager.computingSimSolvers) {
+        for (final RtSimSolverSchedulerImpl s : manager.computingSimSolvers) {
+          solvers.add(s.solver);
+        }
+      }
+      return solvers.build();
     }
   }
 

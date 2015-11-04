@@ -120,6 +120,12 @@ public final class SolverToRealtimeAdapter implements RealtimeSolver {
   @Override
   public void receiveSnapshot(GlobalStateObject snapshot) {}
 
+  @Override
+  public String toString() {
+    return Joiner.on("").join(getClass().getSimpleName(), "(",
+      solver.toString(), ")");
+  }
+
   /**
    * Constructs an adapter of {@link Solver} to {@link RealtimeSolver}. The
    * resulting solver behaves as is documented in
