@@ -121,14 +121,16 @@ public class RtSolverModelIntegrationTest {
           sim.register(
             Parcel.builder(new Point(0, 0), new Point(4, 4)).build());
 
-          simSolver.solve(SolveArgs.create());
+          simSolver.solve(SolveArgs.create()
+              .useCurrentRoutes(ImmutableList.of(ImmutableList.<Parcel>of())));
           assertNoSchedule(simSolver);
         } else if (timeLapse.getTime() == 400) {
           LOGGER.trace(AffinityLock.dumpLocks());
         } else if (timeLapse.getTime() == 1000) {
           sim.register(
             Parcel.builder(new Point(0, 0), new Point(4, 4)).build());
-          simSolver.solve(SolveArgs.create());
+          simSolver.solve(SolveArgs.create()
+              .useCurrentRoutes(ImmutableList.of(ImmutableList.<Parcel>of())));
           assertNoSchedule(simSolver);
           assertThat(simSolver.isScheduleUpdated()).isFalse();
         } else if (timeLapse.getTime() == 6000) {
@@ -168,7 +170,8 @@ public class RtSolverModelIntegrationTest {
         } else if (timeLapse.getTime() == 200) {
           sim.register(
             Parcel.builder(new Point(0, 0), new Point(4, 4)).build());
-          simSolver.solve(SolveArgs.create());
+          simSolver.solve(SolveArgs.create()
+              .useCurrentRoutes(ImmutableList.of(ImmutableList.<Parcel>of())));
         } else if (timeLapse.getTime() == 500) {
           throw new IllegalStateException("This is a test");
         }

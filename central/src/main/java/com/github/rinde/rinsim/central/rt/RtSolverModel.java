@@ -525,7 +525,8 @@ public final class RtSolverModel
         final GlobalStateObject state = converter.convert(args).state;
 
         for (final VehicleStateObject vso : state.getVehicles()) {
-          checkArgument(vso.getRoute().isPresent());
+          checkArgument(vso.getRoute().isPresent(),
+            "A route must be present for each vehicle.");
 
           if (vso.getDestination().isPresent()) {
             checkArgument(!vso.getRoute().get().isEmpty(),
