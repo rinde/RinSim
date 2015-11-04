@@ -346,6 +346,9 @@ public final class RtCentral {
     }
 
     void notifySolverOfChange(TimeLapse timeLapse, boolean sleepAfterNotify) {
+      verify(clock.getClockMode() == ClockMode.REAL_TIME,
+        "Problem detected at %s.", timeLapse);
+      problemHasChanged = false;
       solver.solve(SolveArgs.create().useCurrentRoutes(getCurrentRoutes()));
 
       if (sleepAfterNotify) {
@@ -368,15 +371,8 @@ public final class RtCentral {
           RtCentral.class.getSimpleName());
       }
 
-      if (problemHasChanged) {
-        verify(clock.getClockMode() == ClockMode.REAL_TIME,
-          "Problem detected at %s.", timeLapse);
-        problemHasChanged = false;
+      if (problemHasChanged && sleepOnChange) {
         notifySolverOfChange(timeLapse, sleepOnChange);
-      } else if (continuousUpdates
-          && clock.getClockMode() == ClockMode.REAL_TIME) {
-        solver.sendSnapshot(
-          SolveArgs.create().useCurrentRoutes(getCurrentRoutes()));
       }
 
       if (solver.isScheduleUpdated()) {
@@ -416,6 +412,17 @@ public final class RtCentral {
           }
           i++;
         }
+      }
+
+      if (problemHasChanged && !sleepOnChange) {
+        notifySolverOfChange(timeLapse, sleepOnChange);
+      }
+
+      if (!problemHasChanged
+          && continuousUpdates
+          && clock.getClockMode() == ClockMode.REAL_TIME) {
+        solver.sendSnapshot(
+          SolveArgs.create().useCurrentRoutes(getCurrentRoutes()));
       }
     }
 
