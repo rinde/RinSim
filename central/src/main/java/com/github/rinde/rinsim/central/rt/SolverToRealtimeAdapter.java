@@ -53,6 +53,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 public final class SolverToRealtimeAdapter implements RealtimeSolver {
   static final Logger LOGGER =
     LoggerFactory.getLogger(SolverToRealtimeAdapter.class);
+  private static final String R_BRACE = ")";
 
   Optional<Scheduler> scheduler;
   Optional<ListenableFuture<ImmutableList<ImmutableList<Parcel>>>> currentFuture;
@@ -123,7 +124,7 @@ public final class SolverToRealtimeAdapter implements RealtimeSolver {
   @Override
   public String toString() {
     return Joiner.on("").join(getClass().getSimpleName(), "(",
-      solver.toString(), ")");
+      solver.toString(), R_BRACE);
   }
 
   /**
@@ -173,7 +174,7 @@ public final class SolverToRealtimeAdapter implements RealtimeSolver {
     @Override
     public String toString() {
       return Joiner.on("").join(SolverToRealtimeAdapter.class.getSimpleName(),
-        ".create(", solver, ")");
+        ".create(", solver, R_BRACE);
     }
   }
 

@@ -38,11 +38,16 @@ import com.google.common.base.Optional;
 public final class RtSolverPanel
     extends AbstractModelVoid
     implements PanelRenderer {
+  private static final int PANEL_SIZE = 200;
   final RtSolverModelAPI model;
 
   Optional<Composite> parent;
   Optional<Label> label;
   Optional<Table> table;
+
+  enum ComputingState {
+    IDLE, COMPUTING;
+  }
 
   RtSolverPanel(RtSolverModelAPI m) {
     model = m;
@@ -58,7 +63,7 @@ public final class RtSolverPanel
 
     final GridData labelData = new GridData(SWT.FILL, SWT.NONE, true, false);
     label = Optional.of(new Label(par, 0));
-    label.get().setText("IDLE");
+    label.get().setText(ComputingState.IDLE.name());
     label.get().setLayoutData(labelData);
 
     final GridData data = new GridData(SWT.FILL, SWT.FILL, true, true);
@@ -71,7 +76,7 @@ public final class RtSolverPanel
 
   @Override
   public int preferredSize() {
-    return 200;
+    return PANEL_SIZE;
   }
 
   @Override
@@ -97,13 +102,13 @@ public final class RtSolverPanel
         }
         table.get().removeAll();
         if (model.isComputing()) {
-          label.get().setText("COMPUTING");
+          label.get().setText(ComputingState.COMPUTING.name());
           for (final RealtimeSolver rs : model.getComputingSolvers()) {
             final TableItem item = new TableItem(table.get(), 0);
             item.setText(rs.toString());
           }
         } else {
-          label.get().setText("IDLE");
+          label.get().setText(ComputingState.IDLE.name());
         }
       }
     });
