@@ -64,42 +64,40 @@ final class LocalComputer implements Computer {
       executor = MoreExecutors.listeningDecorator(
           Executors.newFixedThreadPool(threads, new LocalThreadFactory()));
     }
+
     final List<SimulationResult> results =
         Collections.synchronizedList(new ArrayList<SimulationResult>());
-    final ResultCollector resultCatcher =
+    final ResultCollector resultCollector =
         new ResultCollector(executor, results);
 
     try {
       for (final ExperimentRunner r : runners) {
+        checkForError(executor, resultCollector);
         final ListenableFuture<SimulationResult> f = executor.submit(r);
-        Futures.addCallback(f, resultCatcher);
+        Futures.addCallback(f, resultCollector);
       }
-      while (results.size() < inputs.size() && !resultCatcher.hasError()) {
+      while (results.size() < inputs.size() && !resultCollector.hasError()) {
         Thread.sleep(THREAD_SLEEP_TIME);
       }
-
+      checkForError(executor, resultCollector);
     } catch (final InterruptedException e) {
       throw new IllegalStateException(e);
-    } catch (final RuntimeException e) {
-      if (e.getCause() instanceof RuntimeException) {
-        throw (RuntimeException) e.getCause();
-      } else if (e.getCause() instanceof Error) {
-        throw (Error) e.getCause();
-      }
-      throw new IllegalStateException(e);
     }
 
-    if (resultCatcher.hasError()) {
-      if (resultCatcher.throwable instanceof RuntimeException) {
-        throw (RuntimeException) resultCatcher.throwable;
-      } else if (resultCatcher.throwable instanceof Error) {
-        throw (Error) resultCatcher.throwable;
-      }
-      throw new IllegalStateException(resultCatcher.throwable);
-    }
+    checkForError(executor, resultCollector);
     executor.shutdown();
-
     return ExperimentResults.create(builder, ImmutableSet.copyOf(results));
+  }
+
+  static void checkForError(ListeningExecutorService executor,
+      ResultCollector collector) {
+    if (collector.hasError()) {
+      executor.shutdown();
+      if (collector.throwable instanceof RuntimeException) {
+        throw (RuntimeException) collector.throwable;
+      }
+      throw new IllegalStateException(collector.throwable);
+    }
   }
 
   static class LocalThreadFactory implements ThreadFactory {
