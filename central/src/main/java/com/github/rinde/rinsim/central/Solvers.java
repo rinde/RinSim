@@ -160,7 +160,7 @@ public final class Solvers {
             vso.getDestination().asSet().contains(cur),
             "If a vehicle has a destination, the first position in the route "
                 + "must equal this. Expected %s, is %s.",
-            vso.getDestination(), cur);
+            vso.getDestination().get(), cur);
         }
 
         boolean firstAndServicing = false;

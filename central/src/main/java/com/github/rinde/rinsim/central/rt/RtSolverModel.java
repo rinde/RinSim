@@ -37,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.rinde.rinsim.central.GlobalStateObject;
+import com.github.rinde.rinsim.central.GlobalStateObject.VehicleStateObject;
 import com.github.rinde.rinsim.central.Solver;
 import com.github.rinde.rinsim.central.Solvers;
 import com.github.rinde.rinsim.central.Solvers.SimulationConverter;
@@ -522,6 +523,21 @@ public final class RtSolverModel
         eventDispatcher.dispatchEvent(new Event(
             RtSimSolverSchedulerImpl.EventType.START_COMPUTING, reference));
         final GlobalStateObject state = converter.convert(args).state;
+
+        for (final VehicleStateObject vso : state.getVehicles()) {
+          checkArgument(vso.getRoute().isPresent());
+
+          if (vso.getDestination().isPresent()) {
+            checkArgument(!vso.getRoute().get().isEmpty(),
+              "Expected %s but found an empty route.",
+              vso.getDestination().get());
+            checkArgument(
+              vso.getRoute().get().get(0).equals(vso.getDestination().get()),
+              "Expected %s at first position but found %s.",
+              vso.getDestination().get(), vso.getRoute().get());
+          }
+        }
+
         final ListenableFuture<?> fut = executor.submit(new Runnable() {
           @Override
           public void run() {
