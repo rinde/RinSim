@@ -205,7 +205,8 @@ public final class RtSolverModel
   @Override
   public void afterTick(TimeLapse timeLapse) {
     final boolean isComputing = manager.isComputing();
-    if (!isComputing && clock.isTicking()) {
+    if (!isComputing && clock.isTicking()
+        && clock.getClockMode() == ClockMode.REAL_TIME) {
       if (prevComputing) {
         LOGGER.trace(
           "we have stopped computing, if this stays the same we will attempt "
