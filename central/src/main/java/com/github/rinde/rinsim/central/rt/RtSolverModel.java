@@ -201,10 +201,23 @@ public final class RtSolverModel
     manager.checkExceptions();
   }
 
+  boolean prevComputing = false;
+
   @Override
   public void afterTick(TimeLapse timeLapse) {
-    if (!manager.isComputing() && clock.isTicking()) {
-      clock.switchToSimulatedTime();
+    final boolean isComputing = manager.isComputing();
+    if (!isComputing && clock.isTicking()) {
+      if (prevComputing) {
+        LOGGER.trace(
+          "we have stopped computing, if this stays the same we will attempt "
+              + "to switch to sim time on next tick");
+        prevComputing = false;
+      } else {
+        LOGGER.trace("request to switch to sim time");
+        clock.switchToSimulatedTime();
+      }
+    } else if (isComputing) {
+      prevComputing = true;
     }
     manager.checkExceptions();
   }
@@ -403,10 +416,10 @@ public final class RtSolverModel
           // it may be the case that the issuer is already removed, we ignore
           // this as it can happen due to threading issues.
           computingSimSolvers.remove(e.getIssuer());
-          if (!isComputing() && clock.isTicking()) {
-            LOGGER.trace("request to switch to sim time");
-            clock.switchToSimulatedTime();
-          }
+          // if (!isComputing() && clock.isTicking()) {
+          // LOGGER.trace("request to switch to sim time");
+          // clock.switchToSimulatedTime();
+          // }
         } else {
           throw new IllegalArgumentException("Unexpected event: " + e);
         }
