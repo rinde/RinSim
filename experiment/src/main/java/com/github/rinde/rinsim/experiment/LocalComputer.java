@@ -55,6 +55,10 @@ final class LocalComputer implements Computer {
     }
     final List<ExperimentRunner> runners = runnerBuilder.build();
 
+    for (final ResultListener rl : builder.resultListeners) {
+      rl.startComputing(runners.size());
+    }
+
     final int threads = Math.min(builder.numThreads, runners.size());
 
     final ListeningExecutorService executor;
@@ -68,7 +72,7 @@ final class LocalComputer implements Computer {
     final List<SimulationResult> results =
         Collections.synchronizedList(new ArrayList<SimulationResult>());
     final ResultCollector resultCollector =
-        new ResultCollector(executor, results);
+        new ResultCollector(executor, results, builder.resultListeners);
 
     try {
       for (final ExperimentRunner r : runners) {
@@ -86,6 +90,10 @@ final class LocalComputer implements Computer {
 
     checkForError(executor, resultCollector);
     executor.shutdown();
+
+    for (final ResultListener rl : builder.resultListeners) {
+      rl.doneComputing();
+    }
     return ExperimentResults.create(builder, ImmutableSet.copyOf(results));
   }
 
@@ -114,13 +122,16 @@ final class LocalComputer implements Computer {
   static class ResultCollector implements FutureCallback<SimulationResult> {
     final ListeningExecutorService executor;
     final List<SimulationResult> results;
+    final List<ResultListener> resultListeners;
 
     @Nullable
     volatile Throwable throwable;
 
-    ResultCollector(ListeningExecutorService ex, List<SimulationResult> res) {
+    ResultCollector(ListeningExecutorService ex, List<SimulationResult> res,
+        List<ResultListener> listeners) {
       executor = ex;
       results = res;
+      resultListeners = listeners;
     }
 
     public boolean hasError() {
@@ -136,7 +147,11 @@ final class LocalComputer implements Computer {
     @Override
     public void onSuccess(@Nullable SimulationResult result) {
       final SimulationResult res = verifyNotNull(result);
+      for (final ResultListener rl : resultListeners) {
+        rl.receive(res);
+      }
       if (res.getResultObject() == FailureStrategy.RETRY) {
+
         final ExperimentRunner newRunner =
             new ExperimentRunner(res.getSimArgs());
         Futures.addCallback(executor.submit(newRunner), this);

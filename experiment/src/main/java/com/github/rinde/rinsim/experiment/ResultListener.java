@@ -29,6 +29,7 @@ public interface ResultListener {
    */
   void startComputing(int numberOfSimulations);
 
+  // TODO extend description, the SimulationResult may be a failed simulation
   /**
    * This method is called to signal the completion of a single experiment.
    * @param result The {@link SimulationResult} of the simulation that is
