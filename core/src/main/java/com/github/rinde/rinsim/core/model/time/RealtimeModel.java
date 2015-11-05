@@ -464,13 +464,13 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
     void cancelTask() {
       final ListenableScheduledFuture<?> f = verifyNotNull(schedulerFuture);
       if (!f.isDone()) {
-        LOGGER.trace("initiate cancel task");
+        LOGGER.trace("initiate cancel RT clock");
         f.cancel(true);
       }
     }
 
     void awaitTermination(RealtimeModel context) {
-      LOGGER.trace("awaiting clock termination..");
+      LOGGER.trace("awaiting RT clock termination..");
       try {
         while (taskIsRunning.get()) {
           Thread.sleep(THREAD_SLEEP_MS);
@@ -606,17 +606,17 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
                 // interArrivalTimeNs / 1000000d + " is invalid (allowed: "
                 // + allowedTickDuration +
 
-            "deviation is too much: " + deviationNs / MS_TO_NS
-                + " max allowed: " + maxTickDeviationNs / MS_TO_NS
-                + " correction: " + correctionNs / MS_TO_NS
-                + " interval " + logMonitor.toVMTime(expectedTs1ms)
-                + " " + logMonitor.toVMTime(ts2.getMillis())
-                + " expected event time: " + expectedTs2ns
-                + " actual event time: " + ts2.getNanos()
-                + System.lineSeparator()
-                + logMonitor.getPauseIntervals()
-                + System.lineSeparator()
-                + measuredDeviations);
+                "deviation is too much: " + deviationNs / MS_TO_NS
+                    + " max allowed: " + maxTickDeviationNs / MS_TO_NS
+                    + " correction: " + correctionNs / MS_TO_NS
+                    + " interval " + logMonitor.toVMTime(expectedTs1ms)
+                    + " " + logMonitor.toVMTime(ts2.getMillis())
+                    + " expected event time: " + expectedTs2ns
+                    + " actual event time: " + ts2.getNanos()
+                    + System.lineSeparator()
+                    + logMonitor.getPauseIntervals()
+                    + System.lineSeparator()
+                    + measuredDeviations);
           }
           measuredDeviations.addLast(
               MeasuredDeviation.create(correctedDeviationNs, correctionNs));

@@ -237,6 +237,7 @@ public final class ScenarioController extends AbstractModel<StopModel>
     if ((e = scenarioQueue.peek()) != null
         && e.getTime() <= timeLapse.getTime() + timeLapse.getTickLength()
         && clock instanceof RealtimeClockController) {
+      LOGGER.trace("Found an event in next tick, switch to RT");
       ((RealtimeClockController) clock).switchToRealTime();
     }
 
