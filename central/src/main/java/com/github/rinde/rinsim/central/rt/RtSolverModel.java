@@ -532,10 +532,14 @@ public final class RtSolverModel
 
       @Override
       public void solve(SolveArgs args) {
+        solve(converter.convert(args).state);
+      }
+
+      @Override
+      public void solve(final GlobalStateObject state) {
         realtimeCheck();
         eventDispatcher.dispatchEvent(new Event(
             RtSimSolverSchedulerImpl.EventType.START_COMPUTING, reference));
-        final GlobalStateObject state = converter.convert(args).state;
 
         for (final VehicleStateObject vso : state.getVehicles()) {
           checkArgument(vso.getRoute().isPresent(),
