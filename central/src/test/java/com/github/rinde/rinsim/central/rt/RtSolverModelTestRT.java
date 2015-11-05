@@ -28,6 +28,7 @@ import org.junit.experimental.categories.Category;
 
 import com.github.rinde.rinsim.central.Solvers.SolveArgs;
 import com.github.rinde.rinsim.central.rt.RtSimSolver.EventType;
+import com.github.rinde.rinsim.core.model.time.TimeLapseFactory;
 import com.github.rinde.rinsim.event.ListenerEventHistory;
 import com.github.rinde.rinsim.testutil.RealtimeTests;
 import com.google.common.collect.Range;
@@ -87,6 +88,7 @@ public class RtSolverModelTestRT extends RtSolverModelTest {
     verify(clock, times(2)).switchToRealTime();
     verify(clock, times(0)).switchToSimulatedTime();
 
+    model.afterTick(TimeLapseFactory.ms(0, 100));
     final long start = System.nanoTime();
     while (model.manager.isComputing()) {
       verify(clock, times(0)).switchToSimulatedTime();
@@ -100,6 +102,11 @@ public class RtSolverModelTestRT extends RtSolverModelTest {
     final double duration = (System.nanoTime() - start) / 1000000000d;
     assertThat(duration).isIn(Range.open(0.9, 1.1));
 
+    model.afterTick(TimeLapseFactory.ms(100, 200));
+    verify(clock, times(2)).switchToRealTime();
+    verify(clock, times(0)).switchToSimulatedTime();
+
+    model.afterTick(TimeLapseFactory.ms(200, 300));
     verify(clock, times(2)).switchToRealTime();
     verify(clock, times(1)).switchToSimulatedTime();
 

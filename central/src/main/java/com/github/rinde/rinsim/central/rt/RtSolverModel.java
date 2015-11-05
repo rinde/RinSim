@@ -122,6 +122,7 @@ public final class RtSolverModel
   final boolean threadGroupingEnabled;
   Optional<ListeningExecutorService> executor;
   Mode mode;
+  boolean prevComputing;
 
   enum Mode {
     MULTI_MODE, SINGLE_MODE, UNKNOWN;
@@ -200,8 +201,6 @@ public final class RtSolverModel
   public void tick(TimeLapse timeLapse) {
     manager.checkExceptions();
   }
-
-  boolean prevComputing = false;
 
   @Override
   public void afterTick(TimeLapse timeLapse) {

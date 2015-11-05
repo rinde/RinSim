@@ -80,12 +80,12 @@ public class RtCentralTestRT {
 
     // 200 -> switch to RT, switches to ST should be ignored
     // 300 -> new parcel
-    // 500 -> computation done, switch to ST
+    // 500 -> computation done, switch to ST in next tick
     // 600 -> manual switch to RT
     // 700 -> switch to RT because of new parcel in next tick, attempt to
     // switch back to ST by solver model should be ignored here
     // 800 -> new parcel
-    // 1000 -> computation done, switch to ST
+    // 1000 -> computation done, switch to ST in next tick
     // 1500 -> switch to RT
 
     final TimeTracker tt = sim.getModelProvider().getModel(TimeTracker.class);
@@ -107,16 +107,16 @@ public class RtCentralTestRT {
     assertThat(tt.getClockModes().subList(0, 3))
         .containsExactly(SIMULATED, SIMULATED, SIMULATED).inOrder();
 
-    assertThat(tt.getClockModes().subList(3, 5))
-        .containsExactly(REAL_TIME, REAL_TIME).inOrder();
+    assertThat(tt.getClockModes().subList(3, 6))
+        .containsExactly(REAL_TIME, REAL_TIME, REAL_TIME).inOrder();
 
-    assertThat(tt.getClockModes().get(5)).isEqualTo(SIMULATED);
     assertThat(tt.getClockModes().get(6)).isEqualTo(SIMULATED);
     assertThat(tt.getClockModes().get(7)).isEqualTo(REAL_TIME);
     assertThat(tt.getClockModes().get(8)).isEqualTo(REAL_TIME);
     assertThat(tt.getClockModes().get(9)).isEqualTo(REAL_TIME);
-    assertThat(tt.getClockModes().subList(10, 15))
-        .containsExactly(SIMULATED, SIMULATED, SIMULATED, SIMULATED, SIMULATED)
+    assertThat(tt.getClockModes().get(10)).isEqualTo(REAL_TIME);
+    assertThat(tt.getClockModes().subList(11, 15))
+        .containsExactly(SIMULATED, SIMULATED, SIMULATED, SIMULATED)
         .inOrder();
     assertThat(tt.getClockModes().get(15)).isEqualTo(REAL_TIME);
   }

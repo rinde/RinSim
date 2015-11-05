@@ -138,22 +138,24 @@ public class RealtimeSolverTest {
       SIMULATED, SIMULATED, SIMULATED);
     assertThat(sum(interArrivalTimes.subList(0, 3))).isAtMost(100d);
 
-    assertThat(tt.getClockModes().subList(3, 6)).containsExactly(
-      REAL_TIME, REAL_TIME, REAL_TIME);
+    assertThat(tt.getClockModes().subList(3, 7)).containsExactly(
+      REAL_TIME, REAL_TIME, REAL_TIME, REAL_TIME);
     assertThat(interArrivalTimes.get(3)).isIn(acceptableDuration);
     assertThat(interArrivalTimes.get(4)).isIn(acceptableDuration);
+    assertThat(interArrivalTimes.get(5)).isIn(acceptableDuration);
 
-    assertThat(tt.getClockModes().subList(6, 10)).containsExactly(
-      SIMULATED, SIMULATED, SIMULATED, SIMULATED);
-    assertThat(sum(interArrivalTimes.subList(5, 10))).isAtMost(150d);
+    assertThat(tt.getClockModes().subList(7, 10)).containsExactly(
+      SIMULATED, SIMULATED, SIMULATED);
+    assertThat(sum(interArrivalTimes.subList(6, 10))).isAtMost(150d);
 
-    assertThat(tt.getClockModes().subList(10, 13)).containsExactly(
-      REAL_TIME, REAL_TIME, REAL_TIME);
+    assertThat(tt.getClockModes().subList(10, 14)).containsExactly(
+      REAL_TIME, REAL_TIME, REAL_TIME, REAL_TIME);
     assertThat(interArrivalTimes.get(10)).isIn(acceptableDuration);
     assertThat(interArrivalTimes.get(11)).isIn(acceptableDuration);
+    assertThat(interArrivalTimes.get(12)).isIn(acceptableDuration);
 
-    assertThat(tt.getClockModes().subList(13, 30)).doesNotContain(REAL_TIME);
-    assertThat(sum(interArrivalTimes.subList(12, 30))).isAtMost(150d);
+    assertThat(tt.getClockModes().subList(14, 30)).doesNotContain(REAL_TIME);
+    assertThat(sum(interArrivalTimes.subList(13, 30))).isAtMost(150d);
     assertThat(tt.getClockModes().get(30)).isEqualTo(REAL_TIME);
   }
 
