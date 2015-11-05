@@ -18,6 +18,8 @@ package com.github.rinde.rinsim.experiment;
 import java.io.PrintStream;
 
 import com.github.rinde.rinsim.experiment.Experiment.SimulationResult;
+import com.github.rinde.rinsim.experiment.PostProcessor.FailureStrategy;
+import com.google.common.base.Joiner;
 
 /**
  * A {@link ResultListener} that writes simple progress reports to a
@@ -28,6 +30,7 @@ public class CommandLineProgress implements ResultListener {
   private final PrintStream printStream;
   private int total;
   private int received;
+  private int failures;
 
   /**
    * Create a new instance.
@@ -42,12 +45,18 @@ public class CommandLineProgress implements ResultListener {
     printStream.println("Start computing: " + numberOfSimulations);
     total = numberOfSimulations;
     received = 0;
+    failures = 0;
   }
 
   @Override
   public void receive(SimulationResult result) {
-    received++;
-    printStream.println(received + "/" + total);
+    if (result.getResultObject() instanceof FailureStrategy) {
+      failures++;
+    } else {
+      received++;
+    }
+    printStream.println(Joiner.on("").join(received, "/", total, " (failures: ",
+        failures, ")"));
   }
 
   @Override
