@@ -149,6 +149,7 @@ public final class RtSolverModel
     pdpModel.getEventAPI().addListener(new Listener() {
       @Override
       public void handleEvent(Event e) {
+        manager.checkExceptions();
         clock.switchToRealTime();
       }
     }, PDPModelEventType.NEW_PARCEL);
@@ -381,6 +382,7 @@ public final class RtSolverModel
     void checkExceptions() {
       if (!exceptions.isEmpty()) {
         shutdown();
+        LOGGER.error(exceptions.get(0).getMessage(), exceptions.get(0));
         if (exceptions.get(0) instanceof RuntimeException) {
           throw (RuntimeException) exceptions.get(0);
         } else if (exceptions.get(0) instanceof Error) {
@@ -405,6 +407,7 @@ public final class RtSolverModel
 
     @Override
     public void handleEvent(Event e) {
+      checkExceptions();
       synchronized (computingSimSolvers) {
         LOGGER.trace("receive: {}, computing: {}, clock is ticking: {}, {}", e,
           isComputing(), clock.isTicking(), computingSimSolvers);

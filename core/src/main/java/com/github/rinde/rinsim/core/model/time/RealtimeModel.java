@@ -327,6 +327,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
           context.tickImpl();
         }
       } catch (final RuntimeException e) {
+        LOGGER.error(e.getMessage(), e);
         context.cleanUpAfterException();
         throw e;
       }
@@ -481,6 +482,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
       }
       if (!exceptions.isEmpty()) {
         context.cleanUpAfterException();
+        LOGGER.error(exceptions.get(0).getMessage(), exceptions.get(0));
         if (exceptions.get(0) instanceof RuntimeException) {
           throw (RuntimeException) exceptions.get(0);
         } else if (exceptions.get(0) instanceof Error) {
