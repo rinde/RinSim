@@ -444,6 +444,9 @@ public final class RtSolverModel
     @Override
     public void uncaughtException(@SuppressWarnings("null") Thread t,
         @SuppressWarnings("null") Throwable e) {
+      if (e instanceof InterruptedException) {
+        return;
+      }
       addException(e);
     }
   }
@@ -640,11 +643,11 @@ public final class RtSolverModel
 
         @Override
         public void onFailure(Throwable t) {
-          if (t instanceof CancellationException) {
+          if (t instanceof CancellationException
+              || t instanceof InterruptedException) {
             LOGGER.info("RealtimeSolver execution got cancelled");
             return;
           }
-          LOGGER.warn(t.getMessage());
           simSolversManager.addException(t);
         }
       }
