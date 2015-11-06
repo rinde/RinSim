@@ -42,9 +42,10 @@ import com.google.common.util.concurrent.ListenableFuture;
  * {@link RealtimeSolver#problemChanged(GlobalStateObject)} the underlying
  * {@link Solver} is called to solve the problem. Any ongoing computation of a
  * previous snapshot is cancelled. When the solver completes its computation,
- * {@link Scheduler#updateSchedule(ImmutableList)} is called to provide the
- * updated schedule. The scheduler is also notified that no computations are
- * currently taking place by calling {@link Scheduler#doneForNow()}.
+ * {@link Scheduler#updateSchedule(GlobalStateObject,ImmutableList)} is called
+ * to provide the updated schedule. The scheduler is also notified that no
+ * computations are currently taking place by calling
+ * {@link Scheduler#doneForNow()}.
  * <p>
  * TODO talk about interrupt in solver
  *
@@ -71,7 +72,7 @@ public final class SolverToRealtimeAdapter implements RealtimeSolver {
   }
 
   @Override
-  public void problemChanged(GlobalStateObject snapshot) {
+  public void problemChanged(final GlobalStateObject snapshot) {
     checkState(scheduler.isPresent(), "Not yet initialized.");
     cancel();
     currentFuture = Optional.of(
@@ -90,7 +91,7 @@ public final class SolverToRealtimeAdapter implements RealtimeSolver {
                   + "non-null result. Solver: " + solver));
             return;
           }
-          scheduler.get().updateSchedule(result);
+          scheduler.get().updateSchedule(snapshot, result);
           scheduler.get().doneForNow();
         }
 

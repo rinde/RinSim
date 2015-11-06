@@ -15,6 +15,7 @@
  */
 package com.github.rinde.rinsim.central.rt;
 
+import com.github.rinde.rinsim.central.GlobalStateObject;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -31,14 +32,16 @@ public abstract class Scheduler {
 
   /**
    * Updates the schedule of the vehicles in the next tick.
+   * @param state The state on which the schedule is based.
    * @param routes The new schedule, one (potentially empty) list per vehicle.
    */
   public abstract void updateSchedule(
+      GlobalStateObject state,
       ImmutableList<ImmutableList<Parcel>> routes);
 
   /**
    * Retrieves the schedule previously set via
-   * {@link #updateSchedule(ImmutableList)}.
+   * {@link #updateSchedule(GlobalStateObject,ImmutableList)}.
    * @return The previously set schedule.
    * @throws IllegalStateException If no schedule has been set.
    */

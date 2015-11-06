@@ -112,8 +112,6 @@ public class RtSolverModelTestRT extends RtSolverModelTest {
 
     assertThat(eventHistory.getEventTypeHistory())
         .containsExactly(EventType.NEW_SCHEDULE);
-    assertThat(eventHistory.getHistory().get(0).getIssuer())
-        .isInstanceOf(RtSimSolver.class);
     assertThat(solvers.get(0).isScheduleUpdated()).isTrue();
     // there was no problem to solve (i.e. no vehicles/parcels) so the provided
     // schedule is empty

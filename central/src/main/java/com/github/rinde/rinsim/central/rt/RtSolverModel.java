@@ -42,6 +42,7 @@ import com.github.rinde.rinsim.central.Solver;
 import com.github.rinde.rinsim.central.Solvers;
 import com.github.rinde.rinsim.central.Solvers.SimulationConverter;
 import com.github.rinde.rinsim.central.Solvers.SolveArgs;
+import com.github.rinde.rinsim.central.rt.RtSimSolver.NewScheduleEvent;
 import com.github.rinde.rinsim.central.rt.RtSolverModel.RtSimSolverSchedulerImpl.EventType;
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
@@ -653,13 +654,14 @@ public final class RtSolverModel
       InternalScheduler() {}
 
       @Override
-      public void updateSchedule(ImmutableList<ImmutableList<Parcel>> routes) {
+      public void updateSchedule(GlobalStateObject state,
+          ImmutableList<ImmutableList<Parcel>> routes) {
         currentSchedule = Optional.of(routes);
         isUpdated = true;
         LOGGER.trace("new schedule");
         try {
           simSolverEventDispatcher.dispatchEvent(
-            new Event(RtSimSolver.EventType.NEW_SCHEDULE, rtSimSolver));
+            new NewScheduleEvent(routes, state));
         } catch (final RuntimeException e) {
           reportException(e);
         }

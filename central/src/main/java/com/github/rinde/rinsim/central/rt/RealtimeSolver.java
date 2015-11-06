@@ -34,7 +34,8 @@ import com.github.rinde.rinsim.central.GlobalStateObject;
  * {@link #problemChanged(GlobalStateObject)} is called with a new view of the
  * current state. Using the received {@link GlobalStateObject} a new route
  * assignment should be computed which can be set to the vehicle(s) using
- * {@link Scheduler#updateSchedule(com.google.common.collect.ImmutableList)}.
+ * {@link Scheduler#updateSchedule(GlobalStateObject, com.google.common.collect.ImmutableList)}
+ * .
  *
  * @author Rinde van Lon
  */

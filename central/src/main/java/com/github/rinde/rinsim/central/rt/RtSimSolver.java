@@ -18,7 +18,9 @@ package com.github.rinde.rinsim.central.rt;
 import com.github.rinde.rinsim.central.GlobalStateObject;
 import com.github.rinde.rinsim.central.Solvers.SolveArgs;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
+import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.EventAPI;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -81,6 +83,33 @@ public abstract class RtSimSolver {
    * @return The {@link EventAPI}.
    */
   public abstract EventAPI getEventAPI();
+
+  public static class NewScheduleEvent extends Event {
+    private final ImmutableList<ImmutableList<Parcel>> schedule;
+    private final GlobalStateObject state;
+
+    protected NewScheduleEvent(ImmutableList<ImmutableList<Parcel>> sched,
+        GlobalStateObject st) {
+      super(EventType.NEW_SCHEDULE);
+      schedule = sched;
+      state = st;
+    }
+
+    public ImmutableList<ImmutableList<Parcel>> getSchedule() {
+      return schedule;
+    }
+
+    public GlobalStateObject getState() {
+      return state;
+    }
+
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(getClass())
+          .add("schedule", schedule)
+          .toString();
+    }
+  }
 
   /**
    * The event types dispatched by {@link RtSimSolver}.

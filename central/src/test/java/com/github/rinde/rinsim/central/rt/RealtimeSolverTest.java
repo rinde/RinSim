@@ -526,9 +526,10 @@ public class RealtimeSolverTest {
     }
 
     @Override
-    public void updateSchedule(ImmutableList<ImmutableList<Parcel>> routes) {
+    public void updateSchedule(GlobalStateObject state,
+        ImmutableList<ImmutableList<Parcel>> routes) {
       updateScheduleCalls++;
-      delegate.updateSchedule(routes);
+      delegate.updateSchedule(state, routes);
     }
 
     @Override
@@ -617,7 +618,7 @@ public class RealtimeSolverTest {
           .of(ImmutableList.copyOf(snapshot.getAvailableParcels()),
             ImmutableList.<Parcel>of());
 
-      scheduler.get().updateSchedule(schedule);
+      scheduler.get().updateSchedule(snapshot, schedule);
       assertThat(scheduler.get().getCurrentSchedule()).isEqualTo(schedule);
       scheduler.get().doneForNow();
     }
