@@ -158,7 +158,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
   }
 
   void shutdownExecutor() {
-    LOGGER.trace("shutdownExecutor");
+    LOGGER.trace("Shutting down executor..");
     final ListeningScheduledExecutorService ex = realtimeState.executor;
     if (ex != null) {
       ex.shutdown();
@@ -174,6 +174,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
       } catch (final InterruptedException e) {
         throw new IllegalStateException(e);
       }
+      LOGGER.trace("Executor shutdown.");
     }
     verifyNotNull(affinityLock).release();
   }

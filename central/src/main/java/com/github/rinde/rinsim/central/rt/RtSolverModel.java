@@ -160,10 +160,12 @@ public final class RtSolverModel
     if (executor.isPresent()) {
       executor.get().shutdownNow();
       try {
+        LOGGER.trace("Shutting down executor..");
         executor.get().awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
       } catch (final InterruptedException e) {
         throw new IllegalStateException(e);
       }
+      LOGGER.trace("Executor shutdown.");
     }
   }
 
@@ -249,6 +251,7 @@ public final class RtSolverModel
         factory);
       executor = Optional.of(MoreExecutors.listeningDecorator(
         Executors.newFixedThreadPool(threads, factory)));
+
     }
   }
 
@@ -382,7 +385,8 @@ public final class RtSolverModel
     void checkExceptions() {
       if (!exceptions.isEmpty()) {
         shutdown();
-        LOGGER.error(exceptions.get(0).getMessage(), exceptions.get(0));
+        LOGGER.error("Found " + exceptions.size() + " exceptions.",
+          exceptions.get(0));
         if (exceptions.get(0) instanceof RuntimeException) {
           throw (RuntimeException) exceptions.get(0);
         } else if (exceptions.get(0) instanceof Error) {
@@ -636,9 +640,10 @@ public final class RtSolverModel
         @Override
         public void onFailure(Throwable t) {
           if (t instanceof CancellationException) {
-            LOGGER.trace("RealtimeSolver execution got cancelled");
+            LOGGER.info("RealtimeSolver execution got cancelled");
             return;
           }
+          LOGGER.warn(t.getMessage());
           simSolversManager.addException(t);
         }
       }
@@ -651,8 +656,13 @@ public final class RtSolverModel
       public void updateSchedule(ImmutableList<ImmutableList<Parcel>> routes) {
         currentSchedule = Optional.of(routes);
         isUpdated = true;
-        simSolverEventDispatcher.dispatchEvent(
-          new Event(RtSimSolver.EventType.NEW_SCHEDULE, rtSimSolver));
+        LOGGER.trace("new schedule");
+        try {
+          simSolverEventDispatcher.dispatchEvent(
+            new Event(RtSimSolver.EventType.NEW_SCHEDULE, rtSimSolver));
+        } catch (final RuntimeException e) {
+          reportException(e);
+        }
       }
 
       @Override
