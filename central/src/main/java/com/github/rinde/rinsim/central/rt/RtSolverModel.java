@@ -432,6 +432,7 @@ public final class RtSolverModel
     void addException(Throwable t) {
       LOGGER.warn("exception occured: {}: {}", t.getClass().getName(),
         t.getMessage());
+      LOGGER.error("", t);
       exceptions.add(t);
     }
 
