@@ -695,6 +695,9 @@ public final class RtSolverModel
 
       @Override
       public void reportException(Throwable t) {
+        if (t instanceof InterruptedException) {
+          return;
+        }
         simSolversManager.addException(t);
       }
     }
