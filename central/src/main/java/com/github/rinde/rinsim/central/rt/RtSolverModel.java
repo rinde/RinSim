@@ -437,6 +437,9 @@ public final class RtSolverModel
     void addException(Throwable t) {
       LOGGER.warn("exception occured: {}: {}", t.getClass().getName(),
         t.getMessage());
+      if (t instanceof InterruptedException) {
+        return;
+      }
       LOGGER.error("", t);
       exceptions.add(t);
     }
@@ -444,9 +447,6 @@ public final class RtSolverModel
     @Override
     public void uncaughtException(@SuppressWarnings("null") Thread t,
         @SuppressWarnings("null") Throwable e) {
-      if (e instanceof InterruptedException) {
-        return;
-      }
       addException(e);
     }
   }
@@ -532,6 +532,22 @@ public final class RtSolverModel
 
     enum EventType {
       START_COMPUTING, DONE_COMPUTING;
+    }
+
+    void handleFailure(Throwable t) {
+      if (t instanceof CancellationException
+          || t instanceof InterruptedException) {
+        LOGGER.info("RealtimeSolver execution got cancelled/interrupted");
+        try {
+          eventDispatcher.dispatchEvent(
+            new Event(RtSimSolverSchedulerImpl.EventType.DONE_COMPUTING,
+                reference));
+        } catch (final RuntimeException e) {
+          simSolversManager.addException(e);
+        }
+      } else {
+        simSolversManager.addException(t);
+      }
     }
 
     class InternalRtSimSolver extends RtSimSolver {
@@ -643,12 +659,7 @@ public final class RtSolverModel
 
         @Override
         public void onFailure(Throwable t) {
-          if (t instanceof CancellationException
-              || t instanceof InterruptedException) {
-            LOGGER.info("RealtimeSolver execution got cancelled");
-            return;
-          }
-          simSolversManager.addException(t);
+          handleFailure(t);
         }
       }
     }
@@ -695,10 +706,7 @@ public final class RtSolverModel
 
       @Override
       public void reportException(Throwable t) {
-        if (t instanceof InterruptedException) {
-          return;
-        }
-        simSolversManager.addException(t);
+        handleFailure(t);
       }
     }
   }
