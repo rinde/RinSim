@@ -92,7 +92,7 @@ final class SimulationViewer extends Composite implements TickListener,
     new org.eclipse.swt.graphics.Point(50, 10);
   static final String PLAY_LABEL = "&Play\tCtrl+P";
   static final long SLEEP_MS = 30;
-  static final long TIME_FORMATTER_THRESHOLD = 500;
+  static final long TIME_FORMATTER_THRESHOLD = 200;
   static final String TIME_SEPARATOR = ":";
   static final PeriodFormatter FORMATTER = new PeriodFormatterBuilder()
       .appendDays()
