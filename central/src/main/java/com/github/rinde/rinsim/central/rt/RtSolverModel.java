@@ -162,11 +162,20 @@ public final class RtSolverModel
       executor.get().shutdownNow();
       try {
         LOGGER.trace("Shutting down executor..");
-        executor.get().awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+        final boolean success =
+          executor.get().awaitTermination(2, TimeUnit.SECONDS);
+        if (success) {
+          LOGGER.trace("Executor shutdown.");
+        } else {
+          LOGGER.warn("Shutting down executor timed out.");
+        }
       } catch (final InterruptedException e) {
-        throw new IllegalStateException(e);
+        if (executor.get().isShutdown()) {
+          LOGGER.trace("Interrupt, but executor shutdown.");
+        } else {
+          LOGGER.warn("Executor shutdown interrupted..");
+        }
       }
-      LOGGER.trace("Executor shutdown.");
     }
   }
 
@@ -385,9 +394,10 @@ public final class RtSolverModel
 
     void checkExceptions() {
       if (!exceptions.isEmpty()) {
-        shutdown();
-        LOGGER.error("Found " + exceptions.size() + " exceptions.",
+        LOGGER.error("Found " + exceptions.size() + " exception(s). First:",
           exceptions.get(0));
+
+        shutdown();
         if (exceptions.get(0) instanceof RuntimeException) {
           throw (RuntimeException) exceptions.get(0);
         } else if (exceptions.get(0) instanceof Error) {
@@ -437,6 +447,7 @@ public final class RtSolverModel
     void addException(Throwable t) {
       LOGGER.warn("exception occured: {}: {}", t.getClass().getName(),
         t.getMessage());
+
       if (t instanceof InterruptedException) {
         return;
       }
@@ -476,7 +487,6 @@ public final class RtSolverModel
       final RtSimSolverSchedulerImpl s =
         new RtSimSolverSchedulerImpl(clock, solver, roadModel, pdpModel,
             associatedVehicles, executor.get(), manager);
-
       return s.rtSimSolver;
     }
 
@@ -493,7 +503,7 @@ public final class RtSolverModel
     final RealtimeSolver solver;
     final RealtimeClockController clock;
     final ListeningExecutorService executor;
-    final RtSimSolver rtSimSolver;
+    final InternalRtSimSolver rtSimSolver;
     final Scheduler scheduler;
     final RtSimSolverSchedulerImpl reference;
     final SimSolversManager simSolversManager;
@@ -551,7 +561,6 @@ public final class RtSolverModel
     }
 
     class InternalRtSimSolver extends RtSimSolver {
-
       final SnapshotCallback callback;
 
       InternalRtSimSolver() {

@@ -46,7 +46,7 @@ public final class AffinityGroupThreadFactory implements ThreadFactory {
   private final UncaughtExceptionHandler exceptionHandler;
   @Nullable
   private AffinityLock lastAffinityLock;
-  private int id;
+  private final AtomicInteger id;
 
   /**
    * Create a new instance where threads get the specified name prefix. All
@@ -74,6 +74,7 @@ public final class AffinityGroupThreadFactory implements ThreadFactory {
       UncaughtExceptionHandler uncaughtExceptionHandler, boolean daemon) {
     exceptionHandler = uncaughtExceptionHandler;
     numThreads = new AtomicInteger();
+    id = new AtomicInteger();
     threadNamePrefix = name;
     createDaemonThreads = daemon;
     lock = new Object();
@@ -81,19 +82,21 @@ public final class AffinityGroupThreadFactory implements ThreadFactory {
 
   @Override
   public synchronized Thread newThread(@Nullable final Runnable r) {
-    final String threadName =
-      id == 0 ? threadNamePrefix : threadNamePrefix + '-' + id;
+    final String threadName = threadNamePrefix + '-' + id.getAndIncrement();
     numThreads.incrementAndGet();
-    LOGGER.info("{} create new thread with '{}'.", this, threadName);
+    LOGGER.info("create new thread with '{}'.", threadName);
     final Thread t = new Thread(new Runnable() {
       @Override
       public void run() {
-        acquireLock();
         try {
+          LOGGER.info("thread start");
+          acquireLock();
+          LOGGER.info("done acquiring lock");
           verifyNotNull(r).run();
         } finally {
           releaseLock();
         }
+        LOGGER.info("end of thread");
       }
     }, threadName);
     t.setUncaughtExceptionHandler(exceptionHandler);
