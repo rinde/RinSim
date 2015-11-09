@@ -39,6 +39,8 @@ public final class AffinityGroupThreadFactory implements ThreadFactory {
   static final Logger LOGGER =
     LoggerFactory.getLogger(AffinityGroupThreadFactory.class);
 
+  private static final long SLEEP_BEFORE_RETRY = 1000L;
+
   private final String threadNamePrefix;
   private final boolean createDaemonThreads;
   private final AtomicInteger numThreads;
@@ -117,7 +119,7 @@ public final class AffinityGroupThreadFactory implements ThreadFactory {
         } catch (final IllegalStateException e) {
           LOGGER.warn("Failed acquiring lock, sleep 1s and then try again", e);
           try {
-            Thread.sleep(1000L);
+            Thread.sleep(SLEEP_BEFORE_RETRY);
           } catch (final InterruptedException e1) {
             Thread.currentThread().interrupt();
             return;
