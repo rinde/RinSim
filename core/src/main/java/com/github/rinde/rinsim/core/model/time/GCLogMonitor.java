@@ -218,7 +218,9 @@ public final class GCLogMonitor {
 
     @Override
     public void handle(@Nullable String line) {
-      if (line != null && line.contains(FILTER)) {
+      if (Thread.interrupted()) {
+        close();
+      } else if (line != null && line.contains(FILTER)) {
         final String[] parts = line.split(": ");
 
         final Double t = Doubles.tryParse(parts[0]);
