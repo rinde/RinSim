@@ -117,7 +117,7 @@ public final class AffinityGroupThreadFactory implements ThreadFactory {
         try {
           lastAffinityLock = AffinityLock.acquireLock();
         } catch (final IllegalStateException e) {
-          LOGGER.warn("Failed acquiring lock, sleep 1s and then try again", e);
+          LOGGER.warn("Failed acquiring lock, sleep 1s and then try again");
           try {
             Thread.sleep(SLEEP_BEFORE_RETRY);
           } catch (final InterruptedException e1) {
