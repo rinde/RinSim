@@ -426,11 +426,15 @@ public final class RtSolverModel
     public void handleEvent(Event e) {
       checkExceptions();
       synchronized (computingSimSolvers) {
+        final boolean isComputingBefore = isComputing();
+
         LOGGER.trace("receive: {}, computing: {}, clock is ticking: {}, {}", e,
-          isComputing(), clock.isTicking(), computingSimSolvers);
+          isComputingBefore, clock.isTicking(), computingSimSolvers);
         if (e.getEventType() == EventType.START_COMPUTING) {
-          LOGGER.info("start computing -> switch to real time");
-          clock.switchToRealTime();
+          if (!isComputingBefore) {
+            LOGGER.info("start computing -> switch to real time");
+            clock.switchToRealTime();
+          }
           computingSimSolvers.add((RtSimSolverSchedulerImpl) e.getIssuer());
         } else if (e.getEventType() == EventType.DONE_COMPUTING) {
           // done computing
