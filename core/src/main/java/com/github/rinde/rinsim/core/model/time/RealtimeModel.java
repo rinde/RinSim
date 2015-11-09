@@ -138,7 +138,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         final StateTransitionEvent<Trigger, RealtimeModel> event =
             (StateTransitionEvent<Trigger, RealtimeModel>) e;
 
-        LOGGER.trace("{} {}", timeLapse, event);
+        LOGGER.debug("{} {}", timeLapse, event);
         if ((event.newState == realtimeState || event.newState == INIT_RT)
             && eventDispatcher.hasListenerFor(SWITCH_TO_REAL_TIME)) {
           eventDispatcher.dispatchEvent(new Event(SWITCH_TO_REAL_TIME, ref));
