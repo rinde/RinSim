@@ -130,14 +130,14 @@
 			</snapshots>
 			<id>swt-repo</id>
 			<name>SWT Repo</name>
-			<url>https://raw.githubusercontent.com/maven-eclipse/swt-repo/master/</url>
+			<url>http://maven-eclipse.github.io/maven</url>
 		</repository>
 	</repositories>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<sonar.language>java</sonar.language>
-		<swt.version>4.4</swt.version>
+		<swt.version>4.5.1</swt.version>
 		<!-- by default there are no arguments passed to tests -->
 		<test.arg />
 	</properties>
