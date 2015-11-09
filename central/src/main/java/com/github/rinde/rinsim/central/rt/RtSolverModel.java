@@ -151,6 +151,7 @@ public final class RtSolverModel
       @Override
       public void handleEvent(Event e) {
         manager.checkExceptions();
+        LOGGER.info("switch to real time");
         clock.switchToRealTime();
       }
     }, PDPModelEventType.NEW_PARCEL);
@@ -217,6 +218,7 @@ public final class RtSolverModel
 
   @Override
   public void afterTick(TimeLapse timeLapse) {
+    manager.checkExceptions();
     final boolean isComputing = manager.isComputing();
     if (!isComputing && clock.isTicking()
         && clock.getClockMode() == ClockMode.REAL_TIME) {
@@ -226,13 +228,12 @@ public final class RtSolverModel
               + "to switch to sim time on next tick");
         prevComputing = false;
       } else {
-        LOGGER.trace("request to switch to sim time");
+        LOGGER.info("request to switch to sim time");
         clock.switchToSimulatedTime();
       }
     } else if (isComputing) {
       prevComputing = true;
     }
-    manager.checkExceptions();
   }
 
   void initExecutor() {
@@ -427,6 +428,7 @@ public final class RtSolverModel
         LOGGER.trace("receive: {}, computing: {}, clock is ticking: {}, {}", e,
           isComputing(), clock.isTicking(), computingSimSolvers);
         if (e.getEventType() == EventType.START_COMPUTING) {
+          LOGGER.info("switch to real time");
           clock.switchToRealTime();
           computingSimSolvers.add((RtSimSolverSchedulerImpl) e.getIssuer());
         } else if (e.getEventType() == EventType.DONE_COMPUTING) {
