@@ -112,7 +112,18 @@ public final class AffinityGroupThreadFactory implements ThreadFactory {
         AffinitySupport.setAffinity(1 << al.cpuId());
       } else {
         LOGGER.info("{} acquire a lock on a CPU.", this);
-        lastAffinityLock = AffinityLock.acquireLock();
+        try {
+          lastAffinityLock = AffinityLock.acquireLock();
+        } catch (final IllegalStateException e) {
+          LOGGER.warn("Failed acquiring lock, sleep 1s and then try again", e);
+          try {
+            Thread.sleep(1000L);
+          } catch (final InterruptedException e1) {
+            Thread.currentThread().interrupt();
+            return;
+          }
+          lastAffinityLock = AffinityLock.acquireLock();
+        }
       }
     }
   }
