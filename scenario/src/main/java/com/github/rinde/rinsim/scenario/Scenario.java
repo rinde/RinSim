@@ -84,7 +84,7 @@ public abstract class Scenario {
 
   /**
    * @return The {@link TimeWindow} of the scenario indicates the start and end
-   *         of scenario.
+   *         of the scenario.
    */
   public abstract TimeWindow getTimeWindow();
 
