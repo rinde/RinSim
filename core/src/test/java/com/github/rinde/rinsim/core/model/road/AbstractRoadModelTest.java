@@ -47,6 +47,7 @@ import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.model.time.TimeLapseFactory;
 import com.github.rinde.rinsim.event.ListenerEventHistory;
 import com.github.rinde.rinsim.geom.Point;
+import com.github.rinde.rinsim.geom.PointTestUtil;
 import com.github.rinde.rinsim.util.TrivialRoadUser;
 import com.google.common.base.Predicate;
 import com.google.common.collect.HashBasedTable;
@@ -296,7 +297,7 @@ public abstract class AbstractRoadModelTest<T extends GenericRoadModel> {
 
     model.followPath(ru, asPath(SE), hour(1));
     final Point p = model.getPosition(ru);
-    assertTrue(model.containsObjectAt(ru, Point.duplicate(p)));
+    assertTrue(model.containsObjectAt(ru, PointTestUtil.duplicate(p)));
   }
 
   @Test

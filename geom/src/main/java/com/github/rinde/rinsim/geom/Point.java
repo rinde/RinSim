@@ -108,15 +108,6 @@ public class Point implements Serializable {
         Double.parseDouble(parts[1]));
   }
 
-  /**
-   * Duplicates the specified point.
-   * @param p The point to duplicate.
-   * @return A duplicate of p.
-   */
-  public static Point duplicate(Point p) {
-    return new Point(p.x, p.y);
-  }
-
   @Override
   public int hashCode() {
     return hashCode;

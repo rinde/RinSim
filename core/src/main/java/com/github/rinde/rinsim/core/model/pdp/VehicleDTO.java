@@ -64,6 +64,7 @@ public abstract class VehicleDTO {
    */
   public static class Builder {
     private static final double DEFAULT_SPEED = 50d;
+    private static final Point DEFAULT_START_POSITION = new Point(0, 0);
 
     Point startPosition;
     double speed;
@@ -71,7 +72,7 @@ public abstract class VehicleDTO {
     TimeWindow availabilityTimeWindow;
 
     Builder() {
-      startPosition = new Point(0, 0);
+      startPosition = DEFAULT_START_POSITION;
       speed = DEFAULT_SPEED;
       capacity = 1;
       availabilityTimeWindow = TimeWindow.always();

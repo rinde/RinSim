@@ -30,13 +30,13 @@ import com.google.common.collect.ImmutableList;
  */
 public final class Depots {
   private static final DepotGenerator SINGLE_CENTERED_DEPOT_GENERATOR =
-      new DepotGenerator() {
-        @Override
-        public Iterable<? extends AddDepotEvent> generate(long seed,
-            Point center) {
-          return ImmutableList.of(AddDepotEvent.create(-1, center));
-        }
-      };
+    new DepotGenerator() {
+      @Override
+      public Iterable<? extends AddDepotEvent> generate(long seed,
+          Point center) {
+        return ImmutableList.of(AddDepotEvent.create(-1, center));
+      }
+    };
 
   private Depots() {}
 
@@ -77,12 +77,14 @@ public final class Depots {
    * @author Rinde van Lon
    */
   public static class Builder {
+    private static final Point DEFAULT_POSITION = new Point(0d, 0d);
+
     StochasticSupplier<Point> positions;
     StochasticSupplier<Integer> numberOfDepots;
     StochasticSupplier<Long> times;
 
     Builder() {
-      positions = StochasticSuppliers.constant(new Point(0d, 0d));
+      positions = StochasticSuppliers.constant(DEFAULT_POSITION);
       numberOfDepots = StochasticSuppliers.constant(1);
       times = StochasticSuppliers.constant(-1L);
     }

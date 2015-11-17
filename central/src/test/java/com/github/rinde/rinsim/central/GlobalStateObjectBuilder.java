@@ -113,6 +113,7 @@ public class GlobalStateObjectBuilder {
   }
 
   public static class VSOBuilder {
+    static final Point DEFAULT_LOCATION = new Point(0, 0);
     VehicleDTO dto;
     Point location;
     Set<Parcel> contents;
@@ -125,7 +126,7 @@ public class GlobalStateObjectBuilder {
 
     VSOBuilder() {
       dto = VehicleDTO.builder().build();
-      location = new Point(0, 0);
+      location = DEFAULT_LOCATION;
       contents = new LinkedHashSet<>();
       remainingServiceTime = 0L;
       destination = null;

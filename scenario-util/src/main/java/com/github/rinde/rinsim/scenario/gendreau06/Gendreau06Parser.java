@@ -90,6 +90,7 @@ public final class Gendreau06Parser {
   private static final int TIME_MULTIPLIER_INTEGER = 1000;
   private static final int PARCEL_MAGNITUDE = 0;
   private static final long DEFAULT_TICK_SIZE = 1000L;
+  private static final Point DEPOT_POSITION = new Point(2.0, 2.5);
 
   private int numVehicles;
   private boolean allowDiversion;
@@ -342,7 +343,7 @@ public final class Gendreau06Parser {
     final int vehicles = numVehicles == -1 ? problemClass.vehicles
         : numVehicles;
 
-    final Point depotPosition = new Point(2.0, 2.5);
+    final Point depotPosition = DEPOT_POSITION;
     final double truckSpeed = 30;
 
     final List<TimedEvent> events = newArrayList();

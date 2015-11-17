@@ -91,9 +91,10 @@ public final class FabriRechtParser {
       maxX = Math.max(x, maxX);
       maxY = Math.max(y, maxY);
 
-      coordinates.add(new Point(x, y));
+      final Point pos = new Point(x, y);
+      coordinates.add(pos);
       if (Integer.parseInt(parts[0]) == 0) {
-        events.add(AddDepotEvent.create(0, new Point(x, y)));
+        events.add(AddDepotEvent.create(0, pos));
       }
       coordinateCounter++;
     }

@@ -32,6 +32,7 @@ import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.LengthData;
 import com.github.rinde.rinsim.geom.MultimapGraph;
 import com.github.rinde.rinsim.geom.Point;
+import com.github.rinde.rinsim.geom.PointTestUtil;
 import com.github.rinde.rinsim.geom.TableGraph;
 
 /**
@@ -63,8 +64,8 @@ public class PointsEqualityTest {
     assertEquals(p2, p2);
     assertEquals(p1, p2);
 
-    assertEquals(p1, Point.duplicate(p1));
-    assertEquals(p1, Point.duplicate(p2));
+    assertEquals(p1, PointTestUtil.duplicate(p1));
+    assertEquals(p1, PointTestUtil.duplicate(p2));
   }
 
   @Test
@@ -78,8 +79,8 @@ public class PointsEqualityTest {
     assertEquals(p1, p1);
     assertEquals(p2, p2);
     assertEquals(p1, p2);
-    assertEquals(p1, Point.duplicate(p1));
-    assertEquals(p1, Point.duplicate(p2));
+    assertEquals(p1, PointTestUtil.duplicate(p1));
+    assertEquals(p1, PointTestUtil.duplicate(p2));
   }
 
   @Test
@@ -91,8 +92,8 @@ public class PointsEqualityTest {
     assertEquals(p2, p2);
     assertEquals(p1, p2);
 
-    assertEquals(p1, Point.duplicate(p1));
-    assertEquals(p1, Point.duplicate(p2));
+    assertEquals(p1, PointTestUtil.duplicate(p1));
+    assertEquals(p1, PointTestUtil.duplicate(p2));
   }
 
   /**
@@ -115,7 +116,7 @@ public class PointsEqualityTest {
     // check if for other objects
     Point Aa, Bb;
     Aa = new Point(0, 0);
-    Bb = Point.duplicate(B);
+    Bb = PointTestUtil.duplicate(B);
 
     final GraphRoadModel.Loc Cc = GraphRoadModel.asLoc(new Point(13, 17));
     final GraphRoadModel.Loc Dd = GraphRoadModel.newLoc(
