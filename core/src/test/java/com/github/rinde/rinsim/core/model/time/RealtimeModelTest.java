@@ -29,7 +29,6 @@ import org.junit.runners.Parameterized.Parameters;
 import com.github.rinde.rinsim.core.model.FakeDependencyProvider;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController.ClockMode;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController.RtClockEventType;
-import com.github.rinde.rinsim.core.model.time.RealtimeModel.Realtime.MeasuredDeviation;
 import com.github.rinde.rinsim.core.model.time.TimeModel.AbstractBuilder;
 import com.github.rinde.rinsim.core.model.time.TimeModel.RealtimeBuilder;
 import com.github.rinde.rinsim.testutil.TestUtil;
@@ -118,8 +117,8 @@ public class RealtimeModelTest extends TimeModelTest<RealtimeModel> {
           } catch (final InterruptedException e) {
             throw new IllegalStateException(e);
           }
-        } else
-          if (timeLapse.getStartTime() >= timeLapse.getTickLength() * t * 2) {
+        } else if (timeLapse.getStartTime() >= timeLapse.getTickLength() * t
+            * 2) {
           System.gc();
         }
       }

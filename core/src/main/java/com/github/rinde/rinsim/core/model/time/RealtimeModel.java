@@ -48,7 +48,7 @@ import com.github.rinde.rinsim.fsm.AbstractState;
 import com.github.rinde.rinsim.fsm.StateMachine;
 import com.github.rinde.rinsim.fsm.StateMachine.StateMachineEvent;
 import com.github.rinde.rinsim.fsm.StateMachine.StateTransitionEvent;
-import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableList;
 import com.google.common.math.DoubleMath;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -97,9 +97,8 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
     // minTickDuration = DoubleMath.roundToLong(MIN_TICK_LENGTH_FACTOR *
     // tickNanos,
     // RoundingMode.DOWN);
-    maxTickDeviationNs =
-        DoubleMath.roundToLong(MAX_DEVIATION_FACTOR * tickNanos,
-            RoundingMode.UP);
+    maxTickDeviationNs = DoubleMath.roundToLong(
+        MAX_DEVIATION_FACTOR * tickNanos, RoundingMode.UP);
 
     // final Range<Long> tickDuration =
     // Range.closed(minTickDuration, maxTickDuration);
@@ -110,7 +109,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
     // tickNanos * MAX_MEAN_DEVIATION_PERC, RoundingMode.UP);
 
     realtimeState =
-        new Realtime(tickNanos, maxStdNs, maxTickDeviationNs);
+        new Realtime(tickNanos, maxStdNs, maxTickDeviationNs, this);
     final SimulatedTime st = new SimulatedTime();
     stateMachine = StateMachine
         .create(
@@ -238,6 +237,10 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
   @Override
   public ClockMode getClockMode() {
     return ((ClockState) stateMachine.getCurrentState()).getClockMode();
+  }
+
+  public ImmutableList<MeasuredDeviation> getDeviations() {
+    return realtimeState.getMeasuredDeviations();
   }
 
   // @Override
@@ -379,8 +382,10 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
     long lastRtRequest;
 
     TimeRunner timeRunner;
+    final List<MeasuredDeviation> deviations;
 
-    Realtime(long tickNs, long maxAvgTickDevNs, long maxTickDevNs) {
+    Realtime(long tickNs, long maxAvgTickDevNs, long maxTickDevNs,
+        RealtimeModel context) {
       tickNanos = tickNs;
       maxAvgDeviationNs = maxAvgTickDevNs;
       // maxMeanDeviationNs = maxMeanDevNs;
@@ -389,7 +394,14 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
       taskIsRunning = new AtomicBoolean();
       isShuttingDown = new AtomicBoolean();
       exceptions = new ArrayList<>();
+      deviations = new ArrayList<>();
+    }
 
+    /**
+     * @return
+     */
+    public ImmutableList<MeasuredDeviation> getMeasuredDeviations() {
+      return ImmutableList.copyOf(deviations);
     }
 
     @Override
@@ -448,6 +460,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         public void onSuccess(@Nullable Object result) {}
       });
       awaitTermination(context);
+      deviations.addAll(timeRunner.measuredDeviations);
       LOGGER.trace("end of realtime, next trigger {}", nextTrigger);
       final Trigger t = nextTrigger;
       nextTrigger = null;
@@ -598,91 +611,61 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
           // }
           // if (!allowedTickDuration.contains(interArrivalTimeNs)) {
 
-          long correctedDeviationNs = deviationNs;
-          if (Math.abs(deviationNs) > maxTickDeviationNs) {
-            correctedDeviationNs = Math.max(0, deviationNs - correctionNs);
-          }
+          final long correctedDeviationNs = deviationNs;
+          // if (Math.abs(deviationNs) > maxTickDeviationNs) {
+          // correctedDeviationNs = Math.max(0, deviationNs - correctionNs);
+          // }
 
-          if (Math.abs(correctedDeviationNs) > maxTickDeviationNs) {
-
-            throw new IllegalStateException(
-                // interArrivalTimeNs / 1000000d + " is invalid (allowed: "
-                // + allowedTickDuration +
-
-                "deviation is too much: " + deviationNs / MS_TO_NS
-                    + " max allowed: " + maxTickDeviationNs / MS_TO_NS
-                    + " correction: " + correctionNs / MS_TO_NS
-                    + " interval " + logMonitor.toVMTime(expectedTs1ms)
-                    + " " + logMonitor.toVMTime(ts2.getMillis())
-                    + " expected event time: " + expectedTs2ns
-                    + " actual event time: " + ts2.getNanos()
-                    + System.lineSeparator()
-                    + logMonitor.getPauseIntervals()
-                    + System.lineSeparator()
-                    + measuredDeviations);
-          }
+          // if (Math.abs(correctedDeviationNs) > maxTickDeviationNs) {
+          //
+          // throw new IllegalStateException(
+          // // interArrivalTimeNs / 1000000d + " is invalid (allowed: "
+          // // + allowedTickDuration +
+          //
+          // "deviation is too much: " + deviationNs / MS_TO_NS
+          // + " max allowed: " + maxTickDeviationNs / MS_TO_NS
+          // + " correction: " + correctionNs / MS_TO_NS
+          // + " interval " + logMonitor.toVMTime(expectedTs1ms)
+          // + " " + logMonitor.toVMTime(ts2.getMillis())
+          // + " expected event time: " + expectedTs2ns
+          // + " actual event time: " + ts2.getNanos()
+          // + System.lineSeparator()
+          // + logMonitor.getPauseIntervals()
+          // + System.lineSeparator()
+          // + measuredDeviations);
+          // }
           measuredDeviations.addLast(
-              MeasuredDeviation.create(correctedDeviationNs, correctionNs));
+              MeasuredDeviation.create(correctedDeviationNs, correctionNs,
+                  ts1));
         }
 
-        if (measuredDeviations.size() < CONSISTENCY_CHECK_LENGTH) {
-          return;
-        }
-
-        // final SummaryStatistics ss = new SummaryStatistics();
-
-        long sum = 0;
-        for (final MeasuredDeviation md : measuredDeviations) {
-          sum += md.getDeviationNs();
-        }
-        final double avgDeviation = sum / (double) measuredDeviations.size();
-        checkState(Math.abs(avgDeviation) < maxAvgDeviationNs,
-            "Avg deviation is above threshold of %sns: %sns.",
-            maxAvgDeviationNs,
-            avgDeviation, measuredDeviations);
-            // checkState(
-            // Math.abs(tickNanos - sum.getMean()) < maxMeanDeviationNs,
-            // "Mean interval is above threshold of %sns: %s.",
-            // maxMeanDeviationNs, sum.getMean());
-
-        // remove old values to free memory
-        while (measuredDeviations.size() > CONSISTENCY_CHECK_LENGTH) {
-          measuredDeviations.removeFirst();
-        }
+        // if (measuredDeviations.size() < CONSISTENCY_CHECK_LENGTH) {
+        // return;
+        // }
+        //
+        // // final SummaryStatistics ss = new SummaryStatistics();
+        //
+        // long sum = 0;
+        // for (final MeasuredDeviation md : measuredDeviations) {
+        // sum += md.getDeviationNs();
+        // }
+        // final double avgDeviation = sum / (double) measuredDeviations.size();
+        // checkState(Math.abs(avgDeviation) < maxAvgDeviationNs,
+        // "Avg deviation is above threshold of %sns: %sns.",
+        // maxAvgDeviationNs,
+        // avgDeviation, measuredDeviations);
+        // // checkState(
+        // // Math.abs(tickNanos - sum.getMean()) < maxMeanDeviationNs,
+        // // "Mean interval is above threshold of %sns: %s.",
+        // // maxMeanDeviationNs, sum.getMean());
+        //
+        // // remove old values to free memory
+        // while (measuredDeviations.size() > CONSISTENCY_CHECK_LENGTH) {
+        // measuredDeviations.removeFirst();
+        // }
       }
     }
 
-    @AutoValue
-    abstract static class MeasuredDeviation {
-
-      abstract long getDeviationNs();
-
-      abstract long getCorrectionNs();
-
-      static MeasuredDeviation create(long dev, long corr) {
-        return new AutoValue_RealtimeModel_Realtime_MeasuredDeviation(dev,
-            corr);
-      }
-    }
-
-    @AutoValue
-    abstract static class TimeStamp {
-
-      abstract long getTickCount();
-
-      abstract long getMillis();
-
-      abstract long getNanos();
-
-      static TimeStamp now(long tickCount) {
-        return create(tickCount, System.currentTimeMillis(), System.nanoTime());
-      }
-
-      static TimeStamp create(long tickCount, long millis, long nanos) {
-        return new AutoValue_RealtimeModel_Realtime_TimeStamp(tickCount, millis,
-            nanos);
-      }
-    }
   }
 
   @SuppressWarnings("null")

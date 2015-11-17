@@ -33,6 +33,7 @@ import com.github.rinde.rinsim.core.model.time.RealtimeClockController.ClockMode
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
 import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 
 /**
@@ -66,6 +67,10 @@ public final class RealtimeClockLogger extends AbstractModelVoid
    */
   public List<LogEntry> getLog() {
     return Collections.unmodifiableList(log);
+  }
+
+  public ImmutableList<MeasuredDeviation> getDeviations() {
+    return ((RealtimeModel) clock).getDeviations();
   }
 
   /**
