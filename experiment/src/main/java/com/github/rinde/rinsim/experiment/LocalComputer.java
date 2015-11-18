@@ -55,12 +55,7 @@ final class LocalComputer implements Computer {
     }
     final List<ExperimentRunner> runners = runnerBuilder.build();
 
-    for (final ResultListener rl : builder.resultListeners) {
-      rl.startComputing(runners.size());
-    }
-
     final int threads = Math.min(builder.numThreads, runners.size());
-
     final ListeningExecutorService executor;
     if (builder.showGui) {
       executor = MoreExecutors.newDirectExecutorService();

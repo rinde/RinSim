@@ -19,7 +19,9 @@ import java.io.PrintStream;
 
 import com.github.rinde.rinsim.experiment.Experiment.SimulationResult;
 import com.github.rinde.rinsim.experiment.PostProcessor.FailureStrategy;
+import com.github.rinde.rinsim.scenario.Scenario;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * A {@link ResultListener} that writes simple progress reports to a
@@ -41,8 +43,20 @@ public class CommandLineProgress implements ResultListener {
   }
 
   @Override
-  public void startComputing(int numberOfSimulations) {
-    printStream.println("Start computing: " + numberOfSimulations);
+  public void startComputing(int numberOfSimulations,
+      ImmutableSet<MASConfiguration> configurations,
+      ImmutableSet<Scenario> scenarios,
+      int repetitions) {
+    printStream.print("Start computing: ");
+    printStream.print(numberOfSimulations);
+    printStream.print(" simulations (=");
+    printStream.print(configurations.size());
+    printStream.print(" configurations x ");
+    printStream.print(scenarios.size());
+    printStream.print(" scenarios x ");
+    printStream.print(repetitions);
+    printStream.println(" repetitions)");
+
     total = numberOfSimulations;
     received = 0;
     failures = 0;

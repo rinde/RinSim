@@ -16,6 +16,8 @@
 package com.github.rinde.rinsim.experiment;
 
 import com.github.rinde.rinsim.experiment.Experiment.SimulationResult;
+import com.github.rinde.rinsim.scenario.Scenario;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Implementors get notified of the progress of an {@link Experiment}.
@@ -23,11 +25,19 @@ import com.github.rinde.rinsim.experiment.Experiment.SimulationResult;
  */
 public interface ResultListener {
   /**
-   * This method is called to signal the start of an experiment.
+   * This method is called to signal the start of an experiment. The number of
+   * simulations equals:
+   * <code>|configurations| x |scenarios| x repetitions</code>.
    * @param numberOfSimulations The number of simulations that is going to be
    *          executed.
+   * @param configurations The set of configurations that will be used.
+   * @param scenarios The set of scenarios.
+   * @param repetitions The number of repetitions.
    */
-  void startComputing(int numberOfSimulations);
+  void startComputing(int numberOfSimulations,
+      ImmutableSet<MASConfiguration> configurations,
+      ImmutableSet<Scenario> scenarios,
+      int repetitions);
 
   // TODO extend description, the SimulationResult may be a failed simulation
   /**

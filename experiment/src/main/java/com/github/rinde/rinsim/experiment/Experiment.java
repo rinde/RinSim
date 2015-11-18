@@ -517,8 +517,16 @@ public final class Experiment {
           "The GUI can not be shown when using more than one thread.");
       final List<Long> seeds = generateSeeds();
 
+      final ImmutableSet<Scenario> scenarios = getAllScenarios();
+      final ImmutableSet<SimArgs> runners =
+          createFactorialSetup(seeds, scenarios);
+      for (final ResultListener rl : resultListeners) {
+        rl.startComputing(runners.size(),
+            ImmutableSet.copyOf(configurationsSet),
+            scenarios,
+            repetitions);
+      }
       // run Forrest run!
-      final ImmutableSet<SimArgs> runners = createFactorialSetup(seeds);
       return computerType.get().compute(this, runners);
     }
 
@@ -570,9 +578,8 @@ public final class Experiment {
       return scenarios.size();
     }
 
-    private ImmutableSet<SimArgs> createFactorialSetup(List<Long> seeds) {
-      final Set<Scenario> scenarios = getAllScenarios();
-
+    private ImmutableSet<SimArgs> createFactorialSetup(List<Long> seeds,
+        Set<Scenario> scenarios) {
       final ImmutableSet<MASConfiguration> conf = ImmutableSet
           .copyOf(configurationsSet);
 

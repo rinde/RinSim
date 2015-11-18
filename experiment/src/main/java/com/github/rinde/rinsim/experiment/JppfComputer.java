@@ -135,10 +135,6 @@ final class JppfComputer implements Computer {
       }
     }
 
-    for (final ResultListener l : listeners) {
-      l.startComputing(tasks.size());
-    }
-
     checkState(!getJPPFClient().isClosed());
     try {
       for (final JPPFJob job : jobs) {
