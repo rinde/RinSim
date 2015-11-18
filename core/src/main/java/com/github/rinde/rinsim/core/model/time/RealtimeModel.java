@@ -381,8 +381,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
     // keeps time for last real-time request while in RT mode
     long lastRtRequest;
 
-    TimeRunner timeRunner;
-    final List<MeasuredDeviation> deviations;
+    final List<TimeRunner> timeRunners;
 
     Realtime(long tickNs, long maxAvgTickDevNs, long maxTickDevNs,
         RealtimeModel context) {
@@ -394,14 +393,19 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
       taskIsRunning = new AtomicBoolean();
       isShuttingDown = new AtomicBoolean();
       exceptions = new ArrayList<>();
-      deviations = new ArrayList<>();
+      timeRunners = new ArrayList<>();
     }
 
     /**
      * @return
      */
     public ImmutableList<MeasuredDeviation> getMeasuredDeviations() {
-      return ImmutableList.copyOf(deviations);
+      final ImmutableList.Builder<MeasuredDeviation> deviationBuilder =
+          ImmutableList.builder();
+      for (final TimeRunner tr : timeRunners) {
+        deviationBuilder.addAll(tr.getMeasuredDeviations());
+      }
+      return deviationBuilder.build();
     }
 
     @Override
@@ -439,9 +443,11 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
       }
 
       taskIsRunning.set(true);
-      timeRunner = new TimeRunner(context);
+      timeRunners.add(new TimeRunner(context));
       schedulerFuture =
-          verifyNotNull(executor).scheduleAtFixedRate(timeRunner, 0,
+          verifyNotNull(executor).scheduleAtFixedRate(
+              timeRunners.get(timeRunners.size() - 1),
+              0,
               tickNanos,
               TimeUnit.NANOSECONDS);
       final ListenableScheduledFuture<?> future = schedulerFuture;
@@ -460,7 +466,6 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         public void onSuccess(@Nullable Object result) {}
       });
       awaitTermination(context);
-      deviations.addAll(timeRunner.measuredDeviations);
       LOGGER.trace("end of realtime, next trigger {}", nextTrigger);
       final Trigger t = nextTrigger;
       nextTrigger = null;
@@ -490,7 +495,6 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         while (taskIsRunning.get()) {
           Thread.sleep(THREAD_SLEEP_MS);
         }
-
       } catch (final InterruptedException e) {
         throw new IllegalStateException(e);
       }
@@ -504,18 +508,18 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         }
         throw new IllegalStateException(exceptions.get(0));
       }
-      try {
-        Thread.sleep(THREAD_SLEEP_MS);
-      } catch (final InterruptedException e) {
-        throw new IllegalStateException(e);
-      }
-      try {
-        timeRunner.checkConsistency();
-      } catch (final IllegalStateException e) {
-        context.cleanUpAfterException();
-        throw e;
-      }
-      LOGGER.trace("done waiting");
+      // try {
+      // Thread.sleep(THREAD_SLEEP_MS);
+      // } catch (final InterruptedException e) {
+      // throw new IllegalStateException(e);
+      // }
+      // try {
+      // timeRunner.checkConsistency();
+      // } catch (final IllegalStateException e) {
+      // context.cleanUpAfterException();
+      // throw e;
+      // }
+      // LOGGER.trace("done waiting");
       if (isShuttingDown.get()) {
         context.shutdownExecutor();
       }
@@ -549,6 +553,14 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         logMonitor = GCLogMonitor.getInstance();
       }
 
+      /**
+       * @return
+       */
+      public Iterable<? extends MeasuredDeviation> getMeasuredDeviations() {
+        checkConsistency();
+        return measuredDeviations;
+      }
+
       @Override
       public void run() {
         final TimeStamp ts = TimeStamp.now(counter);
@@ -557,7 +569,6 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         }
         timeStampsBuffer.add(ts);
 
-        checkConsistency();
         context.tickImpl();
 
         LOGGER.trace("tick {} is done, nextTrigger: {} ", counter, nextTrigger);
@@ -567,13 +578,15 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         counter++;
       }
 
+      // TODO refactor this method
       void checkConsistency() {
         // check if GCLogMonitor has a time AFTER the timestamp (in that
         // case we are sure that we have complete information)
         // unless forceCheck=true -> then we always check all time stamps
         while (!timeStampsBuffer.isEmpty()
-            && logMonitor
-                .hasSurpassed(timeStampsBuffer.peekFirst().getMillis())) {
+        // && logMonitor
+        // .hasSurpassed(timeStampsBuffer.peekFirst().getMillis())
+        ) {
           timeStamps.add(timeStampsBuffer.removeFirst());
         }
 
@@ -636,7 +649,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
           // }
           measuredDeviations.addLast(
               MeasuredDeviation.create(correctedDeviationNs, correctionNs,
-                  ts1));
+                  ts1, interArrivalTimeNs));
         }
 
         // if (measuredDeviations.size() < CONSISTENCY_CHECK_LENGTH) {

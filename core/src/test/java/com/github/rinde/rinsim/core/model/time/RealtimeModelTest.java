@@ -19,7 +19,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static java.util.Arrays.asList;
 
 import java.util.Collection;
-import java.util.Deque;
 
 import javax.measure.unit.NonSI;
 
@@ -32,6 +31,7 @@ import com.github.rinde.rinsim.core.model.time.RealtimeClockController.RtClockEv
 import com.github.rinde.rinsim.core.model.time.TimeModel.AbstractBuilder;
 import com.github.rinde.rinsim.core.model.time.TimeModel.RealtimeBuilder;
 import com.github.rinde.rinsim.testutil.TestUtil;
+import com.google.common.collect.Iterables;
 
 /**
  * @author Rinde van Lon
@@ -158,10 +158,10 @@ public class RealtimeModelTest extends TimeModelTest<RealtimeModel> {
     getModel().start();
 
     assertThat(getModel().getCurrentTime()).isEqualTo(2000);
-    final Deque<MeasuredDeviation> interArrivalTimes =
-        getModel().realtimeState.timeRunner.measuredDeviations;
+    final Iterable<MeasuredDeviation> interArrivalTimes =
+        getModel().realtimeState.getMeasuredDeviations();
     // impossible to give guarantees, but 10 seems low enough
-    assertThat(interArrivalTimes.size()).isAtLeast(10);
+    assertThat(Iterables.size(interArrivalTimes)).isAtLeast(10);
     boolean containsCorrection = false;
     for (final MeasuredDeviation iat : interArrivalTimes) {
       if (iat.getCorrectionNs() > 0) {

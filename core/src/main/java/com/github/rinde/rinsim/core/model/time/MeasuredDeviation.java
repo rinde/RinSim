@@ -13,7 +13,10 @@ public abstract class MeasuredDeviation {
 
   public abstract TimeStamp getTimeStamp();
 
-  static MeasuredDeviation create(long dev, long corr, TimeStamp ts) {
-    return new AutoValue_MeasuredDeviation(dev, corr, ts);
+  public abstract long getInterArrivalTime();
+
+  static MeasuredDeviation create(long dev, long corr, TimeStamp ts,
+      long interArrivalTime) {
+    return new AutoValue_MeasuredDeviation(dev, corr, ts, interArrivalTime);
   }
 }
