@@ -39,7 +39,7 @@ public class ScenarioConvertersTest {
   @BeforeClass
   public static void setUpClass() {
     TestUtil.testPrivateConstructor(ScenarioConverters.class);
-    TestUtil.testEnum(ScenarioConverters.ToRealTimeConverter.class);
+    TestUtil.testEnum(ScenarioConverters.TimeModelConverter.class);
   }
 
   /**
