@@ -134,6 +134,14 @@ public class Parcel extends PDPObjectImpl implements IParcel {
     return new Parcel.Builder(from, to);
   }
 
+  public static Parcel.Builder builder(ParcelDTO dto) {
+    return new Parcel.Builder(dto);
+  }
+
+  public static Parcel.Builder builder(Parcel parcel) {
+    return builder(parcel.getDto());
+  }
+
   /**
    * A builder for {@link ParcelDTO}. For fields which are not set the following
    * default values are used:
@@ -167,6 +175,17 @@ public class Parcel extends PDPObjectImpl implements IParcel {
       orderAnnounceTime = 0L;
       pickupDuration = 0L;
       deliveryDuration = 0L;
+    }
+
+    Builder(ParcelDTO dto) {
+      pickupLocation = dto.getPickupLocation();
+      deliveryLocation = dto.getDeliveryLocation();
+      pickupTimeWindow = dto.getPickupTimeWindow();
+      deliveryTimeWindow = dto.getDeliveryTimeWindow();
+      neededCapacity = dto.getNeededCapacity();
+      orderAnnounceTime = dto.getOrderAnnounceTime();
+      pickupDuration = dto.getPickupDuration();
+      deliveryDuration = dto.getDeliveryDuration();
     }
 
     /**
