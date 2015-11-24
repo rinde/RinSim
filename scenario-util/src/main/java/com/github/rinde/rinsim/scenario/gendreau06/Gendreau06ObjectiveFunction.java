@@ -17,6 +17,9 @@ package com.github.rinde.rinsim.scenario.gendreau06;
 
 import java.io.Serializable;
 
+import javax.measure.unit.NonSI;
+import javax.measure.unit.SI;
+
 import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
 
@@ -24,16 +27,20 @@ import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
  * Objective function for Gendreau et al. (2006) problem instances.
  * @author Rinde van Lon
  */
-public final class Gendreau06ObjectiveFunction implements ObjectiveFunction,
-    Serializable {
+public final class Gendreau06ObjectiveFunction
+    implements ObjectiveFunction, Serializable {
   private static final long serialVersionUID = 6069190376442772396L;
   private static final Gendreau06ObjectiveFunction INSTANCE =
-    new Gendreau06ObjectiveFunction();
+    new Gendreau06ObjectiveFunction(30d);
   private static final double MS_TO_MINUTES = 60000d;
   private static final double ALPHA = 1d;
   private static final double BETA = 1d;
 
-  private Gendreau06ObjectiveFunction() {}
+  private final double vehicleSpeed;
+
+  private Gendreau06ObjectiveFunction(double speed) {
+    vehicleSpeed = speed;
+  }
 
   /**
    * All parcels need to be delivered, all vehicles need to be back at the
@@ -48,7 +55,10 @@ public final class Gendreau06ObjectiveFunction implements ObjectiveFunction,
         && stats.totalParcels == stats.totalPickups
         && stats.totalParcels == stats.totalDeliveries
         && stats.simFinish
-        && stats.totalVehicles == stats.vehiclesAtDepot;
+        && stats.totalVehicles == stats.vehiclesAtDepot
+        && stats.distanceUnit.equals(SI.KILOMETER)
+        && stats.speedUnit.equals(NonSI.KILOMETERS_PER_HOUR)
+        && stats.timeUnit.equals(SI.MILLI(SI.SECOND));
   }
 
   /**
@@ -89,9 +99,10 @@ public final class Gendreau06ObjectiveFunction implements ObjectiveFunction,
    * @return The travel time in minutes.
    */
   public double travelTime(StatisticsDTO stats) {
-    // avg speed is 30 km/h
-    // = (dist / 30.0) * 60.0
-    return stats.totalDistance * 2d;
+    // total dist in km
+    // speed in kmh
+    // convert to minutes by * 60
+    return stats.totalDistance / vehicleSpeed * 60d;
   }
 
   /**
@@ -118,9 +129,13 @@ public final class Gendreau06ObjectiveFunction implements ObjectiveFunction,
   }
 
   /**
-   * @return The instance.
+   * @return The default instance with a vehicle speed of 30 km/h.
    */
   public static Gendreau06ObjectiveFunction instance() {
     return INSTANCE;
+  }
+
+  public static Gendreau06ObjectiveFunction instance(double vehicleSpeedKmh) {
+    return new Gendreau06ObjectiveFunction(vehicleSpeedKmh);
   }
 }
