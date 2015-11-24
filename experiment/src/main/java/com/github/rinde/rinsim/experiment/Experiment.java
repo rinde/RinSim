@@ -287,13 +287,15 @@ public final class Experiment {
     }
 
     /**
-     * Enable the GUI for each simulation. When a large number of simulations is
-     * performed this may slow down the experiment significantly. The GUI can
-     * not be shown when more than one thread is used.
+     * Enable or disable the GUI for each simulation. When a large number of
+     * simulations is performed this may slow down the experiment significantly.
+     * The GUI can not be shown when more than one thread is used.
+     * @param show Show the GUI for each simulation if <code>true</code>, or
+     *          hide it if <code>false</code>.
      * @return This, as per the builder pattern.
      */
-    public Builder showGui() {
-      showGui = true;
+    public Builder showGui(boolean show) {
+      showGui = show;
       return this;
     }
 
@@ -307,7 +309,7 @@ public final class Experiment {
      */
     public Builder showGui(ModelBuilder<?, ?> uic) {
       uiCreator = uic;
-      return showGui();
+      return showGui(true);
     }
 
     /**
