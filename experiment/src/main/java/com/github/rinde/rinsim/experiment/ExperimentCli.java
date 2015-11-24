@@ -77,11 +77,7 @@ public final class ExperimentCli {
       new ArgHandler<Experiment.Builder, Boolean>() {
         @Override
         public void execute(Builder builder, Optional<Boolean> value) {
-          if (value.isPresent() && value.get()) {
-            builder.showGui();
-          } else {
-            builder.showGui = false;
-          }
+          builder.showGui(value.isPresent() && value.get());
         }
       };
 
