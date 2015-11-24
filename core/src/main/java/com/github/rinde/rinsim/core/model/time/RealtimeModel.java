@@ -359,7 +359,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
   static class Realtime extends AbstractClockState {
     static final long THREAD_SLEEP_MS = 50L;
     // waiting 50ms seems to improve reliability of interarrival times
-    static final long STARTUP_DELAY = 50000000L;
+    // static final long STARTUP_DELAY = 50000000L;
 
     final long tickNanos;
     final double maxAvgDeviationNs;
@@ -396,9 +396,6 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
       timeRunners = new ArrayList<>();
     }
 
-    /**
-     * @return
-     */
     public ImmutableList<MeasuredDeviation> getMeasuredDeviations() {
       final ImmutableList.Builder<MeasuredDeviation> deviationBuilder =
           ImmutableList.builder();
@@ -553,9 +550,6 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         logMonitor = GCLogMonitor.getInstance();
       }
 
-      /**
-       * @return
-       */
       public Iterable<? extends MeasuredDeviation> getMeasuredDeviations() {
         checkConsistency();
         return measuredDeviations;

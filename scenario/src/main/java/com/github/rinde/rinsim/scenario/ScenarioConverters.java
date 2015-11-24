@@ -50,8 +50,8 @@ public final class ScenarioConverters {
   public static Function<Scenario, Scenario> toRealtime() {
     return TimeModelConverter.TO_RT;
   }
-  
-  public static Function<Scenario,Scenario> toSimulatedtime(){
+
+  public static Function<Scenario, Scenario> toSimulatedtime() {
     return TimeModelConverter.TO_ST;
   }
 

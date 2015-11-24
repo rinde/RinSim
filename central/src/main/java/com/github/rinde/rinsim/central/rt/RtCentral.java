@@ -117,10 +117,8 @@ public final class RtCentral {
   public static MASConfiguration solverConfiguration(
       StochasticSupplier<? extends RealtimeSolver> solverSupplier,
       String nameSuffix) {
-    return MASConfiguration.pdptwBuilder()
+    return configBuilder(solverSupplier, nameSuffix)
         .addModel(builder(solverSupplier))
-        .addEventHandler(AddVehicleEvent.class, vehicleHandler())
-        .setName(String.format("RtCentral-%s%s", solverSupplier, nameSuffix))
         .build();
   }
   // TODO create builder
@@ -146,12 +144,18 @@ public final class RtCentral {
   public static MASConfiguration solverConfigurationAdapt(
       StochasticSupplier<? extends Solver> solverSupplier, String nameSuffix,
       boolean threadGrouping) {
-    return MASConfiguration.pdptwBuilder()
+    return configBuilder(solverSupplier, nameSuffix)
         .addModel(builder(AdapterSupplier.create(solverSupplier))
             .withThreadGrouping(threadGrouping))
-        .addEventHandler(AddVehicleEvent.class, vehicleHandler())
-        .setName(String.format("RtCentral-%s%s", solverSupplier, nameSuffix))
         .build();
+  }
+
+  static MASConfiguration.Builder configBuilder(
+      StochasticSupplier<?> solverSupplier,
+      String nameSuffix) {
+    return MASConfiguration.pdptwBuilder()
+        .addEventHandler(AddVehicleEvent.class, vehicleHandler())
+        .setName(String.format("RtCentral-%s%s", solverSupplier, nameSuffix));
   }
 
   public static TimedEventHandler<AddVehicleEvent> vehicleHandler() {

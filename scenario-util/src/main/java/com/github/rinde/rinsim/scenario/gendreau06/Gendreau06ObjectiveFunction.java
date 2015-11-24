@@ -33,6 +33,7 @@ public final class Gendreau06ObjectiveFunction
   private static final Gendreau06ObjectiveFunction INSTANCE =
     new Gendreau06ObjectiveFunction(30d);
   private static final double MS_TO_MINUTES = 60000d;
+  private static final double H_TO_MINUTES = 60d;
   private static final double ALPHA = 1d;
   private static final double BETA = 1d;
 
@@ -102,7 +103,7 @@ public final class Gendreau06ObjectiveFunction
     // total dist in km
     // speed in kmh
     // convert to minutes by * 60
-    return stats.totalDistance / vehicleSpeed * 60d;
+    return stats.totalDistance / vehicleSpeed * H_TO_MINUTES;
   }
 
   /**

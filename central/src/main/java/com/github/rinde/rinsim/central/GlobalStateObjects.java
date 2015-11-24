@@ -28,7 +28,8 @@ import com.google.common.collect.ImmutableSet;
  * @author Rinde van Lon
  */
 public final class GlobalStateObjects {
-  GlobalStateObjects() {}
+
+  private GlobalStateObjects() {}
 
   public static ImmutableSet<Parcel> unassignedParcels(
       GlobalStateObject state) {

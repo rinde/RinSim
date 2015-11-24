@@ -452,7 +452,7 @@ public final class Experiment {
      * distributed fashion:
      * <ul>
      * <li>{@link #withThreads(int)}</li>
-     * <li>{@link #showGui()}</li>
+     * <li>{@link #showGui(boolean)}</li>
      * <li>{@link #showGui(ModelBuilder)}</li>
      * </ul>
      *
