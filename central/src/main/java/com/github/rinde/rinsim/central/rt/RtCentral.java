@@ -211,6 +211,7 @@ public final class RtCentral {
       return change(Options.THREAD_GROUPING, flag);
     }
 
+    // continuous updates = rtcentral sends updates all the time
     public Builder withContinuousUpdates(boolean flag) {
       return change(Options.CONTINUOUS_UPDATES, flag);
     }
