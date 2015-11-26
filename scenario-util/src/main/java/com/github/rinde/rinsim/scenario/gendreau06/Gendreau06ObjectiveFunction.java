@@ -126,7 +126,7 @@ public final class Gendreau06ObjectiveFunction
 
   @Override
   public String toString() {
-    return this.getClass().getSimpleName();
+    return "GendrOF(" + vehicleSpeed + ")";
   }
 
   /**
