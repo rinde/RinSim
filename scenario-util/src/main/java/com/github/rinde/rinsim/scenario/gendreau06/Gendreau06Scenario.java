@@ -67,12 +67,15 @@ public abstract class Gendreau06Scenario extends Scenario {
 
     return new AutoValue_Gendreau06Scenario(
         ImmutableList.<TimedEvent>copyOf(pEvents),
-        problemClass, Integer.toString(instanceNumber), ts, diversion);
+        Integer.toString(instanceNumber), ts, diversion, problemClass);
   }
 
   abstract long getTickSize();
 
   abstract boolean getAllowDiversion();
+
+  @Override
+  public abstract GendreauProblemClass getProblemClass();
 
   @Override
   public TimeWindow getTimeWindow() {
