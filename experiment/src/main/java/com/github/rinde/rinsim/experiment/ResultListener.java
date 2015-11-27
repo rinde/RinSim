@@ -49,6 +49,7 @@ public interface ResultListener {
 
   /**
    * This method is called to signal the end of the experiment.
+   * @param results The results.
    */
-  void doneComputing();
+  void doneComputing(ExperimentResults results);
 }

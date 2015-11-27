@@ -74,7 +74,7 @@ public class CommandLineProgress implements ResultListener {
   }
 
   @Override
-  public void doneComputing() {
+  public void doneComputing(ExperimentResults results) {
     printStream.println("Computing done.");
   }
 }

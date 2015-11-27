@@ -86,10 +86,12 @@ final class LocalComputer implements Computer {
     checkForError(executor, resultCollector);
     executor.shutdown();
 
+    final ExperimentResults er =
+        ExperimentResults.create(builder, ImmutableSet.copyOf(results));
     for (final ResultListener rl : builder.resultListeners) {
-      rl.doneComputing();
+      rl.doneComputing(er);
     }
-    return ExperimentResults.create(builder, ImmutableSet.copyOf(results));
+    return er;
   }
 
   static void checkForError(ListeningExecutorService executor,

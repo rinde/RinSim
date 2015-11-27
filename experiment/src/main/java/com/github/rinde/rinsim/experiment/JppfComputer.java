@@ -144,10 +144,13 @@ final class JppfComputer implements Computer {
       throw new IllegalStateException(e);
     }
     res.awaitResults();
+
+    final ExperimentResults results =
+        ExperimentResults.create(builder, res.buildResults());
     for (final ResultListener l : listeners) {
-      l.doneComputing();
+      l.doneComputing(results);
     }
-    return ExperimentResults.create(builder, res.buildResults());
+    return results;
   }
 
   static void constructTasks(
