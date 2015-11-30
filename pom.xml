@@ -385,7 +385,7 @@
 						</goals>
 						<configuration>
 							<excludes>
-								<excludes>logback-test.xml</excludes>
+								<excludes>**/logback-test.xml</excludes>
 							</excludes>
 						</configuration>
 					</execution>
