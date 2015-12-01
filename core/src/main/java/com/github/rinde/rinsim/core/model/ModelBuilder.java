@@ -88,7 +88,7 @@ public interface ModelBuilder<T extends Model<? extends U>, U> {
    * @param <T> The model type.
    * @param <U> The associated type.
    */
-  public abstract class AbstractModelBuilder<T extends Model<? extends U>, U>
+  abstract class AbstractModelBuilder<T extends Model<? extends U>, U>
       implements ModelBuilder<T, U> {
     private ImmutableSet<Class<?>> provTypes;
     private ImmutableSet<Class<?>> deps;

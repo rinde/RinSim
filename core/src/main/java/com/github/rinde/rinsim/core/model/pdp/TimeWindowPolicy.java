@@ -48,7 +48,7 @@ public interface TimeWindowPolicy {
    * Defines several default time window policies.
    * @author Rinde van Lon
    */
-  public enum TimeWindowPolicies implements TimeWindowPolicy {
+  enum TimeWindowPolicies implements TimeWindowPolicy {
     /**
      * Everything is fine, everything is going to be all right. Treats time
      * windows as a soft constraints.

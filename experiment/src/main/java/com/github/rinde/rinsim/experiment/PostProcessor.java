@@ -34,7 +34,7 @@ public interface PostProcessor<T> {
 
   FailureStrategy handleFailure(Exception e, Simulator sim, SimArgs args);
 
-  public enum FailureStrategy {
+  enum FailureStrategy {
     ABORT_EXPERIMENT_RUN, RETRY, INCLUDE
   }
 }

@@ -76,7 +76,7 @@ public interface RealtimeClockController extends ClockController {
    * The three different modes the clock can be in.
    * @author Rinde van Lon
    */
-  public enum ClockMode {
+  enum ClockMode {
 
     /**
      * Indicates the mode where time is synchronized to real time.
@@ -99,7 +99,7 @@ public interface RealtimeClockController extends ClockController {
    * {@link Clock.ClockEventType} for more event types.
    * @author Rinde van Lon
    */
-  public enum RtClockEventType {
+  enum RtClockEventType {
 
     /**
      * Is dispatched right after clock mode has changed,

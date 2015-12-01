@@ -705,7 +705,7 @@ public final class ScenarioIO {
         while (it.hasNext()) {
           final JsonObject obj = it.next().getAsJsonObject();
           final String clazz = obj.get(CLAZZ).getAsString();
-          Class<?> clz;
+          final Class<?> clz;
           try {
             clz = Class.forName(clazz);
           } catch (final ClassNotFoundException e) {
@@ -741,7 +741,7 @@ public final class ScenarioIO {
         while (it.hasNext()) {
           final JsonObject obj = it.next().getAsJsonObject();
           final String clazz = obj.get(CLAZZ).getAsString();
-          Class<?> clz;
+          final Class<?> clz;
           try {
             clz = Class.forName(clazz);
           } catch (final ClassNotFoundException e) {

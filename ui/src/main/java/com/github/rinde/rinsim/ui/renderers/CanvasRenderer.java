@@ -53,7 +53,7 @@ public interface CanvasRenderer extends Renderer {
    * Abstract implementation of {@link CanvasRenderer}.
    * @author Rinde van Lon
    */
-  public abstract class AbstractCanvasRenderer extends AbstractModelVoid
+  abstract class AbstractCanvasRenderer extends AbstractModelVoid
       implements CanvasRenderer {
 
     @Override
@@ -68,7 +68,7 @@ public interface CanvasRenderer extends Renderer {
    * @author Rinde van Lon
    * @param <T> The type to support.
    */
-  public abstract class AbstractTypedCanvasRenderer<T> extends AbstractModel<T>
+  abstract class AbstractTypedCanvasRenderer<T> extends AbstractModel<T>
       implements CanvasRenderer {
 
     @Override

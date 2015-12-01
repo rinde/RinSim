@@ -202,7 +202,7 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
    *         occupied nodes in the graph.
    */
   public ImmutableSet<Point> getOccupiedNodes() {
-    ImmutableSet<Point> set;
+    final ImmutableSet<Point> set;
     synchronized (occupiedNodes) {
       set = ImmutableSet.copyOf(occupiedNodes.values());
     }

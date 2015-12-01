@@ -59,7 +59,7 @@ public enum GendreauProblemClass implements ProblemClass {
    */
   public final int vehicles;
 
-  private GendreauProblemClass(long d, long f, int v) {
+  GendreauProblemClass(long d, long f, int v) {
     duration = d;
     frequency = f;
     vehicles = v;

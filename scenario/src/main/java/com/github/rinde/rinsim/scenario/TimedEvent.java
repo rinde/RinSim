@@ -33,7 +33,7 @@ public interface TimedEvent {
    * Comparator for comparing {@link TimedEvent}s on their time.
    * @author Rinde van Lon
    */
-  public enum TimeComparator implements Comparator<TimedEvent> {
+  enum TimeComparator implements Comparator<TimedEvent> {
     /**
      * Comparator for comparing {@link TimedEvent}s on their time.
      */

@@ -215,7 +215,7 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
 
   @Override
   public Map<RoadUser, Point> getObjectsAndPositions() {
-    Map<RoadUser, T> copiedMap;
+    final Map<RoadUser, T> copiedMap;
     synchronized (objLocs) {
       copiedMap = new LinkedHashMap<>();
       copiedMap.putAll(objLocs);

@@ -64,7 +64,7 @@ public interface Model<T> {
    * @author Rinde van Lon
    * @param <T> The type that is supported by this model.
    */
-  public abstract class AbstractModel<T> implements Model<T> {
+  abstract class AbstractModel<T> implements Model<T> {
 
     private final Class<T> supportedType;
 
@@ -95,7 +95,7 @@ public interface Model<T> {
    * Abstract implementation of a model without supported type.
    * @author Rinde van Lon
    */
-  public abstract class AbstractModelVoid extends AbstractModel<Void> {
+  abstract class AbstractModelVoid extends AbstractModel<Void> {
 
     @Override
     public final boolean register(Void element) {
