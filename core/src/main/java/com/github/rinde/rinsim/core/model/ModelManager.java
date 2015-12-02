@@ -155,7 +155,7 @@ public final class ModelManager implements ModelProvider {
         return (T) model;
       }
     }
-    throw new IllegalArgumentException("There is no model of type: " + clazz);
+    return null;
   }
 
   @Override
