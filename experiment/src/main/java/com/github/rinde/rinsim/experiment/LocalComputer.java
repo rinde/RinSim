@@ -145,10 +145,15 @@ final class LocalComputer implements Computer {
     public void onSuccess(@Nullable SimulationResult result) {
       final SimulationResult res = verifyNotNull(result);
       for (final ResultListener rl : resultListeners) {
-        rl.receive(res);
+        try {
+          rl.receive(res);
+        } catch (final RuntimeException e) {
+          System.err
+              .println("ResultListener " + rl + " failed to receive result.");
+          e.printStackTrace(System.err);
+        }
       }
       if (res.getResultObject() == FailureStrategy.RETRY) {
-
         final ExperimentRunner newRunner =
             new ExperimentRunner(res.getSimArgs());
         Futures.addCallback(executor.submit(newRunner), this);
@@ -158,7 +163,6 @@ final class LocalComputer implements Computer {
         results.add(result);
       }
     }
-
   }
 
   static class ExperimentRunner implements Callable<SimulationResult> {
