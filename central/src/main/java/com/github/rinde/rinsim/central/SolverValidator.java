@@ -72,8 +72,10 @@ public final class SolverValidator {
   public static GlobalStateObject validateInputs(GlobalStateObject state) {
     checkArgument(state.getTime() >= 0, "Time must be >= 0, is %s.",
       state.getTime());
-    final Set<Parcel> inventoryParcels = newHashSet();
+    checkArgument(!state.getVehicles().isEmpty(),
+      "At least one vehicle must be present.");
 
+    final Set<Parcel> inventoryParcels = newHashSet();
     final boolean routeIsPresent = state.getVehicles().get(0).getRoute()
         .isPresent();
     final Set<Parcel> allParcels = newHashSet();

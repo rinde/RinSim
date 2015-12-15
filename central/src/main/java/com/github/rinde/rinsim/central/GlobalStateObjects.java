@@ -34,12 +34,24 @@ public final class GlobalStateObjects {
   public static ImmutableSet<Parcel> unassignedParcels(
       GlobalStateObject state) {
     final Set<Parcel> set = newLinkedHashSet(state.getAvailableParcels());
-    for (final VehicleStateObject vso : state.getVehicles()) {
-      if (vso.getRoute().isPresent()) {
-        set.removeAll(vso.getRoute().get());
-      }
-    }
+    set.removeAll(assignedParcels(state));
     return ImmutableSet.copyOf(set);
   }
 
+  public static ImmutableSet<Parcel> allParcels(GlobalStateObject state) {
+    return ImmutableSet.<Parcel>builder()
+        .addAll(state.getAvailableParcels())
+        .addAll(assignedParcels(state))
+        .build();
+  }
+
+  static ImmutableSet<Parcel> assignedParcels(GlobalStateObject state) {
+    final ImmutableSet.Builder<Parcel> set = ImmutableSet.builder();
+    for (final VehicleStateObject vso : state.getVehicles()) {
+      if (vso.getRoute().isPresent()) {
+        set.addAll(vso.getRoute().get());
+      }
+    }
+    return set.build();
+  }
 }
