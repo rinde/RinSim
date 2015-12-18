@@ -131,7 +131,9 @@ public final class Solvers {
 
     for (int i = 0; i < state.getVehicles().size(); i++) {
       final VehicleStateObject vso = state.getVehicles().get(i);
-      checkArgument(r.isPresent() || vso.getRoute().isPresent());
+      checkArgument(r.isPresent() || vso.getRoute().isPresent(),
+        "Vehicle routes must either be specified as an argument or must be part"
+            + " of the state object.");
 
       final ImmutableList.Builder<Long> truckArrivalTimesBuilder =
         ImmutableList.builder();
