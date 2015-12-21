@@ -105,7 +105,8 @@ public abstract class TimeWindow implements Serializable {
    */
   public static TimeWindow create(long begin, long end) {
     checkArgument(begin >= 0, "Time must be non-negative.");
-    checkArgument(begin <= end, "Begin can not be later than end.");
+    checkArgument(begin <= end, "Begin (%s) can not be later than end (%s).",
+        begin, end);
     return new AutoValue_TimeWindow(begin, end);
   }
 
