@@ -17,6 +17,8 @@ package com.github.rinde.rinsim.core.model.pdp;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import javax.annotation.Nullable;
+
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.util.TimeWindow;
@@ -28,6 +30,7 @@ import com.github.rinde.rinsim.util.TimeWindow;
 public class Parcel extends PDPObjectImpl implements IParcel {
 
   private final ParcelDTO dto;
+  private final String string;
 
   /**
    * Create a new parcel.
@@ -35,8 +38,17 @@ public class Parcel extends PDPObjectImpl implements IParcel {
    *          of a parcel.
    */
   public Parcel(ParcelDTO parcelDto) {
+    this(parcelDto, null);
+  }
+
+  public Parcel(ParcelDTO parcelDto, @Nullable String toString) {
     dto = parcelDto;
     setStartPosition(dto.getPickupLocation());
+    if (toString == null) {
+      string = "[Parcel-" + Integer.toHexString(hashCode()) + "]";
+    } else {
+      string = toString;
+    }
   }
 
   @Override
@@ -120,7 +132,7 @@ public class Parcel extends PDPObjectImpl implements IParcel {
 
   @Override
   public String toString() {
-    return "[Parcel-" + Integer.toHexString(hashCode()) + "]";
+    return string;
   }
 
   /**
@@ -165,6 +177,8 @@ public class Parcel extends PDPObjectImpl implements IParcel {
     long orderAnnounceTime;
     long pickupDuration;
     long deliveryDuration;
+    @Nullable
+    String toString;
 
     Builder(Point from, Point to) {
       pickupLocation = from;
@@ -175,6 +189,7 @@ public class Parcel extends PDPObjectImpl implements IParcel {
       orderAnnounceTime = 0L;
       pickupDuration = 0L;
       deliveryDuration = 0L;
+      toString = null;
     }
 
     Builder(ParcelDTO dto) {
@@ -186,6 +201,7 @@ public class Parcel extends PDPObjectImpl implements IParcel {
       orderAnnounceTime = dto.getOrderAnnounceTime();
       pickupDuration = dto.getPickupDuration();
       deliveryDuration = dto.getDeliveryDuration();
+      toString = null;
     }
 
     /**
@@ -204,7 +220,7 @@ public class Parcel extends PDPObjectImpl implements IParcel {
      * @return A new parcel object.
      */
     public Parcel build() {
-      return new Parcel(buildDTO());
+      return new Parcel(buildDTO(), toString);
     }
 
     /**
@@ -294,6 +310,16 @@ public class Parcel extends PDPObjectImpl implements IParcel {
       checkArgument(duration >= 0,
           "Delivery duration needs to be strictly positive.");
       deliveryDuration = duration;
+      return this;
+    }
+
+    /**
+     * Overrides {@link Parcel#toString()} with the specified string.
+     * @param string The string to use.
+     * @return This, as per the builder pattern.
+     */
+    public Builder toString(String string) {
+      toString = string;
       return this;
     }
 
