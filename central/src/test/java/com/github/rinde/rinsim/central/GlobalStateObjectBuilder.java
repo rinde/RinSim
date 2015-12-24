@@ -36,6 +36,7 @@ import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 
 /**
  *
@@ -61,6 +62,12 @@ public class GlobalStateObjectBuilder {
 
   public GlobalStateObjectBuilder addAvailableParcel(Parcel p) {
     availableParcels.add(p);
+    return this;
+  }
+
+  public GlobalStateObjectBuilder addAvailableParcels(
+      Iterable<? extends Parcel> ps) {
+    Iterables.addAll(availableParcels, ps);
     return this;
   }
 
