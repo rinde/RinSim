@@ -427,6 +427,16 @@ public final class Solvers {
       currentRoutes = Optional.of(cr);
       return this;
     }
+
+    public SolveArgs useEmptyRoutes(int numVehicles) {
+      final ImmutableList.Builder<ImmutableList<Parcel>> builder =
+        ImmutableList.builder();
+      for (int i = 0; i < numVehicles; i++) {
+        builder.add(ImmutableList.<Parcel>of());
+      }
+      currentRoutes = Optional.of(builder.build());
+      return this;
+    }
   }
 
   /**
