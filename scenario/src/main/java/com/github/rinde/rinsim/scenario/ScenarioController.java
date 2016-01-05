@@ -22,6 +22,7 @@ import static com.google.common.collect.Maps.newLinkedHashMap;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
@@ -366,8 +367,7 @@ public final class ScenarioController extends AbstractModel<StopModel>
     @CheckReturnValue
     public <T extends TimedEvent> Builder withEventHandler(Class<T> type,
         TimedEventHandler<T> handler) {
-      checkArgument(!type.isInterface(),
-        "Must handle a concrete class, not: %s.", type);
+      checkHandlerType(type);
 
       return create(
         getScenario(),
@@ -376,6 +376,28 @@ public final class ScenarioController extends AbstractModel<StopModel>
             .putAll(getEventHandlers()).put(type, handler).build(),
         getNumberOfTicks(),
         getStopModelBuilder(), isIgnoreRedundantHandlers());
+    }
+
+    public Builder withEventHandlers(
+        Map<Class<? extends TimedEvent>, TimedEventHandler<?>> entries) {
+      for (final Entry<Class<? extends TimedEvent>, TimedEventHandler<?>> entry : entries
+          .entrySet()) {
+        checkHandlerType(entry.getClass());
+      }
+      return create(
+        getScenario(),
+        ImmutableMap
+            .<Class<? extends TimedEvent>, TimedEventHandler<?>>builder()
+            .putAll(getEventHandlers())
+            .putAll(entries)
+            .build(),
+        getNumberOfTicks(),
+        getStopModelBuilder(), isIgnoreRedundantHandlers());
+    }
+
+    static void checkHandlerType(Class<?> type) {
+      checkArgument(!type.isInterface(),
+        "Must handle a concrete class, not: %s.", type);
     }
 
     /**
@@ -483,8 +505,8 @@ public final class ScenarioController extends AbstractModel<StopModel>
         "Found redundant event handlers for event type(s): %s, no event with "
             + "these type(s) was found. All added handlers: %s, all event types"
             + " in the scenario: %s. Scenario (problem class:'%s', instance "
-            + "id:'%s').", 
-            covered, m.entrySet(), required, s.getProblemClass(),  
+            + "id:'%s').",
+        covered, m.entrySet(), required, s.getProblemClass(),
         s.getProblemInstanceId());
       return new ScenarioController(sim, clockController, s,
           ImmutableMap.copyOf(m), getNumberOfTicks());

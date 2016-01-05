@@ -24,7 +24,6 @@ import static com.google.common.collect.Sets.newLinkedHashSet;
 import java.io.PrintStream;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -43,8 +42,6 @@ import com.github.rinde.rinsim.pdptw.common.StatsTracker;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.ScenarioController;
 import com.github.rinde.rinsim.scenario.ScenarioIO;
-import com.github.rinde.rinsim.scenario.TimedEvent;
-import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.util.StochasticSupplier;
 import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
@@ -152,12 +149,6 @@ public final class Experiment {
     return res;
   }
 
-  @SuppressWarnings("unchecked")
-  static <T extends TimedEvent> ScenarioController.Builder add(
-      ScenarioController.Builder b, Class<T> type, TimedEventHandler<?> h) {
-    return b.withEventHandler(type, (TimedEventHandler<T>) h);
-  }
-
   /**
    * Initialize a {@link Simulator} instance.
    * @param scenario The scenario to use.
@@ -169,15 +160,12 @@ public final class Experiment {
   static Simulator init(Scenario scenario, MASConfiguration config, long seed,
       boolean showGui, Optional<ModelBuilder<?, ?>> uiCreator) {
 
-    ScenarioController.Builder scenContrBuilder = ScenarioController.builder(
-        scenario)
-        .withIgnoreRedundantHandlers(true);
+    final ScenarioController.Builder scenContrBuilder =
+        ScenarioController.builder(
+            scenario)
+            .withIgnoreRedundantHandlers(true)
+            .withEventHandlers(config.getEventHandlers());
 
-    for (final Entry<Class<? extends TimedEvent>, TimedEventHandler<?>> entry : config
-        .getEventHandlers().entrySet()) {
-      scenContrBuilder =
-          add(scenContrBuilder, entry.getKey(), entry.getValue());
-    }
     final Simulator.Builder simBuilder = Simulator.builder()
         .setRandomSeed(seed)
         .addModel(scenContrBuilder)
