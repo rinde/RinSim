@@ -87,6 +87,11 @@ public abstract class AddParcelEvent implements TimedEvent {
   static class NamedParcelCreator
       implements TimedEventHandler<AddParcelEvent>, Serializable {
     private static final long serialVersionUID = 3888253170041895475L;
+
+    private static final int ALPHABET_SIZE = 26;
+    private static final int PARCEL_LIMIT =
+      ALPHABET_SIZE + ALPHABET_SIZE * ALPHABET_SIZE;
+
     long counter;
 
     NamedParcelCreator() {}
@@ -94,16 +99,16 @@ public abstract class AddParcelEvent implements TimedEvent {
     @Override
     public void handleTimedEvent(AddParcelEvent event, SimulatorAPI simulator) {
       final String name;
-      if (counter >= 26) {
-        if (counter >= 702) {
+      if (counter >= ALPHABET_SIZE) {
+        if (counter >= PARCEL_LIMIT) {
           throw new IllegalStateException(
               "Too many parcels, this handler is meant for debuggin and should "
                   + "not be used in production.");
         }
 
         final char first =
-          (char) ('A' + (int) Math.floor(counter / 26) - 1);
-        final char second = (char) ('A' + counter % 26);
+          (char) ('A' + (int) Math.floor(counter / ALPHABET_SIZE) - 1);
+        final char second = (char) ('A' + counter % ALPHABET_SIZE);
         name = Chars.join("", first, second);
       } else {
         name = Character.toString((char) (counter + 'A'));
