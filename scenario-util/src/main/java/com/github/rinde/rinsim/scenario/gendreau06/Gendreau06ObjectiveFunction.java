@@ -124,6 +124,10 @@ public final class Gendreau06ObjectiveFunction
     return stats.overTime / MS_TO_MINUTES;
   }
 
+  public double getVehicleSpeed() {
+    return vehicleSpeed;
+  }
+
   @Override
   public String toString() {
     return "GendrOF(" + vehicleSpeed + ")";
