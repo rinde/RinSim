@@ -257,7 +257,7 @@ public class Gendreau06Test {
     events.add(TimeOutEvent.create(endTime));
 
     return Gendreau06Scenario.create(events, 1000L,
-      GendreauProblemClass.LONG_LOW_FREQ, 1, false);
+      GendreauProblemClass.LONG_LOW_FREQ, 1, false, false);
   }
 
   static class SimpleTruck extends Vehicle {

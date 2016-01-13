@@ -63,11 +63,37 @@ public abstract class Gendreau06Scenario extends Scenario {
 
   static Gendreau06Scenario create(List<? extends TimedEvent> pEvents, long ts,
       GendreauProblemClass problemClass, int instanceNumber,
-      boolean diversion) {
+      boolean diversion, boolean realtime) {
+    final TimeModel.Builder timeModelBuilder = TimeModel.builder()
+        .withTickLength(ts)
+        .withTimeUnit(SI.MILLI(SI.SECOND));
+
+    final ImmutableSet<ModelBuilder<?, ?>> modelBuilders =
+      ImmutableSet.<ModelBuilder<?, ?>>builder()
+          .add(realtime ? timeModelBuilder.withRealTime() : timeModelBuilder)
+          .add(
+            PDPRoadModel.builder(
+              RoadModelBuilders.plane()
+                  .withMinPoint(MIN)
+                  .withMaxPoint(MAX)
+                  .withDistanceUnit(SI.KILOMETER)
+                  .withSpeedUnit(MAX_SPEED.getUnit())
+                  .withMaxSpeed(MAX_SPEED.getValue()))
+                .withAllowVehicleDiversion(diversion))
+          .add(
+            DefaultPDPModel.builder()
+                .withTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED))
+          .add(
+            StatsTracker.builder())
+          .build();
 
     return new AutoValue_Gendreau06Scenario(
         ImmutableList.<TimedEvent>copyOf(pEvents),
-        Integer.toString(instanceNumber), ts, diversion, problemClass);
+        modelBuilders,
+        Integer.toString(instanceNumber),
+        ts,
+        diversion,
+        problemClass);
   }
 
   abstract long getTickSize();
@@ -76,6 +102,9 @@ public abstract class Gendreau06Scenario extends Scenario {
 
   @Override
   public abstract GendreauProblemClass getProblemClass();
+
+  // @Override
+  // public abstract ImmutableSet<ModelBuilder<?, ?>> getModelBuilders();
 
   @Override
   public TimeWindow getTimeWindow() {
@@ -89,27 +118,4 @@ public abstract class Gendreau06Scenario extends Scenario {
       StatsStopConditions.timeOutEvent());
   }
 
-  @Override
-  public ImmutableSet<ModelBuilder<?, ?>> getModelBuilders() {
-    return ImmutableSet.<ModelBuilder<?, ?>>builder()
-        .add(
-          TimeModel.builder()
-              .withTickLength(getTickSize())
-              .withTimeUnit(SI.MILLI(SI.SECOND)))
-        .add(
-          PDPRoadModel.builder(
-            RoadModelBuilders.plane()
-                .withMinPoint(MIN)
-                .withMaxPoint(MAX)
-                .withDistanceUnit(SI.KILOMETER)
-                .withSpeedUnit(MAX_SPEED.getUnit())
-                .withMaxSpeed(MAX_SPEED.getValue()))
-              .withAllowVehicleDiversion(getAllowDiversion()))
-        .add(
-          DefaultPDPModel.builder()
-              .withTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED))
-        .add(
-          StatsTracker.builder())
-        .build();
-  }
 }

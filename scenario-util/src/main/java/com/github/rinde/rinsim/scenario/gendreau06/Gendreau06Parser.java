@@ -16,6 +16,7 @@
 package com.github.rinde.rinsim.scenario.gendreau06;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 
 import java.io.BufferedReader;
@@ -95,6 +96,7 @@ public final class Gendreau06Parser {
   private int numVehicles;
   private boolean allowDiversion;
   private boolean online;
+  private boolean realtime;
   private long tickSize;
   private final ImmutableMap.Builder<String, ParcelsSupplier> parcelsSuppliers;
   private Optional<ImmutableList<ProblemClass>> problemClasses;
@@ -102,6 +104,7 @@ public final class Gendreau06Parser {
   private Gendreau06Parser() {
     allowDiversion = false;
     online = true;
+    realtime = false;
     numVehicles = -1;
     tickSize = DEFAULT_TICK_SIZE;
     parcelsSuppliers = ImmutableMap.builder();
@@ -139,9 +142,8 @@ public final class Gendreau06Parser {
   public Gendreau06Parser addFile(File file) {
     checkValidFileName(file.getName());
     try {
-      parcelsSuppliers.put(file.getName(), new InputStreamToParcels(
-          new FileInputStream(
-              file)));
+      parcelsSuppliers.put(file.getName(),
+        new InputStreamToParcels(new FileInputStream(file)));
     } catch (final FileNotFoundException e) {
       throw new IllegalArgumentException(e);
     }
@@ -200,19 +202,19 @@ public final class Gendreau06Parser {
    * @return This, as per the builder pattern.
    */
   public Gendreau06Parser addDirectory(File dir) {
-    final File[] files = dir.listFiles(
+    checkArgument(dir.isDirectory(), "%s is not a directory.", dir);
+    final File[] files = checkNotNull(dir.listFiles(
       new FileFilter() {
         @Override
         public boolean accept(@Nullable File file) {
           assert file != null;
           return isValidFileName(file.getName());
         }
-      });
+      }));
     Arrays.sort(files);
     for (final File f : files) {
       addFile(f);
     }
-
     return this;
   }
 
@@ -238,6 +240,11 @@ public final class Gendreau06Parser {
    */
   public Gendreau06Parser offline() {
     online = false;
+    return this;
+  }
+
+  public Gendreau06Parser realtime() {
+    realtime = true;
     return this;
   }
 
@@ -300,10 +307,34 @@ public final class Gendreau06Parser {
       }
       if (include) {
         scenarios.add(parse(entry.getValue(), entry.getKey(), numVehicles,
-          tickSize, allowDiversion, online));
+          tickSize, allowDiversion, online, realtime));
       }
     }
     return scenarios.build();
+  }
+
+  public Function<Path, Gendreau06Scenario> asParseFunction() {
+
+    final int numV = numVehicles;
+    final long tick = tickSize;
+    final boolean div = allowDiversion;
+    final boolean onl = online;
+    final boolean rt = realtime;
+
+    return new Function<Path, Gendreau06Scenario>() {
+      @Nonnull
+      @Override
+      public Gendreau06Scenario apply(@Nullable Path input) {
+        checkArgument(input != null);
+        try {
+          return parse(
+            new InputStreamToParcels(new FileInputStream(input.toFile())),
+            input.getFileName().toString(), numV, tick, div, onl, rt);
+        } catch (final FileNotFoundException e) {
+          throw new IllegalArgumentException();
+        }
+      }
+    };
   }
 
   static Matcher matcher(String fileName) {
@@ -327,7 +358,7 @@ public final class Gendreau06Parser {
   private static Gendreau06Scenario parse(
       ParcelsSupplier parcels,
       String fileName, int numVehicles, final long tickSize,
-      final boolean allowDiversion, boolean online) {
+      final boolean allowDiversion, boolean online, boolean realtime) {
 
     final Matcher m = matcher(fileName);
     checkValidFileName(m, fileName);
@@ -362,7 +393,7 @@ public final class Gendreau06Parser {
     Collections.sort(events, TimeComparator.INSTANCE);
 
     return Gendreau06Scenario.create(events, tickSize,
-      problemClass, instanceNumber, allowDiversion);
+      problemClass, instanceNumber, allowDiversion, realtime);
   }
 
   static ImmutableList<AddParcelEvent> parseParcels(InputStream inputStream,

@@ -34,7 +34,7 @@ public class GendreauTestUtil {
       List<? extends TimedEvent> events, long ts) {
     Collections.sort(events, TimeComparator.INSTANCE);
     return Gendreau06Scenario.create(events, ts,
-        GendreauProblemClass.SHORT_LOW_FREQ, 1, false);
+      GendreauProblemClass.SHORT_LOW_FREQ, 1, false, false);
   }
 
   public static Gendreau06Scenario create(List<? extends TimedEvent> parcels) {
