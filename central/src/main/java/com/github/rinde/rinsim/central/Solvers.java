@@ -259,22 +259,6 @@ public final class Solvers {
     return new SolverCallable(solver, state);
   }
 
-  static class SolverCallable
-      implements Callable<ImmutableList<ImmutableList<Parcel>>> {
-    final Solver solver;
-    final GlobalStateObject snapshot;
-
-    SolverCallable(Solver sol, GlobalStateObject snap) {
-      solver = sol;
-      snapshot = snap;
-    }
-
-    @Override
-    public ImmutableList<ImmutableList<Parcel>> call() throws Exception {
-      return solver.solve(snapshot);
-    }
-  }
-
   // converts the routes received from Solver.solve(..) into a format which is
   // expected by the simulator
   static ImmutableList<Queue<Parcel>> convertRoutes(StateContext cont,
@@ -671,6 +655,22 @@ public final class Solvers {
 
     public ImmutableList<ImmutableList<Long>> getArrivalTimes() {
       return arrivalTimes;
+    }
+  }
+
+  static class SolverCallable
+      implements Callable<ImmutableList<ImmutableList<Parcel>>> {
+    final Solver solver;
+    final GlobalStateObject snapshot;
+
+    SolverCallable(Solver sol, GlobalStateObject snap) {
+      solver = sol;
+      snapshot = snap;
+    }
+
+    @Override
+    public ImmutableList<ImmutableList<Parcel>> call() throws Exception {
+      return solver.solve(snapshot);
     }
   }
 }
