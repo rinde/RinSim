@@ -94,6 +94,7 @@ public final class Gendreau06Parser {
   private static final Point DEPOT_POSITION = new Point(2.0, 2.5);
 
   private int numVehicles;
+  private int numParcels;
   private boolean allowDiversion;
   private boolean online;
   private boolean realtime;
@@ -106,6 +107,7 @@ public final class Gendreau06Parser {
     online = true;
     realtime = false;
     numVehicles = -1;
+    numParcels = Integer.MAX_VALUE;
     tickSize = DEFAULT_TICK_SIZE;
     parcelsSuppliers = ImmutableMap.builder();
     problemClasses = Optional.absent();
@@ -261,6 +263,12 @@ public final class Gendreau06Parser {
     return this;
   }
 
+  public Gendreau06Parser setNumParcels(int num) {
+    checkArgument(num > 0);
+    numParcels = num;
+    return this;
+  }
+
   /**
    * Change the default tick size of <code>1000 ms</code> into something else.
    * @param tick Must be positive.
@@ -306,16 +314,17 @@ public final class Gendreau06Parser {
         }
       }
       if (include) {
-        scenarios.add(parse(entry.getValue(), entry.getKey(), numVehicles,
-          tickSize, allowDiversion, online, realtime));
+        scenarios.add(
+          parse(entry.getValue(), entry.getKey(), numVehicles, numParcels,
+            tickSize, allowDiversion, online, realtime));
       }
     }
     return scenarios.build();
   }
 
   public Function<Path, Gendreau06Scenario> asParseFunction() {
-
     final int numV = numVehicles;
+    final int numP = numParcels;
     final long tick = tickSize;
     final boolean div = allowDiversion;
     final boolean onl = online;
@@ -330,7 +339,7 @@ public final class Gendreau06Parser {
           final File file = input.toFile();
           return parse(
             new InputStreamToParcels(new FileInputStream(file)),
-            file.getName(), numV, tick, div, onl, rt);
+            file.getName(), numV, numP, tick, div, onl, rt);
         } catch (final FileNotFoundException e) {
           throw new IllegalArgumentException();
         }
@@ -358,7 +367,7 @@ public final class Gendreau06Parser {
 
   private static Gendreau06Scenario parse(
       ParcelsSupplier parcels,
-      String fileName, int numVehicles, final long tickSize,
+      String fileName, int numVehicles, int numParcels, final long tickSize,
       final boolean allowDiversion, boolean online, boolean realtime) {
 
     final Matcher m = matcher(fileName);
@@ -389,7 +398,10 @@ public final class Gendreau06Parser {
             .availabilityTimeWindow(TimeWindow.create(0, totalTime))
             .build()));
     }
-    events.addAll(parcels.get(online));
+
+    List<AddParcelEvent> parcelList = parcels.get(online);
+    parcelList = parcelList.subList(0, Math.min(parcelList.size(), numParcels));
+    events.addAll(parcelList);
     events.add(TimeOutEvent.create(totalTime));
     Collections.sort(events, TimeComparator.INSTANCE);
 
