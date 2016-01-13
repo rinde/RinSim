@@ -327,9 +327,10 @@ public final class Gendreau06Parser {
       public Gendreau06Scenario apply(@Nullable Path input) {
         checkArgument(input != null);
         try {
+          final File file = input.toFile();
           return parse(
-            new InputStreamToParcels(new FileInputStream(input.toFile())),
-            input.getFileName().toString(), numV, tick, div, onl, rt);
+            new InputStreamToParcels(new FileInputStream(file)),
+            file.getName(), numV, tick, div, onl, rt);
         } catch (final FileNotFoundException e) {
           throw new IllegalArgumentException();
         }
