@@ -17,7 +17,6 @@ package com.github.rinde.rinsim.central.rt;
 
 import static com.google.common.base.Preconditions.checkState;
 
-import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 
 import javax.annotation.Nullable;
@@ -27,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import com.github.rinde.rinsim.central.GlobalStateObject;
 import com.github.rinde.rinsim.central.Solver;
+import com.github.rinde.rinsim.central.Solvers;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.util.StochasticSupplier;
 import com.google.common.base.Joiner;
@@ -77,7 +77,7 @@ public final class SolverToRealtimeAdapter implements RealtimeSolver {
     cancel();
     currentFuture = Optional.of(
       scheduler.get().getSharedExecutor().submit(
-        new SolverComputer(solver, snapshot)));
+        Solvers.createSolverCallable(solver, snapshot)));
 
     Futures.addCallback(currentFuture.get(),
       new FutureCallback<ImmutableList<ImmutableList<Parcel>>>() {
@@ -142,22 +142,6 @@ public final class SolverToRealtimeAdapter implements RealtimeSolver {
   public static StochasticSupplier<RealtimeSolver> create(
       StochasticSupplier<? extends Solver> solver) {
     return new Sup(solver);
-  }
-
-  static class SolverComputer
-      implements Callable<ImmutableList<ImmutableList<Parcel>>> {
-    final Solver solver;
-    final GlobalStateObject snapshot;
-
-    SolverComputer(Solver sol, GlobalStateObject snap) {
-      solver = sol;
-      snapshot = snap;
-    }
-
-    @Override
-    public ImmutableList<ImmutableList<Parcel>> call() throws Exception {
-      return solver.solve(snapshot);
-    }
   }
 
   static class Sup implements StochasticSupplier<RealtimeSolver> {

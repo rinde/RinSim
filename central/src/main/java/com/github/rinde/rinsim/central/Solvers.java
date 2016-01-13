@@ -26,6 +26,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 import javax.annotation.Nullable;
 import javax.measure.Measure;
@@ -251,6 +252,27 @@ public final class Solvers {
         movedVehicles, state.getTimeUnit(), state.getDistUnit(),
         state.getSpeedUnit(),
         arrivalTimesBuilder.build());
+  }
+
+  public static Callable<ImmutableList<ImmutableList<Parcel>>> createSolverCallable(
+      Solver solver, GlobalStateObject state) {
+    return new SolverCallable(solver, state);
+  }
+
+  static class SolverCallable
+      implements Callable<ImmutableList<ImmutableList<Parcel>>> {
+    final Solver solver;
+    final GlobalStateObject snapshot;
+
+    SolverCallable(Solver sol, GlobalStateObject snap) {
+      solver = sol;
+      snapshot = snap;
+    }
+
+    @Override
+    public ImmutableList<ImmutableList<Parcel>> call() throws Exception {
+      return solver.solve(snapshot);
+    }
   }
 
   // converts the routes received from Solver.solve(..) into a format which is
