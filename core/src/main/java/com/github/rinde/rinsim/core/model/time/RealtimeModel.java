@@ -419,6 +419,13 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
       } catch (final InterruptedException e) {
         throw new IllegalStateException(e);
       }
+      checkExceptions(context);
+      if (isShuttingDown.get()) {
+        context.shutdownExecutor();
+      }
+    }
+
+    void checkExceptions(RealtimeModel context) {
       if (!exceptions.isEmpty()) {
         context.cleanUpAfterException();
         LOGGER.error(exceptions.get(0).getMessage(), exceptions.get(0));
@@ -428,9 +435,6 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
           throw (Error) exceptions.get(0);
         }
         throw new IllegalStateException(exceptions.get(0));
-      }
-      if (isShuttingDown.get()) {
-        context.shutdownExecutor();
       }
     }
 
