@@ -16,6 +16,7 @@
 package com.github.rinde.rinsim.cli;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.truth.Truth.assertThat;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -23,6 +24,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Before;
@@ -55,74 +57,74 @@ public class CliTest {
     menu = Menu
         .builder()
         .add(
-            Option.builder("a", ArgumentParser.LONG).build(),
-            list,
-            new ArgHandler<List<Object>, Long>() {
-              @Override
-              public void execute(List<Object> ref, Optional<Long> value) {
-                ref.add(value.get());
-              }
-            })
+          Option.builder("a", ArgumentParser.LONG).build(),
+          list,
+          new ArgHandler<List<Object>, Long>() {
+            @Override
+            public void execute(List<Object> ref, Optional<Long> value) {
+              ref.add(value.get());
+            }
+          })
         .add(
-            Option
-                .builder("aa", ArgumentParser.LONG_LIST)
-                .longName("add-all")
-                .description(
-                    "Add all longs, and then some. Please note that using this option may alter the universe beyond recognition. Use at your own risk.\n\nFooter of the message.")
-                .setOptionalArgument()
-                .build(),
-            list,
-            new ArgHandler<List<Object>, List<Long>>() {
-              @Override
-              public void execute(List<Object> ref,
-                  Optional<List<Long>> value) {
-                if (value.isPresent()) {
-                  ref.addAll(value.get());
-                }
-              }
-            })
-        .add(
-            Option.builder("asl", ArgumentParser.STRING_LIST).build(),
-            list,
-            new ArgHandler<List<Object>, List<String>>() {
-              @Override
-              public void execute(List<Object> ref,
-                  Optional<List<String>> value) {
+          Option
+              .builder("aa", ArgumentParser.LONG_LIST)
+              .longName("add-all")
+              .description(
+                "Add all longs, and then some. Please note that using this option may alter the universe beyond recognition. Use at your own risk.\n\nFooter of the message.")
+              .setOptionalArgument()
+              .build(),
+          list,
+          new ArgHandler<List<Object>, List<Long>>() {
+            @Override
+            public void execute(List<Object> ref,
+                Optional<List<Long>> value) {
+              if (value.isPresent()) {
                 ref.addAll(value.get());
               }
-            })
+            }
+          })
+        .add(
+          Option.builder("asl", ArgumentParser.STRING_LIST).build(),
+          list,
+          new ArgHandler<List<Object>, List<String>>() {
+            @Override
+            public void execute(List<Object> ref,
+                Optional<List<String>> value) {
+              ref.addAll(value.get());
+            }
+          })
         .openGroup()
         .add(Option.builder("x").build(), list, dummyHandler())
         .add(Option.builder("y").build(), list, dummyHandler())
         .add(Option.builder("z").build(), list, dummyHandler())
         .closeGroup()
         .add(
-            Option.builder("as", ArgumentParser.STRING).build(),
-            list,
-            new ArgHandler<List<Object>, String>() {
-              @Override
-              public void execute(List<Object> ref, Optional<String> value) {
-                ref.addAll(value.asSet());
-              }
-            })
+          Option.builder("as", ArgumentParser.STRING).build(),
+          list,
+          new ArgHandler<List<Object>, String>() {
+            @Override
+            public void execute(List<Object> ref, Optional<String> value) {
+              ref.addAll(value.asSet());
+            }
+          })
         .addHelpOption("h", "help", "Print this message")
         .add(Option.builder("failure", ArgumentParser.BOOLEAN).build(), list,
-            new ArgHandler<List<Object>, Boolean>() {
-              @Override
-              public void execute(List<Object> subject, Optional<Boolean> b) {
-                if (b.get()) {
-                  throw new IllegalArgumentException();
-                }
-                throw new IllegalStateException();
+          new ArgHandler<List<Object>, Boolean>() {
+            @Override
+            public void execute(List<Object> subject, Optional<Boolean> b) {
+              if (b.get()) {
+                throw new IllegalArgumentException();
               }
-            })
+              throw new IllegalStateException();
+            }
+          })
         .add(Option.builder("happy", ArgumentParser.BOOLEAN).build(), list,
-            new ArgHandler<List<Object>, Boolean>() {
-              @Override
-              public void execute(List<Object> subject, Optional<Boolean> b) {
-                subject.add(b.get());
-              }
-            })
+          new ArgHandler<List<Object>, Boolean>() {
+            @Override
+            public void execute(List<Object> subject, Optional<Boolean> b) {
+              subject.add(b.get());
+            }
+          })
         .footer("This is the bottom")
         .header("This is the header")
         .commandLineSyntax("ctrl-alt-del")
@@ -137,15 +139,15 @@ public class CliTest {
     final Object subject = new Object();
     Menu.builder()
         .add(
-            Option.builder("a").build(),
-            subject,
-            dummyHandler())
+          Option.builder("a").build(),
+          subject,
+          dummyHandler())
         .add(
-            Option.builder("aa", ArgumentParser.STRING)
-                .longName("a")
-                .build(),
-            subject,
-            CliTest.<Object, String>dummyArgHandler());
+          Option.builder("aa", ArgumentParser.STRING)
+              .longName("a")
+              .build(),
+          subject,
+          CliTest.<Object, String>dummyArgHandler());
   }
 
   /**
@@ -412,6 +414,38 @@ public class CliTest {
     final Option o = Option.builder("A-T").longName("APPLE-TREE").build();
     assertEquals("A-T", o.getShortName());
     assertEquals("APPLE-TREE", o.getLongName().get());
+  }
+
+  @Test
+  public void testPrefixedIntList() {
+    final List<String> consumer = new ArrayList<>();
+    final Menu m = Menu.builder()
+        .addHelpOption("h", "help", "Hi")
+        .add(Option.builder("i", ArgumentParser.prefixedIntList("t")).build(),
+          consumer,
+          new ArgHandler<List<String>, List<String>>() {
+            @Override
+            public void execute(List<String> subject,
+                Optional<List<String>> argument) {
+              subject.addAll(argument.get());
+            }
+          })
+        .build();
+
+    m.execute("-i", "t1,..,t5");
+    assertThat(consumer).containsExactly("t1", "t2", "t3", "t4", "t5")
+        .inOrder();
+
+    consumer.clear();
+    m.execute("-i", "t1,..,t3,..,t5");
+    assertThat(consumer).containsExactly("t1", "t2", "t3", "t4", "t5")
+        .inOrder();
+
+    testFail(m, "i", CauseType.INVALID_ARG_FORMAT, "-i", "t1,..,t2");
+    testFail(m, "i", CauseType.INVALID_ARG_FORMAT, "-i", "t3,..,t1");
+    testFail(m, "i", CauseType.INVALID_ARG_FORMAT, "-i", "t3,..,tn");
+    testFail(m, "i", CauseType.INVALID_ARG_FORMAT, "-i", "..,tn");
+    testFail(m, "i", CauseType.INVALID_ARG_FORMAT, "-i", "t7,..");
   }
 
   void testFail(String failingOptionName, CauseType causeType,

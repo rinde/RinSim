@@ -15,7 +15,9 @@
  */
 package com.github.rinde.rinsim.cli;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import com.github.rinde.rinsim.cli.CliException.CauseType;
 import com.github.rinde.rinsim.cli.Option.OptionArg;
@@ -23,6 +25,8 @@ import com.google.common.base.Converter;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.PeekingIterator;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
@@ -39,27 +43,29 @@ public abstract class ArgumentParser<V> {
    * Separator of argument lists.
    */
   public static final char ARG_LIST_SEPARATOR = ',';
+  public static final Splitter ARG_LIST_SPLITTER =
+    Splitter.on(ARG_LIST_SEPARATOR);
 
   /**
    * {@link Boolean} parser.
    */
   public static final ArgumentParser<Boolean> BOOLEAN =
-      new ArgumentParser<Boolean>("boolean") {
-        @Override
-        Boolean parse(OptionArg<Boolean> option, String arg) {
-          if ("T".equalsIgnoreCase(arg)
-              || "true".equalsIgnoreCase(arg)
-              || "1".equals(arg)) {
-            return true;
-          } else if ("F".equalsIgnoreCase(arg)
-              || "false".equalsIgnoreCase(arg)
-              || "0".equals(arg)) {
-            return false;
-          }
-          throw new CliException("Expected a boolean but found: '" + arg + "'.",
-              CauseType.INVALID_ARG_FORMAT, option);
+    new ArgumentParser<Boolean>("boolean") {
+      @Override
+      Boolean parse(OptionArg<Boolean> option, String arg) {
+        if ("T".equalsIgnoreCase(arg)
+            || "true".equalsIgnoreCase(arg)
+            || "1".equals(arg)) {
+          return true;
+        } else if ("F".equalsIgnoreCase(arg)
+            || "false".equalsIgnoreCase(arg)
+            || "0".equals(arg)) {
+          return false;
         }
-      };
+        throw new CliException("Expected a boolean but found: '" + arg + "'.",
+            CauseType.INVALID_ARG_FORMAT, option);
+      }
+    };
 
   /**
    * {@link Long} parser.
@@ -71,7 +77,7 @@ public abstract class ArgumentParser<V> {
    * List of {@link Long}s parser.
    */
   public static final ArgumentParser<List<Long>> LONG_LIST =
-      new NumberListParser<>("long list", Longs.stringConverter());
+    new NumberListParser<>("long list", Longs.stringConverter());
 
   /**
    * {@link Integer} parser.
@@ -83,7 +89,7 @@ public abstract class ArgumentParser<V> {
    * List of {@link Integer}s parser.
    */
   public static final ArgumentParser<List<Integer>> INTEGER_LIST =
-      new NumberListParser<>("int list", Ints.stringConverter());
+    new NumberListParser<>("int list", Ints.stringConverter());
 
   /**
    * {@link Double} parser.
@@ -95,29 +101,29 @@ public abstract class ArgumentParser<V> {
    * List of {@link Double}s parser.
    */
   public static final ArgumentParser<List<Double>> DOUBLE_LIST =
-      new NumberListParser<>("double list", Doubles.stringConverter());
+    new NumberListParser<>("double list", Doubles.stringConverter());
 
   /**
    * {@link String} parser.
    */
   public static final ArgumentParser<String> STRING =
-      new ArgumentParser<String>("string") {
-        @Override
-        String parse(OptionArg<String> option, String value) {
-          return value;
-        }
-      };
+    new ArgumentParser<String>("string") {
+      @Override
+      String parse(OptionArg<String> option, String value) {
+        return value;
+      }
+    };
 
   /**
    * List of {@link String}s parser.
    */
   public static final ArgumentParser<List<String>> STRING_LIST =
-      new ArgumentParser<List<String>>("string list") {
-        @Override
-        List<String> parse(OptionArg<List<String>> option, String value) {
-          return Splitter.on(ARG_LIST_SEPARATOR).splitToList(value);
-        }
-      };
+    new ArgumentParser<List<String>>("string list") {
+      @Override
+      List<String> parse(OptionArg<List<String>> option, String value) {
+        return Splitter.on(ARG_LIST_SEPARATOR).splitToList(value);
+      }
+    };
 
   private final String name;
 
@@ -131,11 +137,22 @@ public abstract class ArgumentParser<V> {
     return name;
   }
 
+  /**
+   * A prefixed int list allows arguments such as: <code>c0,..,c4</code>, this
+   * generates a list containing the following five elements
+   * <code>c0,c1,c2,c3,c4</code>.
+   * @param prefix The prefix string.
+   * @return A new argument parser with the specified prefix.
+   */
+  public static ArgumentParser<List<String>> prefixedIntList(String prefix) {
+    return new PrefixedIntListParser(prefix);
+  }
+
   static CliException convertNFE(Option option, NumberFormatException e,
       String value, String argName) {
     return new CliException(String.format(
-        "The option %s expects a %s, found '%s'.", option, argName,
-        value), e, CauseType.INVALID_ARG_FORMAT, option);
+      "The option %s expects a %s, found '%s'.", option, argName,
+      value), e, CauseType.INVALID_ARG_FORMAT, option);
   }
 
   /**
@@ -190,12 +207,70 @@ public abstract class ArgumentParser<V> {
     @Override
     List<T> parse(OptionArg<List<T>> option, String value) {
       final Iterable<String> strings = Splitter.on(ARG_LIST_SEPARATOR).split(
-          value);
+        value);
       try {
         return ImmutableList.copyOf(Iterables.transform(strings, converter));
       } catch (final NumberFormatException e) {
         throw convertNFE(option, e, value, name());
       }
+    }
+  }
+
+  static class PrefixedIntListParser extends ArgumentParser<List<String>> {
+    private final String prefix;
+    private final Pattern pattern;
+
+    public PrefixedIntListParser(String prefx) {
+      super("string list");
+      prefix = prefx;
+      pattern = Pattern.compile(prefix + "\\d+");
+    }
+
+    @Override
+    List<String> parse(OptionArg<List<String>> option, String value) {
+      // can not be empty
+      final List<String> list =
+        Splitter.on(ARG_LIST_SEPARATOR).splitToList(value);
+
+      final PeekingIterator<String> it =
+        Iterators.peekingIterator(list.iterator());
+
+      final List<String> generatedList = new ArrayList<>();
+      while (it.hasNext()) {
+        final String cur = it.next();
+        if (cur.equals("..")) {
+          CliException.checkArgFormat(!generatedList.isEmpty(), option,
+            "'..' cannot be the first item in the list.");
+          CliException.checkArgFormat(it.hasNext(), option,
+            "After '..' at least one more item is expected.");
+
+          final String prev = generatedList.get(generatedList.size() - 1);
+          final int prevNum = Integer.parseInt(prev.substring(prefix.length()));
+
+          final String next = it.peek();
+          checkItemFormat(option, next);
+          final int nextNum = Integer.parseInt(next.substring(prefix.length()));
+
+          CliException.checkArgFormat(prevNum + 1 < nextNum,
+            option,
+            "The items adjacent to '..' must be >= 0 and at least one apart. "
+                + "Found '%s' and '%s'.",
+            prevNum, nextNum);
+
+          for (int i = prevNum + 1; i < nextNum; i++) {
+            generatedList.add(prefix + Integer.toString(i));
+          }
+        } else {
+          checkItemFormat(option, cur);
+          generatedList.add(cur);
+        }
+      }
+      return generatedList;
+    }
+
+    void checkItemFormat(Option opt, String str) {
+      CliException.checkArgFormat(pattern.matcher(str).matches(), opt,
+        "'%s' does not match expected pattern: '%s'", str, pattern.pattern());
     }
   }
 }
