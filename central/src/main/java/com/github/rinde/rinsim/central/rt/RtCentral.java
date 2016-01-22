@@ -351,6 +351,8 @@ public final class RtCentral {
     }
 
     void notifySolverOfChange(TimeLapse timeLapse, boolean sleepAfterNotify) {
+      LOGGER.trace("notifySolverOfChange {} sleepAfterNotify:{}", timeLapse,
+        sleepAfterNotify);
       verify(clock.getClockMode() == ClockMode.REAL_TIME,
         "Problem detected at %s.", timeLapse);
       problemHasChanged = false;
@@ -376,7 +378,10 @@ public final class RtCentral {
           RtCentral.class.getSimpleName());
       }
 
-      if (problemHasChanged && sleepOnChange) {
+      final boolean didProblemChange = problemHasChanged;
+
+      if (didProblemChange && sleepOnChange) {
+        // this method modifies problemHasChanged
         notifySolverOfChange(timeLapse, sleepOnChange);
       }
 
@@ -419,11 +424,12 @@ public final class RtCentral {
         }
       }
 
-      if (problemHasChanged && !sleepOnChange) {
+      if (didProblemChange && !sleepOnChange) {
+        // this method changes problemHasChanged
         notifySolverOfChange(timeLapse, sleepOnChange);
       }
 
-      if (!problemHasChanged
+      if (!didProblemChange
           && continuousUpdates
           && clock.getClockMode() == ClockMode.REAL_TIME) {
         solver.sendSnapshot(

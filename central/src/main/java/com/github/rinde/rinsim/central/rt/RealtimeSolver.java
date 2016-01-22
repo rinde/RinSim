@@ -72,6 +72,10 @@ public interface RealtimeSolver {
    */
   void problemChanged(GlobalStateObject snapshot);
 
+  // The convention is that during a tick either this method or
+  // problemChanged(..) is called, never
+  // both during the same tick. However, a user of RtSimSolver can ignore this
+  // convention and call these methods in the same tick.
   void receiveSnapshot(GlobalStateObject snapshot);
 
   void cancel();

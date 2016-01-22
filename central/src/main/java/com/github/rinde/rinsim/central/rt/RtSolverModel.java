@@ -625,7 +625,9 @@ public final class RtSolverModel
         final ListenableFuture<?> fut = executor.submit(new Runnable() {
           @Override
           public void run() {
-            LOGGER.trace("calling RealtimeSolver.receiveSnapshot(..)");
+            LOGGER.trace(
+              "calling RealtimeSolver.receiveSnapshot(..) sim time: {}",
+              state.getTime());
             solver.receiveSnapshot(state);
           }
         });

@@ -52,6 +52,8 @@ public abstract class RtSimSolver {
 
   public abstract void solve(GlobalStateObject state);
 
+  // this method should generally not be called in the same tick as solve(..)
+  // is called
   public abstract void sendSnapshot(SolveArgs args);
 
   public abstract GlobalStateObject getCurrentState(SolveArgs args);
