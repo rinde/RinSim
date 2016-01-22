@@ -73,7 +73,7 @@ public final class RealtimeClockLogger extends AbstractModelVoid
    * @return An immutable list of {@link RealtimeTickInfo} objects.
    */
   public ImmutableList<RealtimeTickInfo> getTickInfoList() {
-    return ((RealtimeModel) clock).getDeviations();
+    return ((RealtimeModel) clock).getTickInfoList();
   }
 
   /**

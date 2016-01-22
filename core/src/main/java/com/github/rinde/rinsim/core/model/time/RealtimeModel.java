@@ -207,8 +207,8 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
     return ((ClockState) stateMachine.getCurrentState()).getClockMode();
   }
 
-  public ImmutableList<RealtimeTickInfo> getDeviations() {
-    return realtimeState.getMeasuredDeviations();
+  public ImmutableList<RealtimeTickInfo> getTickInfoList() {
+    return realtimeState.getTickInfoList();
   }
 
   @Override
@@ -320,13 +320,13 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
       timeRunners = new ArrayList<>();
     }
 
-    public ImmutableList<RealtimeTickInfo> getMeasuredDeviations() {
-      final ImmutableList.Builder<RealtimeTickInfo> deviationBuilder =
+    public ImmutableList<RealtimeTickInfo> getTickInfoList() {
+      final ImmutableList.Builder<RealtimeTickInfo> infoBuilder =
         ImmutableList.builder();
       for (final TimeRunner tr : timeRunners) {
-        deviationBuilder.addAll(tr.computeDeviations());
+        infoBuilder.addAll(tr.computeTickInfoList());
       }
-      return deviationBuilder.build();
+      return infoBuilder.build();
     }
 
     @Override
@@ -454,7 +454,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         timeStamps = new ArrayList<>();
       }
 
-      public Iterable<? extends RealtimeTickInfo> computeDeviations() {
+      public Iterable<? extends RealtimeTickInfo> computeTickInfoList() {
         if (timeStamps.size() <= 1) {
           return Collections.emptySet();
         }
