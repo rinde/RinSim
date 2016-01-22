@@ -220,8 +220,8 @@ public abstract class ArgumentParser<V> {
     private final String prefix;
     private final Pattern pattern;
 
-    public PrefixedIntListParser(String prefx) {
-      super("string list");
+    PrefixedIntListParser(String prefx) {
+      super("prefixed int list");
       prefix = prefx;
       pattern = Pattern.compile(prefix + "\\d+");
     }
@@ -238,7 +238,7 @@ public abstract class ArgumentParser<V> {
       final List<String> generatedList = new ArrayList<>();
       while (it.hasNext()) {
         final String cur = it.next();
-        if (cur.equals("..")) {
+        if ("..".equals(cur)) {
           CliException.checkArgFormat(!generatedList.isEmpty(), option,
             "'..' cannot be the first item in the list.");
           CliException.checkArgFormat(it.hasNext(), option,
