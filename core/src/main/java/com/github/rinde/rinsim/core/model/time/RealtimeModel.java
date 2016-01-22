@@ -454,7 +454,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         timeStamps = new ArrayList<>();
       }
 
-      public Iterable<? extends RealtimeTickInfo> computeTickInfoList() {
+      Iterable<? extends RealtimeTickInfo> computeTickInfoList() {
         if (timeStamps.size() <= 1) {
           return Collections.emptySet();
         }
