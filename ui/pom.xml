@@ -147,7 +147,7 @@
 			<plugin>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
-					<argLine>${test.arg} ${gc.args}</argLine>
+					<argLine>${test.arg}</argLine>
 					<excludedGroups>${test.excludedGroups}</excludedGroups>
 				</configuration>
 				<executions>

@@ -56,8 +56,8 @@ public final class RealtimeClockLogger extends AbstractModelVoid
       @Override
       public void handleEvent(Event e) {
         log.add(LogEntry.create(clock.getCurrentTime(),
-            clock.getCurrentTime() + clock.getTickLength(),
-            clock.getClockMode(), e.getEventType()));
+          clock.getCurrentTime() + clock.getTickLength(),
+          clock.getClockMode(), e.getEventType()));
       }
     }, SWITCH_TO_REAL_TIME, SWITCH_TO_SIM_TIME, STARTED, STOPPED);
   }
@@ -69,7 +69,10 @@ public final class RealtimeClockLogger extends AbstractModelVoid
     return Collections.unmodifiableList(log);
   }
 
-  public ImmutableList<MeasuredDeviation> getDeviations() {
+  /**
+   * @return An immutable list of {@link RealtimeTickInfo} objects.
+   */
+  public ImmutableList<RealtimeTickInfo> getTickInfoList() {
     return ((RealtimeModel) clock).getDeviations();
   }
 
@@ -154,7 +157,7 @@ public final class RealtimeClockLogger extends AbstractModelVoid
     @Override
     public RealtimeClockLogger build(DependencyProvider dependencyProvider) {
       final RealtimeClockController c =
-          dependencyProvider.get(RealtimeClockController.class);
+        dependencyProvider.get(RealtimeClockController.class);
       return new RealtimeClockLogger(c);
     }
   }

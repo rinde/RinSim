@@ -22,7 +22,6 @@ import java.util.Collection;
 
 import javax.measure.unit.NonSI;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.Parameterized.Parameters;
 
@@ -32,7 +31,6 @@ import com.github.rinde.rinsim.core.model.time.RealtimeClockController.RtClockEv
 import com.github.rinde.rinsim.core.model.time.TimeModel.AbstractBuilder;
 import com.github.rinde.rinsim.core.model.time.TimeModel.RealtimeBuilder;
 import com.github.rinde.rinsim.testutil.TestUtil;
-import com.google.common.collect.Iterables;
 
 /**
  * @author Rinde van Lon
@@ -97,111 +95,6 @@ public class RealtimeModelTest extends TimeModelTest<RealtimeModel> {
     } catch (final UnsupportedOperationException e) {
       fail = true;
       assertThat(e.getMessage()).contains("not supported");
-    }
-    assertThat(fail).isTrue();
-    assertThat(getModel().isExecutorAlive()).isFalse();
-  }
-
-  /**
-   * Tests that a sudden delay in computation time is detected.
-   */
-  @Test
-  @Ignore
-  public void testConsistencyCheck() {
-    // TODO write a test that checks that the sleep is detected by the logs
-    final int t = RealtimeModel.CONSISTENCY_CHECK_LENGTH;
-    getModel().register(limiter(t * 3));
-    getModel().register(new TickListener() {
-      @Override
-      public void tick(TimeLapse timeLapse) {
-        if (timeLapse.getStartTime() == timeLapse.getTickLength() * t) {
-          try {
-            Thread.sleep(150);
-          } catch (final InterruptedException e) {
-            throw new IllegalStateException(e);
-          }
-        } else if (timeLapse.getStartTime() >= timeLapse.getTickLength() * t
-            * 2) {
-          System.gc();
-        }
-      }
-
-      @Override
-      public void afterTick(TimeLapse timeLapse) {}
-    });
-    boolean fail = false;
-    try {
-      getModel().start();
-    } catch (final IllegalStateException e) {
-      fail = true;
-    }
-    assertThat(fail).isTrue();
-    assertThat(getModel().isExecutorAlive()).isFalse();
-  }
-
-  /**
-   * Tests that a correction was supplied.
-   */
-  @Test
-  public void testGCLogCorrection() {
-    getModel().register(limiter(20));
-    getModel().register(new TickListener() {
-      @Override
-      public void tick(TimeLapse timeLapse) {
-        if (timeLapse.getTime() == 0) {
-          getModel().switchToRealTime();
-        } else if (timeLapse.getTime() >= 300) {
-          System.gc();
-        }
-      }
-
-      @Override
-      public void afterTick(TimeLapse timeLapse) {}
-    });
-    getModel().start();
-
-    assertThat(getModel().getCurrentTime()).isEqualTo(2000);
-    final Iterable<MeasuredDeviation> interArrivalTimes =
-        getModel().realtimeState.getMeasuredDeviations();
-    // impossible to give guarantees, but 10 seems low enough
-    assertThat(Iterables.size(interArrivalTimes)).isAtLeast(10);
-    boolean containsCorrection = false;
-    for (final MeasuredDeviation iat : interArrivalTimes) {
-      if (iat.getCorrectionNs() > 0) {
-        containsCorrection = true;
-      }
-    }
-    // a time correction must have been applied (but probably very small!)
-    assertThat(containsCorrection).isTrue();
-  }
-
-  /**
-   * Test that a tick listener that takes too much time is detected.
-   */
-  @Test
-  @Ignore
-  public void testTimingChecker() {
-    getModel().register(limiter(100));
-    getModel().register(new TickListener() {
-      @Override
-      public void tick(TimeLapse timeLapse) {
-        try {
-          Thread.sleep(150L);
-        } catch (final InterruptedException e) {
-          throw new IllegalStateException(e);
-        }
-        System.gc();
-      }
-
-      @Override
-      public void afterTick(TimeLapse timeLapse) {}
-    });
-    boolean fail = false;
-    try {
-      getModel().start();
-    } catch (final IllegalStateException e) {
-      assertThat(e.getMessage()).contains("deviation is too much");
-      fail = true;
     }
     assertThat(fail).isTrue();
     assertThat(getModel().isExecutorAlive()).isFalse();

@@ -18,9 +18,7 @@ package com.github.rinde.rinsim.core.model.time;
 import static com.google.common.truth.Truth.assertThat;
 
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -31,7 +29,6 @@ import com.github.rinde.rinsim.core.model.FakeDependencyProvider;
 import com.github.rinde.rinsim.core.model.time.Clock.ClockEventType;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController.ClockMode;
 import com.github.rinde.rinsim.core.model.time.RealtimeModel.SimpleState;
-import com.github.rinde.rinsim.core.model.time.RealtimeModel.TickListenerTimingChecker;
 import com.github.rinde.rinsim.core.model.time.RealtimeModel.Trigger;
 import com.github.rinde.rinsim.event.ListenerEventHistory;
 import com.github.rinde.rinsim.testutil.TestUtil;
@@ -77,20 +74,6 @@ public abstract class TimeModelTest<T extends TimeModel> {
     assertThat(getModel().isTicking()).isFalse();
   }
 
-  // unwraps the listeners
-  Set<TickListener> getTickListeners() {
-    final Set<TickListener> listeners = getModel().getTickListeners();
-    final Set<TickListener> newSet = new LinkedHashSet<>();
-    for (final TickListener tl : listeners) {
-      if (tl instanceof TickListenerTimingChecker) {
-        newSet.add(((TickListenerTimingChecker) tl).delegate);
-      } else {
-        newSet.add(tl);
-      }
-    }
-    return newSet;
-  }
-
   /**
    * Basic register/unregister tests.
    */
@@ -102,21 +85,21 @@ public abstract class TimeModelTest<T extends TimeModel> {
 
     assertThat(getModel().register(a)).isTrue();
     assertThat(getModel().register(ltl)).isTrue();
-    assertThat(getTickListeners()).containsExactly(a, ltl).inOrder();
+    assertThat(getModel().getTickListeners()).containsExactly(a, ltl).inOrder();
 
     getModel().start();
 
     assertThat(getModel().getCurrentTime()).isEqualTo(
-        getModel().getTickLength());
+      getModel().getTickLength());
     assertThat(a.getTickCount()).isEqualTo(1L);
     getModel().unregister(a);
-    assertThat(getTickListeners()).containsExactly(ltl);
+    assertThat(getModel().getTickListeners()).containsExactly(ltl);
 
     assertThat(a.getTickCount()).isEqualTo(1L);
 
     // re-register
     assertThat(getModel().register(a)).isTrue();
-    assertThat(getTickListeners()).containsExactly(ltl, a).inOrder();
+    assertThat(getModel().getTickListeners()).containsExactly(ltl, a).inOrder();
   }
 
   /**
@@ -134,7 +117,7 @@ public abstract class TimeModelTest<T extends TimeModel> {
     }
     assertThat(fail).isTrue();
 
-    assertThat(getTickListeners()).containsExactly(a);
+    assertThat(getModel().getTickListeners()).containsExactly(a);
   }
 
   /**
@@ -197,7 +180,7 @@ public abstract class TimeModelTest<T extends TimeModel> {
         .isTrue();
     getModel().start();
     assertThat(getModel().getCurrentTime()).isEqualTo(
-        4 * getModel().getTickLength());
+      4 * getModel().getTickLength());
 
     assertThat(a.getTickCount()).isEqualTo(3);
     assertThat(a.getAfterTickCount()).isEqualTo(2);
@@ -256,15 +239,15 @@ public abstract class TimeModelTest<T extends TimeModel> {
       @Override
       public void tick(TimeLapse timeLapse) {
         intervals.add(Range.openClosed(timeLapse.getStartTime(),
-            timeLapse.getEndTime()));
+          timeLapse.getEndTime()));
         assertThat(leh.getEventTypeHistory()).containsExactly(
-            ClockEventType.STARTED);
+          ClockEventType.STARTED);
       }
 
       @Override
       public void afterTick(TimeLapse timeLapse) {
         assertThat(leh.getEventTypeHistory()).containsExactly(
-            ClockEventType.STARTED);
+          ClockEventType.STARTED);
       }
     });
     assertThat(intervals).isEmpty();
@@ -272,11 +255,11 @@ public abstract class TimeModelTest<T extends TimeModel> {
     getModel().start();
     assertThat(intervals).hasSize(2);
     assertThat(intervals).containsExactly(
-        Range.openClosed(0L, model.getTickLength()),
-        Range.openClosed(model.getTickLength(), model.getTickLength() * 2))
+      Range.openClosed(0L, model.getTickLength()),
+      Range.openClosed(model.getTickLength(), model.getTickLength() * 2))
         .inOrder();
     assertThat(leh.getEventTypeHistory()).containsExactly(
-        ClockEventType.STARTED, ClockEventType.STOPPED);
+      ClockEventType.STARTED, ClockEventType.STOPPED);
   }
 
   /**
@@ -357,7 +340,7 @@ public abstract class TimeModelTest<T extends TimeModel> {
     } catch (final IllegalStateException e) {
       assertThat(e.getMessage()).isEqualTo("Test");
       assertThat(history.getEventTypeHistory()).containsExactly(
-          ClockEventType.STOPPED);
+        ClockEventType.STOPPED);
       failure = true;
     }
     assertThat(failure).isTrue();

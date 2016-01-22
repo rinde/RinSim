@@ -17,22 +17,40 @@ package com.github.rinde.rinsim.core.model.time;
 
 import com.google.auto.value.AutoValue;
 
+/**
+ * A timestamp marks the end of one {@link TimeLapse} and the start of another.
+ * @author Rinde van Lon
+ */
 @AutoValue
-public abstract class TimeStamp {
+public abstract class Timestamp {
 
-  TimeStamp() {}
+  Timestamp() {}
 
+  /**
+   * The tick count. If tick count is <code>n</code> it means that this is the
+   * n-th {@link TimeLapse} in the current real-time period of the
+   * {@link RealtimeClockController}. Each time a new real-time period is
+   * started the counter is reset to <code>0</code>.
+   * @return The tick count, <code>&ge; 0</code>
+   */
   public abstract long getTickCount();
 
+  /**
+   * @return The value of {@link System#currentTimeMillis()} at the start of the
+   *         tick.
+   */
   public abstract long getMillis();
 
+  /**
+   * @return The value of {@link System#nanoTime()} at the start of the tick.
+   */
   public abstract long getNanos();
 
-  static TimeStamp now(long tickCount) {
+  static Timestamp now(long tickCount) {
     return create(tickCount, System.currentTimeMillis(), System.nanoTime());
   }
 
-  static TimeStamp create(long tickCount, long millis, long nanos) {
-    return new AutoValue_TimeStamp(tickCount, millis, nanos);
+  static Timestamp create(long tickCount, long millis, long nanos) {
+    return new AutoValue_Timestamp(tickCount, millis, nanos);
   }
 }
