@@ -224,9 +224,7 @@ public class RtSolverModelTest {
         }
 
         @Override
-        public void cancel() {
-          throw new UnsupportedOperationException();
-        }
+        public void cancel() {}
 
         @Override
         public boolean isComputing() {
