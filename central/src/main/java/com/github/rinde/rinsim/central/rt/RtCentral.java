@@ -207,6 +207,7 @@ public final class RtCentral {
       return change(Options.SLEEP_ON_CHANGE, flag);
     }
 
+    // sets thread grouping property of RtSolverModel
     public Builder withThreadGrouping(boolean flag) {
       return change(Options.THREAD_GROUPING, flag);
     }

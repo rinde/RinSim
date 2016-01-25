@@ -160,6 +160,7 @@ public final class RtSolverModel
 
   void shutdown() {
     if (executor.isPresent()) {
+      manager.stop();
       executor.get().shutdownNow();
       try {
         LOGGER.trace("Shutting down executor..");
@@ -320,9 +321,9 @@ public final class RtSolverModel
     }
 
     /**
-     * Sets the threadpool size. In 'single mode' the number of threads is
+     * Sets the threadpool size. In 'single mode' the default threadpool size is
      * determined by {@link #DEFAULT_NUM_THREADS_IN_SINGLE_MODE}. In 'multi
-     * mode' the number of threads is determined by
+     * mode' the threadpool size is determined by
      * {@link Runtime#availableProcessors()}.
      * @param threads The number of threads, must be positive.
      * @return This, as per the builder pattern.
@@ -419,6 +420,15 @@ public final class RtSolverModel
     boolean isComputing() {
       synchronized (computingSimSolvers) {
         return !computingSimSolvers.isEmpty();
+      }
+    }
+
+    // stops all computing solvers
+    void stop() {
+      synchronized (computingSimSolvers) {
+        for (final RtSimSolverSchedulerImpl solv : computingSimSolvers) {
+          solv.rtSimSolver.cancel();
+        }
       }
     }
 
