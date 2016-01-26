@@ -163,17 +163,17 @@ public final class RtSolverModel
       manager.stop();
       executor.get().shutdownNow();
       try {
-        LOGGER.trace("Shutting down executor..");
+        LOGGER.info("Shutting down executor..");
         final boolean success =
           executor.get().awaitTermination(2, TimeUnit.SECONDS);
         if (success) {
-          LOGGER.trace("Executor shutdown.");
+          LOGGER.info("Executor shutdown.");
         } else {
           LOGGER.warn("Shutting down executor timed out.");
         }
       } catch (final InterruptedException e) {
         if (executor.get().isShutdown()) {
-          LOGGER.trace("Interrupt, but executor shutdown.");
+          LOGGER.info("Interrupt, but executor shutdown.");
         } else {
           LOGGER.warn("Executor shutdown interrupted..");
         }
