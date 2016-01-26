@@ -17,6 +17,7 @@ package com.github.rinde.rinsim.central.rt;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Verify.verify;
 
 import java.io.Serializable;
 import java.lang.Thread.UncaughtExceptionHandler;
@@ -431,6 +432,12 @@ public final class RtSolverModel
         for (final RtSimSolverSchedulerImpl solv : computingSimSolvers) {
           LOGGER.info(" > stop {}", solv.rtSimSolver.getSolver());
           solv.rtSimSolver.cancel();
+        }
+
+        for (final RtSimSolverSchedulerImpl solv : simSolvers) {
+          verify(!solv.rtSimSolver.isComputing(),
+            "Found a solver that is still computing, this is a bug: ",
+            solv.rtSimSolver.getSolver());
         }
       }
     }
