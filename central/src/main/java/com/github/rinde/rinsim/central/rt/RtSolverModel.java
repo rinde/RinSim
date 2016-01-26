@@ -426,7 +426,9 @@ public final class RtSolverModel
     // stops all computing solvers
     void stop() {
       synchronized (computingSimSolvers) {
+        LOGGER.info("There are {} solvers running", computingSimSolvers.size());
         for (final RtSimSolverSchedulerImpl solv : computingSimSolvers) {
+          LOGGER.info(" > stop {}", solv.rtSimSolver.getSolver());
           solv.rtSimSolver.cancel();
         }
       }
@@ -587,6 +589,10 @@ public final class RtSolverModel
       @Override
       public void solve(SolveArgs args) {
         solve(converter.convert(args).state);
+      }
+
+      RealtimeSolver getSolver() {
+        return solver;
       }
 
       @Override
