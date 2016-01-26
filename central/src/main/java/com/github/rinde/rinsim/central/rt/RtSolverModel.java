@@ -433,7 +433,6 @@ public final class RtSolverModel
           LOGGER.info(" > stop {}", solv.rtSimSolver.getSolver());
           solv.rtSimSolver.cancel();
         }
-
         for (final RtSimSolverSchedulerImpl solv : simSolvers) {
           verify(!solv.rtSimSolver.isComputing(),
             "Found a solver that is still computing, this is a bug: ",
@@ -461,10 +460,6 @@ public final class RtSolverModel
           // it may be the case that the issuer is already removed, we ignore
           // this as it can happen due to threading issues.
           computingSimSolvers.remove(e.getIssuer());
-          // if (!isComputing() && clock.isTicking()) {
-          // LOGGER.trace("request to switch to sim time");
-          // clock.switchToSimulatedTime();
-          // }
         } else {
           throw new IllegalArgumentException("Unexpected event: " + e);
         }

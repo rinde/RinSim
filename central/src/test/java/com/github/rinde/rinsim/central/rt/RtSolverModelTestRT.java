@@ -68,9 +68,11 @@ public class RtSolverModelTestRT extends RtSolverModelTest {
 
     final ListenerEventHistory eventHistory = new ListenerEventHistory();
     solvers.get(0).solve(SolveArgs.create());
+    verify(clock, times(1)).switchToRealTime();
     solvers.get(0).getEventAPI().addListener(eventHistory,
       EventType.NEW_SCHEDULE);
     solvers.get(1).solve(SolveArgs.create());
+    verify(clock, times(1)).switchToRealTime();
 
     assertThat(solvers.get(0).isScheduleUpdated()).isFalse();
     boolean fail = false;
@@ -85,7 +87,7 @@ public class RtSolverModelTestRT extends RtSolverModelTest {
     assertThat(solvers.get(0).isScheduleUpdated()).isFalse();
     assertThat(eventHistory.getHistory()).isEmpty();
 
-    verify(clock, times(2)).switchToRealTime();
+    verify(clock, times(1)).switchToRealTime();
     verify(clock, times(0)).switchToSimulatedTime();
 
     model.afterTick(TimeLapseFactory.ms(0, 100));
@@ -103,11 +105,11 @@ public class RtSolverModelTestRT extends RtSolverModelTest {
     assertThat(duration).isIn(Range.open(0.9, 1.1));
 
     model.afterTick(TimeLapseFactory.ms(100, 200));
-    verify(clock, times(2)).switchToRealTime();
+    verify(clock, times(1)).switchToRealTime();
     verify(clock, times(0)).switchToSimulatedTime();
 
     model.afterTick(TimeLapseFactory.ms(200, 300));
-    verify(clock, times(2)).switchToRealTime();
+    verify(clock, times(1)).switchToRealTime();
     verify(clock, times(1)).switchToSimulatedTime();
 
     assertThat(eventHistory.getEventTypeHistory())

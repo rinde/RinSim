@@ -228,7 +228,7 @@ public class RtSolverModelTest {
 
         @Override
         public boolean isComputing() {
-          throw new UnsupportedOperationException();
+          return false;
         }
 
       });

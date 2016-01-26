@@ -627,13 +627,11 @@ public class RealtimeSolverTest {
     public void receiveSnapshot(GlobalStateObject snapshot) {}
 
     @Override
-    public void cancel() {
-      throw new UnsupportedOperationException();
-    }
+    public void cancel() {}
 
     @Override
     public boolean isComputing() {
-      throw new UnsupportedOperationException();
+      return false;
     }
 
   }
