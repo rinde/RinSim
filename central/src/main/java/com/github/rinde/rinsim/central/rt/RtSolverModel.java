@@ -426,7 +426,8 @@ public final class RtSolverModel
     // stops all computing solvers
     void stop() {
       synchronized (computingSimSolvers) {
-        LOGGER.info("There are {} solvers running", computingSimSolvers.size());
+        LOGGER.info("Number of running solvers: {}.",
+          computingSimSolvers.size());
         for (final RtSimSolverSchedulerImpl solv : computingSimSolvers) {
           LOGGER.info(" > stop {}", solv.rtSimSolver.getSolver());
           solv.rtSimSolver.cancel();
