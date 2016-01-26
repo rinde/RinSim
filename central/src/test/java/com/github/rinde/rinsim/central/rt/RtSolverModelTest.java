@@ -230,7 +230,6 @@ public class RtSolverModelTest {
         public boolean isComputing() {
           return false;
         }
-
       });
 
     rss.solve(SolveArgs.create());
