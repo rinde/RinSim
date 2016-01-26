@@ -151,7 +151,7 @@ public final class RtSolverModel
       @Override
       public void handleEvent(Event e) {
         manager.checkExceptions();
-        LOGGER.info("new parcel -> switch to real time");
+        LOGGER.debug("new parcel -> switch to real time");
         clock.switchToRealTime();
       }
     }, PDPModelEventType.NEW_PARCEL);
@@ -229,7 +229,7 @@ public final class RtSolverModel
               + "to switch to sim time on next tick");
         prevComputing = false;
       } else {
-        LOGGER.info(
+        LOGGER.debug(
           "not computing for two ticks -> request to switch to sim time");
         clock.switchToSimulatedTime();
       }
@@ -444,7 +444,7 @@ public final class RtSolverModel
           isComputingBefore, clock.isTicking(), computingSimSolvers);
         if (e.getEventType() == EventType.START_COMPUTING) {
           if (!isComputingBefore) {
-            LOGGER.info("start computing -> switch to real time");
+            LOGGER.debug("start computing -> switch to real time");
             clock.switchToRealTime();
           }
           computingSimSolvers.add((RtSimSolverSchedulerImpl) e.getIssuer());
