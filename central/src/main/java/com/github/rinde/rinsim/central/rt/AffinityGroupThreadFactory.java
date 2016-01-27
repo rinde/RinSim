@@ -111,11 +111,16 @@ public final class AffinityGroupThreadFactory implements ThreadFactory {
       if (lastAffinityLock != null) {
         final AffinityLock al = lastAffinityLock;
         LOGGER.info("{} reuse lock on CPU {}.", this, al.cpuId());
-        Affinity.setAffinity(1 << al.cpuId());
+        if (al.isAllocated()) {
+          Affinity.setAffinity(al.cpuId());
+        } else {
+          LOGGER.warn("Cannot reuse lock because it was not allocated.");
+        }
       } else {
         LOGGER.info("{} acquire a lock on a CPU.", this);
+        AffinityLock newLock;
         try {
-          lastAffinityLock = AffinityLock.acquireLock();
+          newLock = AffinityLock.acquireLock();
         } catch (final IllegalStateException e) {
           LOGGER.warn("Failed acquiring lock, sleep {}ms and then try again.",
             SLEEP_BEFORE_RETRY);
@@ -125,8 +130,13 @@ public final class AffinityGroupThreadFactory implements ThreadFactory {
             Thread.currentThread().interrupt();
             return;
           }
-          lastAffinityLock = AffinityLock.acquireLock();
+          newLock = AffinityLock.acquireLock();
         }
+        if (!newLock.isAllocated()) {
+          LOGGER.warn("The newly acquired lock is not allocated.");
+        }
+        lastAffinityLock = newLock;
+
       }
     }
   }
