@@ -407,7 +407,7 @@ public final class Solvers {
      * @return This, as per the builder pattern.
      */
     public SolveArgs useParcels(Iterable<? extends Parcel> ps) {
-      parcels = Optional.of(ImmutableSet.copyOf(ps));
+      parcels = Optional.of(ImmutableSet.<Parcel>copyOf(ps));
       return this;
     }
 

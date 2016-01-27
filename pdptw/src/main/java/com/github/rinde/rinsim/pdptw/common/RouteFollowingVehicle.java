@@ -18,7 +18,6 @@ package com.github.rinde.rinsim.pdptw.common;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Verify.verify;
-import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.newLinkedList;
 import static java.util.Collections.unmodifiableCollection;
 
@@ -59,6 +58,7 @@ import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedHashMultiset;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
 import com.google.common.math.DoubleMath;
@@ -846,8 +846,8 @@ public class RouteFollowingVehicle extends Vehicle {
       @Override
       public Iterable<Parcel> adjust(Iterable<? extends Parcel> r,
           RouteFollowingVehicle vehicle) {
-        final List<Parcel> routeList = newArrayList(r);
-        final Multiset<Parcel> routeSet = LinkedHashMultiset.create(r);
+        final List<Parcel> routeList = Lists.<Parcel>newArrayList(r);
+        final Multiset<Parcel> routeSet = LinkedHashMultiset.<Parcel>create(r);
 
         // removals
         for (final Parcel p : routeSet.elementSet()) {
@@ -859,16 +859,15 @@ public class RouteFollowingVehicle extends Vehicle {
             // in this case the parcel is either: IN_CARGO or DELIVERING
             if (!vehicle.getPDPModel().getContents(vehicle).contains(p)) {
               // if we don't carry the parcel it must have been picked up by
-              // someone
-              // else, remove it from our route
+              // someone else, remove it from our route
               routeList.removeAll(Collections.singleton(p));
             } else if (routeSet.count(p) == 2) {
               // in this case it is in cargo and it occurs twice in our route
               // (which is one too many), therefore first occurrence is removed
               routeList.remove(p);
             }
-          } else
-            if (state == ParcelState.PICKING_UP && !vehicle.isPickingUp(p)) {
+          } else if (state == ParcelState.PICKING_UP
+              && !vehicle.isPickingUp(p)) {
             // in this case the parcel is being picked up by another vehicle
             routeList.removeAll(Collections.singleton(p));
           }

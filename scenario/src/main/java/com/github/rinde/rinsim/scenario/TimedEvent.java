@@ -15,6 +15,8 @@
  */
 package com.github.rinde.rinsim.scenario;
 
+import static com.google.common.base.Verify.verifyNotNull;
+
 import java.util.Comparator;
 
 import javax.annotation.Nullable;
@@ -41,9 +43,9 @@ public interface TimedEvent {
 
     @Override
     public int compare(@Nullable TimedEvent o1, @Nullable TimedEvent o2) {
-      assert o1 != null;
-      assert o2 != null;
-      return (int) (o1.getTime() - o2.getTime());
+      return Long.compare(
+        verifyNotNull(o1).getTime(),
+        verifyNotNull(o2).getTime());
     }
   }
 }

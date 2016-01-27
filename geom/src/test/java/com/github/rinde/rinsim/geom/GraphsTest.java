@@ -43,7 +43,7 @@ import com.google.common.base.Function;
 
 /**
  * @author Rinde van Lon
- * 
+ *
  */
 @RunWith(Parameterized.class)
 public class GraphsTest {
@@ -53,18 +53,18 @@ public class GraphsTest {
   Class<? extends Graph<LengthData>> graphType;
 
   static final Connection<LengthData> DUMMY = Connection.create(
-      new Point(0, 0), new Point(1, 1));
+    new Point(0, 0), new Point(1, 1));
 
+  @SuppressWarnings("null")
   public GraphsTest(Class<? extends Graph<LengthData>> c)
       throws InstantiationException, IllegalAccessException {
     graphType = c;
-    graph = graphType.newInstance();
   }
 
   @Parameters
   public static Collection<Object[]> configs() {
-    return Arrays.asList(new Object[][] { { MultimapGraph.class },
-        { TableGraph.class } });
+    return Arrays.asList(new Object[][] {{MultimapGraph.class},
+        {TableGraph.class}});
   }
 
   @Before
@@ -89,7 +89,7 @@ public class GraphsTest {
     List<Point> prevPath = Graphs.shortestPathEuclideanDistance(graph, A, C);
     for (int i = 0; i < 100; i++) {
       final List<Point> newPath = Graphs.shortestPathEuclideanDistance(graph,
-          A, C);
+        A, C);
       assertEquals(prevPath, newPath);
       prevPath = newPath;
     }
@@ -115,7 +115,7 @@ public class GraphsTest {
     List<Point> prevPath = Graphs.shortestPathEuclideanDistance(graph, N, S);
     for (int i = 0; i < 100; i++) {
       final List<Point> newPath = Graphs.shortestPathEuclideanDistance(graph,
-          N, S);
+        N, S);
       assertEquals(prevPath, newPath);
       prevPath = newPath;
     }
@@ -126,19 +126,19 @@ public class GraphsTest {
    */
   @Test
   public void shortestPathConnData() {
-    Point a = new Point(0, 0);
-    Point b = new Point(10, 0);
-    Point c = new Point(5, 5);
+    final Point a = new Point(0, 0);
+    final Point b = new Point(10, 0);
+    final Point c = new Point(5, 5);
     Graphs.addBiPath(graph, a, b, c, a);
 
     assertEquals(asList(a, b),
-        Graphs.shortestPathEuclideanDistance(graph, a, b));
+      Graphs.shortestPathEuclideanDistance(graph, a, b));
 
     graph.setConnectionData(a, c, LengthData.create(1d));
     graph.setConnectionData(c, b, LengthData.create(1d));
 
     assertEquals(asList(a, c, b),
-        Graphs.shortestPathEuclideanDistance(graph, a, b));
+      Graphs.shortestPathEuclideanDistance(graph, a, b));
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -149,7 +149,7 @@ public class GraphsTest {
   @Test(expected = IllegalArgumentException.class)
   public void shortestPathNotExistingPoint() {
     Graphs.shortestPathEuclideanDistance(graph, new Point(1, 2),
-        new Point(2, 3));
+      new Point(2, 3));
   }
 
   @Test(expected = PathNotFoundException.class)
@@ -335,16 +335,17 @@ public class GraphsTest {
     };
 
     final List<Point> points = Arrays.asList(new Point(10, 34), new Point(234,
-        2), new Point(10, 10), new Point(1, 1));
+        2),
+      new Point(10, 10), new Point(1, 1));
 
     final List<Point> results = Graphs.findClosestObjects(new Point(0, 0),
-        points, f, 2);
+      points, f, 2);
     assertEquals(results.size(), 2);
     assertEquals(new Point(1, 1), results.get(0));
     assertEquals(new Point(10, 10), results.get(1));
 
     final List<Point> results2 = Graphs.findClosestObjects(new Point(0, 0),
-        points, f, 5);
+      points, f, 5);
     assertEquals(results2.size(), 4);
     assertEquals(new Point(1, 1), results2.get(0));
     assertEquals(new Point(10, 10), results2.get(1));
@@ -363,7 +364,7 @@ public class GraphsTest {
     final RandomGenerator rnd = new MersenneTwister(456);
     for (int i = 0; i < 500; i++) {
       Graphs.addBiPath(graph, new Point(rnd.nextInt(), rnd.nextInt()),
-          new Point(rnd.nextInt(), rnd.nextInt()));
+        new Point(rnd.nextInt(), rnd.nextInt()));
     }
     final Graph<LengthData> unmod = Graphs.unmodifiableGraph(graph);
     final Point p1 = graph.getRandomNode(new MersenneTwister(123));
@@ -399,7 +400,7 @@ public class GraphsTest {
 
     for (final Connection<LengthData> c : g.getConnections()) {
       assertEquals(graph.connectionLength(c.from(), c.to()),
-          g.connectionLength(c.from(), c.to()), DELTA);
+        g.connectionLength(c.from(), c.to()), DELTA);
     }
   }
 
@@ -420,7 +421,7 @@ public class GraphsTest {
   @Test(expected = UnsupportedOperationException.class)
   public void unmodAddConn() {
     Graphs.unmodifiableGraph(graph).addConnection(new Point(1, 2),
-        new Point(2, 3));
+      new Point(2, 3));
   }
 
   @Test(expected = UnsupportedOperationException.class)
@@ -495,7 +496,7 @@ public class GraphsTest {
     assertFalse(graph.setConnectionData(N, E, LengthData.create(100))
         .isPresent());
     assertEquals(LengthData.create(100),
-        graph.removeConnectionData(N, E).get());
+      graph.removeConnectionData(N, E).get());
   }
 
   @Test

@@ -480,7 +480,7 @@ public final class RtSolverModel
     @Override
     public RtSimSolverBuilder setVehicles(Set<? extends Vehicle> vehicles) {
       checkArgument(!vehicles.isEmpty());
-      associatedVehicles = ImmutableSet.copyOf(vehicles);
+      associatedVehicles = ImmutableSet.<Vehicle>copyOf(vehicles);
       return this;
     }
 

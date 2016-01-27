@@ -97,7 +97,7 @@ public final class SolverModel extends AbstractModel<SolverUser> {
     @Override
     public SimSolverBuilder setVehicles(
         Iterable<? extends Vehicle> vehicles) {
-      vehiclesList = ImmutableList.copyOf(vehicles);
+      vehiclesList = ImmutableList.<Vehicle>copyOf(vehicles);
       return this;
     }
 

@@ -68,9 +68,9 @@ public final class EventDispatcher implements EventAPI {
    */
   public EventDispatcher(Set<Enum<?>> supportedEventTypes) {
     checkArgument(!supportedEventTypes.isEmpty(),
-        "At least one event type must be supported.");
+      "At least one event type must be supported.");
     listeners = Multimaps.synchronizedSetMultimap(
-        LinkedHashMultimap.<Enum<?>, Listener>create());
+      LinkedHashMultimap.<Enum<?>, Listener>create());
     supportedTypes = ImmutableSet.copyOf(supportedEventTypes);
     publicAPI = new PublicEventAPI(this);
     dispatching = new AtomicInteger(0);
@@ -100,10 +100,10 @@ public final class EventDispatcher implements EventAPI {
     synchronized (listeners) {
       dispatching.incrementAndGet();
       checkArgument(
-          supportedTypes.contains(e.getEventType()),
-          "Cannot dispatch an event of type %s since it was not registered at "
-              + "this dispatcher.",
-          e.getEventType());
+        supportedTypes.contains(e.getEventType()),
+        "Cannot dispatch an event of type %s since it was not registered at "
+            + "this dispatcher.",
+        e.getEventType());
       for (final Listener l : listeners.get(e.getEventType())) {
         l.handleEvent(e);
       }
@@ -119,8 +119,8 @@ public final class EventDispatcher implements EventAPI {
       }
       if (!toAdd.isEmpty()) {
         for (final Entry<Enum<?>, Listener> entry : toAdd.entries()) {
-          addListener(entry.getValue(),
-              ImmutableSet.<Enum<?>>of(entry.getKey()), false);
+          add(entry.getValue(),
+            ImmutableSet.<Enum<?>>of(entry.getKey()), false);
         }
         toAdd.clear();
       }
@@ -132,8 +132,8 @@ public final class EventDispatcher implements EventAPI {
    */
   @Override
   public void addListener(Listener listener, Enum<?>... eventTypes) {
-    addListener(listener, ImmutableSet.copyOf(eventTypes),
-        eventTypes.length == 0);
+    add(listener, ImmutableSet.copyOf(eventTypes),
+      eventTypes.length == 0);
   }
 
   /**
@@ -142,7 +142,7 @@ public final class EventDispatcher implements EventAPI {
   @Override
   public void addListener(Listener listener,
       Iterable<? extends Enum<?>> eventTypes) {
-    addListener(listener, ImmutableSet.copyOf(eventTypes), false);
+    add(listener, ImmutableSet.<Enum<?>>copyOf(eventTypes), false);
   }
 
   /**
@@ -158,16 +158,14 @@ public final class EventDispatcher implements EventAPI {
    * @param all Indicates whether <code>eventTypes</code> is used or if the
    *          listener is registered to all event types.
    */
-  protected void addListener(Listener listener,
-      ImmutableSet<Enum<?>> eventTypes,
-      boolean all) {
+  void add(Listener listener, ImmutableSet<Enum<?>> eventTypes, boolean all) {
     synchronized (listeners) {
       final Set<Enum<?>> theTypes =
-          all ? supportedTypes : ImmutableSet.copyOf(eventTypes);
+        all ? supportedTypes : ImmutableSet.copyOf(eventTypes);
 
       for (final Enum<?> eventType : theTypes) {
         checkArgument(supportedTypes.contains(eventType),
-            "A listener for type %s is not allowed.", eventType);
+          "A listener for type %s is not allowed.", eventType);
 
         if (dispatching.get() == 0) {
           listeners.put(eventType, listener);
@@ -206,10 +204,10 @@ public final class EventDispatcher implements EventAPI {
         for (final Enum<?> eventType : eventTypes) {
           checkNotNull(eventType, "event type to remove can not be null");
           checkArgument(
-              containsListener(listener, eventType),
-              "The listener %s for the type %s cannot be removed because it "
-                  + "does not exist.",
-              listener, eventType);
+            containsListener(listener, eventType),
+            "The listener %s for the type %s cannot be removed because it "
+                + "does not exist.",
+            listener, eventType);
 
           if (dispatching.get() == 0) {
             listeners.remove(eventType, listener);
