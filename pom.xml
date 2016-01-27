@@ -401,6 +401,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
+				<!-- it seems versions > 3.1 cause problems on Java 7 -->
 				<version>3.1</version>
 				<configuration>
 					<source>1.7</source>
@@ -417,6 +418,7 @@
 					</dependency>
 					<!-- override plexus-compiler-javac-errorprone's dependency on
 				             Error Prone with the latest version -->
+				             <!--  it seems this causes problems on Java 7, disabled for now -->
 					<!-- <dependency>
 						<groupId>com.google.errorprone</groupId>
 						<artifactId>error_prone_core</artifactId>
