@@ -26,8 +26,8 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.openhft.affinity.Affinity;
 import net.openhft.affinity.AffinityLock;
-import net.openhft.affinity.AffinitySupport;
 
 /**
  * A {@link ThreadFactory} that creates {@link Thread}s that all have an
@@ -111,7 +111,7 @@ public final class AffinityGroupThreadFactory implements ThreadFactory {
       if (lastAffinityLock != null) {
         final AffinityLock al = lastAffinityLock;
         LOGGER.info("{} reuse lock on CPU {}.", this, al.cpuId());
-        AffinitySupport.setAffinity(1 << al.cpuId());
+        Affinity.setAffinity(1 << al.cpuId());
       } else {
         LOGGER.info("{} acquire a lock on a CPU.", this);
         try {
