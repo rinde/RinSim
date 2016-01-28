@@ -56,6 +56,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 
+import net.openhft.affinity.AffinityLock;
 import net.openhft.affinity.AffinityStrategies;
 import net.openhft.affinity.AffinityThreadFactory;
 
@@ -107,6 +108,7 @@ public final class RtSolverModel
   final int threadPoolSize;
   final boolean threadGroupingEnabled;
   Optional<ListeningExecutorService> executor;
+  Optional<AffinityGroupThreadFactory> affinityGroupThreadFactory;
   Mode mode;
   boolean prevComputing;
 
@@ -121,6 +123,7 @@ public final class RtSolverModel
     pdpModel = pm;
     manager = new SimSolversManager();
     executor = Optional.absent();
+    affinityGroupThreadFactory = Optional.absent();
     mode = m;
     threadGroupingEnabled = threadGrouping;
     threadPoolSize = threads;
@@ -141,29 +144,6 @@ public final class RtSolverModel
       }
     }, PDPModelEventType.NEW_PARCEL);
     initExecutor();
-  }
-
-  void shutdown() {
-    if (executor.isPresent()) {
-      manager.stop();
-      executor.get().shutdownNow();
-      try {
-        LOGGER.info("Shutting down executor..");
-        final boolean success =
-          executor.get().awaitTermination(2, TimeUnit.SECONDS);
-        if (success) {
-          LOGGER.info("Executor shutdown.");
-        } else {
-          LOGGER.warn("Shutting down executor timed out.");
-        }
-      } catch (final InterruptedException e) {
-        if (executor.get().isShutdown()) {
-          LOGGER.info("Interrupt, but executor shutdown.");
-        } else {
-          LOGGER.warn("Executor shutdown interrupted..");
-        }
-      }
-    }
   }
 
   @Override
@@ -227,10 +207,12 @@ public final class RtSolverModel
     if (!executor.isPresent() && mode != Mode.UNKNOWN) {
 
       final ThreadFactory factory;
-      final String newName =
-        Thread.currentThread().getName() + "-" + getClass().getSimpleName();
+      final String newName = String.format("%s-%s",
+        Thread.currentThread().getName(), getClass().getSimpleName());
       if (threadGroupingEnabled) {
-        factory = new AffinityGroupThreadFactory(newName, manager);
+        affinityGroupThreadFactory =
+          Optional.of(new AffinityGroupThreadFactory(newName, manager));
+        factory = affinityGroupThreadFactory.get();
       } else {
         factory = new AffinityThreadFactory(newName, AffinityStrategies.ANY);
       }
@@ -245,11 +227,39 @@ public final class RtSolverModel
       } else {
         threads = threadPoolSize;
       }
-      LOGGER.trace("create executor with {} threads and factory {}", threads,
+      LOGGER.trace("Create executor with {} threads and factory {}.", threads,
         factory);
       executor = Optional.of(MoreExecutors.listeningDecorator(
         Executors.newFixedThreadPool(threads, factory)));
+    }
+  }
 
+  void shutdown() {
+    if (executor.isPresent()) {
+      manager.stop();
+      LOGGER.info("Shutting down executor..");
+      executor.get().shutdownNow();
+      try {
+        final boolean success =
+          executor.get().awaitTermination(2, TimeUnit.SECONDS);
+        if (affinityGroupThreadFactory.isPresent()) {
+          LOGGER.trace("\n{}", AffinityLock.dumpLocks());
+          affinityGroupThreadFactory.get().releaseLock();
+          LOGGER.trace("\n{}", AffinityLock.dumpLocks());
+        }
+
+        if (success) {
+          LOGGER.info("Executor shutdown.");
+        } else {
+          LOGGER.warn("Shutting down executor timed out.");
+        }
+      } catch (final InterruptedException e) {
+        if (executor.get().isShutdown()) {
+          LOGGER.info("Interrupt, but executor shutdown.");
+        } else {
+          LOGGER.warn("Executor shutdown interrupted..");
+        }
+      }
     }
   }
 

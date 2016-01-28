@@ -156,7 +156,9 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
     checkState(stateMachine.isSupported(Trigger.START),
       "%s can be started only once",
       getClass().getSimpleName());
-    affinityLock = AffinityLock.acquireLock();
+    final AffinityLock lock = AffinityLock.acquireLock();
+    LOGGER.info("Acquired lock to CPU {}.", lock.cpuId());
+    affinityLock = lock;
     stateMachine.handle(Trigger.START, this);
   }
 
