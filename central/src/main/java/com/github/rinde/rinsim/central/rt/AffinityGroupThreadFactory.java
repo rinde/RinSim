@@ -39,7 +39,8 @@ public final class AffinityGroupThreadFactory implements ThreadFactory {
   static final Logger LOGGER =
     LoggerFactory.getLogger(AffinityGroupThreadFactory.class);
 
-  private static final long SLEEP_BEFORE_RETRY = 1000L;
+  // private static final long SLEEP_BEFORE_RETRY = 1000L;
+  private static final long SLEEP = 1000L;
 
   private final String threadNamePrefix;
   private final boolean createDaemonThreads;
@@ -87,7 +88,7 @@ public final class AffinityGroupThreadFactory implements ThreadFactory {
       public void run() {
         while (true) {
           try {
-            Thread.sleep(1000);
+            Thread.sleep(SLEEP);
           } catch (final InterruptedException e) {
             return;
           }
@@ -132,7 +133,7 @@ public final class AffinityGroupThreadFactory implements ThreadFactory {
         }
       } else {
         LOGGER.info("{} acquire a lock on a CPU.", this);
-        AffinityLock newLock;
+        final AffinityLock newLock;
         // try {
         newLock = AffinityLock.acquireLock();
         // } catch (final IllegalStateException e) {
