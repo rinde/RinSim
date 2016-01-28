@@ -15,6 +15,7 @@
  */
 package com.github.rinde.rinsim.central.rt;
 
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Verify.verifyNotNull;
 
 import java.lang.Thread.UncaughtExceptionHandler;
@@ -45,10 +46,10 @@ public final class AffinityGroupThreadFactory implements ThreadFactory {
   private final String threadNamePrefix;
   private final boolean createDaemonThreads;
   private final AtomicInteger numThreads;
-  private final Object lock;
+  private final Object syncLock;
   private final UncaughtExceptionHandler exceptionHandler;
   // @Nullable
-  private final AffinityLock lastAffinityLock;
+  private final AffinityLock affinityLock;
   private final AtomicInteger id;
 
   /**
@@ -81,56 +82,28 @@ public final class AffinityGroupThreadFactory implements ThreadFactory {
     id = new AtomicInteger();
     threadNamePrefix = name;
     createDaemonThreads = daemon;
-    lock = new Object();
+    syncLock = new Object();
 
-    LOGGER.trace("\n{} ", AffinityLock.dumpLocks());
-    lastAffinityLock = AffinityLock.acquireLock(false);
-
-    LOGGER.info("{} claims CPU {}.", this, lastAffinityLock.cpuId());
-    LOGGER.trace("\n{}  ", AffinityLock.dumpLocks());
-
-    // claim the first thread, make sure it doesn't die
-    // final Thread t = newThread(new Runnable() {
-    // @Override
-    // public void run() {
-    // LOGGER.trace("*** STARTING GROUP THREAD ***");
-    // while (true) {
-    // try {
-    // Thread.sleep(SLEEP);
-    // } catch (final InterruptedException e) {
-    // LOGGER.trace("*** SHUTTING DOWN GROUP THREAD ***");
-    // return;
-    // }
-    // }
-    // }
-    // });
-    // // t.setDaemon(true);
-    // t.start();
+    affinityLock = AffinityLock.acquireLock(false);
+    checkState(affinityLock.isAllocated());
+    LOGGER.info("{} claims CPU {}.", this, affinityLock.cpuId());
   }
 
   @Override
   public synchronized Thread newThread(@Nullable final Runnable r) {
     final int num = id.getAndIncrement();
     final String threadName = String.format("%s-%s", threadNamePrefix, num);
-    // num == 0 ? "GROUP-THREAD"
-    // : num);
-    numThreads.incrementAndGet();
+
     LOGGER.info("Create new thread called '{}'.", threadName);
     final Thread t = new Thread(new Runnable() {
       @Override
       public void run() {
-        // try {
-        LOGGER.trace("\n{}", AffinityLock.dumpLocks());
+        numThreads.incrementAndGet();
         LOGGER.info("Starting {}.", threadName);
-        if (!lastAffinityLock.isBound()) {
-          lastAffinityLock.bind();
-        }
         acquireLock();
         verifyNotNull(r).run();
-        // } finally {
-        // releaseLock();
-        // }
         LOGGER.info("End of {}.", threadName);
+        numThreads.decrementAndGet();
       }
     }, threadName);
     t.setUncaughtExceptionHandler(exceptionHandler);
@@ -139,55 +112,27 @@ public final class AffinityGroupThreadFactory implements ThreadFactory {
   }
 
   void acquireLock() {
-    synchronized (lock) {
-      // if (lastAffinityLock != null) {
-      final AffinityLock al = lastAffinityLock;
-      LOGGER.info("{} reuse lock on CPU {}.", this, al.cpuId());
-      if (al.isAllocated()) {
-        Affinity.setAffinity(al.cpuId());
+    checkState(affinityLock.isAllocated());
+    synchronized (syncLock) {
+      if (!affinityLock.isBound()) {
+        LOGGER.trace("Lock is not bound -> bind to CPU {}.",
+          affinityLock.cpuId());
+        affinityLock.bind();
       } else {
-        LOGGER.warn("Cannot reuse lock because it was not allocated.");
+        LOGGER.trace("Lock is already bound, reusing lock to CPU {}.",
+          affinityLock.cpuId());
+        Affinity.setAffinity(affinityLock.cpuId());
       }
-      // } else {
-      // final AffinityLock newLock;
-      // // try {
-      // newLock = AffinityLock.acquireLock();
-      // LOGGER.info("Acquired lock for {} to CPU {}.",
-      // Thread.currentThread().getName(), newLock.cpuId());
-      // // } catch (final IllegalStateException e) {
-      // // LOGGER.warn("Failed acquiring lock, sleep {}ms and then try again.",
-      // // SLEEP_BEFORE_RETRY);
-      // // try {
-      // // Thread.sleep(SLEEP_BEFORE_RETRY);
-      // // } catch (final InterruptedException e1) {
-      // // Thread.currentThread().interrupt();
-      // // return;
-      // // }
-      // // newLock = AffinityLock.acquireLock();
-      // // }
-      // if (!newLock.isAllocated()) {
-      // LOGGER.warn("The newly acquired lock is not allocated.");
-      // }
-      // lastAffinityLock = newLock;
-      //
-      // }
     }
   }
 
-  // void releaseLock() {
-  // synchronized (lock) {
-  // if (numThreads.decrementAndGet() == 0 && lastAffinityLock != null) {
-  // final AffinityLock al = lastAffinityLock;
-  // lastAffinityLock = null;
-  // LOGGER.info("{} releasing lock on CPU {}.", this, al.cpuId());
-  // al.release();
-  // }
-  // }
-  // }
-
   public void releaseLock() {
-    LOGGER.trace("RELEASING FACTORY FROM CPU {}", lastAffinityLock.cpuId());
-    lastAffinityLock.release();
+    synchronized (syncLock) {
+      LOGGER.trace("Release lock from CPU {}, running threads: {}.",
+        affinityLock.cpuId(), numThreads.get());
+      checkState(numThreads.get() == 0);
+      affinityLock.release();
+    }
   }
 
   @Override

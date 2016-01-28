@@ -242,11 +242,6 @@ public final class RtSolverModel
       try {
         final boolean success =
           executor.get().awaitTermination(2, TimeUnit.SECONDS);
-        if (affinityGroupThreadFactory.isPresent()) {
-          LOGGER.trace("\n{}", AffinityLock.dumpLocks());
-          affinityGroupThreadFactory.get().releaseLock();
-          LOGGER.trace("\n{} ", AffinityLock.dumpLocks());
-        }
 
         if (success) {
           LOGGER.info("Executor shutdown.");
@@ -258,6 +253,12 @@ public final class RtSolverModel
           LOGGER.info("Interrupt, but executor shutdown.");
         } else {
           LOGGER.warn("Executor shutdown interrupted..");
+        }
+      } finally {
+        if (affinityGroupThreadFactory.isPresent()) {
+          LOGGER.trace("\n{}", AffinityLock.dumpLocks());
+          affinityGroupThreadFactory.get().releaseLock();
+          LOGGER.trace("\n{} ", AffinityLock.dumpLocks());
         }
       }
     }
