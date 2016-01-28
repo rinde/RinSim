@@ -83,11 +83,11 @@ public final class AffinityGroupThreadFactory implements ThreadFactory {
     createDaemonThreads = daemon;
     lock = new Object();
 
-    LOGGER.trace("\n{}", AffinityLock.dumpLocks());
+    LOGGER.trace("\n{} ", AffinityLock.dumpLocks());
     lastAffinityLock = AffinityLock.acquireLock(false);
 
     LOGGER.info("{} claims CPU {}.", this, lastAffinityLock.cpuId());
-    LOGGER.trace("\n{}", AffinityLock.dumpLocks());
+    LOGGER.trace("\n{}  ", AffinityLock.dumpLocks());
 
     // claim the first thread, make sure it doesn't die
     // final Thread t = newThread(new Runnable() {
@@ -111,9 +111,9 @@ public final class AffinityGroupThreadFactory implements ThreadFactory {
   @Override
   public synchronized Thread newThread(@Nullable final Runnable r) {
     final int num = id.getAndIncrement();
-    final String threadName =
-      String.format("%s-%s", threadNamePrefix, num);// num == 0 ? "GROUP-THREAD"
-                                                    // : num);
+    final String threadName = String.format("%s-%s", threadNamePrefix, num);
+    // num == 0 ? "GROUP-THREAD"
+    // : num);
     numThreads.incrementAndGet();
     LOGGER.info("Create new thread called '{}'.", threadName);
     final Thread t = new Thread(new Runnable() {

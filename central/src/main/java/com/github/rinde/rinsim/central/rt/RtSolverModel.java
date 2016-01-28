@@ -245,7 +245,7 @@ public final class RtSolverModel
         if (affinityGroupThreadFactory.isPresent()) {
           LOGGER.trace("\n{}", AffinityLock.dumpLocks());
           affinityGroupThreadFactory.get().releaseLock();
-          LOGGER.trace("\n{}", AffinityLock.dumpLocks());
+          LOGGER.trace("\n{} ", AffinityLock.dumpLocks());
         }
 
         if (success) {
