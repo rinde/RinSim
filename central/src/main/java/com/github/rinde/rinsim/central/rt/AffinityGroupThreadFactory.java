@@ -80,6 +80,20 @@ public final class AffinityGroupThreadFactory implements ThreadFactory {
     threadNamePrefix = name;
     createDaemonThreads = daemon;
     lock = new Object();
+
+    // claim the first thread, make sure it doesn't die
+    newThread(new Runnable() {
+      @Override
+      public void run() {
+        while (true) {
+          try {
+            Thread.sleep(1000);
+          } catch (final InterruptedException e) {
+            return;
+          }
+        }
+      }
+    }).setDaemon(true);
   }
 
   @Override
@@ -119,19 +133,19 @@ public final class AffinityGroupThreadFactory implements ThreadFactory {
       } else {
         LOGGER.info("{} acquire a lock on a CPU.", this);
         AffinityLock newLock;
-        try {
-          newLock = AffinityLock.acquireLock();
-        } catch (final IllegalStateException e) {
-          LOGGER.warn("Failed acquiring lock, sleep {}ms and then try again.",
-            SLEEP_BEFORE_RETRY);
-          try {
-            Thread.sleep(SLEEP_BEFORE_RETRY);
-          } catch (final InterruptedException e1) {
-            Thread.currentThread().interrupt();
-            return;
-          }
-          newLock = AffinityLock.acquireLock();
-        }
+        // try {
+        newLock = AffinityLock.acquireLock();
+        // } catch (final IllegalStateException e) {
+        // LOGGER.warn("Failed acquiring lock, sleep {}ms and then try again.",
+        // SLEEP_BEFORE_RETRY);
+        // try {
+        // Thread.sleep(SLEEP_BEFORE_RETRY);
+        // } catch (final InterruptedException e1) {
+        // Thread.currentThread().interrupt();
+        // return;
+        // }
+        // newLock = AffinityLock.acquireLock();
+        // }
         if (!newLock.isAllocated()) {
           LOGGER.warn("The newly acquired lock is not allocated.");
         }
