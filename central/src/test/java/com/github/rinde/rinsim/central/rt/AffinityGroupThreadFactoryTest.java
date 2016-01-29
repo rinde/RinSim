@@ -52,7 +52,8 @@ public class AffinityGroupThreadFactoryTest {
 
   @Test
   public void test() throws InterruptedException {
-    if (!Affinity.isJNAAvailable()) {
+    if (!Affinity.isJNAAvailable()
+        || Runtime.getRuntime().availableProcessors() <= 2) {
       return;
     }
 
