@@ -293,7 +293,7 @@ public class RtSolverModelTest {
   }
 
   /**
-   * Test that two consecutive invocation of the same sim solver is handled
+   * Test that two consecutive invocations of the same sim solver are handled
    * correctly. The correct behavior is that the calculation of the first
    * invocation is cancelled.
    */
@@ -301,7 +301,7 @@ public class RtSolverModelTest {
   public void testConcurrentSolvers() {
     final RtSimSolverBuilder b = model.get(RtSimSolverBuilder.class);
     final RtSimSolver simSolver = b.build(SolverToRealtimeAdapter
-        .create(SleepySolver.create(500, new NopSolver())));
+        .create(SleepySolver.create(1000, new NopSolver())));
     final Parcel p = Parcel.builder(new Point(0, 0), new Point(1, 1))
         .build();
 
