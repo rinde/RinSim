@@ -27,9 +27,6 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.SetMultimap;
-
 import net.openhft.affinity.Affinity;
 import net.openhft.affinity.AffinityLock;
 
@@ -42,16 +39,16 @@ import net.openhft.affinity.AffinityLock;
 public final class AffinityGroupThreadFactory implements ThreadFactory {
   static final Logger LOGGER =
     LoggerFactory.getLogger(AffinityGroupThreadFactory.class);
+  static final long SLEEP = 1000L;
+  static final long SHORT_SLEEP = 10L;
 
   private final String threadNamePrefix;
   private final boolean createDaemonThreads;
-  private final Object syncLock;
   private final UncaughtExceptionHandler exceptionHandler;
   @Nullable
   private AffinityLock affinityLock;
   private final AtomicInteger numThreads;
   private final AtomicInteger id;
-  private final SetMultimap<Integer, Thread> locks;
 
   @Nullable
   private Thread helperThread;
@@ -86,13 +83,6 @@ public final class AffinityGroupThreadFactory implements ThreadFactory {
     id = new AtomicInteger();
     threadNamePrefix = name;
     createDaemonThreads = daemon;
-    syncLock = new Object();
-
-    // affinityLock = AffinityLock.acquireLock(false);
-    locks = LinkedHashMultimap.create();
-
-    // checkState(affinityLock.isAllocated());
-    // LOGGER.info("{} claims CPU {}.", this, affinityLock.cpuId());
   }
 
   void startHelperThread() {
@@ -103,7 +93,7 @@ public final class AffinityGroupThreadFactory implements ThreadFactory {
           LOGGER.info("Start helper thread.");
           acquire();
           while (true) {
-            Thread.sleep(1000L);
+            Thread.sleep(SLEEP);
           }
         } catch (final InterruptedException e) {
           release();
@@ -112,11 +102,12 @@ public final class AffinityGroupThreadFactory implements ThreadFactory {
       }
     });
     t.setName(threadNamePrefix);
+    t.setDaemon(true);
     helperThread = t;
     t.start();
     while (affinityLock == null) {
       try {
-        Thread.sleep(10L);
+        Thread.sleep(SHORT_SLEEP);
       } catch (final InterruptedException e) {
         return;
       }

@@ -34,11 +34,13 @@ import net.openhft.affinity.AffinityLock;
  */
 public final class AffinityTestHelper {
   private static final String CPU_NOT_AVAILABLE = "CPU not available";
+  private static final String GENERAL_USE = "General use CPU";
   private static final String RESERVED_4_APP = "Reserved for this application";
   private static final Pattern THREAD_PATTERN =
-    Pattern.compile("(\\d): Thread\\[(.*),(\\d),(.*)\\] alive=(true|false)");
+    Pattern.compile("(\\d+): Thread\\[(.*),(\\d+),(.*)\\] alive=(true|false)");
   private static final Pattern NO_THREAD_PATTERN = Pattern.compile(
-    "(\\d): (" + CPU_NOT_AVAILABLE + "|" + RESERVED_4_APP + ")");
+    "(\\d+): (" + CPU_NOT_AVAILABLE + "|" + RESERVED_4_APP + "|" + GENERAL_USE
+        + ")");
 
   private AffinityTestHelper() {}
 
