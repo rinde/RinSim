@@ -23,6 +23,7 @@ import static com.google.common.collect.Sets.newLinkedHashSet;
 
 import java.io.PrintStream;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -30,6 +31,8 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
@@ -96,6 +99,8 @@ import com.google.common.collect.Sets;
  * @author Rinde van Lon
  */
 public final class Experiment {
+  static final Logger LOGGER = LoggerFactory.getLogger(Experiment.class);
+
   // TODO add strict mode which checks whether there are not too many
   // vehicles/parcels/depots?
 
@@ -143,7 +148,7 @@ public final class Experiment {
       @Nullable ModelBuilder<?, ?> uic) {
 
     final ExperimentRunner er = new ExperimentRunner(SimArgs.create(scenario,
-        configuration, seed, objFunc, showGui, postProcessor, uic));
+      configuration, seed, objFunc, showGui, postProcessor, uic));
     final SimulationResult res = er.call();
     checkState(res != null);
     return res;
@@ -161,10 +166,10 @@ public final class Experiment {
       boolean showGui, Optional<ModelBuilder<?, ?>> uiCreator) {
 
     final ScenarioController.Builder scenContrBuilder =
-        ScenarioController.builder(
-            scenario)
-            .withIgnoreRedundantHandlers(true)
-            .withEventHandlers(config.getEventHandlers());
+      ScenarioController.builder(
+        scenario)
+          .withIgnoreRedundantHandlers(true)
+          .withEventHandlers(config.getEventHandlers());
 
     final Simulator.Builder simBuilder = Simulator.builder()
         .setRandomSeed(seed)
@@ -172,8 +177,8 @@ public final class Experiment {
         .addModels(config.getModels());
 
     final boolean hasStatsTracker =
-        containsStatisticsProvider(scenContrBuilder.getChildren())
-            || containsStatisticsProvider(config.getModels());
+      containsStatisticsProvider(scenContrBuilder.getChildren())
+          || containsStatisticsProvider(config.getModels());
 
     if (!hasStatsTracker) {
       simBuilder.addModel(StatsTracker.builder());
@@ -189,19 +194,19 @@ public final class Experiment {
 
   static Object perform(SimArgs args) {
     final Simulator sim = Experiment.init(args.getScenario(),
-        args.getMasConfig(), args.getRandomSeed(), args.isShowGui(),
-        args.getUiCreator());
+      args.getMasConfig(), args.getRandomSeed(), args.isShowGui(),
+      args.getUiCreator());
 
     try {
       sim.start();
       final Object resultObject =
-          args.getPostProcessor().collectResults(sim, args);
+        args.getPostProcessor().collectResults(sim, args);
       checkNotNull(resultObject, "PostProcessor may not return null.");
       return resultObject;
 
     } catch (final Exception e) {
       final FailureStrategy strategy =
-          args.getPostProcessor().handleFailure(e, sim, args);
+        args.getPostProcessor().handleFailure(e, sim, args);
 
       if (strategy == FailureStrategy.INCLUDE) {
         return args.getPostProcessor().collectResults(sim, args);
@@ -268,8 +273,8 @@ public final class Experiment {
      */
     public Builder repeat(int times) {
       checkArgument(times > 0,
-          "The number of repetitions must be strictly positive, was %s.",
-          times);
+        "The number of repetitions must be strictly positive, was %s.",
+        times);
       repetitions = times;
       return this;
     }
@@ -382,7 +387,7 @@ public final class Experiment {
      */
     public Builder withThreads(int threads) {
       checkArgument(threads > 0,
-          "Only a positive number of threads is allowed, was %s.", threads);
+        "Only a positive number of threads is allowed, was %s.", threads);
       numThreads = threads;
       return this;
     }
@@ -419,7 +424,7 @@ public final class Experiment {
      */
     public Builder numBatches(int num) {
       checkArgument(num > 0,
-          "The number of batches must be strictly positive, was %s.", num);
+        "The number of batches must be strictly positive, was %s.", num);
       numBatches = num;
       return this;
     }
@@ -504,17 +509,17 @@ public final class Experiment {
      */
     public ExperimentResults perform() {
       checkArgument(numThreads == 1 || !showGui,
-          "The GUI can not be shown when using more than one thread.");
+        "The GUI can not be shown when using more than one thread.");
       final List<Long> seeds = generateSeeds();
 
       final ImmutableSet<Scenario> scenarios = getAllScenarios();
       final ImmutableSet<SimArgs> runners =
-          createFactorialSetup(seeds, scenarios);
+        createFactorialSetup(seeds, scenarios);
       for (final ResultListener rl : resultListeners) {
         rl.startComputing(runners.size(),
-            ImmutableSet.copyOf(configurationsSet),
-            scenarios,
-            repetitions);
+          ImmutableSet.copyOf(configurationsSet),
+          scenarios,
+          repetitions);
       }
       // run Forrest run!
       return computerType.get().compute(this, runners);
@@ -530,6 +535,7 @@ public final class Experiment {
      */
     public Optional<ExperimentResults> perform(PrintStream out,
         String... args) {
+      LOGGER.trace("perform {}", Arrays.toString(args));
       final Optional<String> error = ExperimentCli.safeExecute(this, args);
       if (error.isPresent()) {
         out.println(error.get());
@@ -582,7 +588,7 @@ public final class Experiment {
           for (int i = 0; i < repetitions; i++) {
             final long seed = seeds.get(i);
             runnerBuilder.add(SimArgs.create(scenario, configuration,
-                seed, objectiveFunction, showGui, postProc, uiCreator));
+              seed, objectiveFunction, showGui, postProc, uiCreator));
           }
         }
       }
@@ -695,9 +701,9 @@ public final class Experiment {
       assert o != null;
       return ComparisonChain.start()
           .compare(getSimArgs().getScenario().getProblemClass().getId(),
-              o.getSimArgs().getScenario().getProblemClass().getId())
+            o.getSimArgs().getScenario().getProblemClass().getId())
           .compare(getSimArgs().getScenario().getProblemInstanceId(),
-              o.getSimArgs().getScenario().getProblemInstanceId())
+            o.getSimArgs().getScenario().getProblemInstanceId())
           .result();
     }
 
