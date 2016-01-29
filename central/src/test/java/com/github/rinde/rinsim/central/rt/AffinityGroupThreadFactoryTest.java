@@ -37,6 +37,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 
+import net.openhft.affinity.Affinity;
 import net.openhft.affinity.AffinityLock;
 
 /**
@@ -51,6 +52,10 @@ public class AffinityGroupThreadFactoryTest {
 
   @Test
   public void test() throws InterruptedException {
+    if (!Affinity.isJNAAvailable()) {
+      return;
+    }
+
     final ExcepHandler handler = new ExcepHandler();
 
     assertThat(getReservations()).isEmpty();

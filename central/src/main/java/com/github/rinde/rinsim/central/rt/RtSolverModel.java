@@ -56,7 +56,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 
-import net.openhft.affinity.AffinityLock;
 import net.openhft.affinity.AffinityStrategies;
 import net.openhft.affinity.AffinityThreadFactory;
 
@@ -108,7 +107,6 @@ public final class RtSolverModel
   final int threadPoolSize;
   final boolean threadGroupingEnabled;
   Optional<ListeningExecutorService> executor;
-  Optional<AffinityGroupThreadFactory> affinityGroupThreadFactory;
   Mode mode;
   boolean prevComputing;
 
@@ -123,7 +121,6 @@ public final class RtSolverModel
     pdpModel = pm;
     manager = new SimSolversManager();
     executor = Optional.absent();
-    affinityGroupThreadFactory = Optional.absent();
     mode = m;
     threadGroupingEnabled = threadGrouping;
     threadPoolSize = threads;
@@ -210,9 +207,7 @@ public final class RtSolverModel
       final String newName = String.format("%s-%s",
         Thread.currentThread().getName(), getClass().getSimpleName());
       if (threadGroupingEnabled) {
-        affinityGroupThreadFactory =
-          Optional.of(new AffinityGroupThreadFactory(newName, manager));
-        factory = affinityGroupThreadFactory.get();
+        factory = new AffinityGroupThreadFactory(newName, manager);
       } else {
         factory = new AffinityThreadFactory(newName, AffinityStrategies.ANY);
       }
@@ -253,12 +248,6 @@ public final class RtSolverModel
           LOGGER.info("Interrupt, but executor shutdown.");
         } else {
           LOGGER.warn("Executor shutdown interrupted..");
-        }
-      } finally {
-        if (affinityGroupThreadFactory.isPresent()) {
-          LOGGER.trace("\n{}", AffinityLock.dumpLocks());
-          affinityGroupThreadFactory.get().removeThread();
-          LOGGER.trace("\n{} ", AffinityLock.dumpLocks());
         }
       }
     }

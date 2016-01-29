@@ -26,6 +26,7 @@ import javax.measure.unit.SI;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
@@ -48,11 +49,13 @@ import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle;
+import com.github.rinde.rinsim.testutil.RealtimeTests;
 import com.google.common.collect.ImmutableList;
 
 import net.openhft.affinity.AffinityLock;
 
 @RunWith(Parameterized.class)
+@Category(RealtimeTests.class)
 public class RtSolverModelIntegrationTest {
 
   @SuppressWarnings("null")
