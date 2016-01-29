@@ -27,6 +27,9 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.SetMultimap;
+
 import net.openhft.affinity.Affinity;
 import net.openhft.affinity.AffinityLock;
 
@@ -40,17 +43,18 @@ public final class AffinityGroupThreadFactory implements ThreadFactory {
   static final Logger LOGGER =
     LoggerFactory.getLogger(AffinityGroupThreadFactory.class);
 
-  // private static final long SLEEP_BEFORE_RETRY = 1000L;
-  // private static final long SLEEP = 1000L;
-
   private final String threadNamePrefix;
   private final boolean createDaemonThreads;
-  private final AtomicInteger numThreads;
   private final Object syncLock;
   private final UncaughtExceptionHandler exceptionHandler;
-  // @Nullable
-  private final AffinityLock affinityLock;
+  @Nullable
+  private AffinityLock affinityLock;
+  private final AtomicInteger numThreads;
   private final AtomicInteger id;
+  private final SetMultimap<Integer, Thread> locks;
+
+  @Nullable
+  private Thread helperThread;
 
   /**
    * Create a new instance where threads get the specified name prefix. All
@@ -84,9 +88,48 @@ public final class AffinityGroupThreadFactory implements ThreadFactory {
     createDaemonThreads = daemon;
     syncLock = new Object();
 
-    affinityLock = AffinityLock.acquireLock(false);
-    checkState(affinityLock.isAllocated());
-    LOGGER.info("{} claims CPU {}.", this, affinityLock.cpuId());
+    // affinityLock = AffinityLock.acquireLock(false);
+    locks = LinkedHashMultimap.create();
+
+    // checkState(affinityLock.isAllocated());
+    // LOGGER.info("{} claims CPU {}.", this, affinityLock.cpuId());
+  }
+
+  void startHelperThread() {
+    final Thread t = new Thread(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          LOGGER.info("Start helper thread.");
+          acquire();
+          while (true) {
+            Thread.sleep(1000L);
+          }
+        } catch (final InterruptedException e) {
+          release();
+        }
+        LOGGER.info("End helper thread.");
+      }
+    });
+    t.setName(threadNamePrefix);
+    helperThread = t;
+    t.start();
+    while (affinityLock == null) {
+      try {
+        Thread.sleep(10L);
+      } catch (final InterruptedException e) {
+        return;
+      }
+    }
+  }
+
+  void acquire() {
+    affinityLock = AffinityLock.acquireLock();
+  }
+
+  void release() {
+    verifyNotNull(affinityLock).release();
+    affinityLock = null;
   }
 
   @Override
@@ -98,12 +141,9 @@ public final class AffinityGroupThreadFactory implements ThreadFactory {
     final Thread t = new Thread(new Runnable() {
       @Override
       public void run() {
-        numThreads.incrementAndGet();
-        LOGGER.info("Starting {}.", threadName);
-        acquireLock();
+        addThread();
         verifyNotNull(r).run();
-        LOGGER.info("End of {}.", threadName);
-        numThreads.decrementAndGet();
+        removeThread();
       }
     }, threadName);
     t.setUncaughtExceptionHandler(exceptionHandler);
@@ -111,27 +151,25 @@ public final class AffinityGroupThreadFactory implements ThreadFactory {
     return t;
   }
 
-  void acquireLock() {
-    checkState(affinityLock.isAllocated());
-    synchronized (syncLock) {
-      if (!affinityLock.isBound()) {
-        LOGGER.trace("Lock is not bound -> bind to CPU {}.",
-          affinityLock.cpuId());
-        affinityLock.bind();
-      } else {
-        LOGGER.trace("Lock is already bound, reusing lock to CPU {}.",
-          affinityLock.cpuId());
-        Affinity.setAffinity(affinityLock.cpuId());
-      }
+  synchronized void addThread() {
+    if (helperThread == null) {
+      startHelperThread();
     }
+
+    numThreads.incrementAndGet();
+    LOGGER.info("Starting {}.", Thread.currentThread().getName());
+    final AffinityLock lock = verifyNotNull(affinityLock);
+    checkState(lock.isAllocated());
+    Affinity.setAffinity(lock.cpuId());
   }
 
-  public void releaseLock() {
-    synchronized (syncLock) {
-      LOGGER.trace("Release lock from CPU {}, running threads: {}.",
-        affinityLock.cpuId(), numThreads.get());
-      checkState(numThreads.get() == 0);
-      affinityLock.release();
+  synchronized void removeThread() {
+    LOGGER.info("End of {}.", Thread.currentThread().getName());
+
+    if (numThreads.decrementAndGet() == 0) {
+      LOGGER.info("No more running threads");
+      verifyNotNull(helperThread).interrupt();
+      helperThread = null;
     }
   }
 
