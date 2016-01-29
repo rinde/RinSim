@@ -29,6 +29,6 @@
 	<logger name="com.github.rinde.rinsim.central.rt.RtSolverModel" level="TRACE" />
 
 	<root level="INFO">
-		<appender-ref ref="STDOUT" />
+		<appender-ref ref="FILE" />
 	</root>
 </configuration>
