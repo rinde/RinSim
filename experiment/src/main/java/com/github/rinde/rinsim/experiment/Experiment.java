@@ -358,7 +358,7 @@ public final class Experiment {
      *  {@link SimulationProperty#REPS}, ..]</code></li>
      * </ul>
      * The result will be that simulations first ordered by their seed creation
-     * order, and second by their repetition number: <code>
+     * order, and second by their repetition number:
      * <ol>
      * <li>seed0, rep0, ..</li>
      * <li>seed0, rep1, ..</li>
@@ -367,8 +367,9 @@ public final class Experiment {
      * <li>seed1, rep1, ..</li>
      * <li>seed1, rep2, ..</li>
      * </ol>
-     * </code>
-     *
+     * The default order is {@link SimulationProperty#CONFIG},
+     * {@link SimulationProperty#SCENARIO}, {@link SimulationProperty#REPS},
+     * {@link SimulationProperty#SEED_REPS}.
      *
      * @param experimentOrder The order of simulation creation, all
      *          {@link SimulationProperty}s must be specified.
@@ -376,7 +377,8 @@ public final class Experiment {
      */
     public Builder withOrdering(SimulationProperty... experimentOrder) {
       checkNotNull(experimentOrder);
-      checkArgument(ImmutableSet.copyOf(experimentOrder).size() == 4,
+      checkArgument(ImmutableSet.copyOf(experimentOrder)
+          .size() == SimulationProperty.values().length,
         "Each experiment ordering should be specified exactly once.");
       experimentOrdering = asList(experimentOrder);
       return this;
