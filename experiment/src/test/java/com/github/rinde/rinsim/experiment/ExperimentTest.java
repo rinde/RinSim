@@ -171,6 +171,54 @@ public class ExperimentTest {
     assertSeedEquality(results.subList(9, 12));
   }
 
+  @Test
+  public void testOrdering() {
+    final Scenario s0 = ScenarioTestUtil.createRandomScenario(123L);
+    final Scenario s1 = ScenarioTestUtil.createRandomScenario(456L);
+    final MASConfiguration c0 = ExperimentTestUtil.testConfig("c0");
+    final MASConfiguration c1 = ExperimentTestUtil.testConfig("c1");
+    final Experiment.Builder builder = Experiment
+        .build(TestObjectiveFunction.INSTANCE)
+        .addScenario(s0)
+        .addScenario(s1)
+        .addConfiguration(c0)
+        .addConfiguration(c1)
+        .repeat(2)
+        .withThreads(1)
+        .repeatSeed(2)
+        .withOrdering(
+          SimulationProperty.SEED_REPS,
+          SimulationProperty.REPS,
+          SimulationProperty.SCENARIO,
+          SimulationProperty.CONFIG)
+        .withRandomSeed(123);
+
+    final ExperimentResults er = builder.perform();
+    final List<SimulationResult> results = new ArrayList<>(er.getResults());
+
+    assertThat(results).hasSize(16);
+    assertSimRes(results.get(0), s0, c0, 0);
+    assertSimRes(results.get(1), s0, c1, 0);
+    assertSimRes(results.get(2), s1, c0, 0);
+    assertSimRes(results.get(3), s1, c1, 0);
+    assertSeedEquality(results.subList(0, 4));
+    assertSimRes(results.get(4), s0, c0, 0);
+    assertSimRes(results.get(5), s0, c1, 0);
+    assertSimRes(results.get(6), s1, c0, 0);
+    assertSimRes(results.get(7), s1, c1, 0);
+    assertSeedEquality(results.subList(4, 8));
+    assertSimRes(results.get(8), s0, c0, 1);
+    assertSimRes(results.get(9), s0, c1, 1);
+    assertSimRes(results.get(10), s1, c0, 1);
+    assertSimRes(results.get(11), s1, c1, 1);
+    assertSeedEquality(results.subList(8, 12));
+    assertSimRes(results.get(12), s0, c0, 1);
+    assertSimRes(results.get(13), s0, c1, 1);
+    assertSimRes(results.get(14), s1, c0, 1);
+    assertSimRes(results.get(15), s1, c1, 1);
+    assertSeedEquality(results.subList(12, 16));
+  }
+
   static void assertSimRes(SimulationResult sr, Scenario s, MASConfiguration c,
       int r) {
     assertThat(sr.getSimArgs().getScenario()).isEqualTo(s);

@@ -18,11 +18,14 @@ package com.github.rinde.rinsim.experiment;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Verify.verifyNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
+import static java.util.Arrays.asList;
 
 import java.io.PrintStream;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -52,8 +55,11 @@ import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ComparisonChain;
+import com.google.common.collect.ContiguousSet;
+import com.google.common.collect.DiscreteDomain;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Range;
 import com.google.common.collect.Sets;
 
 /**
@@ -240,6 +246,7 @@ public final class Experiment {
     final ImmutableSet.Builder<Scenario> scenariosBuilder;
     Optional<FileProvider.Builder> scenarioProviderBuilder;
     Function<Path, ? extends Scenario> fileReader;
+    List<SimulationProperty> experimentOrdering;
 
     final List<ResultListener> resultListeners;
     @Nullable
@@ -269,6 +276,7 @@ public final class Experiment {
       numBatches = 1;
       computerType = Computers.LOCAL;
       postProc = PostProcessors.defaultPostProcessor();
+      experimentOrdering = asList(SimulationProperty.values());
     }
 
     /**
@@ -333,6 +341,45 @@ public final class Experiment {
     public Builder showGui(ModelBuilder<?, ?> uic) {
       uiCreator = uic;
       return showGui(true);
+    }
+
+    /**
+     * Specifies the ordering of simulations. The resulting order of simulations
+     * is the order in which the simulations are offered to the executor. It
+     * depends on the executor's behavior whether this ordering is respected. In
+     * case the experiment is executed locally, the execution order <i>will</i>
+     * be respected, in a distributed setting this may not always be the case.
+     * <p>
+     * For example, consider the following settings:
+     * <ul>
+     * <li>{@link #repeat(int)} is set to 3.</li>
+     * <li>{@link #repeatSeed(int)} is set to 2.</li>
+     * <li>The ordering starts with <code>[{@link SimulationProperty#SEED_REPS},
+     *  {@link SimulationProperty#REPS}, ..]</code></li>
+     * </ul>
+     * The result will be that simulations first ordered by their seed creation
+     * order, and second by their repetition number: <code>
+     * <ol>
+     * <li>seed0, rep0, ..</li>
+     * <li>seed0, rep1, ..</li>
+     * <li>seed0, rep2, ..</li>
+     * <li>seed1, rep0, ..</li>
+     * <li>seed1, rep1, ..</li>
+     * <li>seed1, rep2, ..</li>
+     * </ol>
+     * </code>
+     *
+     *
+     * @param experimentOrder The order of simulation creation, all
+     *          {@link SimulationProperty}s must be specified.
+     * @return This, as per the builder pattern.
+     */
+    public Builder withOrdering(SimulationProperty... experimentOrder) {
+      checkNotNull(experimentOrder);
+      checkArgument(ImmutableSet.copyOf(experimentOrder).size() == 4,
+        "Each experiment ordering should be specified exactly once.");
+      experimentOrdering = asList(experimentOrder);
+      return this;
     }
 
     /**
@@ -605,25 +652,88 @@ public final class Experiment {
     }
 
     private ImmutableSet<SimArgs> createFactorialSetup(List<Long> seeds,
-        Set<Scenario> scenarios) {
-      final ImmutableSet<MASConfiguration> conf = ImmutableSet
-          .copyOf(configurationsSet);
+        ImmutableSet<Scenario> scenarios) {
+      final ImmutableSet<MASConfiguration> conf =
+        ImmutableSet.copyOf(configurationsSet);
+
+      final ContiguousSet<Integer> seedReps = ContiguousSet.create(
+        Range.closedOpen(0, seedRepetitions), DiscreteDomain.integers());
+      final ImmutableSet<Long> seedSet = ImmutableSet.copyOf(seeds);
 
       checkArgument(!scenarios.isEmpty(), "At least one scenario is required.");
       checkArgument(!conf.isEmpty(), "At least one configuration is required.");
-      final ImmutableSet.Builder<SimArgs> runnerBuilder = ImmutableSet
-          .builder();
-      for (final MASConfiguration configuration : conf) {
-        for (final Scenario scenario : scenarios) {
-          for (int i = 0; i < repetitions; i++) {
-            final long seed = seeds.get(i);
-            for (int j = 0; j < seedRepetitions; j++) {
-              runnerBuilder.add(SimArgs.create(scenario, configuration,
-                seed, j, objectiveFunction, showGui, postProc, uiCreator));
-            }
+      final ImmutableSet.Builder<SimArgs> runnerBuilder =
+        ImmutableSet.builder();
+
+      // final List<ExperimentOrdering> ordering =
+      // asList(ExperimentOrdering.values());
+
+      final List<Set<? extends Object>> input = new ArrayList<>();
+      for (final SimulationProperty eo : experimentOrdering) {
+        input.add(eo.select(configurationsSet, scenarios, seedSet, seedReps));
+      }
+
+      final Set<List<Object>> product = Sets.cartesianProduct(input);
+
+      for (final List<Object> args : product) {
+        Scenario s = null;
+        MASConfiguration c = null;
+        Optional<Long> seed = Optional.absent();
+        Optional<Integer> rep = Optional.absent();
+        for (final Object arg : args) {
+          if (arg instanceof Scenario) {
+            s = (Scenario) arg;
+          } else if (arg instanceof MASConfiguration) {
+            c = (MASConfiguration) arg;
+          } else if (arg instanceof Long) {
+            seed = Optional.of((Long) arg);
+          } else if (arg instanceof Integer) {
+            rep = Optional.of((Integer) arg);
           }
         }
+
+        runnerBuilder.add(SimArgs.create(verifyNotNull(s), verifyNotNull(c),
+          seed.get(), rep.get(), objectiveFunction, showGui, postProc,
+          uiCreator));
       }
+
+      // for (final MASConfiguration configuration : conf) {
+      // for (final Scenario scenario : scenarios) {
+      // for (int i = 0; i < seedRepetitions; i++) {
+      // final long seed = seeds.get(i);
+      // for (int j = 0; j < seedRepetitions; j++) {
+      // runnerBuilder.add(SimArgs.create(scenario, configuration,
+      // seed, j, objectiveFunction, showGui, postProc, uiCreator));
+      // }
+      // }
+      // }
+      // }
+      // final Ordering<SimArgs> configOrder =
+      // Ordering.explicit(conf.asList()).onResultOf(SimArgs.toConfig());
+      //
+      // final Ordering<SimArgs> scenarioOrder =
+      // Ordering.explicit(scenarios.asList()).onResultOf(SimArgs.toScenario());
+      //
+      // final Ordering<SimArgs> seedOrder =
+      // Ordering.natural().onResultOf(SimArgs.toSeed());
+      // final Ordering<SimArgs> seedRepOrder =
+      // Ordering.natural().onResultOf(SimArgs.toRepeat());
+      //
+      // final List<ExperimentOrdering> ordering =
+      // asList(ExperimentOrdering.values());
+      //
+      // final Ordering<SimArgs> compound;
+      //
+      // for (final ExperimentOrdering eo : ordering) {
+      //
+      // Ordering<SimArgs> toAdd;
+      // if (eo == ExperimentOrdering.CONFIG) {
+      // toAdd = configOrder;
+      // } else if (eo == ExperimentOrdering.SCENARIO) {
+      //
+      // }
+      // }
+
       return runnerBuilder.build();
     }
 
@@ -712,6 +822,62 @@ public final class Experiment {
         @Nullable ModelBuilder<?, ?> uic) {
       return new AutoValue_Experiment_SimArgs(s, m, seed, repetition, obj, gui,
           pp, Optional.<ModelBuilder<?, ?>>fromNullable(uic));
+    }
+
+    static Function<SimArgs, MASConfiguration> toConfig() {
+      return ToConfig.INSTANCE;
+    }
+
+    static Function<SimArgs, Scenario> toScenario() {
+      return ToScenario.INSTANCE;
+    }
+
+    static Function<SimArgs, Long> toSeed() {
+      return ToSeed.INSTANCE;
+    }
+
+    static Function<SimArgs, Integer> toRepeat() {
+      return ToRepeat.INSTANCE;
+    }
+
+    private enum ToConfig implements Function<SimArgs, MASConfiguration> {
+      INSTANCE {
+        @Nullable
+        @Override
+        public MASConfiguration apply(@Nullable SimArgs input) {
+          return verifyNotNull(input).getMasConfig();
+        }
+      }
+    }
+
+    private enum ToScenario implements Function<SimArgs, Scenario> {
+      INSTANCE {
+        @Nullable
+        @Override
+        public Scenario apply(@Nullable SimArgs input) {
+          return verifyNotNull(input).getScenario();
+        }
+      }
+    }
+
+    private enum ToSeed implements Function<SimArgs, Long> {
+      INSTANCE {
+        @Nullable
+        @Override
+        public Long apply(@Nullable SimArgs input) {
+          return verifyNotNull(input).getRandomSeed();
+        }
+      }
+    }
+
+    private enum ToRepeat implements Function<SimArgs, Integer> {
+      INSTANCE {
+        @Nullable
+        @Override
+        public Integer apply(@Nullable SimArgs input) {
+          return verifyNotNull(input).getRepetition();
+        }
+      }
     }
   }
 
