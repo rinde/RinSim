@@ -15,9 +15,11 @@
  */
 package com.github.rinde.rinsim.experiment;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
@@ -28,6 +30,7 @@ import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
+import com.github.rinde.rinsim.experiment.Experiment.SimulationResult;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.ScenarioTestUtil;
 import com.github.rinde.rinsim.pdptw.common.StatsTracker;
@@ -47,7 +50,7 @@ public class ExperimentTest {
     TestUtil.testEnum(Experiment.Computers.class);
 
     final Scenario scenario = ScenarioTestUtil.createRandomScenario(123L,
-        StatsTracker.builder());
+      StatsTracker.builder());
     final Experiment.Builder builder = Experiment
         .build(TestObjectiveFunction.INSTANCE)
         .addScenario(scenario)
@@ -58,11 +61,11 @@ public class ExperimentTest {
     final ExperimentResults er = builder.perform();
     assertEquals(123, er.getMasterSeed());
     assertEquals(123,
-        er.getResults().asList().get(0).getSimArgs().getRandomSeed());
+      er.getResults().asList().get(0).getSimArgs().getRandomSeed());
 
     @SuppressWarnings("unchecked")
     final List<Point> positions =
-        (List<Point>) er.getResults().asList().get(0).getResultObject();
+      (List<Point>) er.getResults().asList().get(0).getResultObject();
     assertEquals(10, positions.size());
   }
 
@@ -72,7 +75,7 @@ public class ExperimentTest {
   @Test
   public void testDefaultPostProcessor() {
     final Scenario scenario = ScenarioTestUtil.createRandomScenario(123L,
-        StatsTracker.builder());
+      StatsTracker.builder());
     final Experiment.Builder builder = Experiment
         .build(TestObjectiveFunction.INSTANCE)
         .addScenario(scenario)
@@ -93,7 +96,7 @@ public class ExperimentTest {
   @Test
   public void testDefaultPostProcessorFailure() {
     final Scenario scenario = ScenarioTestUtil.createRandomScenario(123L,
-        StatsTracker.builder(), FailureModel.builder());
+      StatsTracker.builder(), FailureModel.builder());
     final Experiment.Builder builder = Experiment
         .build(TestObjectiveFunction.INSTANCE)
         .addScenario(scenario)
@@ -115,7 +118,7 @@ public class ExperimentTest {
   @Test
   public void testRetryPostProcessor() {
     final Scenario scenario = ScenarioTestUtil.createRandomScenario(123L,
-        StatsTracker.builder());
+      StatsTracker.builder());
     final Experiment.Builder builder = Experiment
         .build(TestObjectiveFunction.INSTANCE)
         .addScenario(scenario)
@@ -126,6 +129,61 @@ public class ExperimentTest {
         .withRandomSeed(123);
 
     builder.perform();
+  }
+
+  /**
+   * Tests that that seed repetitions are correctly executed.
+   */
+  @Test
+  public void testSeedRepetitions() {
+    final Scenario s0 = ScenarioTestUtil.createRandomScenario(123L);
+    final Scenario s1 = ScenarioTestUtil.createRandomScenario(456L);
+    final MASConfiguration c0 = ExperimentTestUtil.testConfig("c0");
+    final Experiment.Builder builder = Experiment
+        .build(TestObjectiveFunction.INSTANCE)
+        .addScenario(s0)
+        .addScenario(s1)
+        .addConfiguration(c0)
+        .repeat(2)
+        .withThreads(1)
+        .repeatSeed(3)
+        .withRandomSeed(123);
+
+    final ExperimentResults er = builder.perform();
+    final List<SimulationResult> results = new ArrayList<>(er.getResults());
+
+    assertThat(results).hasSize(12);
+    assertSimRes(results.get(0), s0, c0, 0);
+    assertSimRes(results.get(1), s0, c0, 1);
+    assertSimRes(results.get(2), s0, c0, 2);
+    assertSeedEquality(results.subList(0, 3));
+    assertSimRes(results.get(3), s0, c0, 0);
+    assertSimRes(results.get(4), s0, c0, 1);
+    assertSimRes(results.get(5), s0, c0, 2);
+    assertSeedEquality(results.subList(3, 6));
+    assertSimRes(results.get(6), s1, c0, 0);
+    assertSimRes(results.get(7), s1, c0, 1);
+    assertSimRes(results.get(8), s1, c0, 2);
+    assertSeedEquality(results.subList(6, 9));
+    assertSimRes(results.get(9), s1, c0, 0);
+    assertSimRes(results.get(10), s1, c0, 1);
+    assertSimRes(results.get(11), s1, c0, 2);
+    assertSeedEquality(results.subList(9, 12));
+  }
+
+  static void assertSimRes(SimulationResult sr, Scenario s, MASConfiguration c,
+      int r) {
+    assertThat(sr.getSimArgs().getScenario()).isEqualTo(s);
+    assertThat(sr.getSimArgs().getMasConfig()).isEqualTo(c);
+    assertThat(sr.getSimArgs().getRepetition()).isEqualTo(r);
+  }
+
+  static void assertSeedEquality(List<SimulationResult> results) {
+    checkArgument(!results.isEmpty());
+    final long seed = results.get(0).getSimArgs().getRandomSeed();
+    for (final SimulationResult sr : results) {
+      assertThat(sr.getSimArgs().getRandomSeed()).isEqualTo(seed);
+    }
   }
 
   static class FailureModel extends AbstractModelVoid implements TickListener {

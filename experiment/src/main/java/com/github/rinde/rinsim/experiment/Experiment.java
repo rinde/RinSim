@@ -104,6 +104,9 @@ public final class Experiment {
   // TODO add strict mode which checks whether there are not too many
   // vehicles/parcels/depots?
 
+  // TODO ObjectiveFunction might fit better inside the PostProcessor?
+  // it has no real function in the experiment..
+
   enum Computers implements Supplier<Computer> {
     LOCAL {
       @Override
@@ -148,7 +151,7 @@ public final class Experiment {
       @Nullable ModelBuilder<?, ?> uic) {
 
     final ExperimentRunner er = new ExperimentRunner(SimArgs.create(scenario,
-      configuration, seed, objFunc, showGui, postProcessor, uic));
+      configuration, seed, 0, objFunc, showGui, postProcessor, uic));
     final SimulationResult res = er.call();
     checkState(res != null);
     return res;
@@ -244,6 +247,7 @@ public final class Experiment {
     PostProcessor<?> postProc;
     boolean showGui;
     int repetitions;
+    int seedRepetitions;
     long masterSeed;
     int numThreads;
     int numBatches;
@@ -259,6 +263,7 @@ public final class Experiment {
       resultListeners = newArrayList();
       showGui = false;
       repetitions = 1;
+      seedRepetitions = 1;
       masterSeed = 0L;
       numThreads = Runtime.getRuntime().availableProcessors();
       numBatches = 1;
@@ -276,6 +281,31 @@ public final class Experiment {
         "The number of repetitions must be strictly positive, was %s.",
         times);
       repetitions = times;
+      return this;
+    }
+
+    /**
+     * Sets the number of repetitions for each combination of
+     * {@link MASConfiguration}, {@link Scenario} and <code>seed</code>. This
+     * allows to run exactly the same simulation twice, generally there are two
+     * use cases for doing this:
+     * <ol>
+     * <li>To test whether the simulation is deterministic, each simulation run
+     * with the same input should give exactly the same output.</li>
+     * <li>If the simulation is known to be non-deterministic (e.g. because of
+     * hardware dependence), the influence of the non-determinism on the results
+     * can be evaluated.</li>
+     * </ol>
+     * @param times The number of times to repeat simulations with the same
+     *          {@link MASConfiguration}, {@link Scenario} and <code>seed</code>
+     *          .
+     * @return This, as per the builder pattern.
+     */
+    public Builder repeatSeed(int times) {
+      checkArgument(times > 0,
+        "The number of seed repetitions must be strictly positive, was %s.",
+        times);
+      seedRepetitions = times;
       return this;
     }
 
@@ -587,8 +617,10 @@ public final class Experiment {
         for (final Scenario scenario : scenarios) {
           for (int i = 0; i < repetitions; i++) {
             final long seed = seeds.get(i);
-            runnerBuilder.add(SimArgs.create(scenario, configuration,
-              seed, objectiveFunction, showGui, postProc, uiCreator));
+            for (int j = 0; j < seedRepetitions; j++) {
+              runnerBuilder.add(SimArgs.create(scenario, configuration,
+                seed, j, objectiveFunction, showGui, postProc, uiCreator));
+            }
           }
         }
       }
@@ -602,6 +634,7 @@ public final class Experiment {
       }
       return ImmutableList.copyOf(numbers);
     }
+
   }
 
   /**
@@ -627,6 +660,11 @@ public final class Experiment {
      * @return the randomSeed
      */
     public abstract long getRandomSeed();
+
+    /**
+     * @return The seed repetition number.
+     */
+    public abstract int getRepetition();
 
     /**
      * @return the objectiveFunction
@@ -661,6 +699,8 @@ public final class Experiment {
           .append(getObjectiveFunction().toString())
           .append(",randomSeed=")
           .append(getRandomSeed())
+          .append(",repetition=")
+          .append(getRepetition())
           .append(",postProcessor=")
           .append(getPostProcessor())
           .append("}")
@@ -668,10 +708,10 @@ public final class Experiment {
     }
 
     static SimArgs create(Scenario s, MASConfiguration m, long seed,
-        ObjectiveFunction obj, boolean gui, PostProcessor<?> pp,
+        int repetition, ObjectiveFunction obj, boolean gui, PostProcessor<?> pp,
         @Nullable ModelBuilder<?, ?> uic) {
-      return new AutoValue_Experiment_SimArgs(s, m, seed, obj, gui, pp,
-          Optional.<ModelBuilder<?, ?>>fromNullable(uic));
+      return new AutoValue_Experiment_SimArgs(s, m, seed, repetition, obj, gui,
+          pp, Optional.<ModelBuilder<?, ?>>fromNullable(uic));
     }
   }
 
@@ -681,8 +721,8 @@ public final class Experiment {
    * @author Rinde van Lon
    */
   @AutoValue
-  public abstract static class SimulationResult implements
-      Comparable<SimulationResult> {
+  public abstract static class SimulationResult
+      implements Comparable<SimulationResult> {
 
     SimulationResult() {}
 

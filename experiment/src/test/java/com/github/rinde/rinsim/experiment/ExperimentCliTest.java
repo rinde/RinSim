@@ -125,6 +125,20 @@ public class ExperimentCliTest {
   }
 
   /**
+   * Test for various inputs of repetitions.
+   */
+  @Test
+  public void testSeedRepetitions() {
+    testFail(menu, "sr", CauseType.MISSING_ARG, "--seed-repetitions");
+    testFail(menu, "sr", CauseType.INVALID_ARG_FORMAT, "-sr", "x", "-s", "1");
+    testFail(menu, "sr", CauseType.HANDLER_FAILURE,
+      IllegalArgumentException.class,
+      "-sr", "0", "-s", "1");
+    assertEquals(1, testSuccess("-sr 1").seedRepetitions);
+    assertEquals(10, testSuccess("-sr 10").seedRepetitions);
+  }
+
+  /**
    * Tests whether the include option is effective.
    */
   @Test

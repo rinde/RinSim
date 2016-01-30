@@ -106,6 +106,14 @@ public final class ExperimentCli {
       }
     };
 
+  static final ArgHandler<Builder, Integer> SEED_REPS_HANDLER =
+    new ArgHandler<Experiment.Builder, Integer>() {
+      @Override
+      public void execute(Builder builder, Optional<Integer> value) {
+        builder.repeatSeed(value.get());
+      }
+    };
+
   static final ArgHandler<Builder, Long> SEED_HANDLER =
     new ArgHandler<Builder, Long>() {
       @Override
@@ -161,6 +169,7 @@ public final class ExperimentCli {
         .closeGroup()
         .add(createDryRunOpt(builder), builder, DRY_RUN_HANDLER)
         .add(createRepetitionsOpt(builder), builder, REPETITIONS_HANDLER)
+        .add(createSeedRepetitionsOpt(builder), builder, SEED_REPS_HANDLER)
         .add(createSeedOption(builder), builder, SEED_HANDLER)
         .add(createGuiOpt(builder), builder, GUI_HANDLER)
         .addHelpOption("h", "help", "Print this message.");
@@ -298,6 +307,16 @@ public final class ExperimentCli {
         .description(
           "Sets the number of repetitions of each setting, default: ",
           builder.repetitions)
+        .build();
+  }
+
+  static OptionArg<Integer> createSeedRepetitionsOpt(Builder builder) {
+    return Option
+        .builder("sr", ArgumentParser.INTEGER)
+        .longName("seed-repetitions")
+        .description(
+          "Sets the number of seed repetitions of each setting, default: ",
+          builder.seedRepetitions)
         .build();
   }
 
