@@ -215,12 +215,8 @@ public abstract class ArgumentParser<V> {
 
     return new CliException(
       String.format("The option %s expects a %s, found '%s'.",
-        option,
-        argName,
-        value),
-      e,
-      CauseType.INVALID_ARG_FORMAT,
-      option);
+        option, argName, value),
+      e, CauseType.INVALID_ARG_FORMAT, option);
   }
 
   static class BooleanParser extends ArgumentParser<Boolean> {
@@ -239,8 +235,8 @@ public abstract class ArgumentParser<V> {
         || "0".equals(arg)) {
         return false;
       }
-      throw new CliException("Expected a boolean but found: '" + arg
-        + "'.",
+      throw new CliException(
+        "Expected a boolean but found: '" + arg + "'.",
         CauseType.INVALID_ARG_FORMAT,
         option);
     }
