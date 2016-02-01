@@ -28,7 +28,9 @@ import com.google.common.base.Strings;
  * @author Rinde van Lon
  */
 public enum DefaultHelpFormatter implements HelpFormatter {
-
+  /**
+   * The instance of the default {@link HelpFormatter}.
+   */
   INSTANCE {
     private static final int HELP_WIDTH = 80;
     private static final int NAME_DESC_PADDING = 3;
@@ -72,11 +74,12 @@ public enum DefaultHelpFormatter implements HelpFormatter {
             sb.append(Strings.padEnd("", nameLength, ' '));
           }
           sb.append(
-              WordUtils.wrap(
-                  descParts[j],
-                  descLength,
-                  Strings.padEnd(System.lineSeparator(), nameLength + 1, ' '),
-                  false))
+                    WordUtils.wrap(
+                                   descParts[j],
+                                   descLength,
+                                   Strings.padEnd(System.lineSeparator(),
+                                                  nameLength + 1, ' '),
+                                   false))
               .append(System.lineSeparator());
         }
       }

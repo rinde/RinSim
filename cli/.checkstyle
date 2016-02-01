@@ -5,7 +5,11 @@
     <property name="checkstyle.cache.file" value="abc"/>
     <additional-data name="protect-config-file" value="false"/>
   </local-check-config>
-  <fileset name="all" enabled="true" check-config-name="RinSim-style" local="true">
+  <local-check-config name="RinSim-checkstyle" location="/RinSim/checkstyle.xml" type="project" description="">
+    <property name="checkstyle.cache.file" value="abc"/>
+    <additional-data name="protect-config-file" value="false"/>
+  </local-check-config>
+  <fileset name="all" enabled="true" check-config-name="RinSim-checkstyle" local="true">
     <file-match-pattern match-pattern="." include-pattern="true"/>
   </fileset>
   <filter name="DerivedFiles" enabled="true"/>

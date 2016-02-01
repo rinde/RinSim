@@ -15,13 +15,17 @@
  */
 package com.github.rinde.rinsim.cli;
 
+import static com.google.common.base.Verify.verifyNotNull;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
 import com.github.rinde.rinsim.cli.CliException.CauseType;
 import com.github.rinde.rinsim.cli.Option.OptionArg;
-import com.google.common.base.Converter;
+import com.google.common.base.Enums;
+import com.google.common.base.Function;
+import com.google.common.base.Functions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -43,87 +47,30 @@ public abstract class ArgumentParser<V> {
    * Separator of argument lists.
    */
   public static final char ARG_LIST_SEPARATOR = ',';
+
+  /**
+   * {@link Splitter} using {@link #ARG_LIST_SEPARATOR}.
+   */
   public static final Splitter ARG_LIST_SPLITTER =
-    Splitter.on(ARG_LIST_SEPARATOR);
+      Splitter.on(ARG_LIST_SEPARATOR);
 
-  /**
-   * {@link Boolean} parser.
-   */
-  public static final ArgumentParser<Boolean> BOOLEAN =
-    new ArgumentParser<Boolean>("boolean") {
-      @Override
-      Boolean parse(OptionArg<Boolean> option, String arg) {
-        if ("T".equalsIgnoreCase(arg)
-            || "true".equalsIgnoreCase(arg)
-            || "1".equals(arg)) {
-          return true;
-        } else if ("F".equalsIgnoreCase(arg)
-            || "false".equalsIgnoreCase(arg)
-            || "0".equals(arg)) {
-          return false;
-        }
-        throw new CliException("Expected a boolean but found: '" + arg + "'.",
-            CauseType.INVALID_ARG_FORMAT, option);
-      }
-    };
-
-  /**
-   * {@link Long} parser.
-   */
-  public static final ArgumentParser<Long> LONG = new NumberParser<>(
-      "long", Longs.stringConverter());
-
-  /**
-   * List of {@link Long}s parser.
-   */
-  public static final ArgumentParser<List<Long>> LONG_LIST =
-    new NumberListParser<>("long list", Longs.stringConverter());
-
-  /**
-   * {@link Integer} parser.
-   */
-  public static final ArgumentParser<Integer> INTEGER = new NumberParser<>(
-      "int", Ints.stringConverter());
-
-  /**
-   * List of {@link Integer}s parser.
-   */
-  public static final ArgumentParser<List<Integer>> INTEGER_LIST =
-    new NumberListParser<>("int list", Ints.stringConverter());
-
-  /**
-   * {@link Double} parser.
-   */
-  public static final ArgumentParser<Double> DOUBLE = new NumberParser<>(
-      "double", Doubles.stringConverter());
-
-  /**
-   * List of {@link Double}s parser.
-   */
-  public static final ArgumentParser<List<Double>> DOUBLE_LIST =
-    new NumberListParser<>("double list", Doubles.stringConverter());
-
-  /**
-   * {@link String} parser.
-   */
-  public static final ArgumentParser<String> STRING =
-    new ArgumentParser<String>("string") {
-      @Override
-      String parse(OptionArg<String> option, String value) {
-        return value;
-      }
-    };
-
-  /**
-   * List of {@link String}s parser.
-   */
-  public static final ArgumentParser<List<String>> STRING_LIST =
-    new ArgumentParser<List<String>>("string list") {
-      @Override
-      List<String> parse(OptionArg<List<String>> option, String value) {
-        return Splitter.on(ARG_LIST_SEPARATOR).splitToList(value);
-      }
-    };
+  private static final ArgumentParser<Boolean> BOOLEAN = new BooleanParser();
+  private static final ArgumentParser<Long> LONG =
+      asParser("long", Longs.stringConverter());
+  private static final ArgumentParser<List<Long>> LONG_LIST =
+      asListParser("long list", Longs.stringConverter());
+  private static final ArgumentParser<Integer> INTEGER =
+      asParser("int", Ints.stringConverter());
+  private static final ArgumentParser<List<Integer>> INTEGER_LIST =
+      asListParser("int list", Ints.stringConverter());
+  private static final ArgumentParser<Double> DOUBLE =
+      asParser("double", Doubles.stringConverter());
+  private static final ArgumentParser<List<Double>> DOUBLE_LIST =
+      asListParser("double list", Doubles.stringConverter());
+  private static final ArgumentParser<String> STRING =
+      asParser("string", Functions.<String>identity());
+  private static final ArgumentParser<List<String>> STRING_LIST =
+      asListParser("string list", Functions.<String>identity());
 
   private final String name;
 
@@ -138,6 +85,20 @@ public abstract class ArgumentParser<V> {
   }
 
   /**
+   * @return {@link Integer} parser.
+   */
+  public static ArgumentParser<Integer> intParser() {
+    return INTEGER;
+  }
+
+  /**
+   * @return List of {@link Integer}s parser.
+   */
+  public static ArgumentParser<List<Integer>> intList() {
+    return INTEGER_LIST;
+  }
+
+  /**
    * A prefixed int list allows arguments such as: <code>c0,..,c4</code>, this
    * generates a list containing the following five elements
    * <code>c0,c1,c2,c3,c4</code>.
@@ -148,72 +109,181 @@ public abstract class ArgumentParser<V> {
     return new PrefixedIntListParser(prefix);
   }
 
-  static CliException convertNFE(Option option, NumberFormatException e,
-      String value, String argName) {
-    return new CliException(String.format(
-      "The option %s expects a %s, found '%s'.", option, argName,
-      value), e, CauseType.INVALID_ARG_FORMAT, option);
+  /**
+   * @return {@link Double} parser.
+   */
+  public static ArgumentParser<Double> doubleParser() {
+    return DOUBLE;
   }
 
   /**
-   * A parser for numbers.
-   * @author Rinde van Lon
-   * @param <T> The type of number.
+   * @return List of {@link Double}s parser.
    */
-  public static class NumberParser<T> extends ArgumentParser<T> {
-    private final Converter<String, T> converter;
+  public static ArgumentParser<List<Double>> doubleListParser() {
+    return DOUBLE_LIST;
+  }
 
-    /**
-     * Construct a new parser.
-     * @param nm The name of the argument, shown in the help menu. name.
-     * @param conv The {@link Converter} to use to convert strings to type
-     *          <code>T</code>.
-     */
-    public NumberParser(String nm, Converter<String, T> conv) {
+  /**
+   * @return {@link String} parser.
+   */
+  public static ArgumentParser<String> stringParser() {
+    return STRING;
+  }
+
+  /**
+   * @return List of {@link String}s parser.
+   */
+  public static ArgumentParser<List<String>> stringListParser() {
+    return STRING_LIST;
+  }
+
+  /**
+   * @return {@link Boolean} parser.
+   */
+  public static ArgumentParser<Boolean> booleanParser() {
+    return BOOLEAN;
+  }
+
+  /**
+   * @return {@link Long} parser.
+   */
+  public static ArgumentParser<Long> longParser() {
+    return LONG;
+  }
+
+  /**
+   * @return List of {@link Long}s parser.
+   */
+  public static ArgumentParser<List<Long>> longListParser() {
+    return LONG_LIST;
+  }
+
+  /**
+   * Create a parser for {@link Enum}s.
+   * @param name The name for the value of the option (typically the enum name).
+   * @param enumClass The class of the enum.
+   * @param <T> The class of the enum.
+   * @return A new {@link ArgumentParser} for instances of the specified enum.
+   */
+  public static <T extends Enum<T>> ArgumentParser<T> enumParser(String name,
+      Class<T> enumClass) {
+    return asParser(name, Enums.stringConverter(enumClass));
+  }
+
+  /**
+   * Create a parser for lists of {@link Enum}s.
+   * @param name The name for the values of the option (typically the enum name
+   *          with 'list' appended).
+   * @param enumClass The class of the enum.
+   * @param <T> The class of the enum.
+   * @return A new {@link ArgumentParser} for lists of instances of the
+   *         specified enum.
+   */
+  public static <T extends Enum<T>> ArgumentParser<List<T>> enumListParser(
+      String name, Class<T> enumClass) {
+    return asListParser(name, Enums.stringConverter(enumClass));
+  }
+
+  /**
+   * Constructs a new {@link ArgumentParser} based on the specified
+   * {@link Function}.
+   * @param name The name of the value that is expected for the option.
+   * @param func A function that converts string to the expected type.
+   * @param <T> The type that it is expected.
+   * @return A new instance.
+   */
+  public static <T> ArgumentParser<T> asParser(String name,
+      Function<String, T> func) {
+    return new FunctionToParserAdapter<>(name, func);
+  }
+
+  /**
+   * Constructs a new {@link ArgumentParser} for lists based on the specified
+   * {@link Function}.
+   * @param name The name of the value that is expected for the option.
+   * @param func A function that converts string to the expected type.
+   * @param <T> The type that it is expected.
+   * @return A new instance.
+   */
+  public static <T> ArgumentParser<List<T>> asListParser(String name,
+      Function<String, T> func) {
+    return new FunctionToListParserAdapter<>(name, func);
+  }
+
+  static CliException convertIAE(Option option, IllegalArgumentException e,
+      String value, String argName) {
+
+    return new CliException(
+      String.format("The option %s expects a %s, found '%s'.",
+        option,
+        argName,
+        value),
+      e,
+      CauseType.INVALID_ARG_FORMAT,
+      option);
+  }
+
+  static class BooleanParser extends ArgumentParser<Boolean> {
+    BooleanParser() {
+      super("boolean");
+    }
+
+    @Override
+    Boolean parse(OptionArg<Boolean> option, String arg) {
+      if ("T".equalsIgnoreCase(arg)
+          || "true".equalsIgnoreCase(arg)
+          || "1".equals(arg)) {
+        return true;
+      } else if ("F".equalsIgnoreCase(arg)
+                 || "false".equalsIgnoreCase(arg)
+                 || "0".equals(arg)) {
+        return false;
+      }
+      throw new CliException("Expected a boolean but found: '" + arg
+                             + "'.",
+        CauseType.INVALID_ARG_FORMAT,
+        option);
+    }
+  }
+
+  static class FunctionToParserAdapter<T> extends ArgumentParser<T> {
+    private final Function<String, T> converter;
+
+    FunctionToParserAdapter(String nm, Function<String, T> conv) {
       super(nm);
       converter = conv;
     }
 
-    @SuppressWarnings("null")
     @Override
     T parse(OptionArg<T> option, String arg) {
       try {
-        return converter.convert(arg);
-      } catch (final NumberFormatException e) {
-        throw convertNFE(option, e, arg, name());
+        return verifyNotNull(converter.apply(arg),
+          "Converter should never return null.");
+      } catch (final IllegalArgumentException e) {
+        throw convertIAE(option, e, arg, name());
       }
     }
   }
 
-  /**
-   * A parser for lists of numbers.
-   * @author Rinde van Lon
-   * @param <T> The type of number.
-   */
-  public static class NumberListParser<T> extends ArgumentParser<List<T>> {
-    private final Converter<String, T> converter;
+  static class FunctionToListParserAdapter<T, U extends List<T>>
+      extends ArgumentParser<List<T>> {
+    private final Function<String, T> converter;
 
-    /**
-     * Construct a new list parser.
-     * @param nm The name of the argument, shown in the help menu.
-     * @param conv The {@link Converter} to use to convert strings to type
-     *          <code>T</code>.
-     */
-    public NumberListParser(String nm, Converter<String, T> conv) {
+    FunctionToListParserAdapter(String nm, Function<String, T> conv) {
       super(nm);
       converter = conv;
     }
 
     @Override
-    List<T> parse(OptionArg<List<T>> option, String value) {
-      final Iterable<String> strings = Splitter.on(ARG_LIST_SEPARATOR).split(
-        value);
+    List<T> parse(OptionArg<List<T>> option, String arg) {
+      final Iterable<String> strings = ARG_LIST_SPLITTER.split(arg);
       try {
         return ImmutableList.copyOf(Iterables.transform(strings, converter));
-      } catch (final NumberFormatException e) {
-        throw convertNFE(option, e, value, name());
+      } catch (final IllegalArgumentException e) {
+        throw convertIAE(option, e, arg, name());
       }
     }
+
   }
 
   static class PrefixedIntListParser extends ArgumentParser<List<String>> {
@@ -229,19 +299,21 @@ public abstract class ArgumentParser<V> {
     @Override
     List<String> parse(OptionArg<List<String>> option, String value) {
       // can not be empty
-      final List<String> list =
-        Splitter.on(ARG_LIST_SEPARATOR).splitToList(value);
+      final List<String> list = Splitter.on(ARG_LIST_SEPARATOR)
+          .splitToList(value);
 
-      final PeekingIterator<String> it =
-        Iterators.peekingIterator(list.iterator());
+      final PeekingIterator<String> it = Iterators
+          .peekingIterator(list.iterator());
 
       final List<String> generatedList = new ArrayList<>();
       while (it.hasNext()) {
         final String cur = it.next();
         if ("..".equals(cur)) {
-          CliException.checkArgFormat(!generatedList.isEmpty(), option,
+          CliException.checkArgFormat(!generatedList.isEmpty(),
+            option,
             "'..' cannot be the first item in the list.");
-          CliException.checkArgFormat(it.hasNext(), option,
+          CliException.checkArgFormat(it.hasNext(),
+            option,
             "After '..' at least one more item is expected.");
 
           final String prev = generatedList.get(generatedList.size() - 1);
@@ -254,8 +326,9 @@ public abstract class ArgumentParser<V> {
           CliException.checkArgFormat(prevNum + 1 < nextNum,
             option,
             "The items adjacent to '..' must be >= 0 and at least one apart. "
-                + "Found '%s' and '%s'.",
-            prevNum, nextNum);
+                    + "Found '%s' and '%s'.",
+            prevNum,
+            nextNum);
 
           for (int i = prevNum + 1; i < nextNum; i++) {
             generatedList.add(prefix + Integer.toString(i));
@@ -269,8 +342,11 @@ public abstract class ArgumentParser<V> {
     }
 
     void checkItemFormat(Option opt, String str) {
-      CliException.checkArgFormat(pattern.matcher(str).matches(), opt,
-        "'%s' does not match expected pattern: '%s'", str, pattern.pattern());
+      CliException.checkArgFormat(pattern.matcher(str).matches(),
+        opt,
+        "'%s' does not match expected pattern: '%s'",
+        str,
+        pattern.pattern());
     }
   }
 }
