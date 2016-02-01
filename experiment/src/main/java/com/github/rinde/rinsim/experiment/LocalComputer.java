@@ -49,7 +49,7 @@ final class LocalComputer implements Computer {
   @Override
   public ExperimentResults compute(Builder builder, Set<SimArgs> inputs) {
     final ImmutableList.Builder<ExperimentRunner> runnerBuilder = ImmutableList
-        .builder();
+      .builder();
     for (final SimArgs args : inputs) {
       runnerBuilder.add(new ExperimentRunner(args));
     }
@@ -61,13 +61,13 @@ final class LocalComputer implements Computer {
       executor = MoreExecutors.newDirectExecutorService();
     } else {
       executor = MoreExecutors.listeningDecorator(
-          Executors.newFixedThreadPool(threads, new LocalThreadFactory()));
+        Executors.newFixedThreadPool(threads, new LocalThreadFactory()));
     }
 
     final List<SimulationResult> results =
-        Collections.synchronizedList(new ArrayList<SimulationResult>());
+      Collections.synchronizedList(new ArrayList<SimulationResult>());
     final ResultCollector resultCollector =
-        new ResultCollector(executor, results, builder.resultListeners);
+      new ResultCollector(executor, results, builder.resultListeners);
 
     try {
       for (final ExperimentRunner r : runners) {
@@ -87,7 +87,7 @@ final class LocalComputer implements Computer {
     executor.shutdown();
 
     final ExperimentResults er =
-        ExperimentResults.create(builder, ImmutableSet.copyOf(results));
+      ExperimentResults.create(builder, ImmutableSet.copyOf(results));
     for (final ResultListener rl : builder.resultListeners) {
       rl.doneComputing(er);
     }
@@ -149,13 +149,13 @@ final class LocalComputer implements Computer {
           rl.receive(res);
         } catch (final RuntimeException e) {
           System.err
-              .println("ResultListener " + rl + " failed to receive result.");
+            .println("ResultListener " + rl + " failed to receive result.");
           e.printStackTrace(System.err);
         }
       }
       if (res.getResultObject() == FailureStrategy.RETRY) {
         final ExperimentRunner newRunner =
-            new ExperimentRunner(res.getSimArgs());
+          new ExperimentRunner(res.getSimArgs());
         Futures.addCallback(executor.submit(newRunner), this);
       } else {
         // FIXME this should be changed into a more decent progress indicator
@@ -176,7 +176,7 @@ final class LocalComputer implements Computer {
     public SimulationResult call() {
       final Object resultObject = Experiment.perform(arguments);
       final SimulationResult result =
-          SimulationResult.create(arguments, resultObject);
+        SimulationResult.create(arguments, resultObject);
       return result;
     }
   }

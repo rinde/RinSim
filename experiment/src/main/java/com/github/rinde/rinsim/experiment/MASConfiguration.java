@@ -164,9 +164,9 @@ public abstract class MASConfiguration implements Serializable {
 
     Builder addDefaultPDPTWHandlers() {
       return addEventHandler(TimeOutEvent.class, TimeOutEvent.ignoreHandler())
-          .addEventHandler(AddDepotEvent.class, AddDepotEvent.defaultHandler())
-          .addEventHandler(AddParcelEvent.class,
-              AddParcelEvent.defaultHandler());
+        .addEventHandler(AddDepotEvent.class, AddDepotEvent.defaultHandler())
+        .addEventHandler(AddParcelEvent.class,
+          AddParcelEvent.defaultHandler());
     }
 
     /**
@@ -174,9 +174,9 @@ public abstract class MASConfiguration implements Serializable {
      */
     public MASConfiguration build() {
       return new AutoValue_MASConfiguration(
-          name,
-          modelsBuilder.build(),
-          ImmutableMap.copyOf(eventHandlers));
+        name,
+        modelsBuilder.build(),
+        ImmutableMap.copyOf(eventHandlers));
     }
 
     static void checkSerializable(Object o) {

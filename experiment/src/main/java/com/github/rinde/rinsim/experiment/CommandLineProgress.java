@@ -69,8 +69,8 @@ public class CommandLineProgress implements ResultListener {
     } else {
       received++;
     }
-    printStream.println(Joiner.on("").join(received, "/", total, " (failures: ",
-        failures, ")"));
+    printStream.println(Joiner.on("")
+      .join(received, "/", total, " (failures: ", failures, ")"));
   }
 
   @Override

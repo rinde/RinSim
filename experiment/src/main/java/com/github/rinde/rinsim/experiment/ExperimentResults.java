@@ -86,12 +86,12 @@ public abstract class ExperimentResults {
   static ExperimentResults create(Builder exp,
       ImmutableSet<SimulationResult> res) {
     return new AutoValue_ExperimentResults(
-        exp.objectiveFunction,
-        ImmutableSet.copyOf(exp.configurationsSet),
-        exp.scenariosBuilder.build(),
-        exp.showGui,
-        exp.repetitions,
-        exp.masterSeed,
-        res);
+      exp.objectiveFunction,
+      ImmutableSet.copyOf(exp.configurationsSet),
+      exp.scenariosBuilder.build(),
+      exp.showGui,
+      exp.repetitions,
+      exp.masterSeed,
+      res);
   }
 }

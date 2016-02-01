@@ -75,16 +75,16 @@ final class JppfComputer implements Computer {
   @Override
   public ExperimentResults compute(Builder builder, Set<SimArgs> inputs) {
     final IdMap<MASConfiguration> configMap = new IdMap<>("c",
-        MASConfiguration.class);
+      MASConfiguration.class);
     final IdMap<ScenarioProvider> scenarioMap = new IdMap<>("s",
-        ScenarioProvider.class);
+      ScenarioProvider.class);
     final IdMap<ObjectiveFunction> objFuncMap = new IdMap<>("o",
-        ObjectiveFunction.class);
+      ObjectiveFunction.class);
 
     final List<ResultListener> listeners =
       newArrayList(builder.resultListeners);
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     final IdMap<PostProcessor<?>> ppMap = new IdMap("p", PostProcessor.class);
     final Map<String, Scenario> scenariosMap = newLinkedHashMap();
 
@@ -100,12 +100,12 @@ final class JppfComputer implements Computer {
     // determine size of batches
     final int numBatches = Math.min(tasks.size(), builder.numBatches);
     final int batchSize = DoubleMath.roundToInt(tasks.size()
-        / (double) numBatches,
+      / (double) numBatches,
       RoundingMode.CEILING);
 
     final Map<Task<?>, JPPFJob> taskJobMap = newLinkedHashMap();
     final ResultsCollector res = new ResultsCollector(tasks.size(),
-        scenariosMap, taskJobMap, listeners);
+      scenariosMap, taskJobMap, listeners);
     final List<JPPFJob> jobs = newArrayList();
 
     for (int i = 0; i < numBatches; i++) {
@@ -113,14 +113,14 @@ final class JppfComputer implements Computer {
       job.setName(Joiner.on("").join(JOB_NAME, " ", i + 1, "/", numBatches));
       jobs.add(job);
       for (final SimulationTask t : tasks.subList(i * batchSize, (i + 1)
-          * batchSize)) {
+        * batchSize)) {
         try {
           final MASConfiguration config = configMap.getValue(t
-              .getConfigurationId());
+            .getConfigurationId());
           final ScenarioProvider scenario = scenarioMap.getValue(t
-              .getScenarioId());
+            .getScenarioId());
           final ObjectiveFunction objFunc = objFuncMap.getValue(t
-              .getObjectiveFunctionId());
+            .getObjectiveFunctionId());
           job.getDataProvider().setParameter(t.getPostProcessorId(),
             ppMap.getValue(t.getPostProcessorId()));
           job.getDataProvider().setParameter(t.getConfigurationId(), config);
@@ -168,7 +168,7 @@ final class JppfComputer implements Computer {
         args.getMasConfig());
       final String scenId = scenarioMap.storeAndGenerateId(
         new ScenarioProvider(ScenarioIO.write(args.getScenario()),
-            args.getScenario().getClass()));
+          args.getScenario().getClass()));
       scenariosMap.put(scenId, args.getScenario());
       final String objFuncId = objFuncMap.storeAndGenerateId(
         args.getObjectiveFunction());
@@ -176,7 +176,7 @@ final class JppfComputer implements Computer {
       final String postProcId =
         ppMap.storeAndGenerateId(args.getPostProcessor());
       tasks.add(new SimulationTask(args.getRandomSeed(), args.getRepetition(),
-          scenId, configId, objFuncId, postProcId));
+        scenId, configId, objFuncId, postProcId));
     }
   }
 
@@ -282,7 +282,7 @@ final class JppfComputer implements Computer {
       checkArgument(
         value instanceof Serializable,
         "When using JPPF, instances of %s must implement Serializable, "
-            + "found: '%s' of class: %s.",
+          + "found: '%s' of class: %s.",
         clazz, value, value.getClass());
       final String id;
       if (configMap.containsKey(value)) {
@@ -383,14 +383,14 @@ final class JppfComputer implements Computer {
       checkNotNull(
         dataProvider,
         "Probable problem: your MASConfiguration/ObjectiveFunction/"
-            + "PostProcessor is not fully serializable.");
+          + "PostProcessor is not fully serializable.");
 
       final Supplier<Scenario> scenario = getDataProvider().getParameter(
         scenarioId);
       final MASConfiguration configuration = getDataProvider().getParameter(
         configurationId);
       final ObjectiveFunction objectiveFunction = getDataProvider()
-          .getParameter(objectiveFunctionId);
+        .getParameter(objectiveFunctionId);
       final PostProcessor<?> postProcessor = getDataProvider().getParameter(
         postProcessorId);
 
@@ -457,23 +457,23 @@ final class JppfComputer implements Computer {
       }
       final SimulationTask t = (SimulationTask) o;
       return Objects.equal(t.seed, seed)
-          && Objects.equal(t.scenarioId, scenarioId)
-          && Objects.equal(t.configurationId, configurationId)
-          && Objects.equal(t.objectiveFunctionId, objectiveFunctionId)
-          && Objects.equal(t.postProcessorId, postProcessorId);
+        && Objects.equal(t.scenarioId, scenarioId)
+        && Objects.equal(t.configurationId, configurationId)
+        && Objects.equal(t.objectiveFunctionId, objectiveFunctionId)
+        && Objects.equal(t.postProcessorId, postProcessorId);
     }
 
     @Override
     public int compareTo(@Nullable SimulationTask o) {
       assert o != null;
       return ComparisonChain.start()
-          .compare(scenarioId, o.scenarioId)
-          .compare(configurationId, o.configurationId)
-          .compare(objectiveFunctionId, o.objectiveFunctionId)
-          .compare(postProcessorId, o.postProcessorId,
-            Ordering.natural().nullsLast())
-          .compare(seed, o.seed)
-          .result();
+        .compare(scenarioId, o.scenarioId)
+        .compare(configurationId, o.configurationId)
+        .compare(objectiveFunctionId, o.objectiveFunctionId)
+        .compare(postProcessorId, o.postProcessorId,
+          Ordering.natural().nullsLast())
+        .compare(seed, o.seed)
+        .result();
     }
   }
 }

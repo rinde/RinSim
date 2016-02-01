@@ -43,10 +43,10 @@ public final class PostProcessors {
       @Override
       public StatisticsDTO collectResults(Simulator sim, SimArgs args) {
         final StatisticsDTO stats =
-            sim.getModelProvider().getModel(StatsTracker.class).getStatistics();
+          sim.getModelProvider().getModel(StatsTracker.class).getStatistics();
         checkState(args.getObjectiveFunction().isValidResult(stats),
-            "The simulation did not result in a valid result: %s, SimArgs: %s.",
-            stats, args);
+          "The simulation did not result in a valid result: %s, SimArgs: %s.",
+          stats, args);
         return stats;
       }
 
@@ -59,7 +59,7 @@ public final class PostProcessors {
       @Override
       public String toString() {
         return PostProcessors.class.getSimpleName()
-            + ".statisticsPostProcessor()";
+          + ".statisticsPostProcessor()";
       }
     };
   }

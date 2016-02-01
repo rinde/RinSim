@@ -177,17 +177,17 @@ public final class Experiment {
     final ScenarioController.Builder scenContrBuilder =
       ScenarioController.builder(
         scenario)
-          .withIgnoreRedundantHandlers(true)
-          .withEventHandlers(config.getEventHandlers());
+        .withIgnoreRedundantHandlers(true)
+        .withEventHandlers(config.getEventHandlers());
 
     final Simulator.Builder simBuilder = Simulator.builder()
-        .setRandomSeed(seed)
-        .addModel(scenContrBuilder)
-        .addModels(config.getModels());
+      .setRandomSeed(seed)
+      .addModel(scenContrBuilder)
+      .addModels(config.getModels());
 
     final boolean hasStatsTracker =
       containsStatisticsProvider(scenContrBuilder.getChildren())
-          || containsStatisticsProvider(config.getModels());
+        || containsStatisticsProvider(config.getModels());
 
     if (!hasStatsTracker) {
       simBuilder.addModel(StatsTracker.builder());
@@ -413,7 +413,7 @@ public final class Experiment {
      */
     public Builder withOrdering(Iterable<SimulationProperty> experimentOrder) {
       checkArgument(ImmutableSet.copyOf(experimentOrder)
-          .size() == SimulationProperty.values().length,
+        .size() == SimulationProperty.values().length,
         "Each experiment ordering should be specified exactly once.");
       experimentOrdering = ImmutableList.copyOf(experimentOrder);
       return this;
@@ -442,7 +442,7 @@ public final class Experiment {
     public Builder addConfigurations(Iterable<MASConfiguration> configs) {
       final Set<MASConfiguration> newConfigs = ImmutableSet.copyOf(configs);
       checkArgument(Sets.intersection(configurationsSet, newConfigs)
-          .isEmpty());
+        .isEmpty());
       configurationsSet.addAll(newConfigs);
       return this;
     }
@@ -596,7 +596,7 @@ public final class Experiment {
         @Override
         public Computer get() {
           return new DryRunComputer(originalComputerType, verbose, stream,
-              error);
+            error);
         }
       };
       return this;
@@ -672,7 +672,7 @@ public final class Experiment {
 
     ImmutableSet<Scenario> getAllScenarios() {
       final Set<Scenario> scenarios = newLinkedHashSet(scenariosBuilder
-          .build());
+        .build());
       if (scenarioProviderBuilder.isPresent()) {
         scenarios.addAll(scenarioProviderBuilder.get().build(fileReader).get());
       }
@@ -683,7 +683,7 @@ public final class Experiment {
       final Set<Scenario> scenarios = scenariosBuilder.build();
       if (scenarioProviderBuilder.isPresent()) {
         return scenarios.size()
-            + scenarioProviderBuilder.get().build().get().size();
+          + scenarioProviderBuilder.get().build().get().size();
       }
       return scenarios.size();
     }
@@ -836,29 +836,29 @@ public final class Experiment {
     @Override
     public String toString() {
       return new StringBuilder()
-          .append("SimArgs{problemClass=")
-          .append(getScenario().getProblemClass().toString())
-          .append(",instancedId=")
-          .append(getScenario().getProblemInstanceId())
-          .append(",masConfig=")
-          .append(getMasConfig().getName())
-          .append(",objectiveFunction=")
-          .append(getObjectiveFunction().toString())
-          .append(",randomSeed=")
-          .append(getRandomSeed())
-          .append(",repetition=")
-          .append(getRepetition())
-          .append(",postProcessor=")
-          .append(getPostProcessor())
-          .append("}")
-          .toString();
+        .append("SimArgs{problemClass=")
+        .append(getScenario().getProblemClass().toString())
+        .append(",instancedId=")
+        .append(getScenario().getProblemInstanceId())
+        .append(",masConfig=")
+        .append(getMasConfig().getName())
+        .append(",objectiveFunction=")
+        .append(getObjectiveFunction().toString())
+        .append(",randomSeed=")
+        .append(getRandomSeed())
+        .append(",repetition=")
+        .append(getRepetition())
+        .append(",postProcessor=")
+        .append(getPostProcessor())
+        .append("}")
+        .toString();
     }
 
     static SimArgs create(Scenario s, MASConfiguration m, long seed,
         int repetition, ObjectiveFunction obj, boolean gui, PostProcessor<?> pp,
         @Nullable ModelBuilder<?, ?> uic) {
       return new AutoValue_Experiment_SimArgs(s, m, seed, repetition, obj, gui,
-          pp, Optional.<ModelBuilder<?, ?>>fromNullable(uic));
+        pp, Optional.<ModelBuilder<?, ?>>fromNullable(uic));
     }
 
     static Function<SimArgs, MASConfiguration> toConfig() {
@@ -943,11 +943,11 @@ public final class Experiment {
     public int compareTo(@Nullable SimulationResult o) {
       assert o != null;
       return ComparisonChain.start()
-          .compare(getSimArgs().getScenario().getProblemClass().getId(),
-            o.getSimArgs().getScenario().getProblemClass().getId())
-          .compare(getSimArgs().getScenario().getProblemInstanceId(),
-            o.getSimArgs().getScenario().getProblemInstanceId())
-          .result();
+        .compare(getSimArgs().getScenario().getProblemClass().getId(),
+          o.getSimArgs().getScenario().getProblemClass().getId())
+        .compare(getSimArgs().getScenario().getProblemInstanceId(),
+          o.getSimArgs().getScenario().getProblemInstanceId())
+        .result();
     }
 
     static SimulationResult create(SimArgs simArgs, Object simResult) {
