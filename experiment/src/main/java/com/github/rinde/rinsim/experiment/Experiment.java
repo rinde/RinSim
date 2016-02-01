@@ -376,11 +376,46 @@ public final class Experiment {
      * @return This, as per the builder pattern.
      */
     public Builder withOrdering(SimulationProperty... experimentOrder) {
-      checkNotNull(experimentOrder);
+      return withOrdering(ImmutableList.copyOf(checkNotNull(experimentOrder)));
+    }
+
+    /**
+     * Specifies the ordering of simulations. The resulting order of simulations
+     * is the order in which the simulations are offered to the executor. It
+     * depends on the executor's behavior whether this ordering is respected. In
+     * case the experiment is executed locally, the execution order <i>will</i>
+     * be respected, in a distributed setting this may not always be the case.
+     * <p>
+     * For example, consider the following settings:
+     * <ul>
+     * <li>{@link #repeat(int)} is set to 3.</li>
+     * <li>{@link #repeatSeed(int)} is set to 2.</li>
+     * <li>The ordering starts with <code>[{@link SimulationProperty#SEED_REPS},
+     *  {@link SimulationProperty#REPS}, ..]</code></li>
+     * </ul>
+     * The result will be that simulations first ordered by their seed creation
+     * order, and second by their repetition number:
+     * <ol>
+     * <li>seed0, rep0, ..</li>
+     * <li>seed0, rep1, ..</li>
+     * <li>seed0, rep2, ..</li>
+     * <li>seed1, rep0, ..</li>
+     * <li>seed1, rep1, ..</li>
+     * <li>seed1, rep2, ..</li>
+     * </ol>
+     * The default order is {@link SimulationProperty#CONFIG},
+     * {@link SimulationProperty#SCENARIO}, {@link SimulationProperty#REPS},
+     * {@link SimulationProperty#SEED_REPS}.
+     *
+     * @param experimentOrder The order of simulation creation, all
+     *          {@link SimulationProperty}s must be specified.
+     * @return This, as per the builder pattern.
+     */
+    public Builder withOrdering(Iterable<SimulationProperty> experimentOrder) {
       checkArgument(ImmutableSet.copyOf(experimentOrder)
           .size() == SimulationProperty.values().length,
         "Each experiment ordering should be specified exactly once.");
-      experimentOrdering = asList(experimentOrder);
+      experimentOrdering = ImmutableList.copyOf(experimentOrder);
       return this;
     }
 

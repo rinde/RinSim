@@ -108,7 +108,7 @@ public final class FileProviderCli {
     printPathOptions(pathMap, sb);
     sb.append("This option can not be used together with --exclude.");
     return Option
-        .builder("i", ArgumentParser.STRING_LIST)
+        .builder("i", ArgumentParser.stringListParser())
         .longName("include")
         .description(sb.toString())
         .build();
@@ -129,7 +129,7 @@ public final class FileProviderCli {
     final StringBuilder sb = new StringBuilder();
     printPathOptions(pathMap, sb);
     sb.append("This option can not be used together with --include.");
-    return Option.builder("e", ArgumentParser.STRING_LIST)
+    return Option.builder("e", ArgumentParser.stringListParser())
         .longName("exclude")
         .description(sb.toString())
         .build();
@@ -137,7 +137,7 @@ public final class FileProviderCli {
 
   static OptionArg<List<String>> createAddOption() {
     return Option
-        .builder("a", ArgumentParser.STRING_LIST)
+        .builder("a", ArgumentParser.stringListParser())
         .longName("add")
         .description(
             "Adds the specified paths. A path may be a file or a directory. "
@@ -147,7 +147,7 @@ public final class FileProviderCli {
 
   static OptionArg<String> createFilterOption(Builder ref) {
     return Option
-        .builder("f", ArgumentParser.STRING)
+        .builder("f", ArgumentParser.stringParser())
         .longName("filter")
         .description(
             "Sets a filter of which paths to include. The filter is a string "

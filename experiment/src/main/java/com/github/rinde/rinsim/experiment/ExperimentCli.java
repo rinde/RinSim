@@ -51,85 +51,6 @@ public final class ExperimentCli {
   static final String S = "s";
   static final String CONFIG_PREFIX = "c";
 
-  static final ArgHandler<Builder, Integer> BATCHES_HANDLER =
-    new ArgHandler<Builder, Integer>() {
-      @Override
-      public void execute(Builder subject, Optional<Integer> value) {
-        subject.numBatches(value.get());
-      }
-    };
-
-  static final ArgHandler<Builder, String> DRY_RUN_HANDLER =
-    new ArgHandler<Experiment.Builder, String>() {
-      @Override
-      public void execute(Builder builder, Optional<String> value) {
-        if (value.isPresent()) {
-          checkArgument(
-            "v".equalsIgnoreCase(value.get())
-                || "verbose".equalsIgnoreCase(value.get()),
-            "only accepts 'v', 'verbose' or no argument, not '%s'.",
-            value.get());
-        }
-        builder.dryRun(value.isPresent(), System.out, System.err);
-      }
-    };
-
-  static final ArgHandler<Builder, Boolean> GUI_HANDLER =
-    new ArgHandler<Experiment.Builder, Boolean>() {
-      @Override
-      public void execute(Builder builder, Optional<Boolean> value) {
-        builder.showGui(value.isPresent() && value.get());
-      }
-    };
-
-  static final NoArgHandler<Builder> JPPF_HANDLER =
-    new NoArgHandler<Experiment.Builder>() {
-      @Override
-      public void execute(Builder builder) {
-        builder.computeDistributed();
-      }
-    };
-
-  static final NoArgHandler<Builder> LOCAL_HANDLER =
-    new NoArgHandler<Builder>() {
-      @Override
-      public void execute(Builder builder) {
-        builder.computeLocal();
-      }
-    };
-
-  static final ArgHandler<Builder, Integer> REPETITIONS_HANDLER =
-    new ArgHandler<Experiment.Builder, Integer>() {
-      @Override
-      public void execute(Builder builder, Optional<Integer> value) {
-        builder.repeat(value.get());
-      }
-    };
-
-  static final ArgHandler<Builder, Integer> SEED_REPS_HANDLER =
-    new ArgHandler<Experiment.Builder, Integer>() {
-      @Override
-      public void execute(Builder builder, Optional<Integer> value) {
-        builder.repeatSeed(value.get());
-      }
-    };
-
-  static final ArgHandler<Builder, Long> SEED_HANDLER =
-    new ArgHandler<Builder, Long>() {
-      @Override
-      public void execute(Builder builder, Optional<Long> value) {
-        builder.withRandomSeed(value.get());
-      }
-    };
-
-  static final ArgHandler<Builder, Integer> THREADS_HANDLER =
-    new ArgHandler<Builder, Integer>() {
-      @Override
-      public void execute(Builder builder, Optional<Integer> value) {
-        builder.withThreads(value.get());
-      }
-    };
-
   private ExperimentCli() {}
 
   /**
@@ -158,20 +79,22 @@ public final class ExperimentCli {
         .header("RinSim Experiment command line interface.")
         .footer("For more information see http://github.com/rinde/RinSim")
         .openGroup()
-        .add(createBatchesOpt(builder), builder, BATCHES_HANDLER)
-        .add(createThreadsOpt(builder), builder, THREADS_HANDLER)
+        .add(createBatchesOpt(builder), builder, IntHandlers.BATCHES)
+        .add(createThreadsOpt(builder), builder, IntHandlers.THREADS)
         .openGroup()
         .add(createIncludeOpt(cfgMap), builder, new IncludeHandler(cfgMap))
         .add(createExcludeOpt(cfgMap), builder, new ExcludeHandler(cfgMap))
         .openGroup()
-        .add(createLocalOpt(builder), builder, LOCAL_HANDLER)
-        .add(createJppfOpt(builder), builder, JPPF_HANDLER)
+        .add(createLocalOpt(builder), builder, NoArgHandlers.LOCAL)
+        .add(createJppfOpt(builder), builder, NoArgHandlers.DISTRIBUTED)
         .closeGroup()
-        .add(createDryRunOpt(builder), builder, DRY_RUN_HANDLER)
-        .add(createRepetitionsOpt(builder), builder, REPETITIONS_HANDLER)
-        .add(createSeedRepetitionsOpt(builder), builder, SEED_REPS_HANDLER)
-        .add(createSeedOption(builder), builder, SEED_HANDLER)
-        .add(createGuiOpt(builder), builder, GUI_HANDLER)
+        .add(createDryRunOpt(builder), builder, StringHandler.DRY_RUN)
+        .add(createRepetitionsOpt(builder), builder, IntHandlers.REPS)
+        .add(createSeedRepetitionsOpt(builder), builder, IntHandlers.SEED_REPS)
+        .add(createSeedOption(builder), builder, LongHandler.SEED)
+        .add(createGuiOpt(builder), builder, BooleanHandler.GUI)
+        .add(createOrderingOption(builder), builder,
+          SimulationPropertyHandler.INSTANCE)
         .addHelpOption("h", "help", "Print this message.");
 
     if (builder.scenarioProviderBuilder.isPresent()) {
@@ -185,7 +108,7 @@ public final class ExperimentCli {
 
   static OptionArg<Integer> createBatchesOpt(Builder expBuilder) {
     return Option
-        .builder("b", ArgumentParser.INTEGER)
+        .builder("b", ArgumentParser.intParser())
         .longName("batches")
         .description(
           "Sets the number of batches to use in case of distributed "
@@ -209,7 +132,7 @@ public final class ExperimentCli {
   }
 
   static OptionArg<String> createDryRunOpt(Builder builder) {
-    return Option.builder("dr", ArgumentParser.STRING)
+    return Option.builder("dr", ArgumentParser.stringParser())
         .longName("dry-run")
         .description(
           "Will perform a 'dry run' of the experiment without doing any"
@@ -236,7 +159,7 @@ public final class ExperimentCli {
 
   static OptionArg<Boolean> createGuiOpt(Builder builder) {
     return Option
-        .builder("g", ArgumentParser.BOOLEAN)
+        .builder("g", ArgumentParser.booleanParser())
         .longName("show-gui")
         .description(
           "Starts the gui for each simulation when 'true' is supplied, hides "
@@ -266,7 +189,8 @@ public final class ExperimentCli {
         .on(System.lineSeparator())
         .withKeyValueSeparator(" = ")
         .appendTo(sb, toStringMap(configMap))
-        .append("\nThe options should be given as a comma ',' separated list. ")
+        .append(
+          "\nThe options should be given as a comma ',' separated list. ")
         .append(
           "If this option is not used all configurations are automatically "
               + "included. ");
@@ -302,7 +226,7 @@ public final class ExperimentCli {
 
   static OptionArg<Integer> createRepetitionsOpt(Builder builder) {
     return Option
-        .builder("r", ArgumentParser.INTEGER)
+        .builder("r", ArgumentParser.intParser())
         .longName("repetitions")
         .description(
           "Sets the number of repetitions of each setting, default: ",
@@ -312,7 +236,7 @@ public final class ExperimentCli {
 
   static OptionArg<Integer> createSeedRepetitionsOpt(Builder builder) {
     return Option
-        .builder("sr", ArgumentParser.INTEGER)
+        .builder("sr", ArgumentParser.intParser())
         .longName("seed-repetitions")
         .description(
           "Sets the number of seed repetitions of each setting, default: ",
@@ -321,7 +245,7 @@ public final class ExperimentCli {
   }
 
   static OptionArg<Long> createSeedOption(Experiment.Builder builder) {
-    return Option.builder(S, ArgumentParser.LONG)
+    return Option.builder(S, ArgumentParser.longParser())
         .longName("seed")
         .description(
           "Sets the master random seed, default: ", builder.masterSeed, ".")
@@ -330,13 +254,27 @@ public final class ExperimentCli {
 
   static OptionArg<Integer> createThreadsOpt(Experiment.Builder builder) {
     return Option
-        .builder("t", ArgumentParser.INTEGER)
+        .builder("t", ArgumentParser.intParser())
         .longName("threads")
         .description(
           "Sets the number of threads to use in case of local computation, "
               + "default: ",
           builder.numThreads,
           ". This option can not be used together with --batches.")
+        .build();
+  }
+
+  static OptionArg<List<SimulationProperty>> createOrderingOption(
+      Builder builder) {
+    return Option
+        .builder("o",
+          ArgumentParser.enumListParser("list", SimulationProperty.class))
+        .longName("ordering")
+        .description(
+          "Sets the ordering of simulations as specified by simulation "
+              + "properties, default: ",
+          builder.experimentOrdering,
+          "All options must be specified exactly once.")
         .build();
   }
 
@@ -347,6 +285,93 @@ public final class ExperimentCli {
   static Optional<String> safeExecute(Experiment.Builder builder,
       String[] args) {
     return createMenu(builder).safeExecute(args);
+  }
+
+  enum StringHandler implements ArgHandler<Builder, String> {
+    DRY_RUN {
+      @Override
+      public void execute(Builder builder, Optional<String> value) {
+        if (value.isPresent()) {
+          checkArgument(
+            "v".equalsIgnoreCase(value.get())
+                || "verbose".equalsIgnoreCase(value.get()),
+            "only accepts 'v', 'verbose' or no argument, not '%s'.",
+            value.get());
+        }
+        builder.dryRun(value.isPresent(), System.out, System.err);
+      }
+    }
+  }
+
+  enum BooleanHandler implements ArgHandler<Builder, Boolean> {
+    GUI {
+      @Override
+      public void execute(Builder builder, Optional<Boolean> value) {
+        builder.showGui(value.isPresent() && value.get());
+      }
+    }
+  }
+
+  enum LongHandler implements ArgHandler<Builder, Long> {
+    SEED {
+      @Override
+      public void execute(Builder builder, Optional<Long> value) {
+        builder.withRandomSeed(value.get());
+      }
+    }
+  }
+
+  enum NoArgHandlers implements NoArgHandler<Builder> {
+    LOCAL {
+      @Override
+      public void execute(Builder builder) {
+        builder.computeLocal();
+      }
+    },
+    DISTRIBUTED {
+      @Override
+      public void execute(Builder builder) {
+        builder.computeDistributed();
+      }
+    }
+  }
+
+  enum IntHandlers implements ArgHandler<Builder, Integer> {
+    THREADS {
+      @Override
+      public void execute(Builder builder, Optional<Integer> value) {
+        builder.withThreads(value.get());
+      }
+    },
+    REPS {
+      @Override
+      public void execute(Builder builder, Optional<Integer> value) {
+        builder.repeat(value.get());
+      }
+    },
+    SEED_REPS {
+      @Override
+      public void execute(Builder builder, Optional<Integer> value) {
+        builder.repeatSeed(value.get());
+      }
+    },
+    BATCHES {
+      @Override
+      public void execute(Builder subject, Optional<Integer> value) {
+        subject.numBatches(value.get());
+      }
+    }
+  }
+
+  enum SimulationPropertyHandler
+    implements ArgHandler<Builder, List<SimulationProperty>> {
+    INSTANCE {
+      @Override
+      public void execute(Builder subject,
+          Optional<List<SimulationProperty>> argument) {
+        subject.withOrdering(argument.get());
+      }
+    }
   }
 
   enum ConfigToName implements Function<MASConfiguration, String> {
