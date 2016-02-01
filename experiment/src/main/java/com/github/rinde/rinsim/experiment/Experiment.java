@@ -21,7 +21,6 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Verify.verifyNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
-import static java.util.Arrays.asList;
 
 import java.io.PrintStream;
 import java.nio.file.Path;
@@ -59,6 +58,7 @@ import com.google.common.collect.ContiguousSet;
 import com.google.common.collect.DiscreteDomain;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Range;
 import com.google.common.collect.Sets;
 
@@ -241,6 +241,13 @@ public final class Experiment {
    * @author Rinde van Lon
    */
   public static final class Builder {
+    static final List<SimulationProperty> DEFAULT_EXPERIMENT_ORDERING =
+      ImmutableList.of(
+        SimulationProperty.CONFIG,
+        SimulationProperty.SCENARIO,
+        SimulationProperty.REPS,
+        SimulationProperty.SEED_REPS);
+
     final ObjectiveFunction objectiveFunction;
     final Set<MASConfiguration> configurationsSet;
     final ImmutableSet.Builder<Scenario> scenariosBuilder;
@@ -276,7 +283,7 @@ public final class Experiment {
       numBatches = 1;
       computerType = Computers.LOCAL;
       postProc = PostProcessors.defaultPostProcessor();
-      experimentOrdering = asList(SimulationProperty.values());
+      experimentOrdering = DEFAULT_EXPERIMENT_ORDERING;
     }
 
     /**
@@ -412,9 +419,10 @@ public final class Experiment {
      * @return This, as per the builder pattern.
      */
     public Builder withOrdering(Iterable<SimulationProperty> experimentOrder) {
-      checkArgument(ImmutableSet.copyOf(experimentOrder)
-        .size() == SimulationProperty.values().length,
-        "Each experiment ordering should be specified exactly once.");
+      checkArgument(
+        Iterables.size(experimentOrder) == SimulationProperty.values().length,
+        "Each experiment ordering should be specified exactly once, is: %s.",
+        experimentOrder);
       experimentOrdering = ImmutableList.copyOf(experimentOrder);
       return this;
     }
@@ -562,7 +570,6 @@ public final class Experiment {
      * <li>{@link #showGui(boolean)}</li>
      * <li>{@link #showGui(ModelBuilder)}</li>
      * </ul>
-     *
      * @return This, as per the builder pattern.
      */
     public Builder computeDistributed() {

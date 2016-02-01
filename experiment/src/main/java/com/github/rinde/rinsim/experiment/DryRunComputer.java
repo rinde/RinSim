@@ -64,9 +64,11 @@ class DryRunComputer implements Computer {
     printStream.println("          # scenarios = "
       + builder.getNumScenarios());
     printStream.println("        # repetitions = " + builder.repetitions);
+    printStream.println("   # seed repetitions = " + builder.seedRepetitions);
     printStream.println("------------------------------------ x");
     printStream.println("  total # simulations = " + inputs.size());
     printStream.println();
+    printStream.println("experiment ordering = " + builder.experimentOrdering);
 
     if (verbose) {
       printStream.println(

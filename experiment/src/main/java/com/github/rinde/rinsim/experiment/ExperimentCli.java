@@ -93,8 +93,7 @@ public final class ExperimentCli {
       .add(createSeedRepetitionsOpt(builder), builder, IntHandlers.SEED_REPS)
       .add(createSeedOption(builder), builder, LongHandler.SEED)
       .add(createGuiOpt(builder), builder, BooleanHandler.GUI)
-      .add(createOrderingOption(builder), builder,
-        SimulationPropertyHandler.INSTANCE)
+      .add(createOrderingOption(builder), builder, OrderingHandler.INSTANCE)
       .addHelpOption("h", "help", "Print this message.");
 
     if (builder.scenarioProviderBuilder.isPresent()) {
@@ -266,8 +265,8 @@ public final class ExperimentCli {
       .description(
         "Sets the ordering of simulations as specified by simulation "
           + "properties, default: ",
-        builder.experimentOrdering,
-        "All options must be specified exactly once.")
+        Joiner.on(",").join(builder.experimentOrdering),
+        ". All options must be specified exactly once.")
       .build();
   }
 
@@ -356,7 +355,7 @@ public final class ExperimentCli {
     }
   }
 
-  enum SimulationPropertyHandler
+  enum OrderingHandler
     implements ArgHandler<Builder, List<SimulationProperty>> {
     INSTANCE {
       @Override

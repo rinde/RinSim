@@ -17,6 +17,7 @@ package com.github.rinde.rinsim.experiment;
 
 import static com.github.rinde.rinsim.cli.CliTest.testFail;
 import static com.google.common.collect.Sets.newHashSet;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Before;
@@ -245,6 +246,29 @@ public class ExperimentCliTest {
    */
   @Test
   public void dryRun() {
-    builder.perform(System.out, "-dr");
+    builder.perform(System.out, "-dr", "v");
+  }
+
+  /**
+   * Test correct applying of order.
+   */
+  @Test
+  public void testOrdering() {
+    testFail(menu, "o", CauseType.HANDLER_FAILURE, "-o", "CONFIG,SCENARIO");
+    testFail(menu, "o", CauseType.HANDLER_FAILURE, "-o",
+      "SEED_REPS,REPS,SCENARIO,CONFIG,SEED_REPS");
+
+    assertThat(builder.experimentOrdering)
+      .isEqualTo(Experiment.Builder.DEFAULT_EXPERIMENT_ORDERING);
+
+    menu.execute("-o", "SEED_REPS,REPS,SCENARIO,CONFIG");
+
+    assertThat(builder.experimentOrdering)
+      .containsExactly(
+        SimulationProperty.SEED_REPS,
+        SimulationProperty.REPS,
+        SimulationProperty.SCENARIO,
+        SimulationProperty.CONFIG)
+      .inOrder();
   }
 }
