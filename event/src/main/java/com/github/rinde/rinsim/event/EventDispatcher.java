@@ -102,7 +102,7 @@ public final class EventDispatcher implements EventAPI {
       checkArgument(
         supportedTypes.contains(e.getEventType()),
         "Cannot dispatch an event of type %s since it was not registered at "
-            + "this dispatcher.",
+          + "this dispatcher.",
         e.getEventType());
       for (final Listener l : listeners.get(e.getEventType())) {
         l.handleEvent(e);
@@ -206,7 +206,7 @@ public final class EventDispatcher implements EventAPI {
           checkArgument(
             containsListener(listener, eventType),
             "The listener %s for the type %s cannot be removed because it "
-                + "does not exist.",
+              + "does not exist.",
             listener, eventType);
 
           if (dispatching.get() == 0) {
