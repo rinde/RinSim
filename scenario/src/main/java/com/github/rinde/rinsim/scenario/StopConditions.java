@@ -77,10 +77,10 @@ public final class StopConditions {
       StopCondition condition2, StopCondition... more) {
     return And.create(
       ImmutableSet.<StopCondition>builder()
-          .add(condition1)
-          .add(condition2)
-          .addAll(asList(more))
-          .build());
+        .add(condition1)
+        .add(condition2)
+        .addAll(asList(more))
+        .build());
   }
 
   /**
@@ -97,10 +97,10 @@ public final class StopConditions {
       StopCondition condition2, StopCondition... more) {
     return Or.create(
       ImmutableSet.<StopCondition>builder()
-          .add(condition1)
-          .add(condition2)
-          .addAll(asList(more))
-          .build());
+        .add(condition1)
+        .add(condition2)
+        .addAll(asList(more))
+        .build());
   }
 
   /**
@@ -190,7 +190,7 @@ public final class StopConditions {
 
     static LimitedTime create(long endTime) {
       return new AutoValue_StopConditions_LimitedTime(
-          ImmutableSet.<Class<?>>of(Clock.class), endTime);
+        ImmutableSet.<Class<?>>of(Clock.class), endTime);
     }
   }
 

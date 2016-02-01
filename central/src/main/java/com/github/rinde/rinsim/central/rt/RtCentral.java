@@ -118,8 +118,8 @@ public final class RtCentral {
       StochasticSupplier<? extends RealtimeSolver> solverSupplier,
       String nameSuffix) {
     return configBuilder(solverSupplier, nameSuffix)
-        .addModel(builder(solverSupplier))
-        .build();
+      .addModel(builder(solverSupplier))
+      .build();
   }
   // TODO create builder
 
@@ -145,17 +145,17 @@ public final class RtCentral {
       StochasticSupplier<? extends Solver> solverSupplier, String nameSuffix,
       boolean threadGrouping) {
     return configBuilder(solverSupplier, nameSuffix)
-        .addModel(builder(AdapterSupplier.create(solverSupplier))
-            .withThreadGrouping(threadGrouping))
-        .build();
+      .addModel(builder(AdapterSupplier.create(solverSupplier))
+        .withThreadGrouping(threadGrouping))
+      .build();
   }
 
   static MASConfiguration.Builder configBuilder(
       StochasticSupplier<?> solverSupplier,
       String nameSuffix) {
     return MASConfiguration.pdptwBuilder()
-        .addEventHandler(AddVehicleEvent.class, vehicleHandler())
-        .setName(String.format("RtCentral-%s%s", solverSupplier, nameSuffix));
+      .addEventHandler(AddVehicleEvent.class, vehicleHandler())
+      .setName(String.format("RtCentral-%s%s", solverSupplier, nameSuffix));
   }
 
   public static TimedEventHandler<AddVehicleEvent> vehicleHandler() {
@@ -232,11 +232,11 @@ public final class RtCentral {
         DependencyProvider dependencyProvider) {
       final RandomProvider rnd = dependencyProvider.get(RandomProvider.class);
       final RealtimeSolver solver = getSolverSupplier()
-          .get(rnd.masterInstance().nextLong());
+        .get(rnd.masterInstance().nextLong());
       final RtSimSolver s = dependencyProvider.get(RtSimSolverBuilder.class)
-          .build(solver);
+        .build(solver);
       final RealtimeClockController clock = dependencyProvider
-          .get(RealtimeClockController.class);
+        .get(RealtimeClockController.class);
       final PDPRoadModel rm = dependencyProvider.get(PDPRoadModel.class);
       final PDPModel pm = dependencyProvider.get(PDPModel.class);
       return new RtCentral.RtCentralModel(clock, s, rm, pm, getOptions());
@@ -259,8 +259,8 @@ public final class RtCentral {
         StochasticSupplier<? extends RealtimeSolver> solverSupplier,
         Set<Options> options) {
       return new AutoValue_RtCentral_Builder(
-          (StochasticSupplier<RealtimeSolver>) solverSupplier,
-          ImmutableSet.copyOf(options));
+        (StochasticSupplier<RealtimeSolver>) solverSupplier,
+        ImmutableSet.copyOf(options));
     }
   }
 
@@ -279,7 +279,7 @@ public final class RtCentral {
         final RouteFollowingVehicle vehicle = (RouteFollowingVehicle) v;
         checkArgument(vehicle.isDelayedRouteChangingAllowed(),
           "%s requires that all registered %s instances allow delayed route "
-              + "changing",
+            + "changing",
           RtCentral.class.getSimpleName(),
           RouteFollowingVehicle.class.getSimpleName());
       }
@@ -375,7 +375,7 @@ public final class RtCentral {
           roadModel.getObjectsOfType(RouteFollowingVehicle.class));
         checkState(!vehicles.isEmpty(),
           "At least one vehicle must have been added to the simulator in order "
-              + "for %s to work.",
+            + "for %s to work.",
           RtCentral.class.getSimpleName());
       }
 
@@ -395,7 +395,7 @@ public final class RtCentral {
 
         checkArgument(schedule.size() == vehicles.size(),
           "An invalid schedule was created, a valid schedule should contain "
-              + "one route for each vehicle, routes: %s, vehicles: %s.",
+            + "one route for each vehicle, routes: %s, vehicles: %s.",
           schedule.size(), vehicles.size());
 
         final Iterator<List<Parcel>> routes = schedule.iterator();
@@ -410,16 +410,16 @@ public final class RtCentral {
             LOGGER.warn("state");
             LOGGER.warn("available: " + state.getAvailableParcels());
             LOGGER.warn("vehicles:" + Joiner.on(System.lineSeparator())
-                .join(state.getVehicles()));
+              .join(state.getVehicles()));
             LOGGER.warn("current schedule: ");
             LOGGER.warn(Joiner.on(System.lineSeparator())
-                .join(solver.getCurrentSchedule()));
+              .join(solver.getCurrentSchedule()));
             LOGGER.warn("fixed");
             LOGGER.warn(Joiner.on(System.lineSeparator()).join(schedule));
             LOGGER.warn("problem in vehicle" + i);
             throw new IllegalStateException(
-                "Route was not applied correctly, new route: " + newRoute
-                    + " but result is: " + vehicle.getRoute());
+              "Route was not applied correctly, new route: " + newRoute
+                + " but result is: " + vehicle.getRoute());
           }
           i++;
         }
@@ -431,8 +431,8 @@ public final class RtCentral {
       }
 
       if (!didProblemChange
-          && continuousUpdates
-          && clock.getClockMode() == ClockMode.REAL_TIME) {
+        && continuousUpdates
+        && clock.getClockMode() == ClockMode.REAL_TIME) {
         solver.sendSnapshot(
           SolveArgs.create().useCurrentRoutes(getCurrentRoutes()));
       }
@@ -456,7 +456,7 @@ public final class RtCentral {
     @SuppressWarnings("unchecked")
     static AdapterSupplier create(StochasticSupplier<? extends Solver> ss) {
       return new AutoValue_RtCentral_AdapterSupplier(
-          (StochasticSupplier<Solver>) ss);
+        (StochasticSupplier<Solver>) ss);
     }
 
     @Override

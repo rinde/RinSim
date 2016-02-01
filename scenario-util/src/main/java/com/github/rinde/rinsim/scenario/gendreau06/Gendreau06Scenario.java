@@ -65,35 +65,35 @@ public abstract class Gendreau06Scenario extends Scenario {
       GendreauProblemClass problemClass, int instanceNumber,
       boolean diversion, boolean realtime) {
     final TimeModel.Builder timeModelBuilder = TimeModel.builder()
-        .withTickLength(ts)
-        .withTimeUnit(SI.MILLI(SI.SECOND));
+      .withTickLength(ts)
+      .withTimeUnit(SI.MILLI(SI.SECOND));
 
     final ImmutableSet<ModelBuilder<?, ?>> modelBuilders =
       ImmutableSet.<ModelBuilder<?, ?>>builder()
-          .add(realtime ? timeModelBuilder.withRealTime() : timeModelBuilder)
-          .add(
-            PDPRoadModel.builder(
-              RoadModelBuilders.plane()
-                  .withMinPoint(MIN)
-                  .withMaxPoint(MAX)
-                  .withDistanceUnit(SI.KILOMETER)
-                  .withSpeedUnit(MAX_SPEED.getUnit())
-                  .withMaxSpeed(MAX_SPEED.getValue()))
-                .withAllowVehicleDiversion(diversion))
-          .add(
-            DefaultPDPModel.builder()
-                .withTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED))
-          .add(
-            StatsTracker.builder())
-          .build();
+        .add(realtime ? timeModelBuilder.withRealTime() : timeModelBuilder)
+        .add(
+          PDPRoadModel.builder(
+            RoadModelBuilders.plane()
+              .withMinPoint(MIN)
+              .withMaxPoint(MAX)
+              .withDistanceUnit(SI.KILOMETER)
+              .withSpeedUnit(MAX_SPEED.getUnit())
+              .withMaxSpeed(MAX_SPEED.getValue()))
+            .withAllowVehicleDiversion(diversion))
+        .add(
+          DefaultPDPModel.builder()
+            .withTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED))
+        .add(
+          StatsTracker.builder())
+        .build();
 
     return new AutoValue_Gendreau06Scenario(
-        ImmutableList.<TimedEvent>copyOf(pEvents),
-        modelBuilders,
-        Integer.toString(instanceNumber),
-        ts,
-        diversion,
-        problemClass);
+      ImmutableList.<TimedEvent>copyOf(pEvents),
+      modelBuilders,
+      Integer.toString(instanceNumber),
+      ts,
+      diversion,
+      problemClass);
   }
 
   abstract long getTickSize();

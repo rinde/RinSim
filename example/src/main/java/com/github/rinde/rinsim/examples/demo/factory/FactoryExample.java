@@ -82,7 +82,7 @@ public final class FactoryExample {
    */
   public static void main(@Nullable String[] args) {
     final long endTime = args != null && args.length >= 1 ? Long
-        .parseLong(args[0]) : Long.MAX_VALUE;
+      .parseLong(args[0]) : Long.MAX_VALUE;
 
     final Display d = new Display();
     @Nullable
@@ -136,26 +136,26 @@ public final class FactoryExample {
     Collections.shuffle(borderNodes, new Random(RANDOM_SEED));
 
     View.Builder view = View.builder()
-        .with(GraphRoadModelRenderer.builder()
-            .withMargin(CANVAS_MARGIN))
-        .with(BoxRenderer.builder())
-        .with(
-            RoadUserRenderer.builder()
-                .withImageAssociation(AGV.class,
-                    "/graphics/flat/forklift2.png"))
-        .withTitleAppendix("Factory Demo")
-        .withAutoPlay()
-        .withAutoClose()
-        .withSpeedUp(SPEED_UP);
+      .with(GraphRoadModelRenderer.builder()
+        .withMargin(CANVAS_MARGIN))
+      .with(BoxRenderer.builder())
+      .with(
+        RoadUserRenderer.builder()
+          .withImageAssociation(AGV.class,
+            "/graphics/flat/forklift2.png"))
+      .withTitleAppendix("Factory Demo")
+      .withAutoPlay()
+      .withAutoClose()
+      .withSpeedUp(SPEED_UP);
 
     if (m != null) {
       view = view.withMonitor(m)
-          .withResolution(m.getClientArea().width, m.getClientArea().height)
-          .withDisplay(display);
+        .withResolution(m.getClientArea().width, m.getClientArea().height)
+        .withDisplay(display);
 
       if (list != null) {
         view = view.withCallback(list)
-            .withAsync();
+          .withAsync();
       } else {
         view = view.withFullScreen();
       }
@@ -163,23 +163,23 @@ public final class FactoryExample {
 
     final RandomGenerator rng = new MersenneTwister(RANDOM_SEED);
     final Simulator simulator = Simulator
-        .builder()
-        .setRandomGenerator(rng)
-        .addModel(
-            BlockingGraphRoadModel.blockingBuilder(g)
-                .withDistanceUnit(SI.METER)
-                .withSpeedUnit(NonSI.KILOMETERS_PER_HOUR))
-        .addModel(
-            DefaultPDPModel.builder())
-        .addModel(
-            AgvModel.builder().withPoints(
-                ImmutableList.<ImmutableList<Point>>builder()
-                    .addAll(points)
-                    .add(ImmutableList.copyOf(borderNodes))
-                    .build(),
-                getBorderNodes(g)))
-        .addModel(view)
-        .build();
+      .builder()
+      .setRandomGenerator(rng)
+      .addModel(
+        BlockingGraphRoadModel.blockingBuilder(g)
+          .withDistanceUnit(SI.METER)
+          .withSpeedUnit(NonSI.KILOMETERS_PER_HOUR))
+      .addModel(
+        DefaultPDPModel.builder())
+      .addModel(
+        AgvModel.builder().withPoints(
+          ImmutableList.<ImmutableList<Point>>builder()
+            .addAll(points)
+            .add(ImmutableList.copyOf(borderNodes))
+            .build(),
+          getBorderNodes(g)))
+      .addModel(view)
+      .build();
 
     for (int i = 0; i < NUM_VEHICLES; i++) {
       final List<Point> l = points.get(rng.nextInt(points.size()));
@@ -206,7 +206,7 @@ public final class FactoryExample {
   static ImmutableList<ImmutableList<Point>> createPoints(
       Iterable<String> words) {
     final ImmutableList.Builder<ImmutableList<Point>> pointBuilder =
-        ImmutableList.builder();
+      ImmutableList.builder();
     for (final String word : words) {
       pointBuilder.add(SwarmDemo.measureString(word, FONT_SIZE, SPACING, 2));
     }
@@ -228,10 +228,10 @@ public final class FactoryExample {
     int width = DoubleMath.roundToInt(xMax / SPACING, RoundingMode.CEILING);
     width += VERTICAL_LINE_SPACING - width % VERTICAL_LINE_SPACING;
     width += width / VERTICAL_LINE_SPACING % 2 == 0 ? VERTICAL_LINE_SPACING
-        : 0;
+      : 0;
 
     int height =
-        DoubleMath.roundToInt(yMax / SPACING, RoundingMode.CEILING) + 2;
+      DoubleMath.roundToInt(yMax / SPACING, RoundingMode.CEILING) + 2;
     height += height % 2;
     return createGrid(width, height, 1, VERTICAL_LINE_SPACING, SPACING);
   }
@@ -241,13 +241,13 @@ public final class FactoryExample {
     for (int i = 0; i < points.length - 1; i++) {
       final double dist = Point.distance(points[i], points[i + 1]);
       final Point unit = Point.divide(Point.diff(points[i + 1], points[i]),
-          dist);
+        dist);
       final int numPoints = DoubleMath.roundToInt(dist / POINT_DISTANCE,
-          RoundingMode.FLOOR);
+        RoundingMode.FLOOR);
       for (int j = 0; j < numPoints; j++) {
         final double factor = j * POINT_DISTANCE;
         newPoints.add(new Point(points[i].x + factor * unit.x, points[i].y
-            + factor * unit.y));
+          + factor * unit.y));
       }
     }
     newPoints.add(points[points.length - 1]);

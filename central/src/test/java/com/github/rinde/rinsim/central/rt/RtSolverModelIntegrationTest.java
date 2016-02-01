@@ -79,28 +79,28 @@ public class RtSolverModelIntegrationTest {
   @Parameters
   public static Collection<Object[]> data() {
     return asList(new Object[][] {
-        {true}, {false}
+      {true}, {false}
     });
   }
 
   @Before
   public void setUp() {
     sim = Simulator.builder()
-        .addModel(TimeModel.builder()
-            .withRealTime()
-            .withTickLength(100L)
-            .withTimeUnit(SI.MILLI(SI.SECOND)))
-        .addModel(PDPRoadModel.builder(RoadModelBuilders.plane()))
-        .addModel(DefaultPDPModel.builder())
-        .addModel(RtSolverModel.builder()
-            .withSingleMode()
-            .withThreadGrouping(useThreadGrouping))
-        .build();
+      .addModel(TimeModel.builder()
+        .withRealTime()
+        .withTickLength(100L)
+        .withTimeUnit(SI.MILLI(SI.SECOND)))
+      .addModel(PDPRoadModel.builder(RoadModelBuilders.plane()))
+      .addModel(DefaultPDPModel.builder())
+      .addModel(RtSolverModel.builder()
+        .withSingleMode()
+        .withThreadGrouping(useThreadGrouping))
+      .build();
 
     model = sim.getModelProvider().getModel(RtSolverModel.class);
 
     rtClock = sim.getModelProvider().getModel(TimeModel.class)
-        .get(RealtimeClockController.class);
+      .get(RealtimeClockController.class);
     sim.register(new Depot(new Point(5, 5)));
     sim.register(new RouteFollowingVehicle(VehicleDTO.builder().build(), true));
   }
@@ -125,7 +125,7 @@ public class RtSolverModelIntegrationTest {
             Parcel.builder(new Point(0, 0), new Point(4, 4)).build());
 
           simSolver.solve(SolveArgs.create()
-              .useCurrentRoutes(ImmutableList.of(ImmutableList.<Parcel>of())));
+            .useCurrentRoutes(ImmutableList.of(ImmutableList.<Parcel>of())));
           assertNoSchedule(simSolver);
         } else if (timeLapse.getTime() == 400) {
           LOGGER.trace(AffinityLock.dumpLocks());
@@ -133,7 +133,7 @@ public class RtSolverModelIntegrationTest {
           sim.register(
             Parcel.builder(new Point(0, 0), new Point(4, 4)).build());
           simSolver.solve(SolveArgs.create()
-              .useCurrentRoutes(ImmutableList.of(ImmutableList.<Parcel>of())));
+            .useCurrentRoutes(ImmutableList.of(ImmutableList.<Parcel>of())));
           assertNoSchedule(simSolver);
           assertThat(simSolver.isScheduleUpdated()).isFalse();
         } else if (timeLapse.getTime() == 6000) {
@@ -174,7 +174,7 @@ public class RtSolverModelIntegrationTest {
           sim.register(
             Parcel.builder(new Point(0, 0), new Point(4, 4)).build());
           simSolver.solve(SolveArgs.create()
-              .useCurrentRoutes(ImmutableList.of(ImmutableList.<Parcel>of())));
+            .useCurrentRoutes(ImmutableList.of(ImmutableList.<Parcel>of())));
         } else if (timeLapse.getTime() == 500) {
           throw new IllegalStateException("This is a test");
         }

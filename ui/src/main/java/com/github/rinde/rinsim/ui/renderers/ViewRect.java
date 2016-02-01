@@ -38,6 +38,6 @@ public class ViewRect {
   @Override
   public String toString() {
     return new StringBuilder().append("{ViewRect: ").append(min).append(" ")
-        .append(max).append("}").toString();
+      .append(max).append("}").toString();
   }
 }

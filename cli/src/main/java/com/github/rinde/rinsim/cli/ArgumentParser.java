@@ -52,25 +52,25 @@ public abstract class ArgumentParser<V> {
    * {@link Splitter} using {@link #ARG_LIST_SEPARATOR}.
    */
   public static final Splitter ARG_LIST_SPLITTER =
-      Splitter.on(ARG_LIST_SEPARATOR);
+    Splitter.on(ARG_LIST_SEPARATOR);
 
   private static final ArgumentParser<Boolean> BOOLEAN = new BooleanParser();
   private static final ArgumentParser<Long> LONG =
-      asParser("long", Longs.stringConverter());
+    asParser("long", Longs.stringConverter());
   private static final ArgumentParser<List<Long>> LONG_LIST =
-      asListParser("long list", Longs.stringConverter());
+    asListParser("long list", Longs.stringConverter());
   private static final ArgumentParser<Integer> INTEGER =
-      asParser("int", Ints.stringConverter());
+    asParser("int", Ints.stringConverter());
   private static final ArgumentParser<List<Integer>> INTEGER_LIST =
-      asListParser("int list", Ints.stringConverter());
+    asListParser("int list", Ints.stringConverter());
   private static final ArgumentParser<Double> DOUBLE =
-      asParser("double", Doubles.stringConverter());
+    asParser("double", Doubles.stringConverter());
   private static final ArgumentParser<List<Double>> DOUBLE_LIST =
-      asListParser("double list", Doubles.stringConverter());
+    asListParser("double list", Doubles.stringConverter());
   private static final ArgumentParser<String> STRING =
-      asParser("string", Functions.<String>identity());
+    asParser("string", Functions.<String>identity());
   private static final ArgumentParser<List<String>> STRING_LIST =
-      asListParser("string list", Functions.<String>identity());
+    asListParser("string list", Functions.<String>identity());
 
   private final String name;
 
@@ -231,16 +231,16 @@ public abstract class ArgumentParser<V> {
     @Override
     Boolean parse(OptionArg<Boolean> option, String arg) {
       if ("T".equalsIgnoreCase(arg)
-          || "true".equalsIgnoreCase(arg)
-          || "1".equals(arg)) {
+        || "true".equalsIgnoreCase(arg)
+        || "1".equals(arg)) {
         return true;
       } else if ("F".equalsIgnoreCase(arg)
-                 || "false".equalsIgnoreCase(arg)
-                 || "0".equals(arg)) {
+        || "false".equalsIgnoreCase(arg)
+        || "0".equals(arg)) {
         return false;
       }
       throw new CliException("Expected a boolean but found: '" + arg
-                             + "'.",
+        + "'.",
         CauseType.INVALID_ARG_FORMAT,
         option);
     }
@@ -300,10 +300,10 @@ public abstract class ArgumentParser<V> {
     List<String> parse(OptionArg<List<String>> option, String value) {
       // can not be empty
       final List<String> list = Splitter.on(ARG_LIST_SEPARATOR)
-          .splitToList(value);
+        .splitToList(value);
 
       final PeekingIterator<String> it = Iterators
-          .peekingIterator(list.iterator());
+        .peekingIterator(list.iterator());
 
       final List<String> generatedList = new ArrayList<>();
       while (it.hasNext()) {
@@ -326,7 +326,7 @@ public abstract class ArgumentParser<V> {
           CliException.checkArgFormat(prevNum + 1 < nextNum,
             option,
             "The items adjacent to '..' must be >= 0 and at least one apart. "
-                    + "Found '%s' and '%s'.",
+              + "Found '%s' and '%s'.",
             prevNum,
             nextNum);
 

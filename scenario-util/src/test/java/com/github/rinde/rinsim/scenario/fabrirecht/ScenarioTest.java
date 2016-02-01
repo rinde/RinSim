@@ -31,12 +31,12 @@ public class ScenarioTest {
   @Test
   public void test() throws IOException {
     final FabriRechtScenario scen = FabriRechtParser
-        .parse("files/test/fabri-recht/lc101_coord.csv",
-          "files/test/fabri-recht/lc101.csv");
+      .parse("files/test/fabri-recht/lc101_coord.csv",
+        "files/test/fabri-recht/lc101.csv");
 
     final String json = FabriRechtParser.toJson(scen);
     FabriRechtParser.toJson(scen, new BufferedWriter(new FileWriter(
-        "files/test/fabri-recht/lc101.scenario")));
+      "files/test/fabri-recht/lc101.scenario")));
 
     final FabriRechtScenario scen2 = FabriRechtParser.fromJson(json);
     assertEquals(scen, scen2);

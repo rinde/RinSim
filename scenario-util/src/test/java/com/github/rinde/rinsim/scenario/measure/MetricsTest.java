@@ -68,12 +68,12 @@ public class MetricsTest {
   public void testLoad1() {
     // distance is 1 km which is traveled in 2 minutes with 30km/h
     final ParcelDTO dto = Parcel.builder(new Point(0, 0), new Point(0, 1))
-        .pickupTimeWindow(TimeWindow.create(0, 10))
-        .deliveryTimeWindow(TimeWindow.create(10, 20))
-        .neededCapacity(0)
-        .orderAnnounceTime(0)
-        .serviceDuration(5)
-        .buildDTO();
+      .pickupTimeWindow(TimeWindow.create(0, 10))
+      .deliveryTimeWindow(TimeWindow.create(10, 20))
+      .neededCapacity(0)
+      .orderAnnounceTime(0)
+      .serviceDuration(5)
+      .buildDTO();
 
     final List<LoadPart> parts = measureLoad(AddParcelEvent.create(dto),
       TravelTimesUtil.constant(2L));
@@ -118,12 +118,12 @@ public class MetricsTest {
   public void testLoad2() {
     // distance is 10km which is traveled in 20 minutes with 30km/h
     final ParcelDTO dto = Parcel.builder(new Point(0, 0), new Point(0, 10))
-        .pickupTimeWindow(TimeWindow.create(15, 15))
-        .deliveryTimeWindow(TimeWindow.create(15, 15))
-        .neededCapacity(0)
-        .orderAnnounceTime(0)
-        .serviceDuration(5)
-        .buildDTO();
+      .pickupTimeWindow(TimeWindow.create(15, 15))
+      .deliveryTimeWindow(TimeWindow.create(15, 15))
+      .neededCapacity(0)
+      .orderAnnounceTime(0)
+      .serviceDuration(5)
+      .buildDTO();
 
     final List<LoadPart> parts = measureLoad(AddParcelEvent.create(dto),
       TravelTimesUtil.constant(20L));
@@ -162,13 +162,13 @@ public class MetricsTest {
   public void testLoad3() {
     // distance is 3 km which is traveled in 6 minutes with 30km/h
     final ParcelDTO dto = Parcel.builder(new Point(0, 0), new Point(0, 3))
-        .pickupTimeWindow(TimeWindow.create(10, 30))
-        .deliveryTimeWindow(TimeWindow.create(50, 75))
-        .neededCapacity(0)
-        .orderAnnounceTime(0L)
-        .pickupDuration(5L)
-        .deliveryDuration(5L)
-        .buildDTO();
+      .pickupTimeWindow(TimeWindow.create(10, 30))
+      .deliveryTimeWindow(TimeWindow.create(50, 75))
+      .neededCapacity(0)
+      .orderAnnounceTime(0L)
+      .pickupDuration(5L)
+      .deliveryDuration(5L)
+      .buildDTO();
 
     final List<LoadPart> parts = measureLoad(AddParcelEvent.create(dto),
       TravelTimesUtil.constant(6L));
@@ -216,7 +216,7 @@ public class MetricsTest {
 
   static Times generateTimes(RandomGenerator rng, double intensity) {
     final ExponentialDistribution ed = new ExponentialDistribution(
-        1000d / intensity);
+      1000d / intensity);
     ed.reseedRandomGenerator(rng.nextLong());
     final List<Long> times = newArrayList();
 
@@ -276,11 +276,11 @@ public class MetricsTest {
     times.add(asTimes(1000, 100L, 200L, 300L, 399L, 500L, 600L, 700L, 800L,
       900L));
     times
-        .add(asTimes(1000, 10L, 150L, 250L, 350L, 450L, 550L, 650L, 750L, 850L,
-          950L));
+      .add(asTimes(1000, 10L, 150L, 250L, 350L, 450L, 550L, 650L, 750L, 850L,
+        950L));
     times
-        .add(asTimes(1000, 50L, 150L, 250L, 350L, 450L, 551L, 650L, 750L, 850L,
-          950L));
+      .add(asTimes(1000, 50L, 150L, 250L, 350L, 450L, 551L, 650L, 750L, 850L,
+        950L));
     times.add(asTimes(1000, 250L, 500L, 750L));
     times.add(asTimes(1000, 0L, 50L, 55L, 57L, 59L, 60L, 100L, 150L, 750L));
     times.add(asTimes(1000, 5L, 5L, 5L, 5L));
@@ -321,8 +321,8 @@ public class MetricsTest {
       for (final double l : ts) {
         newTs.add(l);
         newTs.add(Math.min(999, Math.max(0, l
-            + DoubleMath.roundToLong(rng.nextDouble() * 6d - 3d,
-              RoundingMode.HALF_EVEN))));
+          + DoubleMath.roundToLong(rng.nextDouble() * 6d - 3d,
+            RoundingMode.HALF_EVEN))));
       }
       times.add(asTimesDouble(1000, newTs));
     }
@@ -336,11 +336,11 @@ public class MetricsTest {
       for (final double l : ts) {
         newTs.add(l);
         newTs.add(Math.min(999, Math.max(0, l
-            + DoubleMath.roundToLong(rng.nextDouble() * 2d - 1d,
-              RoundingMode.HALF_EVEN))));
+          + DoubleMath.roundToLong(rng.nextDouble() * 2d - 1d,
+            RoundingMode.HALF_EVEN))));
         newTs.add(Math.min(999, Math.max(0, l
-            + DoubleMath.roundToLong(rng.nextDouble() * 2d - 1d,
-              RoundingMode.HALF_EVEN))));
+          + DoubleMath.roundToLong(rng.nextDouble() * 2d - 1d,
+            RoundingMode.HALF_EVEN))));
       }
       times.add(asTimesDouble(1000, newTs));
     }
@@ -436,8 +436,8 @@ public class MetricsTest {
         newList.add(l * Math.pow(10, i));
       }
       times
-          .add(
-            asTimesDouble((int) (regular.length * Math.pow(10, i)), newList));
+        .add(
+          asTimesDouble((int) (regular.length * Math.pow(10, i)), newList));
     }
 
     times.add(asTimes(1000, 250L, 250L, 250L, 500L, 500L, 500L, 750L,
@@ -487,13 +487,13 @@ public class MetricsTest {
 
         try {
           final File dest = new File(
-              "files/generator/times/orders"
-                  + Strings.padStart(Integer.toString(i), 3, '0')
-                  + "-" + name + ".times");
+            "files/generator/times/orders"
+              + Strings.padStart(Integer.toString(i), 3, '0')
+              + "-" + name + ".times");
           Files.createParentDirs(dest);
           Files.write(
             times.get(i).length + "\n"
-                + Joiner.on("\n").join(times.get(i).list) + "\n",
+              + Joiner.on("\n").join(times.get(i).list) + "\n",
             dest,
             Charsets.UTF_8);
         } catch (final IOException e) {
@@ -644,7 +644,7 @@ public class MetricsTest {
         // shift right
         final List<Double> rightShiftedScenario = newArrayList();
         final double rightMost = lengthOfDay
-            - scenario.get(scenario.size() - 1) - 0.00000001;
+          - scenario.get(scenario.size() - 1) - 0.00000001;
         for (int i = 0; i < num; i++) {
           rightShiftedScenario.add(scenario.get(i) + rightMost);
         }

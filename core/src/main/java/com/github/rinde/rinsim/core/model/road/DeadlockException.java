@@ -33,8 +33,8 @@ public final class DeadlockException extends IllegalArgumentException {
 
   DeadlockException(Connection<?> conn) {
     super(
-        "There is a vehicle driving in the opposite direction on the target "
-            + "connection.");
+      "There is a vehicle driving in the opposite direction on the target "
+        + "connection.");
     connection = conn;
   }
 

@@ -238,15 +238,15 @@ public final class Vehicles {
       rng.setSeed(seed);
 
       final ImmutableList.Builder<AddVehicleEvent> builder = ImmutableList
-          .builder();
+        .builder();
       final int num = numberOfVehicles.get(rng.nextLong());
       checkArgument(num > 0,
         "The numberOfVehicles supplier must generate values > 0, found %s.",
         num);
       for (int i = 0; i < num; i++) {
         final Point pos = startPositionGenerator.isPresent()
-            ? startPositionGenerator.get().get(rng.nextLong())
-            : center;
+          ? startPositionGenerator.get().get(rng.nextLong())
+          : center;
         final double speed = speedGenerator.get(rng.nextLong());
         checkArgument(
           speed > 0d,
@@ -256,23 +256,23 @@ public final class Vehicles {
         checkArgument(
           capacity >= 0,
           "The capacities supplier must generate non-negative values, "
-              + "found %s.",
+            + "found %s.",
           capacity);
         final TimeWindow tw = timeWindowGenerator.isPresent()
-            ? timeWindowGenerator.get().get(rng.nextLong())
-            : TimeWindow.create(0L, scenarioLength);
+          ? timeWindowGenerator.get().get(rng.nextLong())
+          : TimeWindow.create(0L, scenarioLength);
         final long time = creationTimeGenerator.get(rng.nextLong());
         checkArgument(
           time < scenarioLength,
           "The creationTimes supplier must generate values smaller than the "
-              + "scenarioLength (%s), found %s.",
+            + "scenarioLength (%s), found %s.",
           scenarioLength, time);
         final VehicleDTO dto = VehicleDTO.builder()
-            .startPosition(pos)
-            .speed(speed)
-            .capacity(capacity)
-            .availabilityTimeWindow(tw)
-            .build();
+          .startPosition(pos)
+          .speed(speed)
+          .capacity(capacity)
+          .availabilityTimeWindow(tw)
+          .build();
         builder.add(AddVehicleEvent.create(time, dto));
       }
       return builder.build();
@@ -295,7 +295,7 @@ public final class Vehicles {
         long scenarioLength) {
       rng.setSeed(seed);
       return ImmutableList
-          .copyOf(nCopies(n, AddVehicleEvent.create(-1, vehicleDto)));
+        .copyOf(nCopies(n, AddVehicleEvent.create(-1, vehicleDto)));
     }
   }
 }

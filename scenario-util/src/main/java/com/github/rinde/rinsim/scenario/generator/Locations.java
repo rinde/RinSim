@@ -319,9 +319,9 @@ public final class Locations {
       final double yCenter = getUniformCenter(yMean, min.y, max.y);
 
       return new SupplierLocGen(
-          min, max, new Point(xCenter, yCenter),
-          uniformDouble(min.x, max.x),
-          uniformDouble(min.y, max.y));
+        min, max, new Point(xCenter, yCenter),
+        uniformDouble(min.x, max.x),
+        uniformDouble(min.y, max.y));
     }
 
     /**
@@ -330,14 +330,14 @@ public final class Locations {
      */
     public LocationGenerator buildNormal() {
       final StochasticSupplier<Double> xSup = normalVar(xMin, xMax, xMean, xSd,
-          redraw);
+        redraw);
       final StochasticSupplier<Double> ySup = normalVar(yMin, yMax, yMean, ySd,
-          redraw);
+        redraw);
       return new SupplierLocGen(
-          new Point(xMin.get(), yMin.get()),
-          new Point(xMax.get(), yMax.get()),
-          new Point(xMean.get(), yMean.get()),
-          xSup, ySup);
+        new Point(xMin.get(), yMin.get()),
+        new Point(xMax.get(), yMax.get()),
+        new Point(xMean.get(), yMean.get()),
+        xSup, ySup);
     }
 
     /**
@@ -367,17 +367,17 @@ public final class Locations {
       }
       if (!xMean.isPresent()) {
         xMean = Optional.of(DoubleMath.mean(
-            Collections2.transform(locs, Point.Transformers.X)));
+          Collections2.transform(locs, Point.Transformers.X)));
       }
       if (!yMean.isPresent()) {
         yMean = Optional.of(DoubleMath.mean(
-            Collections2.transform(locs, Point.Transformers.Y)));
+          Collections2.transform(locs, Point.Transformers.Y)));
       }
 
       return new FixedLocGen(new Point(xMin.get(), yMin.get()),
-          new Point(xMax.get(), yMax.get()),
-          new Point(xMean.get(), yMean.get()),
-          locs);
+        new Point(xMax.get(), yMax.get()),
+        new Point(xMean.get(), yMean.get()),
+        locs);
     }
 
     private static double getUniformCenter(Optional<Double> mean, double min,
@@ -412,10 +412,10 @@ public final class Locations {
       checkArgument(std.isPresent());
       checkArgument(redraw.isPresent());
       final StochasticSuppliers.Builder builder = StochasticSuppliers.normal()
-          .mean(mean.get())
-          .std(std.get())
-          .lowerBound(min.get())
-          .upperBound(max.get());
+        .mean(mean.get())
+        .std(std.get())
+        .lowerBound(min.get())
+        .upperBound(max.get());
       if (redraw.get()) {
         builder.redrawWhenOutOfBounds();
       } else {
@@ -472,8 +472,8 @@ public final class Locations {
       final ImmutableList.Builder<Point> locs = ImmutableList.builder();
       for (int i = 0; i < numOrders; i++) {
         locs.add(new Point(
-            xSupplier.get(rng.nextLong()),
-            ySupplier.get(rng.nextLong())));
+          xSupplier.get(rng.nextLong()),
+          ySupplier.get(rng.nextLong())));
       }
       return locs.build();
     }
@@ -490,10 +490,10 @@ public final class Locations {
     @Override
     public ImmutableList<Point> generate(long seed, int numOrders) {
       checkArgument(
-          fixedPoints.size() == numOrders,
-          "This fixed LocationGenerator can only output %s locations while %s "
-              + "locations were requested.",
-          fixedPoints.size(), numOrders);
+        fixedPoints.size() == numOrders,
+        "This fixed LocationGenerator can only output %s locations while %s "
+          + "locations were requested.",
+        fixedPoints.size(), numOrders);
       return fixedPoints;
     }
   }

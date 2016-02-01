@@ -131,8 +131,8 @@ public class StateMachine<T, C> {
    */
   protected void changeState(T trigger, C context) {
     checkArgument(transitionTable.contains(currentState, trigger),
-        "The trigger %s is not supported when in state %s.", trigger,
-        currentState);
+      "The trigger %s is not supported when in state %s.", trigger,
+      currentState);
     final State<T, C> newState = transitionTable.get(currentState, trigger);
     if (!newState.equals(currentState) || explicitRecursiveTransitions) {
       currentState.onExit(trigger, context);
@@ -140,7 +140,7 @@ public class StateMachine<T, C> {
       currentState = newState;
       currentState.onEntry(trigger, context);
       eventDispatcher.dispatchEvent(new StateTransitionEvent<>(this,
-          oldState, trigger, newState));
+        oldState, trigger, newState));
     }
   }
 
@@ -202,7 +202,7 @@ public class StateMachine<T, C> {
       }
     }
     throw new IllegalArgumentException("There is no instance of " + type
-        + " in this state machine.");
+      + " in this state machine.");
   }
 
   /**
@@ -227,7 +227,7 @@ public class StateMachine<T, C> {
   @Override
   public int hashCode() {
     return Objects.hashCode(startState, transitionTable, currentState,
-        explicitRecursiveTransitions);
+      explicitRecursiveTransitions);
   }
 
   @Override
@@ -244,20 +244,20 @@ public class StateMachine<T, C> {
     @SuppressWarnings("unchecked")
     final StateMachine<T, C> fsm = (StateMachine<T, C>) other;
     return Objects.equal(startState, fsm.startState)
-        && Objects.equal(transitionTable, fsm.transitionTable)
-        && Objects.equal(currentState, fsm.currentState)
-        && Objects.equal(explicitRecursiveTransitions,
-            fsm.explicitRecursiveTransitions);
+      && Objects.equal(transitionTable, fsm.transitionTable)
+      && Objects.equal(currentState, fsm.currentState)
+      && Objects.equal(explicitRecursiveTransitions,
+        fsm.explicitRecursiveTransitions);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("startState", startState)
-        .add("transitionTable", transitionTable)
-        .add("currentState", currentState)
-        .add("explicitRecursiveTransitions", explicitRecursiveTransitions)
-        .toString();
+      .add("startState", startState)
+      .add("transitionTable", transitionTable)
+      .add("currentState", currentState)
+      .add("explicitRecursiveTransitions", explicitRecursiveTransitions)
+      .toString();
   }
 
   /**
@@ -338,7 +338,7 @@ public class StateMachine<T, C> {
     @CheckReturnValue
     public StateMachine<T, C> build() {
       return new StateMachine<>(start, tableBuilder.build(),
-          explicitRecursiveTransitions);
+        explicitRecursiveTransitions);
     }
   }
 
@@ -389,14 +389,14 @@ public class StateMachine<T, C> {
      */
     public boolean equalTo(State<T, C> prev, T trig, State<T, C> next) {
       return previousState.equals(prev) && trigger.equals(trig)
-          && newState.equals(next);
+        && newState.equals(next);
     }
 
     @Override
     public String toString() {
       return new StringBuilder("[Event ").append(getEventType()).append(" ")
-          .append(previousState).append(" + ").append(trigger).append(" -> ")
-          .append(newState).append("]").toString();
+        .append(previousState).append(" + ").append(trigger).append(" -> ")
+        .append(newState).append("]").toString();
     }
 
     @Override
@@ -418,10 +418,10 @@ public class StateMachine<T, C> {
       @SuppressWarnings("unchecked")
       final StateTransitionEvent<T, C> ev = (StateTransitionEvent<T, C>) other;
       return Objects.equal(previousState, ev.previousState)
-          && Objects.equal(newState, ev.newState)
-          && Objects.equal(trigger, ev.trigger)
-          && Objects.equal(eventType, ev.eventType)
-          && Objects.equal(getIssuer(), ev.getIssuer());
+        && Objects.equal(newState, ev.newState)
+        && Objects.equal(trigger, ev.trigger)
+        && Objects.equal(eventType, ev.eventType)
+        && Objects.equal(getIssuer(), ev.getIssuer());
     }
   }
 }

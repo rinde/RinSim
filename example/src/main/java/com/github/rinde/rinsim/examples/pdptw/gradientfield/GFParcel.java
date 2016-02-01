@@ -43,7 +43,7 @@ class GFParcel extends Parcel implements FieldEmitter {
       return 0f;
     }
     return getPDPModel().getParcelState(this) == ParcelState.AVAILABLE
-        ? AVAILABLE_STRENGTH
-        : 0.0f;
+      ? AVAILABLE_STRENGTH
+      : 0.0f;
   }
 }

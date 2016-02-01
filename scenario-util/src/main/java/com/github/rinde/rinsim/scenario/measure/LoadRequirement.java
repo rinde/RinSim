@@ -66,15 +66,15 @@ class LoadRequirement implements Predicate<Scenario> {
   public boolean apply(@Nullable Scenario scenario) {
     assert scenario != null;
     final List<Double> loads = newArrayList(relative ? Metrics
-        .measureRelativeLoad(scenario) : Metrics.measureLoad(scenario));
+      .measureRelativeLoad(scenario) : Metrics.measureLoad(scenario));
     final int toAdd = desiredLoadList.size() - loads.size();
     for (int j = 0; j < toAdd; j++) {
       loads.add(0d);
     }
 
     final double[] deviations = abs(subtract(
-        Doubles.toArray(desiredLoadList),
-        Doubles.toArray(loads)));
+      Doubles.toArray(desiredLoadList),
+      Doubles.toArray(loads)));
     final double mean = StatUtils.mean(deviations);
     final double max = Doubles.max(deviations);
     return max <= maxMax && mean <= maxMean;

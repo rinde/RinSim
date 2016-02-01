@@ -76,8 +76,8 @@ public class RtSolverModelTest {
   @Before
   public void setUp() {
     clock = spy((RealtimeClockController) TimeModel.builder()
-        .withRealTime()
-        .build(FakeDependencyProvider.empty()));
+      .withRealTime()
+      .build(FakeDependencyProvider.empty()));
     doNothing().when(clock).switchToRealTime();
     doNothing().when(clock).switchToSimulatedTime();
 
@@ -86,10 +86,10 @@ public class RtSolverModelTest {
     when(rm.getDistanceUnit()).thenReturn(SI.KILOMETER);
 
     dependencyProvider = FakeDependencyProvider.builder()
-        .add(clock, RealtimeClockController.class)
-        .add(rm, PDPRoadModel.class)
-        .add(DefaultPDPModel.builder())
-        .build();
+      .add(clock, RealtimeClockController.class)
+      .add(rm, PDPRoadModel.class)
+      .add(DefaultPDPModel.builder())
+      .build();
 
     model = RtSolverModel.builder().build(dependencyProvider);
     ((TimeModel) clock).register(model);
@@ -282,13 +282,13 @@ public class RtSolverModelTest {
   @Test
   public void testBuilder() {
     final RtSolverModel m = RtSolverModel.builder()
-        .withMultiMode()
-        .build(dependencyProvider);
+      .withMultiMode()
+      .build(dependencyProvider);
     assertThat(m.mode).isEqualTo(Mode.MULTI_MODE);
 
     final RtSolverModel m2 = RtSolverModel.builder()
-        .withSingleMode()
-        .build(dependencyProvider);
+      .withSingleMode()
+      .build(dependencyProvider);
     assertThat(m2.mode).isEqualTo(Mode.SINGLE_MODE);
   }
 
@@ -301,9 +301,9 @@ public class RtSolverModelTest {
   public void testConcurrentSolvers() {
     final RtSimSolverBuilder b = model.get(RtSimSolverBuilder.class);
     final RtSimSolver simSolver = b.build(SolverToRealtimeAdapter
-        .create(SleepySolver.create(1000, new NopSolver())));
+      .create(SleepySolver.create(1000, new NopSolver())));
     final Parcel p = Parcel.builder(new Point(0, 0), new Point(1, 1))
-        .build();
+      .build();
 
     final List<Event> events = new ArrayList<>();
     simSolver.getEventAPI().addListener(new Listener() {

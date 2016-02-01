@@ -143,7 +143,7 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
   public boolean hasRoadUserOn(Point from, Point to) {
     checkConnectionsExists(from, to);
     return connMap.containsKey(graph.getConnection(from, to))
-        || posMap.containsKey(from) || posMap.containsKey(to);
+      || posMap.containsKey(from) || posMap.containsKey(to);
   }
 
   /**
@@ -184,7 +184,7 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
    */
   public ImmutableSet<RoadUser> getRoadUsersOnNode(Point node) {
     checkArgument(graph.containsNode(node),
-        "The specified point (%s) is not a node in the graph.", node);
+      "The specified point (%s) is not a node in the graph.", node);
     if (posMap.containsKey(node)) {
       return ImmutableSet.copyOf(posMap.get(node));
     }
@@ -193,13 +193,13 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
 
   void checkConnectionsExists(Point from, Point to) {
     checkArgument(graph.hasConnection(from, to),
-        "There is no connection between %s and %s.", from, to);
+      "There is no connection between %s and %s.", from, to);
   }
 
   @Override
   public void removeObject(RoadUser object) {
     checkArgument(objLocs.containsKey(object),
-        "RoadUser: %s does not exist.", object);
+      "RoadUser: %s does not exist.", object);
     final Loc prevLoc = objLocs.get(object);
     if (prevLoc.isOnConnection()) {
       final Connection<? extends ConnectionData> conn = prevLoc.conn.get();
@@ -212,8 +212,8 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
 
   private static class GraphModificationChecker implements Listener {
     static final String UNMODIFIABLE_MSG = "There is an object on (%s) "
-        + "therefore the last connection to that location (%s->%s) can not be "
-        + "changed or removed: %s.";
+      + "therefore the last connection to that location (%s->%s) can not be "
+      + "changed or removed: %s.";
 
     private final DynamicGraphRoadModel model;
 
@@ -226,24 +226,24 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
       verify(e instanceof GraphEvent);
       final GraphEvent ge = (GraphEvent) e;
       if (ge.getEventType() == EventTypes.REMOVE_CONNECTION
-          || ge.getEventType() == EventTypes.CHANGE_CONNECTION_DATA) {
+        || ge.getEventType() == EventTypes.CHANGE_CONNECTION_DATA) {
 
         final Connection<?> conn = ge.getConnection();
         checkState(
-            !model.connMap.containsKey(conn),
-            "A connection (%s->%s) with an object (%s) on it can not be changed"
-                + " or removed: %s.",
-            conn.from(), conn.to(), model.connMap.get(conn), ge.getEventType());
+          !model.connMap.containsKey(conn),
+          "A connection (%s->%s) with an object (%s) on it can not be changed"
+            + " or removed: %s.",
+          conn.from(), conn.to(), model.connMap.get(conn), ge.getEventType());
 
         if (model.posMap.containsKey(conn.from())) {
           checkState(
-              ge.getGraph().containsNode(conn.from()), UNMODIFIABLE_MSG,
-              conn.from(), conn.from(), conn.to(), ge.getEventType());
+            ge.getGraph().containsNode(conn.from()), UNMODIFIABLE_MSG,
+            conn.from(), conn.from(), conn.to(), ge.getEventType());
         }
         if (model.posMap.containsKey(conn.to())) {
           checkState(
-              ge.getGraph().containsNode(conn.to()), UNMODIFIABLE_MSG,
-              conn.to(), conn.from(), conn.to(), ge.getEventType());
+            ge.getGraph().containsNode(conn.to()), UNMODIFIABLE_MSG,
+            conn.to(), conn.from(), conn.to(), ge.getEventType());
         }
       }
       // remove all previously computed shortest paths because they may have

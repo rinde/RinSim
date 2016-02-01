@@ -40,7 +40,7 @@ public final class AffinityTestHelper {
     Pattern.compile("(\\d+): Thread\\[(.*),(\\d+),(.*)\\] alive=(true|false)");
   private static final Pattern NO_THREAD_PATTERN = Pattern.compile(
     "(\\d+): (" + CPU_NOT_AVAILABLE + "|" + RESERVED_4_APP + "|" + GENERAL_USE
-        + ")");
+      + ")");
 
   private AffinityTestHelper() {}
 
@@ -86,13 +86,13 @@ public final class AffinityTestHelper {
     static AffinityLockInfo create(int cpuId, boolean availableForApp) {
       checkArgument(cpuId >= 0);
       return new AutoValue_AffinityTestHelper_AffinityLockInfo(
-          cpuId, availableForApp, Optional.<ThreadInfo>absent());
+        cpuId, availableForApp, Optional.<ThreadInfo>absent());
     }
 
     static AffinityLockInfo create(ThreadInfo threadInfo) {
       checkNotNull(threadInfo);
       return new AutoValue_AffinityTestHelper_AffinityLockInfo(
-          threadInfo.getCpuId(), true, Optional.of(threadInfo));
+        threadInfo.getCpuId(), true, Optional.of(threadInfo));
     }
   }
 
@@ -113,7 +113,7 @@ public final class AffinityTestHelper {
     static ThreadInfo create(int cpuId, int priority, String name,
         String parentName, boolean alive) {
       return new AutoValue_AffinityTestHelper_ThreadInfo(cpuId,
-          priority, name, parentName, alive);
+        priority, name, parentName, alive);
     }
   }
 }

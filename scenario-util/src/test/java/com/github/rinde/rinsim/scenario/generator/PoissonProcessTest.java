@@ -65,25 +65,25 @@ public class PoissonProcessTest {
   @Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
-        {TimeSeries.homogenousPoisson(60d, 10)},
-        {TimeSeries.homogenousPoisson(60d, 100)},
-        {TimeSeries.homogenousPoisson(180d, 10)},
-        {TimeSeries.homogenousPoisson(180d, 100)},
-        {TimeSeries.nonHomogenousPoisson(60d, IntensityFunctions
-            .sineIntensity()
-            .period(60).area(10).build())},
-        {TimeSeries.nonHomogenousPoisson(60d, IntensityFunctions
-            .sineIntensity()
-            .period(60).area(10).phaseShift(2).build())},
-        {TimeSeries.nonHomogenousPoisson(60d, IntensityFunctions
-            .sineIntensity()
-            .period(60).area(10).height(1).build())},
-        {TimeSeries.nonHomogenousPoisson(300d, IntensityFunctions
-            .sineIntensity()
-            .period(60).area(10).height(1).build())},
-        {TimeSeries.nonHomogenousPoisson(600d, IntensityFunctions
-            .sineIntensity()
-            .period(600).area(200).height(1).build())}
+      {TimeSeries.homogenousPoisson(60d, 10)},
+      {TimeSeries.homogenousPoisson(60d, 100)},
+      {TimeSeries.homogenousPoisson(180d, 10)},
+      {TimeSeries.homogenousPoisson(180d, 100)},
+      {TimeSeries.nonHomogenousPoisson(60d, IntensityFunctions
+        .sineIntensity()
+        .period(60).area(10).build())},
+      {TimeSeries.nonHomogenousPoisson(60d, IntensityFunctions
+        .sineIntensity()
+        .period(60).area(10).phaseShift(2).build())},
+      {TimeSeries.nonHomogenousPoisson(60d, IntensityFunctions
+        .sineIntensity()
+        .period(60).area(10).height(1).build())},
+      {TimeSeries.nonHomogenousPoisson(300d, IntensityFunctions
+        .sineIntensity()
+        .period(60).area(10).height(1).build())},
+      {TimeSeries.nonHomogenousPoisson(600d, IntensityFunctions
+        .sineIntensity()
+        .period(600).area(200).height(1).build())}
     });
   }
 
@@ -109,7 +109,7 @@ public class PoissonProcessTest {
     }
     final double averageIntensity;
     if (poisson instanceof NonHomogenous
-        && ((NonHomogenous) poisson).lambd instanceof SineIntensity) {
+      && ((NonHomogenous) poisson).lambd instanceof SineIntensity) {
       final SineIntensity si = (SineIntensity) ((NonHomogenous) poisson).lambd;
 
       final double period = 1d / si.getFrequency();
@@ -169,7 +169,7 @@ public class PoissonProcessTest {
       final Long l = (Long) it.next();
       observed[index] = observations.getCount(l);
       expected[index] = pd.probability(l.intValue())
-          * observations.getSumFreq();
+        * observations.getSumFreq();
       if (expected[index] == 0) {
         return false;
       }

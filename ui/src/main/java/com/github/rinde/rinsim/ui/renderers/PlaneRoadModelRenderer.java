@@ -60,7 +60,7 @@ public final class PlaneRoadModelRenderer extends AbstractCanvasRenderer {
     final int outerYmax = vp.toCoordY(vp.rect.max.y);
 
     gc.setBackground(
-        gc.getDevice().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
+      gc.getDevice().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
     gc.fillRectangle(outerXmin, outerYmin, outerXmax, outerYmax);
 
     gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_WHITE));
@@ -74,8 +74,8 @@ public final class PlaneRoadModelRenderer extends AbstractCanvasRenderer {
   @Override
   public Optional<ViewRect> getViewRect() {
     return Optional.of(new ViewRect(
-        new Point(bounds.get(0).x - xMargin, bounds.get(0).y - yMargin),
-        new Point(bounds.get(1).x + xMargin, bounds.get(1).y + yMargin)));
+      new Point(bounds.get(0).x - xMargin, bounds.get(0).y - yMargin),
+      new Point(bounds.get(1).x + xMargin, bounds.get(1).y + yMargin)));
   }
 
   /**
@@ -119,7 +119,7 @@ public final class PlaneRoadModelRenderer extends AbstractCanvasRenderer {
     @Override
     public PlaneRoadModelRenderer build(DependencyProvider dependencyProvider) {
       return new PlaneRoadModelRenderer(
-          dependencyProvider.get(RoadModel.class), margin());
+        dependencyProvider.get(RoadModel.class), margin());
     }
 
     static Builder create(double margin) {

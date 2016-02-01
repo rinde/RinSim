@@ -40,9 +40,9 @@ public final class GlobalStateObjects {
 
   public static ImmutableSet<Parcel> allParcels(GlobalStateObject state) {
     return ImmutableSet.<Parcel>builder()
-        .addAll(state.getAvailableParcels())
-        .addAll(assignedParcels(state))
-        .build();
+      .addAll(state.getAvailableParcels())
+      .addAll(assignedParcels(state))
+      .build();
   }
 
   static ImmutableSet<Parcel> assignedParcels(GlobalStateObject state) {

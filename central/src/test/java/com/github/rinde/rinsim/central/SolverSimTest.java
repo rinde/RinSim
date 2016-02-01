@@ -62,23 +62,23 @@ public class SolverSimTest {
   @Test
   public void testOffline() throws IOException {
     final Gendreau06Scenario scenario = Gendreau06Parser.parser()
-        .addFile(ScenarioPaths.GENDREAU)
-        .offline()
-        .parse()
-        .get(0);
+      .addFile(ScenarioPaths.GENDREAU)
+      .offline()
+      .parse()
+      .get(0);
 
     final RandomGenerator rng = new MersenneTwister(123);
     for (int i = 0; i < 5; i++) {
       final long seed = rng.nextLong();
       final DebugSolverCreator dsc = new DebugSolverCreator(seed,
-          SI.MILLI(SI.SECOND));
+        SI.MILLI(SI.SECOND));
       final Gendreau06ObjectiveFunction obj = Gendreau06ObjectiveFunction
-          .instance();
+        .instance();
       final ExperimentResults results = Experiment.build(obj)
-          .addConfiguration(Central.solverConfiguration(dsc))
-          .addScenario(scenario)
-          .usePostProcessor(PostProcessors.statisticsPostProcessor())
-          .perform();
+        .addConfiguration(Central.solverConfiguration(dsc))
+        .addScenario(scenario)
+        .usePostProcessor(PostProcessors.statisticsPostProcessor())
+        .perform();
       assertEquals(1, results.getResults().size());
       assertEquals(1, dsc.arraysSolver.getInputs().size());
       assertEquals(1, dsc.arraysSolver.getOutputs().size());
@@ -97,11 +97,11 @@ public class SolverSimTest {
 
       final GlobalStateObject solverInput = dsc.solver.getInputs().get(0);
       final ImmutableList<ImmutableList<Parcel>> solverOutput = dsc.solver
-          .getOutputs().get(0);
+        .getOutputs().get(0);
 
       assertEquals(
         obj.computeCost((StatisticsDTO) results.getResults().asList().get(0)
-            .getResultObject()),
+          .getResultObject()),
         objValInMinutes, 0.2);
 
       final StatisticsDTO stats = Solvers.computeStats(solverInput,
@@ -122,16 +122,16 @@ public class SolverSimTest {
   public void testOnline() throws IOException {
 
     final Gendreau06Scenario scenario = Gendreau06Parser
-        .parse(new File(ScenarioPaths.GENDREAU));
+      .parse(new File(ScenarioPaths.GENDREAU));
 
     final DebugSolverCreator dsc = new DebugSolverCreator(123,
-        SI.MILLI(SI.SECOND));
+      SI.MILLI(SI.SECOND));
 
     final Gendreau06ObjectiveFunction obj = Gendreau06ObjectiveFunction
-        .instance();
+      .instance();
     Experiment.build(obj).withThreads(1)
-        .addConfiguration(Central.solverConfiguration(dsc))
-        .addScenario(scenario).repeat(10).perform();
+      .addConfiguration(Central.solverConfiguration(dsc))
+      .addScenario(scenario).repeat(10).perform();
 
     final MVASDebugger arraysSolver = dsc.arraysSolver;
     final SolverDebugger solver = dsc.solver;
@@ -145,17 +145,17 @@ public class SolverSimTest {
       final GlobalStateObject solverInput = solver.getInputs().get(i);
 
       final ImmutableList<ImmutableList<Parcel>> solverOutput = solver
-          .getOutputs().get(i);
+        .getOutputs().get(i);
       final SolutionObject[] sols = arraysSolver.getOutputs().get(i);
       final MVArraysObject arrInput = arraysSolver.getInputs().get(i);
       assertEquals(solverOutput.size(), sols.length);
 
       final double arrObjVal = ArraysSolvers.computeTotalObjectiveValue(sols)
-          / MS_TO_MIN;
+        / MS_TO_MIN;
       final double arrOverTime = overTime(sols, arrInput) / MS_TO_MIN;
       final double arrTardiness = computeTardiness(sols, arrInput) / MS_TO_MIN;
       final double arrTravelTime = computeTravelTime(sols, arrInput)
-          / MS_TO_MIN;
+        / MS_TO_MIN;
 
       final ExtendedStats stats = (ExtendedStats) Solvers.computeStats(
         solverInput, solverOutput);
@@ -227,8 +227,8 @@ public class SolverSimTest {
       final int index = sol.route.length - 1;
       assertEquals(0, arr.serviceTimes[sol.route[index]]);
       final int lateness = sol.arrivalTimes[index]
-          + arr.serviceTimes[sol.route[index]]
-          - arr.dueDates[sol.route[index]];
+        + arr.serviceTimes[sol.route[index]]
+        - arr.dueDates[sol.route[index]];
       if (lateness > 0) {
         overTime += lateness;
       }

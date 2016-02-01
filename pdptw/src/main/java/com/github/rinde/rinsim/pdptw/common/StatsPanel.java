@@ -65,7 +65,7 @@ final class StatsPanel implements PanelRenderer, TickListener {
     parent.setLayout(layout);
 
     final Table table = new Table(parent, SWT.MULTI | SWT.FULL_SELECTION
-        | SWT.V_SCROLL | SWT.H_SCROLL);
+      | SWT.V_SCROLL | SWT.H_SCROLL);
     statsTable = Optional.of(table);
     table.setHeaderVisible(true);
     table.setLinesVisible(true);
@@ -90,7 +90,7 @@ final class StatsPanel implements PanelRenderer, TickListener {
     }
 
     final Table eventList = new Table(parent, SWT.MULTI | SWT.FULL_SELECTION
-        | SWT.V_SCROLL | SWT.H_SCROLL);
+      | SWT.V_SCROLL | SWT.H_SCROLL);
     eventList.setHeaderVisible(true);
     eventList.setLinesVisible(true);
     final String[] titles = new String[] {"Time", "Tardiness"};
@@ -120,7 +120,7 @@ final class StatsPanel implements PanelRenderer, TickListener {
         });
       }
     }, StatisticsEventType.PICKUP_TARDINESS,
-        StatisticsEventType.DELIVERY_TARDINESS);
+      StatisticsEventType.DELIVERY_TARDINESS);
   }
 
   @Override
@@ -152,7 +152,7 @@ final class StatsPanel implements PanelRenderer, TickListener {
 
     final Field[] fields = stats.getClass().getFields();
     if (statsTable.get().isDisposed()
-        || statsTable.get().getDisplay().isDisposed()) {
+      || statsTable.get().getDisplay().isDisposed()) {
       return;
     }
     statsTable.get().getDisplay().syncExec(new Runnable() {
@@ -164,7 +164,7 @@ final class StatsPanel implements PanelRenderer, TickListener {
         for (int i = 0; i < fields.length; i++) {
           try {
             statsTable.get().getItem(i)
-                .setText(1, fields[i].get(stats).toString());
+              .setText(1, fields[i].get(stats).toString());
           } catch (final IllegalArgumentException | IllegalAccessException e) {
             statsTable.get().getItem(i).setText(1, e.getMessage());
           }

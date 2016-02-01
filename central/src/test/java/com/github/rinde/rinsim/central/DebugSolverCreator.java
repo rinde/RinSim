@@ -63,9 +63,9 @@ public class DebugSolverCreator implements StochasticSupplier<Solver> {
   public DebugSolverCreator(MultiVehicleArraysSolver arrSolver,
       Unit<Duration> timeUnit) {
     arraysSolver = ArraysSolverDebugger.wrap(
-        ArraysSolverValidator.wrap(arrSolver), false);
+      ArraysSolverValidator.wrap(arrSolver), false);
     solver = SolverDebugger.wrap(SolverValidator
-        .wrap(new MultiVehicleSolverAdapter(arraysSolver, timeUnit)), false);
+      .wrap(new MultiVehicleSolverAdapter(arraysSolver, timeUnit)), false);
   }
 
   @Override

@@ -38,7 +38,7 @@ public abstract class GenericRoadModel extends AbstractModel<RoadUser>
    * The logger of the model.
    */
   protected static final Logger LOGGER = LoggerFactory
-      .getLogger(GenericRoadModel.class);
+    .getLogger(GenericRoadModel.class);
 
   /**
    * The types of events this model can dispatch.
@@ -94,9 +94,9 @@ public abstract class GenericRoadModel extends AbstractModel<RoadUser>
   protected void setSelf(GenericRoadModel rm) {
     LOGGER.info("setSelf {}", rm);
     checkState(
-        !initialized,
-        "This road model is already initialized, it can only be decorated "
-            + "before objects are registered.");
+      !initialized,
+      "This road model is already initialized, it can only be decorated "
+        + "before objects are registered.");
     self = rm;
   }
 

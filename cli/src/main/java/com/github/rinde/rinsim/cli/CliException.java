@@ -56,7 +56,7 @@ public class CliException extends RuntimeException {
       String format, Object... args) {
     if (!notSelected) {
       throw new CliException(String.format(format, args),
-          CauseType.ALREADY_SELECTED, opt);
+        CauseType.ALREADY_SELECTED, opt);
     }
   }
 

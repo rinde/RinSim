@@ -50,9 +50,10 @@ public class PointTest {
   @Test
   public void pointFuncs() {
     assertEquals(new Point(0, 0),
-        Point.diff(new Point(10, 0), new Point(10, 0)));
+      Point.diff(new Point(10, 0), new Point(10, 0)));
     assertEquals(new Point(234, 333.3),
-        PointTestUtil.duplicate(Point.parsePoint(new Point(234, 333.3).toString())));
+      PointTestUtil
+        .duplicate(Point.parsePoint(new Point(234, 333.3).toString())));
     assertFalse(new Point(0, 0).equals(null));
     assertFalse(new Point(0, 0).equals(new Point(0, 1)));
     assertFalse(new Point(0, 0).equals(new Point(1, 0)));

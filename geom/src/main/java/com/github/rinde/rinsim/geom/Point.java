@@ -103,9 +103,9 @@ public class Point implements Serializable {
    */
   public static Point parsePoint(String pointString) {
     final String[] parts = pointString.replaceAll("\\(|\\)", "").split(
-        NUM_SEPARATOR);
+      NUM_SEPARATOR);
     return new Point(Double.parseDouble(parts[0]),
-        Double.parseDouble(parts[1]));
+      Double.parseDouble(parts[1]));
   }
 
   @Override
@@ -132,7 +132,7 @@ public class Point implements Serializable {
   @Override
   public String toString() {
     return new StringBuilder().append("(").append(x).append(NUM_SEPARATOR)
-        .append(y).append(")").toString();
+      .append(y).append(")").toString();
   }
 
   /**
@@ -168,9 +168,9 @@ public class Point implements Serializable {
       @Override
       public int compare(@Nullable Point o1, @Nullable Point o2) {
         return ComparisonChain.start()
-            .compare(checkNotNull(o1).x, checkNotNull(o2).x)
-            .compare(checkNotNull(o1).y, checkNotNull(o2).y)
-            .result();
+          .compare(checkNotNull(o1).x, checkNotNull(o2).x)
+          .compare(checkNotNull(o1).y, checkNotNull(o2).y)
+          .result();
       }
     };
   }

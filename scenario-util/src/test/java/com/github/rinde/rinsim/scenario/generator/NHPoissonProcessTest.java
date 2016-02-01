@@ -56,7 +56,7 @@ public class NHPoissonProcessTest {
     final long lengthOfScenario = 4 * 60 * 60 * 1000;
     final double period = 30 * 60 * 1000;
     final int[] orders = new int[] {10, 20, 30, 40, 50, 75, 100, 150, 200,
-        500};
+      500};
     final List<Point> dataPoints = newArrayList();
     final RandomGenerator rng = new MersenneTwister(123);
 
@@ -72,7 +72,7 @@ public class NHPoissonProcessTest {
     // }
     Files.createParentDirs(new File("files/test/times/relheight-dynamism.txt"));
     final BufferedWriter writer = Files.newWriter(new File(
-        "files/test/times/relheight-dynamism.txt"), Charsets.UTF_8);
+      "files/test/times/relheight-dynamism.txt"), Charsets.UTF_8);
 
     for (int k = 0; k < orders.length; k++) {
       for (int i = 0; i < relHeights.size(); i++) {
@@ -82,13 +82,13 @@ public class NHPoissonProcessTest {
         final double ordersPerPeriod = orders[k] / (lengthOfScenario / period);
 
         final IntensityFunction intensity = IntensityFunctions.sineIntensity()
-            .height(d)
-            .period(period)
-            .area(ordersPerPeriod)
-            .build();
+          .height(d)
+          .period(period)
+          .area(ordersPerPeriod)
+          .build();
 
         System.out
-            .printf("%1d relative height: %1.3f%n", i, relHeight);
+          .printf("%1d relative height: %1.3f%n", i, relHeight);
 
         // final List<Double> sineTimes = FluentIterable
         // .from(
@@ -107,7 +107,7 @@ public class NHPoissonProcessTest {
         // + ".intens"));
 
         final TimeSeriesGenerator generator = TimeSeries.nonHomogenousPoisson(
-            lengthOfScenario, intensity);
+          lengthOfScenario, intensity);
 
         double max = 0;
         double sum = 0;
@@ -152,7 +152,7 @@ public class NHPoissonProcessTest {
           checkState(false);
         }
         System.out.printf(" > dyn %1.3f+-%1.3f%n",
-            +(sum / numSamples), sd.getResult());
+          +(sum / numSamples), sd.getResult());
         dataPoints.add(new Point(relHeight, sum / numSamples));
       }
     }
@@ -194,19 +194,19 @@ public class NHPoissonProcessTest {
   public void test2() {
 
     final IntensityFunction func1 = IntensityFunctions.sineIntensity()
-        .period(60)
-        .height(-.5)
-        .build();
+      .period(60)
+      .height(-.5)
+      .build();
     final IntensityFunction func2 = IntensityFunctions.sineIntensity()
-        .period(30)
-        .height(1.5)
-        .build();
+      .period(30)
+      .height(1.5)
+      .build();
 
     final StochasticSupplier<IntensityFunction> funcSup = StochasticSuppliers
-        .fromIterable(Iterables.cycle(func1, func2));
+      .fromIterable(Iterables.cycle(func1, func2));
 
     final TimeSeriesGenerator tsg = TimeSeries.nonHomogenousPoisson(120,
-        funcSup);
+      funcSup);
 
     // note that these tests will not work for all results of the
     // TimeSeriesGenerator, it is possible (but less likely) that the produced

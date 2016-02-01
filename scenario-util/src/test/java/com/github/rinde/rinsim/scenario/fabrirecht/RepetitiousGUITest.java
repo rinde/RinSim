@@ -51,30 +51,30 @@ public class RepetitiousGUITest {
   public static void main(String[] args) throws IOException {
     for (int i = 0; i < 100; i++) {
       final FabriRechtScenario scenario = FabriRechtParser.fromJson(Files
-          .toString(new File("files/test/fabri-recht/lc101.scenario"),
-              Charsets.UTF_8),
-          8, 20);
+        .toString(new File("files/test/fabri-recht/lc101.scenario"),
+          Charsets.UTF_8),
+        8, 20);
 
       Simulator.builder()
-          .addModel(
-              ScenarioController.builder(scenario)
-                  .withEventHandler(AddVehicleEvent.class,
-                      new TimedEventHandler<AddVehicleEvent>() {
-                        @Override
-                        public void handleTimedEvent(AddVehicleEvent event,
-                            SimulatorAPI simulator) {
-                          simulator.register(new Truck(event.getVehicleDTO()));
-                        }
-                      }))
-          .addModel(
-              View.builder()
-                  .with(PlaneRoadModelRenderer.builder())
-                  .with(RoadUserRenderer.builder())
-                  .with(PDPModelRenderer.builder())
-                  .withSpeedUp(50)
-                  .withAutoClose()
-                  .withAutoPlay())
-          .build().start();
+        .addModel(
+          ScenarioController.builder(scenario)
+            .withEventHandler(AddVehicleEvent.class,
+              new TimedEventHandler<AddVehicleEvent>() {
+                @Override
+                public void handleTimedEvent(AddVehicleEvent event,
+                    SimulatorAPI simulator) {
+                  simulator.register(new Truck(event.getVehicleDTO()));
+                }
+              }))
+        .addModel(
+          View.builder()
+            .with(PlaneRoadModelRenderer.builder())
+            .with(RoadUserRenderer.builder())
+            .with(PDPModelRenderer.builder())
+            .withSpeedUp(50)
+            .withAutoClose()
+            .withAutoPlay())
+        .build().start();
     }
   }
 }
@@ -96,19 +96,19 @@ class Truck extends Vehicle {
     final PDPModel pm = getPDPModel();
     // we always go to the closest available parcel
     final Parcel closest = (Parcel) RoadModels.findClosestObject(
-        rm.getPosition(this), rm, new Predicate<RoadUser>() {
-          @Override
-          public boolean apply(RoadUser input) {
-            return input instanceof Parcel
-                && pm.getParcelState((Parcel) input) == ParcelState.AVAILABLE;
-          }
-        });
+      rm.getPosition(this), rm, new Predicate<RoadUser>() {
+        @Override
+        public boolean apply(RoadUser input) {
+          return input instanceof Parcel
+            && pm.getParcelState((Parcel) input) == ParcelState.AVAILABLE;
+        }
+      });
 
     if (closest != null) {
       rm.moveTo(this, closest, time);
       if (rm.equalPosition(closest, this)
-          && pm.getTimeWindowPolicy().canPickup(closest.getPickupTimeWindow(),
-              time.getTime(), closest.getPickupDuration())) {
+        && pm.getTimeWindowPolicy().canPickup(closest.getPickupTimeWindow(),
+          time.getTime(), closest.getPickupDuration())) {
         pm.pickup(this, closest, time);
       }
     }

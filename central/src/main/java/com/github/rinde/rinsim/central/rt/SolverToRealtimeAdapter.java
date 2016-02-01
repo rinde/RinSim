@@ -88,7 +88,7 @@ public final class SolverToRealtimeAdapter implements RealtimeSolver {
           if (result == null) {
             scheduler.get().reportException(
               new IllegalArgumentException("Solver.solve(..) must return a "
-                  + "non-null result. Solver: " + solver));
+                + "non-null result. Solver: " + solver));
           } else {
             scheduler.get().updateSchedule(snapshot, result);
             scheduler.get().doneForNow();

@@ -48,16 +48,16 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
    */
   public TableGraph() {
     data = Tables.newCustomTable(
-        new LinkedHashMap<Point, Map<Point, Connection<E>>>(),
-        new LinkedHashMapFactory<Connection<E>>());
+      new LinkedHashMap<Point, Map<Point, Connection<E>>>(),
+      new LinkedHashMapFactory<Connection<E>>());
   }
 
   @Override
   public Set<Point> getNodes() {
     return ImmutableSet.<Point>builder()
-        .addAll(data.rowKeySet())
-        .addAll(data.columnKeySet())
-        .build();
+      .addAll(data.rowKeySet())
+      .addAll(data.columnKeySet())
+      .build();
   }
 
   @Override
@@ -69,7 +69,7 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
   public <T extends ConnectionData> boolean hasConnection(
       Connection<T> connection) {
     return hasConnection(connection.from(), connection.to())
-        && data.get(connection.from(), connection.to()).equals(connection);
+      && data.get(connection.from(), connection.to()).equals(connection);
   }
 
   @Override
@@ -109,7 +109,7 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
       data.remove(from, to);
     } else {
       throw new IllegalArgumentException(
-          "Can not remove non-existing connection: " + from + " -> " + to);
+        "Can not remove non-existing connection: " + from + " -> " + to);
     }
   }
 
@@ -126,7 +126,7 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
   @Override
   public Connection<E> getConnection(Point from, Point to) {
     checkArgument(hasConnection(from, to), "%s -> %s is not a connection",
-        from, to);
+      from, to);
     return data.get(from, to);
   }
 
@@ -147,7 +147,7 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
   protected Optional<E> doChangeConnectionData(Point from, Point to,
       Optional<E> connData) {
     return verifyNotNull(
-        data.put(from, to, Connection.create(from, to, connData))).data();
+      data.put(from, to, Connection.create(from, to, connData))).data();
   }
 
   @Override

@@ -27,10 +27,10 @@ class AGV extends Vehicle {
 
   AGV(Point startPos) {
     super(VehicleDTO.builder()
-        .capacity(1)
-        .startPosition(startPos)
-        .speed(FactoryExample.AGV_SPEED)
-        .build());
+      .capacity(1)
+      .startPosition(startPos)
+      .speed(FactoryExample.AGV_SPEED)
+      .build());
     destination = Optional.absent();
     agvModel = Optional.absent();
   }
@@ -52,12 +52,12 @@ class AGV extends Vehicle {
         getPDPModel().pickup(this, destination.get(), time);
       } else if (getPDPModel().getContents(this).contains(destination.get())) {
         if (getRoadModel().getPosition(this)
-            .equals(destination.get().getDeliveryLocation())) {
+          .equals(destination.get().getDeliveryLocation())) {
           getPDPModel().deliver(this, destination.get(), time);
           destination = Optional.absent();
         } else {
           getRoadModel()
-              .moveTo(this, destination.get().getDeliveryLocation(), time);
+            .moveTo(this, destination.get().getDeliveryLocation(), time);
         }
       } else {
         if (getRoadModel().containsObject(destination.get())) {

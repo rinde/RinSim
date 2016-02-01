@@ -51,11 +51,11 @@ public class ScenarioConvertersTest {
     assertThat(empty.getModelBuilders()).isEmpty();
 
     final Scenario convertedEmpty =
-        verifyNotNull(ScenarioConverters.toRealtime().apply(empty));
+      verifyNotNull(ScenarioConverters.toRealtime().apply(empty));
     assertThat(convertedEmpty.getModelBuilders())
-        .contains(TimeModel.builder()
-            .withRealTime()
-            .withStartInClockMode(ClockMode.SIMULATED));
+      .contains(TimeModel.builder()
+        .withRealTime()
+        .withStartInClockMode(ClockMode.SIMULATED));
   }
 
   /**
@@ -64,20 +64,20 @@ public class ScenarioConvertersTest {
   @Test
   public void testCopyProperties() {
     final Scenario s = Scenario.builder()
-        .addModel(TimeModel.builder()
-            .withTickLength(754L)
-            .withTimeUnit(NonSI.DAY))
-        .addModel(CommModel.builder())
-        .build();
+      .addModel(TimeModel.builder()
+        .withTickLength(754L)
+        .withTimeUnit(NonSI.DAY))
+      .addModel(CommModel.builder())
+      .build();
 
     final Scenario converted =
-        verifyNotNull(ScenarioConverters.toRealtime().apply(s));
+      verifyNotNull(ScenarioConverters.toRealtime().apply(s));
     assertThat(converted.getModelBuilders())
-        .contains(TimeModel.builder()
-            .withRealTime()
-            .withStartInClockMode(ClockMode.SIMULATED)
-            .withTickLength(754L)
-            .withTimeUnit(NonSI.DAY));
+      .contains(TimeModel.builder()
+        .withRealTime()
+        .withStartInClockMode(ClockMode.SIMULATED)
+        .withTickLength(754L)
+        .withTimeUnit(NonSI.DAY));
   }
 
   /**
@@ -86,16 +86,16 @@ public class ScenarioConvertersTest {
   @Test
   public void testTooManyTimeModels() {
     final Scenario s = Scenario.builder()
-        .addModel(TimeModel.builder())
-        .addModel(TimeModel.builder().withRealTime())
-        .build();
+      .addModel(TimeModel.builder())
+      .addModel(TimeModel.builder().withRealTime())
+      .build();
     boolean fail = false;
     try {
       ScenarioConverters.toRealtime().apply(s);
     } catch (final IllegalArgumentException e) {
       fail = true;
       assertThat(e.getMessage())
-          .isEqualTo("More than one time model is not supported.");
+        .isEqualTo("More than one time model is not supported.");
     }
     assertThat(fail).isTrue();
   }

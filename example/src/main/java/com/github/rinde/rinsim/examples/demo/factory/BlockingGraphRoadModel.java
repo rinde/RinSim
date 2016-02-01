@@ -111,7 +111,7 @@ public class BlockingGraphRoadModel extends GraphRoadModel {
 
     Builder() {
       setProvidingTypes(RoadModel.class, GraphRoadModel.class,
-          BlockingGraphRoadModel.class);
+        BlockingGraphRoadModel.class);
     }
 
     @Override
@@ -139,7 +139,7 @@ public class BlockingGraphRoadModel extends GraphRoadModel {
     static Builder create(Unit<Length> distanceUnit, Unit<Velocity> speedUnit,
         Supplier<Graph<?>> graphSupplier) {
       return new AutoValue_BlockingGraphRoadModel_Builder(distanceUnit,
-          speedUnit, graphSupplier);
+        speedUnit, graphSupplier);
     }
   }
 }

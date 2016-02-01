@@ -62,10 +62,10 @@ public class SolutionObject {
   @Override
   public String toString() {
     return new StringBuilder("Route: ").append(Arrays.toString(route))
-        .append("\n").append("Arrival times: ")
-        .append(Arrays.toString(arrivalTimes))
-        .append(System.getProperty("line.separator"))
-        .append("Objective: ").append(objectiveValue).toString();
+      .append("\n").append("Arrival times: ")
+      .append(Arrays.toString(arrivalTimes))
+      .append(System.getProperty("line.separator"))
+      .append("Objective: ").append(objectiveValue).toString();
   }
 
 }

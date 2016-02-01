@@ -57,12 +57,12 @@ public class ExperimentCliTest {
     configB = ExperimentTestUtil.testConfig("B");
     configC = ExperimentTestUtil.testConfig("C");
     builder = Experiment
-        .build(TestObjectiveFunction.INSTANCE)
-        .addScenario(ScenarioTestUtil.createRandomScenario(1655L))
-        .addConfiguration(configA)
-        .addConfiguration(configB)
-        .addConfiguration(configC)
-        .setScenarioReader(ScenarioIO.reader());
+      .build(TestObjectiveFunction.INSTANCE)
+      .addScenario(ScenarioTestUtil.createRandomScenario(1655L))
+      .addConfiguration(configA)
+      .addConfiguration(configB)
+      .addConfiguration(configC)
+      .setScenarioReader(ScenarioIO.reader());
 
     menu = ExperimentCli.createMenu(builder);
   }

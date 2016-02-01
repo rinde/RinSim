@@ -84,7 +84,7 @@ public final class MetricsIO {
     int i = 0;
     for (; i < list.size(); i++) {
       sb.append(i).append(SPACE).append(list.get(i))
-          .append(System.lineSeparator());
+        .append(System.lineSeparator());
     }
     sb.append(i).append(SPACE).append(0).append(System.lineSeparator());
     try {
@@ -118,10 +118,10 @@ public final class MetricsIO {
       Files.createParentDirs(f);
       Files.write(
         new StringBuilder()
-            .append(length)
-            .append(System.lineSeparator())
-            .append(Joiner.on(System.lineSeparator()).join(times))
-            .append(System.lineSeparator()),
+          .append(length)
+          .append(System.lineSeparator())
+          .append(Joiner.on(System.lineSeparator()).join(times))
+          .append(System.lineSeparator()),
         f,
         Charsets.UTF_8);
     } catch (final IOException e) {

@@ -66,29 +66,29 @@ public final class WarehouseExample {
    */
   public static void run(boolean testing) {
     View.Builder viewBuilder = View.builder()
-        .with(WarehouseRenderer.builder()
-            .withMargin(VEHICLE_LENGTH))
-        .with(AGVRenderer.builder()
-            .withDifferentColorsForVehicles());
+      .with(WarehouseRenderer.builder()
+        .withMargin(VEHICLE_LENGTH))
+      .with(AGVRenderer.builder()
+        .withDifferentColorsForVehicles());
 
     if (testing) {
       viewBuilder = viewBuilder.withAutoPlay()
-          .withAutoClose()
-          .withSimulatorEndTime(TEST_END_TIME)
-          .withTitleAppendix("TESTING")
-          .withSpeedUp(TEST_SPEED_UP);
+        .withAutoClose()
+        .withSimulatorEndTime(TEST_END_TIME)
+        .withTitleAppendix("TESTING")
+        .withSpeedUp(TEST_SPEED_UP);
     } else {
       viewBuilder = viewBuilder.withTitleAppendix("Warehouse Example");
     }
 
     final Simulator sim = Simulator.builder()
-        .addModel(
-            RoadModelBuilders.dynamicGraph(GraphCreator.createSimpleGraph())
-                .withCollisionAvoidance()
-                .withDistanceUnit(SI.METER)
-                .withVehicleLength(VEHICLE_LENGTH))
-        .addModel(viewBuilder)
-        .build();
+      .addModel(
+        RoadModelBuilders.dynamicGraph(GraphCreator.createSimpleGraph())
+          .withCollisionAvoidance()
+          .withDistanceUnit(SI.METER)
+          .withVehicleLength(VEHICLE_LENGTH))
+      .addModel(viewBuilder)
+      .build();
 
     for (int i = 0; i < NUM_AGVS; i++) {
       sim.register(new AGVAgent(sim.getRandomGenerator()));
@@ -110,12 +110,12 @@ public final class WarehouseExample {
     static ImmutableTable<Integer, Integer, Point> createMatrix(int cols,
         int rows, Point offset) {
       final ImmutableTable.Builder<Integer, Integer, Point> builder =
-          ImmutableTable.builder();
+        ImmutableTable.builder();
       for (int c = 0; c < cols; c++) {
         for (int r = 0; r < rows; r++) {
           builder.put(r, c, new Point(
-              offset.x + c * VEHICLE_LENGTH * 2,
-              offset.y + r * VEHICLE_LENGTH * 2));
+            offset.x + c * VEHICLE_LENGTH * 2,
+            offset.y + r * VEHICLE_LENGTH * 2));
         }
       }
       return builder.build();
@@ -125,7 +125,7 @@ public final class WarehouseExample {
       final Graph<LengthData> g = new TableGraph<>();
 
       final Table<Integer, Integer, Point> matrix = createMatrix(8, 6,
-          new Point(0, 0));
+        new Point(0, 0));
 
       for (int i = 0; i < matrix.columnMap().size(); i++) {
 
@@ -140,7 +140,7 @@ public final class WarehouseExample {
 
       Graphs.addPath(g, matrix.row(0).values());
       Graphs.addPath(g, Lists.reverse(newArrayList(matrix.row(
-          matrix.rowKeySet().size() - 1).values())));
+        matrix.rowKeySet().size() - 1).values())));
 
       return new ListenableGraph<>(g);
     }
@@ -149,7 +149,7 @@ public final class WarehouseExample {
       final Graph<LengthData> g = new TableGraph<>();
 
       final Table<Integer, Integer, Point> leftMatrix = createMatrix(5, 10,
-          new Point(0, 0));
+        new Point(0, 0));
       for (final Map<Integer, Point> column : leftMatrix.columnMap().values()) {
         Graphs.addBiPath(g, column.values());
       }
@@ -157,20 +157,20 @@ public final class WarehouseExample {
       Graphs.addBiPath(g, leftMatrix.row(LEFT_CENTER_L_ROW).values());
 
       final Table<Integer, Integer, Point> rightMatrix = createMatrix(10, 7,
-          new Point(30, 6));
+        new Point(30, 6));
       for (final Map<Integer, Point> row : rightMatrix.rowMap().values()) {
         Graphs.addBiPath(g, row.values());
       }
       Graphs.addBiPath(g, rightMatrix.column(0).values());
       Graphs.addBiPath(g, rightMatrix.column(rightMatrix.columnKeySet().size()
-          - 1).values());
+        - 1).values());
 
       Graphs.addPath(g,
-          rightMatrix.get(RIGHT_CENTER_U_ROW, RIGHT_COL),
-          leftMatrix.get(LEFT_CENTER_U_ROW, LEFT_COL));
+        rightMatrix.get(RIGHT_CENTER_U_ROW, RIGHT_COL),
+        leftMatrix.get(LEFT_CENTER_U_ROW, LEFT_COL));
       Graphs.addPath(g,
-          leftMatrix.get(LEFT_CENTER_L_ROW, LEFT_COL),
-          rightMatrix.get(RIGHT_CENTER_L_ROW, RIGHT_COL));
+        leftMatrix.get(LEFT_CENTER_L_ROW, LEFT_COL),
+        rightMatrix.get(RIGHT_CENTER_L_ROW, RIGHT_COL));
 
       return new ListenableGraph<>(g);
     }

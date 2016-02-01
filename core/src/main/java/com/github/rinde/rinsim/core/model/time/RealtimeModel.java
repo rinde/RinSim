@@ -80,22 +80,22 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
     realtimeState = new Realtime(tickNanos);
     final SimulatedTime st = new SimulatedTime();
     stateMachine = StateMachine
-        .create(
-          builder.getClockMode() == ClockMode.REAL_TIME ? INIT_RT : INIT_ST)
-        .addTransition(INIT_RT, Trigger.SIMULATE, INIT_ST)
-        .addTransition(INIT_RT, Trigger.START, realtimeState)
-        .addTransition(INIT_ST, Trigger.REAL_TIME, INIT_RT)
-        .addTransition(INIT_ST, Trigger.START, st)
-        .addTransition(realtimeState, Trigger.SIMULATE, realtimeState)
-        .addTransition(realtimeState, Trigger.REAL_TIME, realtimeState)
-        .addTransition(realtimeState, Trigger.DO_SIMULATE, st)
-        .addTransition(realtimeState, Trigger.STOP, STOPPED)
-        .addTransition(st, Trigger.REAL_TIME, st)
-        .addTransition(st, Trigger.SIMULATE, st)
-        .addTransition(st, Trigger.DO_REAL_TIME, realtimeState)
-        .addTransition(st, Trigger.STOP, STOPPED)
-        .addTransition(STOPPED, Trigger.STOP, STOPPED)
-        .build();
+      .create(
+        builder.getClockMode() == ClockMode.REAL_TIME ? INIT_RT : INIT_ST)
+      .addTransition(INIT_RT, Trigger.SIMULATE, INIT_ST)
+      .addTransition(INIT_RT, Trigger.START, realtimeState)
+      .addTransition(INIT_ST, Trigger.REAL_TIME, INIT_RT)
+      .addTransition(INIT_ST, Trigger.START, st)
+      .addTransition(realtimeState, Trigger.SIMULATE, realtimeState)
+      .addTransition(realtimeState, Trigger.REAL_TIME, realtimeState)
+      .addTransition(realtimeState, Trigger.DO_SIMULATE, st)
+      .addTransition(realtimeState, Trigger.STOP, STOPPED)
+      .addTransition(st, Trigger.REAL_TIME, st)
+      .addTransition(st, Trigger.SIMULATE, st)
+      .addTransition(st, Trigger.DO_REAL_TIME, realtimeState)
+      .addTransition(st, Trigger.STOP, STOPPED)
+      .addTransition(STOPPED, Trigger.STOP, STOPPED)
+      .build();
 
     final RealtimeModel ref = this;
     stateMachine.getEventAPI().addListener(new Listener() {
@@ -107,10 +107,10 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
 
         LOGGER.debug("{} {}", timeLapse, event);
         if ((event.newState == realtimeState || event.newState == INIT_RT)
-            && eventDispatcher.hasListenerFor(SWITCH_TO_REAL_TIME)) {
+          && eventDispatcher.hasListenerFor(SWITCH_TO_REAL_TIME)) {
           eventDispatcher.dispatchEvent(new Event(SWITCH_TO_REAL_TIME, ref));
         } else if ((event.newState == st || event.newState == INIT_ST)
-            && eventDispatcher.hasListenerFor(SWITCH_TO_SIM_TIME)) {
+          && eventDispatcher.hasListenerFor(SWITCH_TO_SIM_TIME)) {
           eventDispatcher.dispatchEvent(new Event(SWITCH_TO_SIM_TIME, ref));
         }
       }
@@ -148,7 +148,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
 
   boolean isExecutorAlive() {
     return realtimeState.executor != null
-        && !realtimeState.executor.isTerminated();
+      && !realtimeState.executor.isTerminated();
   }
 
   @Override
@@ -180,8 +180,8 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
   @Override
   public void tick() {
     throw new UnsupportedOperationException(
-        "Calling tick directly is not supported in "
-            + RealtimeModel.class.getSimpleName());
+      "Calling tick directly is not supported in "
+        + RealtimeModel.class.getSimpleName());
   }
 
   @Override
@@ -200,7 +200,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
   public void switchToSimulatedTime() {
     checkState(stateMachine.isSupported(Trigger.SIMULATE),
       "Can not switch to simulated time mode because clock is already "
-          + "stopped.");
+        + "stopped.");
     stateMachine.handle(Trigger.SIMULATE, this);
   }
 
@@ -340,7 +340,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
             @Override
             public Thread newThread(@Nullable Runnable r) {
               return new Thread(r,
-                  Thread.currentThread().getName() + "-RealtimeModel");
+                Thread.currentThread().getName() + "-RealtimeModel");
             }
           }));
       }

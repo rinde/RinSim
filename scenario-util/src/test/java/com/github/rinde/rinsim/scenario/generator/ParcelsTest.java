@@ -38,8 +38,8 @@ public class ParcelsTest {
   public void timesTest() {
     final int scenarioLength = 10;
     final ParcelGenerator pg = Parcels.builder()
-        .announceTimes(TimeSeries.homogenousPoisson(scenarioLength, 100))
-        .build();
+      .announceTimes(TimeSeries.homogenousPoisson(scenarioLength, 100))
+      .build();
 
     final List<AddParcelEvent> events = pg.generate(123,
       TravelTimesUtil.distance(), scenarioLength);
@@ -59,10 +59,10 @@ public class ParcelsTest {
   public void timesFail() {
     final int scenarioLength = 10;
     final ParcelGenerator pg2 = Parcels
-        .builder()
-        .announceTimes(
-          TimeSeries.homogenousPoisson(scenarioLength + 0.1, 100))
-        .build();
+      .builder()
+      .announceTimes(
+        TimeSeries.homogenousPoisson(scenarioLength + 0.1, 100))
+      .build();
     pg2.generate(123, TravelTimesUtil.distance(), scenarioLength);
   }
 

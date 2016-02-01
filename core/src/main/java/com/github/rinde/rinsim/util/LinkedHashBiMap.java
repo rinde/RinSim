@@ -153,7 +153,7 @@ public class LinkedHashBiMap<K, V> extends ForwardingBiMap<K, V> {
     @Deprecated
     public Set<Map.Entry<V, K>> entrySet() {
       throw new UnsupportedOperationException(
-          "Use inverse().entrySet() instead.");
+        "Use inverse().entrySet() instead.");
     }
 
     // modifications

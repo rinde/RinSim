@@ -59,7 +59,7 @@ public enum DefaultHelpFormatter implements HelpFormatter {
       final StringBuilder sb = new StringBuilder();
       if (!menu.getCmdLineSyntax().trim().isEmpty()) {
         sb.append("usage: ").append(menu.getCmdLineSyntax())
-            .append(System.lineSeparator());
+          .append(System.lineSeparator());
       }
       if (!menu.getHeader().trim().isEmpty()) {
         sb.append(menu.getHeader()).append(System.lineSeparator());
@@ -68,19 +68,19 @@ public enum DefaultHelpFormatter implements HelpFormatter {
       for (int i = 0; i < options.size(); i++) {
         sb.append(Strings.padEnd(optionNames.get(i), nameLength, ' '));
         final String[] descParts = options.get(i).getDescription()
-            .split(System.lineSeparator());
+          .split(System.lineSeparator());
         for (int j = 0; j < descParts.length; j++) {
           if (j > 0) {
             sb.append(Strings.padEnd("", nameLength, ' '));
           }
           sb.append(
-                    WordUtils.wrap(
-                                   descParts[j],
-                                   descLength,
-                                   Strings.padEnd(System.lineSeparator(),
-                                                  nameLength + 1, ' '),
-                                   false))
-              .append(System.lineSeparator());
+            WordUtils.wrap(
+              descParts[j],
+              descLength,
+              Strings.padEnd(System.lineSeparator(),
+                nameLength + 1, ' '),
+              false))
+            .append(System.lineSeparator());
         }
       }
       if (!menu.getFooter().trim().isEmpty()) {

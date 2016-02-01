@@ -102,8 +102,8 @@ public abstract class AddParcelEvent implements TimedEvent {
       if (counter >= ALPHABET_SIZE) {
         if (counter >= PARCEL_LIMIT) {
           throw new IllegalStateException(
-              "Too many parcels, this handler is meant for debuggin and should "
-                  + "not be used in production.");
+            "Too many parcels, this handler is meant for debuggin and should "
+              + "not be used in production.");
         }
 
         final char first =
@@ -116,8 +116,8 @@ public abstract class AddParcelEvent implements TimedEvent {
       counter++;
       simulator.register(
         Parcel.builder(event.getParcelDTO())
-            .toString(name)
-            .build());
+          .toString(name)
+          .build());
     }
 
     @Override

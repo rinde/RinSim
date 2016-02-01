@@ -47,14 +47,14 @@ public class MultiVehicleSolverAdapter implements Solver {
   @Override
   public ImmutableList<ImmutableList<Parcel>> solve(GlobalStateObject state) {
     final MVArraysObject o = ArraysSolvers.toMultiVehicleArrays(state,
-        outputTimeUnit);
+      outputTimeUnit);
 
     final SolutionObject[] sols = solver.solve(o.travelTime, o.releaseDates,
-        o.dueDates, o.servicePairs, o.serviceTimes, o.vehicleTravelTimes,
-        o.inventories, o.remainingServiceTimes, o.currentDestinations,
-        o.currentSolutions);
+      o.dueDates, o.servicePairs, o.serviceTimes, o.vehicleTravelTimes,
+      o.inventories, o.remainingServiceTimes, o.currentDestinations,
+      o.currentSolutions);
     final ImmutableList.Builder<ImmutableList<Parcel>> b = ImmutableList
-        .builder();
+      .builder();
     for (final SolutionObject sol : sols) {
       b.add(ArraysSolvers.convertSolutionObject(sol, o.index2parcel));
     }

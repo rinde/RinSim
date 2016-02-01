@@ -45,10 +45,10 @@ public class GendreauTestUtil {
       List<? extends TimedEvent> parcels, int numTrucks) {
 
     final Gendreau06Scenario gs = Gendreau06Parser
-        .parser()
-        .addFile(new ByteArrayInputStream("".getBytes()), "req_rapide_1_240_24")
-        .setNumVehicles(numTrucks)
-        .parse().get(0);
+      .parser()
+      .addFile(new ByteArrayInputStream("".getBytes()), "req_rapide_1_240_24")
+      .setNumVehicles(numTrucks)
+      .parse().get(0);
 
     final List<TimedEvent> events = newArrayList();
     events.addAll(gs.getEvents());

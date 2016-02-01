@@ -51,7 +51,7 @@ public final class ScheduleUtil {
 
     checkArgument(schedule.size() == state.getVehicles().size(),
       "The number of routes (%s) and the number of vehicles (%s) must "
-          + "be equal.",
+        + "be equal.",
       schedule.size(), state.getVehicles().size());
     checkArgument(!state.getVehicles().get(0).getRoute().isPresent(),
       "A state object without routes is expected.");
@@ -69,7 +69,7 @@ public final class ScheduleUtil {
       final VehicleStateObject vehicle = state.getVehicles().get(i);
       expectedRoutes.get(i).addAll(vehicle.getContents());
       if (vehicle.getDestination().isPresent() && !vehicle.getContents()
-          .contains(vehicle.getDestination().get())) {
+        .contains(vehicle.getDestination().get())) {
         expectedRoutes.get(i).add(vehicle.getDestination().get(), 2);
       }
       undeliveredParcels.addAll(vehicle.getContents());
@@ -108,7 +108,7 @@ public final class ScheduleUtil {
           // it is already delivered, remove all occurrences
           newSchedule.get(i).removeAll(Collections.singleton(p));
         } else if (actualOccurences != expectedOccurrences
-            && expectedOccurrences > 0) {
+          && expectedOccurrences > 0) {
           if (expectedOccurrences == 1 && actualOccurences == 2) {
             newSchedule.get(i).remove(p);
           } else {
@@ -143,8 +143,8 @@ public final class ScheduleUtil {
       }
 
       if (vehicle.getDestination().isPresent()
-          && !newSchedule.get(i).get(0)
-              .equals(vehicle.getDestination().get())) {
+        && !newSchedule.get(i).get(0)
+          .equals(vehicle.getDestination().get())) {
         newSchedule.get(i).remove(vehicle.getDestination().get());
         newSchedule.get(i).add(0, vehicle.getDestination().get());
       }

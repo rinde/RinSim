@@ -82,25 +82,25 @@ public final class ScenarioIO {
 
     final GsonBuilder builder = new GsonBuilder();
     builder
-        .registerTypeAdapter(ProblemClass.class, adapt(ProblemClassIO.INSTANCE))
-        .registerTypeHierarchyAdapter(TimeWindowPolicy.class,
-          adapt(TimeWindowHierarchyIO.INSTANCE))
-        .registerTypeAdapter(Scenario.class, adapt(ScenarioObjIO.INSTANCE))
-        .registerTypeAdapter(ParcelDTO.class, adapt(ParcelIO.INSTANCE))
-        .registerTypeAdapter(VehicleDTO.class, adapt(VehicleIO.INSTANCE))
-        .registerTypeAdapter(Point.class, new PointIO())
-        .registerTypeAdapter(TimeWindow.class, new TimeWindowIO())
-        .registerTypeAdapter(Unit.class, adapt(UnitIO.INSTANCE))
-        .registerTypeAdapter(Measure.class, adapt(MeasureIO.INSTANCE))
-        .registerTypeHierarchyAdapter(Enum.class, adapt(EnumIO.INSTANCE))
-        .registerTypeAdapter(StopCondition.class,
-          adapt(StopConditionIO.INSTANCE))
-        .registerTypeAdapter(Class.class, adapt(ClassIO.INSTANCE))
-        .registerTypeAdapter(ImmutableList.class,
-          adapt(ImmutableListIO.INSTANCE))
-        .registerTypeAdapter(ImmutableSet.class, adapt(ImmutableSetIO.INSTANCE))
-        .registerTypeAdapter(ModelBuilder.class,
-          adapt(ModelBuilderIO.INSTANCE));
+      .registerTypeAdapter(ProblemClass.class, adapt(ProblemClassIO.INSTANCE))
+      .registerTypeHierarchyAdapter(TimeWindowPolicy.class,
+        adapt(TimeWindowHierarchyIO.INSTANCE))
+      .registerTypeAdapter(Scenario.class, adapt(ScenarioObjIO.INSTANCE))
+      .registerTypeAdapter(ParcelDTO.class, adapt(ParcelIO.INSTANCE))
+      .registerTypeAdapter(VehicleDTO.class, adapt(VehicleIO.INSTANCE))
+      .registerTypeAdapter(Point.class, new PointIO())
+      .registerTypeAdapter(TimeWindow.class, new TimeWindowIO())
+      .registerTypeAdapter(Unit.class, adapt(UnitIO.INSTANCE))
+      .registerTypeAdapter(Measure.class, adapt(MeasureIO.INSTANCE))
+      .registerTypeHierarchyAdapter(Enum.class, adapt(EnumIO.INSTANCE))
+      .registerTypeAdapter(StopCondition.class,
+        adapt(StopConditionIO.INSTANCE))
+      .registerTypeAdapter(Class.class, adapt(ClassIO.INSTANCE))
+      .registerTypeAdapter(ImmutableList.class,
+        adapt(ImmutableListIO.INSTANCE))
+      .registerTypeAdapter(ImmutableSet.class, adapt(ImmutableSetIO.INSTANCE))
+      .registerTypeAdapter(ModelBuilder.class,
+        adapt(ModelBuilderIO.INSTANCE));
 
     return builder.create();
   }
@@ -384,8 +384,8 @@ public final class ScenarioIO {
           return context.serialize(src, Enum.class);
         }
         throw new IllegalArgumentException(
-            "Only Enum implementations of the TimeWindowPolicy interface are "
-                + "allowed.");
+          "Only Enum implementations of the TimeWindowPolicy interface are "
+            + "allowed.");
       }
     }
   }
@@ -561,7 +561,7 @@ public final class ScenarioIO {
         }
         final JsonObject obj = json.getAsJsonObject();
         return getEnum(obj.get(CLAZZ).getAsString(), obj
-            .get(VALUE).getAsString());
+          .get(VALUE).getAsString());
       }
     };
 
@@ -603,8 +603,8 @@ public final class ScenarioIO {
           }
         }
         throw new IllegalArgumentException(
-            "All predicates must be serializable, found: "
-                + src.getClass().getName());
+          "All predicates must be serializable, found: "
+            + src.getClass().getName());
       }
     }
   }
@@ -639,14 +639,14 @@ public final class ScenarioIO {
         final Point p1 = context.deserialize(it.next(), Point.class);
         final Point p2 = context.deserialize(it.next(), Point.class);
         return Parcel.builder(p1, p2)
-            .pickupTimeWindow(
-              (TimeWindow) context.deserialize(it.next(), TimeWindow.class))
-            .deliveryTimeWindow(
-              (TimeWindow) context.deserialize(it.next(), TimeWindow.class))
-            .neededCapacity(it.next().getAsDouble())
-            .orderAnnounceTime(it.next().getAsLong())
-            .pickupDuration(it.next().getAsLong())
-            .deliveryDuration(it.next().getAsLong()).buildDTO();
+          .pickupTimeWindow(
+            (TimeWindow) context.deserialize(it.next(), TimeWindow.class))
+          .deliveryTimeWindow(
+            (TimeWindow) context.deserialize(it.next(), TimeWindow.class))
+          .neededCapacity(it.next().getAsDouble())
+          .orderAnnounceTime(it.next().getAsLong())
+          .pickupDuration(it.next().getAsLong())
+          .deliveryDuration(it.next().getAsLong()).buildDTO();
       }
 
       @Override
@@ -674,11 +674,11 @@ public final class ScenarioIO {
           JsonDeserializationContext context) {
         final Iterator<JsonElement> it = json.getAsJsonArray().iterator();
         return VehicleDTO.builder()
-            .availabilityTimeWindow(
-              (TimeWindow) context.deserialize(it.next(), TimeWindow.class))
-            .capacity(it.next().getAsInt()).speed(it.next().getAsDouble())
-            .startPosition((Point) context.deserialize(it.next(), Point.class))
-            .build();
+          .availabilityTimeWindow(
+            (TimeWindow) context.deserialize(it.next(), TimeWindow.class))
+          .capacity(it.next().getAsInt()).speed(it.next().getAsDouble())
+          .startPosition((Point) context.deserialize(it.next(), Point.class))
+          .build();
       }
 
       @Override

@@ -48,20 +48,20 @@ public class ScheduleUtilTest {
     TestUtil.testPrivateConstructor(ScheduleUtil.class);
 
     p1 = new ParcelDecorator(Parcel.builder(new Point(0, 0), new Point(1, 1))
-        .serviceDuration(100)
-        .build(), "p1");
+      .serviceDuration(100)
+      .build(), "p1");
     p2 = new ParcelDecorator(Parcel.builder(new Point(1, 1), new Point(1, 2))
-        .serviceDuration(100)
-        .build(), "p2");
+      .serviceDuration(100)
+      .build(), "p2");
     p3 = new ParcelDecorator(Parcel.builder(new Point(1, 3), new Point(1, 2))
-        .serviceDuration(100)
-        .build(), "p3");
+      .serviceDuration(100)
+      .build(), "p3");
     p4 = new ParcelDecorator(Parcel.builder(new Point(1, 3), new Point(1, 2))
-        .serviceDuration(100)
-        .build(), "p4");
+      .serviceDuration(100)
+      .build(), "p4");
     p5 = new ParcelDecorator(Parcel.builder(new Point(1, 3), new Point(1, 2))
-        .serviceDuration(100)
-        .build(), "p5");
+      .serviceDuration(100)
+      .build(), "p5");
   }
 
   /**
@@ -71,18 +71,18 @@ public class ScheduleUtilTest {
   @Test
   public void testFixSchedule1() {
     final GlobalStateObject state = globalBuilder()
-        .addAvailableParcel(p1)
-        .addVehicle(vehicleBuilder()
-            .setDestination(p1)
-            .setRemainingServiceTime(10L)
-            .build())
-        .build();
+      .addAvailableParcel(p1)
+      .addVehicle(vehicleBuilder()
+        .setDestination(p1)
+        .setRemainingServiceTime(10L)
+        .build())
+      .build();
 
     // parcel is being picked up, but appears only n times in route
     assertThat(fix(schedule(route()), state)).containsExactly(route(p1, p1));
     assertThat(fix(schedule(route(p1)), state)).containsExactly(route(p1, p1));
     assertThat(fix(schedule(route(p1, p1)), state))
-        .containsExactly(route(p1, p1));
+      .containsExactly(route(p1, p1));
   }
 
   /**
@@ -91,31 +91,31 @@ public class ScheduleUtilTest {
   @Test
   public void testFixSchedule2() {
     final GlobalStateObject state = globalBuilder()
-        .addAvailableParcels(p1, p2)
-        .addVehicle(vehicleBuilder()
-            .setDestination(p1)
-            .setRemainingServiceTime(10L)
-            .build())
-        .addVehicle(vehicleBuilder().build())
-        .build();
+      .addAvailableParcels(p1, p2)
+      .addVehicle(vehicleBuilder()
+        .setDestination(p1)
+        .setRemainingServiceTime(10L)
+        .build())
+      .addVehicle(vehicleBuilder().build())
+      .build();
 
     assertThat(fix(schedule(route(), route()), state))
-        .isEqualTo(schedule(route(p1, p1), route()));
+      .isEqualTo(schedule(route(p1, p1), route()));
 
     assertThat(fix(schedule(route(), route(p1)), state))
-        .isEqualTo(schedule(route(p1, p1), route()));
+      .isEqualTo(schedule(route(p1, p1), route()));
 
     assertThat(fix(schedule(route(), route(p1, p1)), state))
-        .isEqualTo(schedule(route(p1, p1), route()));
+      .isEqualTo(schedule(route(p1, p1), route()));
 
     assertThat(fix(schedule(route(), route(p1, p2, p1)), state))
-        .isEqualTo(schedule(route(p1, p1), route(p2)));
+      .isEqualTo(schedule(route(p1, p1), route(p2)));
 
     assertThat(fix(schedule(route(), route(p1, p2, p3, p1)), state))
-        .isEqualTo(schedule(route(p1, p1), route(p2)));
+      .isEqualTo(schedule(route(p1, p1), route(p2)));
 
     assertThat(fix(schedule(route(p2), route(p1, p3, p1)), state))
-        .isEqualTo(schedule(route(p1, p2, p1), route()));
+      .isEqualTo(schedule(route(p1, p2, p1), route()));
   }
 
   /**
@@ -124,22 +124,22 @@ public class ScheduleUtilTest {
   @Test
   public void testFixSchedule3() {
     final GlobalStateObject state = globalBuilder()
-        .addAvailableParcels(p1)
-        .addVehicle(vehicleBuilder()
-            .addToContents(p2)
-            .setRemainingServiceTime(10L)
-            .build())
-        .addVehicle(vehicleBuilder().build())
-        .build();
+      .addAvailableParcels(p1)
+      .addVehicle(vehicleBuilder()
+        .addToContents(p2)
+        .setRemainingServiceTime(10L)
+        .build())
+      .addVehicle(vehicleBuilder().build())
+      .build();
 
     assertThat(fix(schedule(route(), route()), state))
-        .isEqualTo(schedule(route(p2), route()));
+      .isEqualTo(schedule(route(p2), route()));
 
     assertThat(fix(schedule(route(p2, p2), route(p1, p3, p1)), state))
-        .isEqualTo(schedule(route(p2), route(p1, p1)));
+      .isEqualTo(schedule(route(p2), route(p1, p1)));
 
     assertThat(fix(schedule(route(p1, p2, p3, p1, p2), route()), state))
-        .isEqualTo(schedule(route(p1, p1, p2), route()));
+      .isEqualTo(schedule(route(p1, p1, p2), route()));
   }
 
   /**
@@ -148,22 +148,22 @@ public class ScheduleUtilTest {
   @Test
   public void testFixSchedule4() {
     final GlobalStateObject state = globalBuilder()
-        .addAvailableParcels(p1)
-        .addVehicle(vehicleBuilder()
-            .addToContents(p2)
-            .setRemainingServiceTime(10L)
-            .build())
-        .addVehicle(vehicleBuilder().build())
-        .build();
+      .addAvailableParcels(p1)
+      .addVehicle(vehicleBuilder()
+        .addToContents(p2)
+        .setRemainingServiceTime(10L)
+        .build())
+      .addVehicle(vehicleBuilder().build())
+      .build();
 
     assertThat(fix(schedule(route(p2, p1), route(p3, p2)), state))
-        .isEqualTo(schedule(route(p2, p1), route()));
+      .isEqualTo(schedule(route(p2, p1), route()));
 
     assertThat(fix(schedule(route(p2, p1), route(p3, p2, p2)), state))
-        .isEqualTo(schedule(route(p2, p1), route()));
+      .isEqualTo(schedule(route(p2, p1), route()));
 
     assertThat(fix(schedule(route(p2, p1, p2), route(p3, p2, p2)), state))
-        .isEqualTo(schedule(route(p1, p2), route()));
+      .isEqualTo(schedule(route(p1, p2), route()));
   }
 
   /**
@@ -173,19 +173,19 @@ public class ScheduleUtilTest {
   @Test
   public void testFixSchedule5() {
     final GlobalStateObject state = globalBuilder()
-        .addAvailableParcels(p1)
-        .addVehicle(vehicleBuilder()
-            .addToContents(p2)
-            .setDestination(p2)
-            .setRemainingServiceTime(10L)
-            .build())
-        .addVehicle(vehicleBuilder()
-            .addToContents(p3)
-            .build())
-        .build();
+      .addAvailableParcels(p1)
+      .addVehicle(vehicleBuilder()
+        .addToContents(p2)
+        .setDestination(p2)
+        .setRemainingServiceTime(10L)
+        .build())
+      .addVehicle(vehicleBuilder()
+        .addToContents(p3)
+        .build())
+      .build();
 
     assertThat(fix(schedule(route(p3, p2, p1), route(p3, p2)), state))
-        .isEqualTo(schedule(route(p2, p1), route(p3)));
+      .isEqualTo(schedule(route(p2, p1), route(p3)));
   }
 
   /**
@@ -194,19 +194,19 @@ public class ScheduleUtilTest {
   @Test
   public void testFixSchedule6() {
     final GlobalStateObject state = globalBuilder()
-        .addAvailableParcels(p1, p5)
-        .addVehicle(vehicleBuilder()
-            .addToContents(p2)
-            .setDestination(p2)
-            .setRemainingServiceTime(10L)
-            .build())
-        .addVehicle(vehicleBuilder()
-            .addToContents(p3)
-            .build())
-        .addVehicle(vehicleBuilder()
-            .addToContents(p4)
-            .build())
-        .build();
+      .addAvailableParcels(p1, p5)
+      .addVehicle(vehicleBuilder()
+        .addToContents(p2)
+        .setDestination(p2)
+        .setRemainingServiceTime(10L)
+        .build())
+      .addVehicle(vehicleBuilder()
+        .addToContents(p3)
+        .build())
+      .addVehicle(vehicleBuilder()
+        .addToContents(p4)
+        .build())
+      .build();
 
     assertThat(
       fix(schedule(
@@ -214,10 +214,10 @@ public class ScheduleUtilTest {
         route(p3, p2, p4),
         route(p5, p2, p3, p4, p5)),
         state))
-            .isEqualTo(schedule(
-              route(p2, p1, p1),
-              route(p3),
-              route(p5, p4, p5)));
+          .isEqualTo(schedule(
+            route(p2, p1, p1),
+            route(p3),
+            route(p5, p4, p5)));
 
     assertThat(
       fix(schedule(
@@ -225,10 +225,10 @@ public class ScheduleUtilTest {
         route(),
         route()),
         state))
-            .isEqualTo(schedule(
-              route(p2),
-              route(p3),
-              route(p4)));
+          .isEqualTo(schedule(
+            route(p2),
+            route(p3),
+            route(p4)));
 
   }
 
@@ -238,12 +238,12 @@ public class ScheduleUtilTest {
   @Test
   public void testFixScheduleWrongInputs() {
     final GlobalStateObject state = globalBuilder()
-        .addAvailableParcels(p1)
-        .addVehicle(vehicleBuilder()
-            .build())
-        .addVehicle(vehicleBuilder()
-            .build())
-        .build();
+      .addAvailableParcels(p1)
+      .addVehicle(vehicleBuilder()
+        .build())
+      .addVehicle(vehicleBuilder()
+        .build())
+      .build();
 
     boolean fail = false;
     try {
@@ -255,14 +255,14 @@ public class ScheduleUtilTest {
     assertThat(fail).isTrue();
 
     final GlobalStateObject wrongState = globalBuilder()
-        .addVehicle(vehicleBuilder().setRoute(route()).build()).build();
+      .addVehicle(vehicleBuilder().setRoute(route()).build()).build();
 
     fail = false;
     try {
       fix(schedule(route()), wrongState);
     } catch (final IllegalArgumentException e) {
       assertThat(e.getMessage())
-          .isEqualTo("A state object without routes is expected.");
+        .isEqualTo("A state object without routes is expected.");
       fail = true;
     }
     assertThat(fail).isTrue();

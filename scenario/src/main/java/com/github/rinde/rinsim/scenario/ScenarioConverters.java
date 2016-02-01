@@ -63,10 +63,10 @@ public final class ScenarioConverters {
       public Scenario apply(@Nullable Scenario input) {
         final Scenario in = verifyNotNull(input);
         return Scenario.builder(in)
-            .clearEvents()
-            .addEvents(
-              FluentIterable.from(in.getEvents()).transform(converter))
-            .build();
+          .clearEvents()
+          .addEvents(
+            FluentIterable.from(in.getEvents()).transform(converter))
+          .build();
       }
     };
   }
@@ -82,18 +82,18 @@ public final class ScenarioConverters {
           getTimeModel(in);
 
         RealtimeBuilder rtb = TimeModel.builder()
-            .withRealTime()
-            .withStartInClockMode(ClockMode.SIMULATED);
+          .withRealTime()
+          .withStartInClockMode(ClockMode.SIMULATED);
         if (timeModel.isPresent()) {
           // copy properties from existing time model
           rtb = rtb.withTickLength(timeModel.get().getTickLength())
-              .withTimeUnit(timeModel.get().getTimeUnit());
+            .withTimeUnit(timeModel.get().getTimeUnit());
         }
         // else: in this case we don't copy properties, we use the defaults
         return Scenario.builder(in)
-            .removeModelsOfType(TimeModel.AbstractBuilder.class)
-            .addModel(rtb)
-            .build();
+          .removeModelsOfType(TimeModel.AbstractBuilder.class)
+          .addModel(rtb)
+          .build();
       }
 
       @Override
@@ -114,13 +114,13 @@ public final class ScenarioConverters {
         final TimeModel.Builder rtb = TimeModel.builder();
         if (timeModel.isPresent()) {
           rtb.withTickLength(timeModel.get().getTickLength())
-              .withTimeUnit(timeModel.get().getTimeUnit());
+            .withTimeUnit(timeModel.get().getTimeUnit());
         }
 
         return Scenario.builder(in)
-            .removeModelsOfType(TimeModel.AbstractBuilder.class)
-            .addModel(rtb)
-            .build();
+          .removeModelsOfType(TimeModel.AbstractBuilder.class)
+          .addModel(rtb)
+          .build();
       }
 
       @Override

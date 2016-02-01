@@ -45,8 +45,8 @@ public class RoadModelEvent extends Event {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper("RoadModelEvent")
-        .add("roadModel", roadModel)
-        .add("roadUser", roadUser)
-        .toString();
+      .add("roadModel", roadModel)
+      .add("roadUser", roadUser)
+      .toString();
   }
 }

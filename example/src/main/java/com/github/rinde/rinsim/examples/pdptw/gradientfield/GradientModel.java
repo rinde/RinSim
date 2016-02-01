@@ -88,7 +88,7 @@ public class GradientModel
 
     for (int i = 0; i < X.length; i++) {
       final Point p = new Point(element.getPosition().x + X[i],
-          element.getPosition().y + Y[i]);
+        element.getPosition().y + Y[i]);
 
       if (p.x < minX || p.x > maxX || p.y < minY || p.y > maxY) {
         continue;
@@ -108,7 +108,7 @@ public class GradientModel
     float field = 0.0f;
     for (final FieldEmitter emitter : emitters) {
       field = field + (float) (emitter.getStrength()
-          / Point.distance(emitter.getPosition(), in));
+        / Point.distance(emitter.getPosition(), in));
     }
 
     for (final Parcel p : verifyNotNull(pdpModel).getContents(truck)) {
@@ -135,7 +135,7 @@ public class GradientModel
 
     for (int i = 0; i < X.length; i++) {
       final Point p = new Point(truck.getPosition().x + X[i],
-          truck.getPosition().y + Y[i]);
+        truck.getPosition().y + Y[i]);
 
       if (p.x < minX || p.x > maxX || p.y < minY || p.y > maxY) {
         continue;
@@ -159,7 +159,7 @@ public class GradientModel
   public void registerModelProvider(ModelProvider mp) {
     pdpModel = mp.tryGetModel(PDPModel.class);
     final ImmutableList<Point> bs = mp.getModel(RoadModel.class)
-        .getBounds();
+      .getBounds();
 
     minX = bs.get(0).x;
     maxX = bs.get(1).x;

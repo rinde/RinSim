@@ -102,8 +102,8 @@ class DemoPanel extends AbstractModel<Void>
   public void handleEvent(@Nullable Event event) {
     assert event != null;
     final Iterator<Point> points = SwarmDemo.measureString(
-        ((Text) event.widget).getText(), SwarmDemo.FONT_SIZE, SPACING, 0)
-        .iterator();
+      ((Text) event.widget).getText(), SwarmDemo.FONT_SIZE, SPACING, 0)
+      .iterator();
     final List<Vehicle> vs = newArrayList(vehicles);
     if (event.type == SWT.DefaultSelection) {
       Collections.shuffle(vs, new RandomAdaptor(rng));
@@ -147,7 +147,7 @@ class DemoPanel extends AbstractModel<Void>
     public DemoPanel build(DependencyProvider dependencyProvider) {
       final RoadModel rm = dependencyProvider.get(RoadModel.class);
       final RandomGenerator r = dependencyProvider.get(RandomProvider.class)
-          .newInstance();
+        .newInstance();
       return new DemoPanel(string(), rm, r);
     }
   }

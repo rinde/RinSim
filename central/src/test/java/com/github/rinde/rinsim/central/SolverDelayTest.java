@@ -96,32 +96,32 @@ public class SolverDelayTest {
   static Scenario createScenario(long... delays) {
     final long endTime = 15 * 60 * 1000;
     final VehicleDTO vehicle = VehicleDTO.builder()
-        .startPosition(new Point(5, 5))
-        .availabilityTimeWindow(TimeWindow.create(0, endTime))
-        .build();
+      .startPosition(new Point(5, 5))
+      .availabilityTimeWindow(TimeWindow.create(0, endTime))
+      .build();
 
     final Scenario.Builder scenario = Scenario.builder()
-        .addEvent(AddDepotEvent.create(-1, new Point(5, 5)))
-        .addEvent(AddVehicleEvent.create(-1, vehicle))
-        .addEvent(AddVehicleEvent.create(-1, vehicle))
-        .addEvent(TimeOutEvent.create(endTime))
-        .addModel(PDPRoadModel.builder(RoadModelBuilders.plane())
-            .withAllowVehicleDiversion(true))
-        .addModel(DefaultPDPModel.builder())
-        .addModel(TimeModel.builder().withTickLength(250))
-        .setStopCondition(StopConditions.and(
-          StatsStopConditions.vehiclesDoneAndBackAtDepot(),
-          StatsStopConditions.timeOutEvent()));
+      .addEvent(AddDepotEvent.create(-1, new Point(5, 5)))
+      .addEvent(AddVehicleEvent.create(-1, vehicle))
+      .addEvent(AddVehicleEvent.create(-1, vehicle))
+      .addEvent(TimeOutEvent.create(endTime))
+      .addModel(PDPRoadModel.builder(RoadModelBuilders.plane())
+        .withAllowVehicleDiversion(true))
+      .addModel(DefaultPDPModel.builder())
+      .addModel(TimeModel.builder().withTickLength(250))
+      .setStopCondition(StopConditions.and(
+        StatsStopConditions.vehiclesDoneAndBackAtDepot(),
+        StatsStopConditions.timeOutEvent()));
 
     final long[] dls = new long[3];
     System.arraycopy(delays, 0, dls, 0, delays.length);
 
     scenario
-        .addEvent(createParcel(0, dls[0], new Point(1, 1), new Point(9, 1)));
+      .addEvent(createParcel(0, dls[0], new Point(1, 1), new Point(9, 1)));
     scenario
-        .addEvent(createParcel(1, dls[1], new Point(1, 2), new Point(9, 2)));
+      .addEvent(createParcel(1, dls[1], new Point(1, 2), new Point(9, 2)));
     scenario
-        .addEvent(createParcel(2, dls[2], new Point(9, 9), new Point(1, 9)));
+      .addEvent(createParcel(2, dls[2], new Point(9, 9), new Point(1, 9)));
 
     return scenario.build();
   }
@@ -130,40 +130,40 @@ public class SolverDelayTest {
     final long announceTime = (i + 1) * 60 * 1000;
     return AddParcelEvent.create(
       Parcel.builder(p1, p2)
-          .orderAnnounceTime(announceTime + delay)
-          .pickupTimeWindow(
-            TimeWindow.create(announceTime + delay,
-              announceTime + 1 * 60 * 1000))
-          .deliveryTimeWindow(
-            TimeWindow.create(announceTime + delay + 5 * 60 * 1000,
-              announceTime + 6 * 60 * 1000))
-          .serviceDuration(5 * 60 * 1000)
-          .buildDTO());
+        .orderAnnounceTime(announceTime + delay)
+        .pickupTimeWindow(
+          TimeWindow.create(announceTime + delay,
+            announceTime + 1 * 60 * 1000))
+        .deliveryTimeWindow(
+          TimeWindow.create(announceTime + delay + 5 * 60 * 1000,
+            announceTime + 6 * 60 * 1000))
+        .serviceDuration(5 * 60 * 1000)
+        .buildDTO());
   }
 
   static StatisticsDTO simulate(Scenario scenario) {
     final ExperimentResults results =
       Experiment.build(OBJ_FUNC)
-          .addScenario(scenario)
-          .addConfiguration(Central.solverConfiguration(
-            StochasticSuppliers.constant(TestSolvers.lazyInsertion())))
-          .withThreads(1)
-          .usePostProcessor(PostProcessors.statisticsPostProcessor())
-          .showGui(View.builder()
-              .withAutoPlay()
-              // .withAutoClose()
-              .withSpeedUp(4)
-              // .withFullScreen()
-              .withTitleAppendix("AAMAS 2016 Experiment")
-              .with(RoadUserRenderer.builder()
-                  .withToStringLabel())
-              .with(PDPModelRenderer.builder())
-              .with(RouteRenderer.builder())
-              .with(PlaneRoadModelRenderer.builder())
-              .with(TimeLinePanel.builder())
-              .withResolution(1280, 1024))
-          .showGui(false)
-          .perform();
+        .addScenario(scenario)
+        .addConfiguration(Central.solverConfiguration(
+          StochasticSuppliers.constant(TestSolvers.lazyInsertion())))
+        .withThreads(1)
+        .usePostProcessor(PostProcessors.statisticsPostProcessor())
+        .showGui(View.builder()
+          .withAutoPlay()
+          // .withAutoClose()
+          .withSpeedUp(4)
+          // .withFullScreen()
+          .withTitleAppendix("AAMAS 2016 Experiment")
+          .with(RoadUserRenderer.builder()
+            .withToStringLabel())
+          .with(PDPModelRenderer.builder())
+          .with(RouteRenderer.builder())
+          .with(PlaneRoadModelRenderer.builder())
+          .with(TimeLinePanel.builder())
+          .withResolution(1280, 1024))
+        .showGui(false)
+        .perform();
 
     final SimulationResult res = results.getResults().iterator().next();
 

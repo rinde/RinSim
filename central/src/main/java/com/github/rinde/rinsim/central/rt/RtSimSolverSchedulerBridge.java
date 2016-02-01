@@ -82,11 +82,11 @@ class RtSimSolverSchedulerBridge {
     solver = s;
     clock = c;
     converter = Solvers.converterBuilder()
-        .with(clock)
-        .with(rm)
-        .with(pm)
-        .with(vehicles)
-        .build();
+      .with(clock)
+      .with(rm)
+      .with(pm)
+      .with(vehicles)
+      .build();
     currentSchedule = Optional.absent();
     isUpdated = false;
 
@@ -112,12 +112,12 @@ class RtSimSolverSchedulerBridge {
 
   void handleFailure(Throwable t) {
     if (t instanceof CancellationException
-        || t instanceof InterruptedException) {
+      || t instanceof InterruptedException) {
       LOGGER.info("RealtimeSolver execution got cancelled/interrupted");
       try {
         eventDispatcher.dispatchEvent(
           new Event(RtSimSolverSchedulerBridge.EventType.DONE_COMPUTING,
-              reference));
+            reference));
       } catch (final RuntimeException e) {
         simSolversManager.addException(e);
       }
@@ -146,7 +146,7 @@ class RtSimSolverSchedulerBridge {
     public void solve(final GlobalStateObject state) {
       realtimeCheck();
       eventDispatcher.dispatchEvent(new Event(
-          RtSimSolverSchedulerBridge.EventType.START_COMPUTING, reference));
+        RtSimSolverSchedulerBridge.EventType.START_COMPUTING, reference));
 
       for (final VehicleStateObject vso : state.getVehicles()) {
         checkArgument(vso.getRoute().isPresent(),
@@ -177,7 +177,7 @@ class RtSimSolverSchedulerBridge {
     void realtimeCheck() {
       checkState(clock.getClockMode() == ClockMode.REAL_TIME,
         "Clock must be in real-time mode before calling this method, but it "
-            + "is in %s mode.",
+          + "is in %s mode.",
         clock.getClockMode());
     }
 

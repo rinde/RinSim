@@ -55,28 +55,28 @@ public class RtCentralTestRT {
   @Test
   public void testStayInRt() {
     final Set<TimedEvent> events = ImmutableSet.<TimedEvent>builder()
-        .add(AddParcelEvent.create(
-          Parcel.builder(new Point(0, 0), new Point(1, 0))
-              .orderAnnounceTime(300)
-              .pickupTimeWindow(TimeWindow.create(400, 3000))
-              .buildDTO()))
-        .add(AddParcelEvent.create(
-          Parcel.builder(new Point(0, 0), new Point(1, 0))
-              .orderAnnounceTime(800)
-              .pickupTimeWindow(TimeWindow.create(800, 3000))
-              .buildDTO()))
-        .add(TimeOutEvent.create(1500))
-        .build();
+      .add(AddParcelEvent.create(
+        Parcel.builder(new Point(0, 0), new Point(1, 0))
+          .orderAnnounceTime(300)
+          .pickupTimeWindow(TimeWindow.create(400, 3000))
+          .buildDTO()))
+      .add(AddParcelEvent.create(
+        Parcel.builder(new Point(0, 0), new Point(1, 0))
+          .orderAnnounceTime(800)
+          .pickupTimeWindow(TimeWindow.create(800, 3000))
+          .buildDTO()))
+      .add(TimeOutEvent.create(1500))
+      .build();
 
     final Simulator sim = RealtimeTestHelper
-        .init(RtCentral.vehicleHandler(), events)
-        .addModel(TimeUtil.timeTracker())
-        .addModel(RtCentral.builderAdapt(RandomSolver.supplier()))
-        .build();
+      .init(RtCentral.vehicleHandler(), events)
+      .addModel(TimeUtil.timeTracker())
+      .addModel(RtCentral.builderAdapt(RandomSolver.supplier()))
+      .build();
 
     final RealtimeClockController clock =
       (RealtimeClockController) sim.getModelProvider()
-          .getModel(TimeModel.class);
+        .getModel(TimeModel.class);
 
     // 200 -> switch to RT, switches to ST should be ignored
     // 300 -> new parcel
@@ -105,10 +105,10 @@ public class RtCentralTestRT {
     sim.start();
 
     assertThat(tt.getClockModes().subList(0, 3))
-        .containsExactly(SIMULATED, SIMULATED, SIMULATED).inOrder();
+      .containsExactly(SIMULATED, SIMULATED, SIMULATED).inOrder();
 
     assertThat(tt.getClockModes().subList(3, 6))
-        .containsExactly(REAL_TIME, REAL_TIME, REAL_TIME).inOrder();
+      .containsExactly(REAL_TIME, REAL_TIME, REAL_TIME).inOrder();
 
     assertThat(tt.getClockModes().get(6)).isEqualTo(SIMULATED);
     assertThat(tt.getClockModes().get(7)).isEqualTo(REAL_TIME);
@@ -116,8 +116,8 @@ public class RtCentralTestRT {
     assertThat(tt.getClockModes().get(9)).isEqualTo(REAL_TIME);
     assertThat(tt.getClockModes().get(10)).isEqualTo(REAL_TIME);
     assertThat(tt.getClockModes().subList(11, 15))
-        .containsExactly(SIMULATED, SIMULATED, SIMULATED, SIMULATED)
-        .inOrder();
+      .containsExactly(SIMULATED, SIMULATED, SIMULATED, SIMULATED)
+      .inOrder();
     assertThat(tt.getClockModes().get(15)).isEqualTo(REAL_TIME);
   }
 }

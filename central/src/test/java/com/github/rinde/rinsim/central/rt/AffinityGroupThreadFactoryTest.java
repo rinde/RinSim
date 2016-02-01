@@ -53,7 +53,7 @@ public class AffinityGroupThreadFactoryTest {
   @Test
   public void test() throws InterruptedException {
     if (!Affinity.isJNAAvailable()
-        || Runtime.getRuntime().availableProcessors() <= 2) {
+      || Runtime.getRuntime().availableProcessors() <= 2) {
       return;
     }
 
@@ -166,32 +166,32 @@ public class AffinityGroupThreadFactoryTest {
 
   static List<AffinityLockInfo> getReservations() {
     return FluentIterable.from(AffinityTestHelper.getLockInfo())
-        .filter(new Predicate<AffinityLockInfo>() {
-          @Override
-          public boolean apply(@Nullable AffinityLockInfo input) {
-            return verifyNotNull(input).getThreadInfo().isPresent();
-          }
-        })
-        .toList();
+      .filter(new Predicate<AffinityLockInfo>() {
+        @Override
+        public boolean apply(@Nullable AffinityLockInfo input) {
+          return verifyNotNull(input).getThreadInfo().isPresent();
+        }
+      })
+      .toList();
   }
 
   static ThreadInfo getReservationByName(final String name) {
     final List<ThreadInfo> infos =
       FluentIterable.from(AffinityTestHelper.getLockInfo())
-          .filter(new Predicate<AffinityLockInfo>() {
-            @Override
-            public boolean apply(@Nullable AffinityLockInfo input) {
-              final AffinityLockInfo in = verifyNotNull(input);
-              return in.getThreadInfo().isPresent()
-                  && in.getThreadInfo().get().getName().equals(name);
-            }
-          }).transform(new Function<AffinityLockInfo, ThreadInfo>() {
-            @Nonnull
-            @Override
-            public ThreadInfo apply(@Nullable AffinityLockInfo input) {
-              return verifyNotNull(input).getThreadInfo().get();
-            }
-          }).toList();
+        .filter(new Predicate<AffinityLockInfo>() {
+          @Override
+          public boolean apply(@Nullable AffinityLockInfo input) {
+            final AffinityLockInfo in = verifyNotNull(input);
+            return in.getThreadInfo().isPresent()
+              && in.getThreadInfo().get().getName().equals(name);
+          }
+        }).transform(new Function<AffinityLockInfo, ThreadInfo>() {
+          @Nonnull
+          @Override
+          public ThreadInfo apply(@Nullable AffinityLockInfo input) {
+            return verifyNotNull(input).getThreadInfo().get();
+          }
+        }).toList();
 
     checkArgument(infos.size() == 1,
       "There is no reservation made by a thread with name: '%s'.", name);

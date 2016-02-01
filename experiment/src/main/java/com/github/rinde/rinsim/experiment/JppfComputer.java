@@ -84,7 +84,7 @@ final class JppfComputer implements Computer {
     final List<ResultListener> listeners =
       newArrayList(builder.resultListeners);
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({"rawtypes", "unchecked"})
     final IdMap<PostProcessor<?>> ppMap = new IdMap("p", PostProcessor.class);
     final Map<String, Scenario> scenariosMap = newLinkedHashMap();
 

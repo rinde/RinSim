@@ -66,8 +66,8 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
   public MultimapGraph(Multimap<Point, Point> map) {
     multimap = LinkedHashMultimap.create(map);
     lazyConnectionTable = Tables.newCustomTable(
-        new LinkedHashMap<Point, Map<Point, Connection<E>>>(),
-        new LinkedHashMapFactory<Connection<E>>());
+      new LinkedHashMap<Point, Map<Point, Connection<E>>>(),
+      new LinkedHashMapFactory<Connection<E>>());
     deadEndNodes = new HashSet<>();
     deadEndNodes.addAll(multimap.values());
     deadEndNodes.removeAll(multimap.keySet());
@@ -93,7 +93,7 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
       Connection<T> connection) {
     if (connection.data().isPresent()) {
       return getConnection(connection.from(), connection.to()).equals(
-          connection);
+        connection);
     }
     return hasConnection(connection.from(), connection.to());
   }
@@ -139,7 +139,7 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
   @Override
   public Connection<E> getConnection(Point from, Point to) {
     checkArgument(hasConnection(from, to), "%s -> %s is not a connection.",
-        from, to);
+      from, to);
     if (!lazyConnectionTable.contains(from, to)) {
       lazyConnectionTable.put(from, to, Connection.<E>create(from, to));
     }
@@ -206,7 +206,7 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
   @Override
   public void removeConnection(Point from, Point to) {
     checkArgument(hasConnection(from, to),
-        "Can not remove non-existing connection: %s -> %s", from, to);
+      "Can not remove non-existing connection: %s -> %s", from, to);
     multimap.remove(from, to);
     removeData(from, to);
     if (!multimap.containsKey(to)) {
@@ -232,7 +232,7 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
     }
     if (connData.isPresent()) {
       this.lazyConnectionTable.put(from, to,
-          Connection.create(from, to, connData));
+        Connection.create(from, to, connData));
     }
   }
 

@@ -129,7 +129,7 @@ public final class TimeSeries {
     checkArgument(maxDeviation > 0d);
     final double average = length / numEvents;
     return new UniformTimeSeries(length, average,
-        StochasticSuppliers.constant(maxDeviation));
+      StochasticSuppliers.constant(maxDeviation));
   }
 
   /**
@@ -153,7 +153,7 @@ public final class TimeSeries {
     checkArgument(numEvents > 0);
     final double average = length / numEvents;
     return new UniformTimeSeries(length, average, StochasticSuppliers.checked(
-        maxDeviation, Range.atLeast(0d)));
+      maxDeviation, Range.atLeast(0d)));
   }
 
   /**
@@ -175,12 +175,12 @@ public final class TimeSeries {
     checkArgument(numEvents > 0);
     final double average = length / numEvents;
     return toTimeSeries(length, StochasticSuppliers.normal()
-        .mean(average)
-        .std(sd)
-        .lowerBound(0d)
-        .redrawWhenOutOfBounds()
-        .scaleMean()
-        .buildDouble());
+      .mean(average)
+      .std(sd)
+      .lowerBound(0d)
+      .redrawWhenOutOfBounds()
+      .scaleMean()
+      .buildDouble());
   }
 
   /**
@@ -263,7 +263,7 @@ public final class TimeSeries {
       rng.setSeed(seed);
       while (true) {
         final ImmutableList<Double> timeSeries = delegate.generate(rng
-            .nextLong());
+          .nextLong());
         if (predicate.apply(timeSeries)) {
           return timeSeries;
         }
@@ -298,9 +298,9 @@ public final class TimeSeries {
     // internal use only!
     Iterator<Double> iterator() {
       return new TimeSeriesIterator(new ExponentialDistribution(rng,
-          1d / intensity,
-          ExponentialDistribution.DEFAULT_INVERSE_ABSOLUTE_ACCURACY),
-          length);
+        1d / intensity,
+        ExponentialDistribution.DEFAULT_INVERSE_ABSOLUTE_ACCURACY),
+        length);
     }
 
     @Override
@@ -340,7 +340,7 @@ public final class TimeSeries {
     public ImmutableList<Double> generate(long seed) {
       rng.setSeed(seed);
       final TimeSeriesGenerator tsg = new NonHomogenous(length,
-          lambdSup.get(rng.nextLong()));
+        lambdSup.get(rng.nextLong()));
       return tsg.generate(rng.nextLong());
     }
   }
@@ -357,7 +357,7 @@ public final class TimeSeries {
     @Override
     public ImmutableList<Double> generate(long seed) {
       return ImmutableList.copyOf(new SupplierIterator(length, supplier,
-          new MersenneTwister(seed)));
+        new MersenneTwister(seed)));
     }
 
   }
@@ -395,10 +395,10 @@ public final class TimeSeries {
     static double getValue(StochasticSupplier<Double> ed, RandomGenerator rng) {
       final double sample = ed.get(rng.nextLong());
       checkArgument(
-          sample >= 0d,
-          "A StochasticSupplier used in a TimeSeries may not return negative "
-              + "values, was: %s.",
-          sample);
+        sample >= 0d,
+        "A StochasticSupplier used in a TimeSeries may not return negative "
+          + "values, was: %s.",
+        sample);
       return sample;
     }
   }
@@ -428,10 +428,10 @@ public final class TimeSeries {
 
       if (deviation < SMALLEST_DEVIATION) {
         return ImmutableList.copyOf(new FixedTimeSeriesIterator(rng, length,
-            average));
+          average));
       }
       return ImmutableList.copyOf(new TimeSeriesIterator(
-          new UniformRealDistribution(rng, lowerBound, upperBound), length));
+        new UniformRealDistribution(rng, lowerBound, upperBound), length));
     }
   }
 
@@ -448,7 +448,7 @@ public final class TimeSeries {
     public ImmutableList<Double> generate(long seed) {
       distribution.reseedRandomGenerator(seed);
       return ImmutableList.copyOf(new TimeSeriesIterator(
-          distribution, length));
+        distribution, length));
     }
   }
 

@@ -106,13 +106,13 @@ public final class Solvers {
   public static ExtendedStats computeStats(GlobalStateObject state,
       @Nullable ImmutableList<ImmutableList<Parcel>> routes) {
     final Optional<ImmutableList<ImmutableList<Parcel>>> r = Optional
-        .fromNullable(routes);
+      .fromNullable(routes);
 
     if (r.isPresent()) {
       checkArgument(
         state.getVehicles().size() == r.get().size(),
         "Exactly one route should be supplied for every vehicle in state. %s "
-            + "vehicle(s) in state, received %s route(s).",
+          + "vehicle(s) in state, received %s route(s).",
         state.getVehicles().size(), r.get().size());
     }
 
@@ -134,7 +134,7 @@ public final class Solvers {
       final VehicleStateObject vso = state.getVehicles().get(i);
       checkArgument(r.isPresent() || vso.getRoute().isPresent(),
         "Vehicle routes must either be specified as an argument or must be part"
-            + " of the state object.");
+          + " of the state object.");
 
       final ImmutableList.Builder<Long> truckArrivalTimesBuilder =
         ImmutableList.builder();
@@ -156,13 +156,13 @@ public final class Solvers {
       for (int j = 0; j < route.size(); j++) {
         final Parcel cur = route.get(j);
         final boolean inCargo = vso.getContents().contains(cur)
-            || seen.contains(cur);
+          || seen.contains(cur);
         seen.add(cur);
         if (vso.getDestination().isPresent() && j == 0) {
           checkArgument(
             vso.getDestination().asSet().contains(cur),
             "If a vehicle has a destination, the first position in the route "
-                + "must equal this. Expected %s, is %s.",
+              + "must equal this. Expected %s, is %s.",
             vso.getDestination().get(), cur);
         }
 
@@ -175,7 +175,7 @@ public final class Solvers {
         } else {
           // vehicle is not there yet, go there first, then service
           final Point nextLoc = inCargo ? cur.getDeliveryLocation()
-              : cur.getPickupLocation();
+            : cur.getPickupLocation();
           final Measure<Double, Length> distance = Measure.valueOf(
             Point.distance(vehicleLocation, nextLoc), state.getDistUnit());
           totalDistance += distance.getValue();
@@ -247,11 +247,11 @@ public final class Solvers {
     final long simulationTime = maxTime - startTime;
 
     return new ExtendedStats(totalDistance, totalPickups, totalDeliveries,
-        totalParcels, totalParcels, pickupTardiness, deliveryTardiness, 0,
-        simulationTime, true, totalVehicles, overTime, totalVehicles,
-        movedVehicles, state.getTimeUnit(), state.getDistUnit(),
-        state.getSpeedUnit(),
-        arrivalTimesBuilder.build());
+      totalParcels, totalParcels, pickupTardiness, deliveryTardiness, 0,
+      simulationTime, true, totalVehicles, overTime, totalVehicles,
+      movedVehicles, state.getTimeUnit(), state.getDistUnit(),
+      state.getSpeedUnit(),
+      arrivalTimesBuilder.build());
   }
 
   public static Callable<ImmutableList<ImmutableList<Parcel>>> createSolverCallable(
@@ -264,7 +264,7 @@ public final class Solvers {
   static ImmutableList<Queue<Parcel>> convertRoutes(StateContext cont,
       List<? extends List<Parcel>> routes) {
     final ImmutableList.Builder<Queue<Parcel>> routesBuilder = ImmutableList
-        .builder();
+      .builder();
     for (final List<Parcel> route : routes) {
       routesBuilder.add(newLinkedList(route));
     }
@@ -278,7 +278,7 @@ public final class Solvers {
 
     final ImmutableMap.Builder<VehicleStateObject, Vehicle> vbuilder =
       ImmutableMap
-          .builder();
+        .builder();
 
     @Nullable
     Iterator<ImmutableList<Parcel>> routeIterator = null;
@@ -290,10 +290,10 @@ public final class Solvers {
     }
 
     final ImmutableSet.Builder<Parcel> availableDestParcels = ImmutableSet
-        .builder();
+      .builder();
     for (final Vehicle v : vehicles) {
       final ImmutableSet<Parcel> contentsMap = ImmutableSet.copyOf(pm
-          .getContents(v));
+        .getContents(v));
 
       @Nullable
       ImmutableList<Parcel> route = null;
@@ -312,13 +312,13 @@ public final class Solvers {
       availableDestMap);
 
     final ImmutableSet<Parcel> availableParcelsKeys = ImmutableSet
-        .<Parcel>builder()
-        .addAll(availableParcels)
-        .addAll(toAdd)
-        .build();
+      .<Parcel>builder()
+      .addAll(availableParcels)
+      .addAll(toAdd)
+      .build();
 
     final ImmutableMap<VehicleStateObject, Vehicle> vehicleMap = vbuilder
-        .build();
+      .build();
 
     return new StateContext(GlobalStateObject.create(availableParcelsKeys,
       vehicleMap.keySet().asList(), time.getValue().longValue(),
@@ -331,7 +331,7 @@ public final class Solvers {
       @Nullable ImmutableList<Parcel> route,
       ImmutableSet.Builder<Parcel> availableDestBuilder) {
     final boolean isIdle = pm
-        .getVehicleState(vehicle) == PDPModel.VehicleState.IDLE;
+      .getVehicleState(vehicle) == PDPModel.VehicleState.IDLE;
 
     long remainingServiceTime = 0;
     @Nullable
@@ -352,7 +352,7 @@ public final class Solvers {
 
     return VehicleStateObject.create(vehicle.getDTO(), rm.getPosition(vehicle),
       contents, remainingServiceTime, destination == null ? null
-          : destination,
+        : destination,
       route);
   }
 
@@ -575,8 +575,8 @@ public final class Solvers {
           checkArgument(
             simulator != null,
             "Attempt to find a model provider failed. Either provide the "
-                + "models directly, provide a model provider or a "
-                + "simulator.");
+              + "models directly, provide a model provider or a "
+              + "simulator.");
           mp = simulator.getModelProvider();
         }
 
@@ -596,8 +596,8 @@ public final class Solvers {
         return (T) new SimSolver(solver, rm, pm, c, vehicles);
       }
       throw new IllegalArgumentException(
-          "Not all required components could be found, PDPRoadModel: " + rm
-              + ", PDPModel: " + pm + ", Clock: " + c);
+        "Not all required components could be found, PDPRoadModel: " + rm
+          + ", PDPModel: " + pm + ", Clock: " + c);
     }
 
     /**
@@ -649,7 +649,7 @@ public final class Solvers {
         Unit<Length> distUnit, Unit<Velocity> speed,
         ImmutableList<ImmutableList<Long>> pArrivalTimes) {
       super(dist, pick, del, parc, accP, pickTar, delTar, compT, simT, finish,
-          atDepot, overT, total, moved, time, distUnit, speed);
+        atDepot, overT, total, moved, time, distUnit, speed);
       arrivalTimes = pArrivalTimes;
     }
 

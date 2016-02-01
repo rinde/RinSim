@@ -80,7 +80,7 @@ public final class AGVRenderer
     model = m;
     helper = new RenderHelper();
     vehicles = Collections
-        .synchronizedMap(new LinkedHashMap<MovingRoadUser, VehicleUI>());
+      .synchronizedMap(new LinkedHashMap<MovingRoadUser, VehicleUI>());
     vehicleCounter = 0;
     vizOptions = options;
   }
@@ -101,9 +101,9 @@ public final class AGVRenderer
   @Override
   public boolean register(MovingRoadUser mru) {
     final int color = vizOptions.contains(VizOptions.USE_DIFFERENT_COLORS)
-        ? colors.next() : DEFAULT_COLOR;
+      ? colors.next() : DEFAULT_COLOR;
     final VehicleUI v = new VehicleUI(mru, model, color, vizOptions,
-        vehicleCounter++);
+      vehicleCounter++);
 
     verify(vehicles.put(mru, v) == null);
     return true;
@@ -185,7 +185,7 @@ public final class AGVRenderer
 
     static Builder create() {
       return new AutoValue_AGVRenderer_Builder(
-          Sets.immutableEnumSet(ImmutableSet.<VizOptions>of()));
+        Sets.immutableEnumSet(ImmutableSet.<VizOptions>of()));
     }
 
     static Builder create(VizOptions one, Iterable<VizOptions> more) {
@@ -239,10 +239,10 @@ public final class AGVRenderer
 
       igc.setBackground(gc.getDevice().getSystemColor(color));
       igc.fillPolygon(new int[] {
-          frontSize, 0,
-          width - frontSize, 0,
-          width, frontSize,
-          0, frontSize
+        frontSize, 0,
+        width - frontSize, 0,
+        width, frontSize,
+        0, frontSize
       });
       igc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_GRAY));
       igc.fillRectangle(0, frontSize, width, length - frontSize);
@@ -259,11 +259,11 @@ public final class AGVRenderer
         igc.setFont(newFont);
 
         final org.eclipse.swt.graphics.Point finalTextSize = igc
-            .stringExtent(string);
+          .stringExtent(string);
 
         final int xOffset = (int) ((width - finalTextSize.x) / 2d);
         final int yOffset = frontSize
-            + (int) ((length - frontSize - finalTextSize.y) / 2d);
+          + (int) ((length - frontSize - finalTextSize.y) / 2d);
         igc.drawText(string, xOffset, yOffset, true);
         newFont.dispose();
       }
@@ -285,7 +285,7 @@ public final class AGVRenderer
       }
       position = model.getPosition(vehicle);
       final Optional<? extends Connection<?>> conn = model
-          .getConnection(vehicle);
+        .getConnection(vehicle);
 
       if (!image.isPresent() || scale != vp.scale) {
         scale = vp.scale;

@@ -62,11 +62,11 @@ public abstract class MoveProgress {
   static MoveProgress create(Measure<Double, Length> dist,
       Measure<Long, Duration> pTime, List<Point> pTravelledNodes) {
     checkArgument(dist.getValue() >= 0d,
-        "Distance must be greater than or equal to 0.");
+      "Distance must be greater than or equal to 0.");
     checkArgument(pTime.getValue() >= 0L,
-        "Time must be greather than or equal to 0.");
+      "Time must be greather than or equal to 0.");
     return new AutoValue_MoveProgress(dist, pTime,
-        ImmutableList.copyOf(pTravelledNodes));
+      ImmutableList.copyOf(pTravelledNodes));
   }
 
   /**
@@ -122,7 +122,7 @@ public abstract class MoveProgress {
      */
     public Builder addDistance(double dist) {
       checkArgument(dist >= 0d, "Only positive values are allowed, is %s.",
-          dist);
+        dist);
       travelDistance += dist;
       return this;
     }
@@ -137,9 +137,9 @@ public abstract class MoveProgress {
       checkState(!used, "This method may be called only once.");
       used = true;
       final Measure<Double, Length> distTraveled = unitConversion
-          .toExDistMeasure(travelDistance);
+        .toExDistMeasure(travelDistance);
       final Measure<Long, Duration> timeConsumed = Measure.valueOf(
-          time.getTimeConsumed() - startTimeConsumed, time.getTimeUnit());
+        time.getTimeConsumed() - startTimeConsumed, time.getTimeUnit());
       return create(distTraveled, timeConsumed, traveledNodes);
     }
   }

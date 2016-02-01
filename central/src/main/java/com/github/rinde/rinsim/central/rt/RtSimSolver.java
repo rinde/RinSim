@@ -108,8 +108,8 @@ public abstract class RtSimSolver {
     @Override
     public String toString() {
       return MoreObjects.toStringHelper(getClass())
-          .add("schedule", schedule)
-          .toString();
+        .add("schedule", schedule)
+        .toString();
     }
   }
 

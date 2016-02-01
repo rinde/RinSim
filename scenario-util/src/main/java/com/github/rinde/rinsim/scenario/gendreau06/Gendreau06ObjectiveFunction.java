@@ -53,13 +53,13 @@ public final class Gendreau06ObjectiveFunction
   @Override
   public boolean isValidResult(StatisticsDTO stats) {
     return stats.totalParcels == stats.acceptedParcels
-        && stats.totalParcels == stats.totalPickups
-        && stats.totalParcels == stats.totalDeliveries
-        && stats.simFinish
-        && stats.totalVehicles == stats.vehiclesAtDepot
-        && stats.distanceUnit.equals(SI.KILOMETER)
-        && stats.speedUnit.equals(NonSI.KILOMETERS_PER_HOUR)
-        && stats.timeUnit.equals(SI.MILLI(SI.SECOND));
+      && stats.totalParcels == stats.totalPickups
+      && stats.totalParcels == stats.totalDeliveries
+      && stats.simFinish
+      && stats.totalVehicles == stats.vehiclesAtDepot
+      && stats.distanceUnit.equals(SI.KILOMETER)
+      && stats.speedUnit.equals(NonSI.KILOMETERS_PER_HOUR)
+      && stats.timeUnit.equals(SI.MILLI(SI.SECOND));
   }
 
   /**
@@ -87,10 +87,10 @@ public final class Gendreau06ObjectiveFunction
   @Override
   public String printHumanReadableFormat(StatisticsDTO stats) {
     return new StringBuilder().append("Travel time: ")
-        .append(travelTime(stats)).append("\nTardiness: ")
-        .append(tardiness(stats)).append("\nOvertime: ")
-        .append(overTime(stats)).append("\nTotal: ").append(computeCost(stats))
-        .toString();
+      .append(travelTime(stats)).append("\nTardiness: ")
+      .append(tardiness(stats)).append("\nOvertime: ")
+      .append(overTime(stats)).append("\nTotal: ").append(computeCost(stats))
+      .toString();
 
   }
 

@@ -147,7 +147,7 @@ public final class Depots {
       rng.setSeed(seed);
       final int num = numberOfDepots.get(rng.nextLong());
       final ImmutableList.Builder<AddDepotEvent> builder = ImmutableList
-          .builder();
+        .builder();
       for (int i = 0; i < num; i++) {
         final long time = times.get(rng.nextLong());
         final Point position = positions.get(rng.nextLong());

@@ -85,9 +85,9 @@ public abstract class VehicleDTO {
      */
     public Builder use(VehicleDTO dto) {
       return startPosition(dto.getStartPosition())
-          .availabilityTimeWindow(dto.getAvailabilityTimeWindow())
-          .speed(dto.getSpeed())
-          .capacity(dto.getCapacity());
+        .availabilityTimeWindow(dto.getAvailabilityTimeWindow())
+        .speed(dto.getSpeed())
+        .capacity(dto.getCapacity());
     }
 
     /**
@@ -139,7 +139,7 @@ public abstract class VehicleDTO {
      */
     public VehicleDTO build() {
       return new AutoValue_VehicleDTO(startPosition, speed, capacity,
-          availabilityTimeWindow);
+        availabilityTimeWindow);
     }
   }
 }

@@ -47,9 +47,9 @@ final class VehicleRenderer extends AbstractCanvasRenderer {
       for (final Entry<RoadUser, Point> entry : objects.entrySet()) {
         final Point p = entry.getValue();
         gc.fillOval((int) (vp.origin.x + (p.x - vp.rect.min.x) * vp.scale)
-            - radius, (int) (vp.origin.y + (p.y - vp.rect.min.y) * vp.scale)
-                - radius,
-            2 * radius, 2 * radius);
+          - radius, (int) (vp.origin.y + (p.y - vp.rect.min.y) * vp.scale)
+            - radius,
+          2 * radius, 2 * radius);
       }
     }
   }

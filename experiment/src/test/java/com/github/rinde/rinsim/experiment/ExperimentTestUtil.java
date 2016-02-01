@@ -52,25 +52,25 @@ public final class ExperimentTestUtil {
 
   public static MASConfiguration testConfig(String name) {
     return MASConfiguration.pdptwBuilder()
-        .setName(name)
-        .addEventHandler(AddVehicleEvent.class,
-            ExperimentTestUtil.randomVehicle())
-        .build();
+      .setName(name)
+      .addEventHandler(AddVehicleEvent.class,
+        ExperimentTestUtil.randomVehicle())
+      .build();
   }
 
   public static Simulator init(Scenario scenario,
       MASConfiguration config, long seed, boolean showGui) {
     return Experiment.init(scenario, config, seed, showGui,
-        Optional.<ModelBuilder<?, ?>>absent());
+      Optional.<ModelBuilder<?, ?>>absent());
   }
 
   public static StatisticsDTO singleRun(Scenario scenario,
       MASConfiguration c, long seed, ObjectiveFunction objFunc,
       boolean showGui) {
     return (StatisticsDTO) Experiment
-        .singleRun(scenario, c, seed, objFunc, showGui,
-            PostProcessors.statisticsPostProcessor(), null)
-        .getResultObject();
+      .singleRun(scenario, c, seed, objFunc, showGui,
+        PostProcessors.statisticsPostProcessor(), null)
+      .getResultObject();
   }
 
   private enum VehicleHandler implements TimedEventHandler<AddVehicleEvent> {

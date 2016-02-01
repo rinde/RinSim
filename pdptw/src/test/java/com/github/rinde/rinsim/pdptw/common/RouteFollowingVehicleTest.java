@@ -115,14 +115,14 @@ public class RouteFollowingVehicleTest {
   @Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
-        {true, true, RouteAdjusters.NOP},
-        {true, true, RouteFollowingVehicle.delayAdjuster()},
-        {true, false, RouteAdjusters.NOP},
-        {true, false, RouteAdjusters.DELAY_ADJUSTER},
-        {false, true, RouteAdjusters.NOP},
-        {false, true, RouteAdjusters.DELAY_ADJUSTER},
-        {false, false, RouteAdjusters.NOP},
-        {false, false, RouteAdjusters.DELAY_ADJUSTER}
+      {true, true, RouteAdjusters.NOP},
+      {true, true, RouteFollowingVehicle.delayAdjuster()},
+      {true, false, RouteAdjusters.NOP},
+      {true, false, RouteAdjusters.DELAY_ADJUSTER},
+      {false, true, RouteAdjusters.NOP},
+      {false, true, RouteAdjusters.DELAY_ADJUSTER},
+      {false, false, RouteAdjusters.NOP},
+      {false, false, RouteAdjusters.DELAY_ADJUSTER}
     });
   }
 
@@ -143,54 +143,54 @@ public class RouteFollowingVehicleTest {
     final DependencyProvider dp = mock(DependencyProvider.class);
     rm = PDPRoadModel.builder(
       RoadModelBuilders.plane()
-          .withMaxSpeed(30d))
-        .withAllowVehicleDiversion(diversionIsAllowed)
-        .build(dp);
+        .withMaxSpeed(30d))
+      .withAllowVehicleDiversion(diversionIsAllowed)
+      .build(dp);
 
     when(dp.get(RoadModel.class)).thenReturn(rm);
 
     pm = DefaultPDPModel.builder()
-        .withTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED)
-        .build(dp);
+      .withTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED)
+      .build(dp);
 
     final ModelProvider mp = new TestModelProvider(new ArrayList<Model<?>>(
-        asList(rm, pm)));
+      asList(rm, pm)));
     rm.registerModelProvider(mp);
 
     final VehicleDTO v = VehicleDTO.builder()
-        .startPosition(new Point(1, 1))
-        .speed(30d)
-        .capacity(1)
-        .availabilityTimeWindow(TimeWindow.create(0, minute(30)))
-        .build();
+      .startPosition(new Point(1, 1))
+      .speed(30d)
+      .capacity(1)
+      .availabilityTimeWindow(TimeWindow.create(0, minute(30)))
+      .build();
     d = new RouteFollowingVehicle(v, allowDelayedRouteChanges, routeAdjuster);
     d2 = new RouteFollowingVehicle(v, allowDelayedRouteChanges, routeAdjuster);
 
     assertThat(d.isDelayedRouteChangingAllowed())
-        .isEqualTo(allowDelayedRouteChanges);
+      .isEqualTo(allowDelayedRouteChanges);
     assertThat(d2.isDelayedRouteChangingAllowed())
-        .isEqualTo(allowDelayedRouteChanges);
+      .isEqualTo(allowDelayedRouteChanges);
 
     p1 = Parcel
-        .builder(new Point(1, 2), new Point(1, 4))
-        .pickupTimeWindow(TimeWindow.create(minute(5), minute(15)))
-        .deliveryTimeWindow(TimeWindow.create(minute(16), minute(30)))
-        .pickupDuration(minute(3))
-        .deliveryDuration(minute(1))
-        .build();
+      .builder(new Point(1, 2), new Point(1, 4))
+      .pickupTimeWindow(TimeWindow.create(minute(5), minute(15)))
+      .deliveryTimeWindow(TimeWindow.create(minute(16), minute(30)))
+      .pickupDuration(minute(3))
+      .deliveryDuration(minute(1))
+      .build();
 
     p2 = Parcel
-        .builder(new Point(1, 3), new Point(1, 5))
-        .pickupTimeWindow(TimeWindow.create(minute(15) + 10, minute(25)))
-        .deliveryTimeWindow(TimeWindow.create(minute(22) + 10, minute(30)))
-        .deliveryDuration(minute(3))
-        .build();
+      .builder(new Point(1, 3), new Point(1, 5))
+      .pickupTimeWindow(TimeWindow.create(minute(15) + 10, minute(25)))
+      .deliveryTimeWindow(TimeWindow.create(minute(22) + 10, minute(30)))
+      .deliveryDuration(minute(3))
+      .build();
 
     p3 = Parcel.builder(new Point(1, 3), new Point(1, 5))
-        .pickupTimeWindow(TimeWindow.create(minute(15) + 10, minute(25)))
-        .deliveryTimeWindow(TimeWindow.create(minute(22) + 10, minute(30)))
-        .serviceDuration(minute(3))
-        .build();
+      .pickupTimeWindow(TimeWindow.create(minute(15) + 10, minute(25)))
+      .deliveryTimeWindow(TimeWindow.create(minute(22) + 10, minute(30)))
+      .serviceDuration(minute(3))
+      .build();
 
     depot = new Depot(new Point(3, 5));
     if (register) {
@@ -259,7 +259,7 @@ public class RouteFollowingVehicleTest {
     // tests whether internal states of vehicle match the state of the pdp model
     // at all times
     if (pm.getVehicleState(d) == VehicleState.DELIVERING
-        || pm.getVehicleState(d) == VehicleState.PICKING_UP) {
+      || pm.getVehicleState(d) == VehicleState.PICKING_UP) {
       assertSame(d.serviceState, d.stateMachine.getCurrentState());
     } else {
       assertThat(d.serviceState).isNotSameAs(d.stateMachine.getCurrentState());
@@ -473,14 +473,14 @@ public class RouteFollowingVehicleTest {
     }
     // assertTrue(exception2);
     assert_()
-        .withFailureMessage(
-          "diversion: " + diversionIsAllowed + ", delayed route changes: "
-              + allowDelayedRouteChanges + ", routeAdjuster: " + routeAdjuster)
-        .that(exception2)
-        .isSameAs(
-          routeAdjuster == RouteAdjusters.NOP
-              || routeAdjuster == RouteAdjusters.DELAY_ADJUSTER
-                  && !allowDelayedRouteChanges);
+      .withFailureMessage(
+        "diversion: " + diversionIsAllowed + ", delayed route changes: "
+          + allowDelayedRouteChanges + ", routeAdjuster: " + routeAdjuster)
+      .that(exception2)
+      .isSameAs(
+        routeAdjuster == RouteAdjusters.NOP
+          || routeAdjuster == RouteAdjusters.DELAY_ADJUSTER
+            && !allowDelayedRouteChanges);
 
     tick(16, 23, 10);
     assertEquals(ParcelState.DELIVERING, pm.getParcelState(p1));
@@ -496,8 +496,8 @@ public class RouteFollowingVehicleTest {
       exception3 = true;
     }
     assertThat(exception3).isSameAs(routeAdjuster == RouteAdjusters.NOP
-        || routeAdjuster == RouteAdjusters.DELAY_ADJUSTER
-            && !allowDelayedRouteChanges);
+      || routeAdjuster == RouteAdjusters.DELAY_ADJUSTER
+        && !allowDelayedRouteChanges);
   }
 
   /**
@@ -665,7 +665,7 @@ public class RouteFollowingVehicleTest {
     } catch (final IllegalArgumentException e) {
       assertThat(e.getMessage()).contains(
         "When a parcel in the route is in PICKING UP state the vehicle "
-            + "must also be in that state");
+          + "must also be in that state");
       fail = true;
     }
     assertThat(routeAdjuster == RouteAdjusters.NOP).isEqualTo(fail);
@@ -678,10 +678,10 @@ public class RouteFollowingVehicleTest {
   @Test
   public void setRouteSafeTest5() {
     final Parcel p4 = Parcel.builder(new Point(1, 2), new Point(1, 5))
-        .pickupTimeWindow(TimeWindow.create(minute(5), minute(25)))
-        .deliveryTimeWindow(TimeWindow.create(minute(22), minute(30)))
-        .serviceDuration(minute(3))
-        .build();
+      .pickupTimeWindow(TimeWindow.create(minute(5), minute(25)))
+      .deliveryTimeWindow(TimeWindow.create(minute(22), minute(30)))
+      .serviceDuration(minute(3))
+      .build();
 
     PDPTWTestUtil.register(rm, pm, p4);
 
@@ -707,7 +707,7 @@ public class RouteFollowingVehicleTest {
       fail = true;
       assertThat(e.getMessage()).contains(
         "A parcel in the route that is being serviced should be serviced by"
-            + " this truck.");
+          + " this truck.");
     }
     assertThat(routeAdjuster == RouteAdjusters.NOP).isEqualTo(fail);
 
@@ -719,7 +719,7 @@ public class RouteFollowingVehicleTest {
       fail = true;
       assertThat(e.getMessage()).contains(
         "A parcel in the route that is being serviced should be serviced by"
-            + " this truck.");
+          + " this truck.");
     }
     assertThat(routeAdjuster == RouteAdjusters.NOP).isEqualTo(fail);
   }
@@ -889,7 +889,7 @@ public class RouteFollowingVehicleTest {
       }
     }
     if (!exception2 && routeAdjuster == RouteAdjusters.DELAY_ADJUSTER
-        && !diversionIsAllowed) {
+      && !diversionIsAllowed) {
       assertThat(d.route).containsExactly(p1);
     } else {
       assertThat(d.route).isEmpty();
@@ -920,7 +920,7 @@ public class RouteFollowingVehicleTest {
     @SuppressWarnings("unchecked")
     final StateTransitionEvent<StateEvent, RouteFollowingVehicle> ev1 =
       (StateTransitionEvent<StateEvent, RouteFollowingVehicle>) leh
-          .getHistory().get(0);
+        .getHistory().get(0);
     assertEquals(DefaultEvent.GOTO, ev1.trigger);
     assertEquals(d.waitState, ev1.previousState);
     assertEquals(d.gotoState, ev1.newState);
@@ -944,7 +944,7 @@ public class RouteFollowingVehicleTest {
       @SuppressWarnings("unchecked")
       final StateTransitionEvent<StateEvent, RouteFollowingVehicle> ev2 =
         (StateTransitionEvent<StateEvent, RouteFollowingVehicle>) leh
-            .getHistory().get(1);
+          .getHistory().get(1);
       assertEquals(DefaultEvent.REROUTE, ev2.trigger);
       assertEquals(d.gotoState, ev2.previousState);
       assertEquals(d.gotoState, ev2.newState);
@@ -1075,7 +1075,7 @@ public class RouteFollowingVehicleTest {
       fails = true;
     }
     assertThat(allowDelayedRouteChanges || diversionIsAllowed)
-        .isNotSameAs(fails);
+      .isNotSameAs(fails);
 
     if (allowDelayedRouteChanges && !diversionIsAllowed) {
       assertEquals(1, d.getRoute().size());
@@ -1198,12 +1198,12 @@ public class RouteFollowingVehicleTest {
   @Test
   public void tooEarlyTest1() {
     final Parcel p4 = Parcel
-        .builder(new Point(1, 2), new Point(1, 4))
-        .pickupTimeWindow(TimeWindow.create(minute(5) + second(30), minute(15)))
-        .deliveryTimeWindow(TimeWindow.create(minute(16), minute(30)))
-        .pickupDuration(minute(3))
-        .deliveryDuration(minute(1))
-        .build();
+      .builder(new Point(1, 2), new Point(1, 4))
+      .pickupTimeWindow(TimeWindow.create(minute(5) + second(30), minute(15)))
+      .deliveryTimeWindow(TimeWindow.create(minute(16), minute(30)))
+      .pickupDuration(minute(3))
+      .deliveryDuration(minute(1))
+      .build();
 
     PDPTWTestUtil.register(rm, pm, p4);
 
@@ -1245,12 +1245,12 @@ public class RouteFollowingVehicleTest {
   @Test
   public void tooEarlyTest2() {
     final Parcel p4 = Parcel
-        .builder(new Point(1, 2.2), new Point(1, 4))
-        .pickupTimeWindow(TimeWindow.create(minute(5) + second(30), minute(15)))
-        .deliveryTimeWindow(TimeWindow.create(minute(16), minute(30)))
-        .pickupDuration(minute(3))
-        .deliveryDuration(minute(1))
-        .build();
+      .builder(new Point(1, 2.2), new Point(1, 4))
+      .pickupTimeWindow(TimeWindow.create(minute(5) + second(30), minute(15)))
+      .deliveryTimeWindow(TimeWindow.create(minute(16), minute(30)))
+      .pickupDuration(minute(3))
+      .deliveryDuration(minute(1))
+      .build();
 
     PDPTWTestUtil.register(rm, pm, p4);
 
@@ -1291,12 +1291,12 @@ public class RouteFollowingVehicleTest {
   @Test
   public void tooEarlyTest3() {
     final Parcel p4 = Parcel
-        .builder(new Point(1, 1.99), new Point(1, 4))
-        .pickupTimeWindow(TimeWindow.create(minute(5) + second(30), minute(15)))
-        .deliveryTimeWindow(TimeWindow.create(minute(16), minute(30)))
-        .pickupDuration(minute(3))
-        .deliveryDuration(minute(1))
-        .build();
+      .builder(new Point(1, 1.99), new Point(1, 4))
+      .pickupTimeWindow(TimeWindow.create(minute(5) + second(30), minute(15)))
+      .deliveryTimeWindow(TimeWindow.create(minute(16), minute(30)))
+      .pickupDuration(minute(3))
+      .deliveryDuration(minute(1))
+      .build();
 
     PDPTWTestUtil.register(rm, pm, p4);
 
@@ -1340,11 +1340,11 @@ public class RouteFollowingVehicleTest {
   @Test
   public void testExtension() {
     final VehicleDTO v = VehicleDTO.builder()
-        .startPosition(new Point(1, 1))
-        .speed(30d)
-        .capacity(1)
-        .availabilityTimeWindow(TimeWindow.create(0, minute(30)))
-        .build();
+      .startPosition(new Point(1, 1))
+      .speed(30d)
+      .capacity(1)
+      .availabilityTimeWindow(TimeWindow.create(0, minute(30)))
+      .build();
     final SubVehicle vehicle = new SubVehicle(v, allowDelayedRouteChanges);
     d = vehicle;
 

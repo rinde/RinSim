@@ -15,7 +15,6 @@
  */
 package com.github.rinde.rinsim.core.model.time;
 
-
 /**
  * @author Rinde van Lon
  *

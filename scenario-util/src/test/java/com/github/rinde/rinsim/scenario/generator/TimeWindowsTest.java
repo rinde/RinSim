@@ -66,47 +66,47 @@ public class TimeWindowsTest {
   @Parameters
   public static Iterable<Object[]> parameters() {
     return ImmutableList.of(
-        new Object[] {
-            builder()
-                .pickupUrgency(constant(100L))
-                .pickupTimeWindowLength(constant(0L))
-                .build(),
-            100d,
-            100d
-        },
-        new Object[] {
-            builder()
-                .pickupUrgency(uniformLong(0, 1000))
-                .build(),
-            500d,
-            100d,
-        },
-        new Object[] {
-            builder()
-                .pickupUrgency(uniformLong(0, 1000))
-                .pickupTimeWindowLength(
-                    normal().bounds(0, 1000).mean(500).std(300).buildLong())
-                .build(),
-            500d,
-            500d,
-        },
-        new Object[] {
-            builder()
-                .pickupUrgency(constant(0L))
-                .pickupTimeWindowLength(constant(0L))
-                .build(),
-            0d,
-            0d
-        },
-        new Object[] {
-            builder()
-                .pickupUrgency(
-                    normal().bounds(200, 1200).mean(600).std(200).buildLong())
-                .pickupTimeWindowLength(constant(0L))
-                .build(),
-            600d,
-            600d
-        });
+      new Object[] {
+        builder()
+          .pickupUrgency(constant(100L))
+          .pickupTimeWindowLength(constant(0L))
+          .build(),
+        100d,
+        100d
+      },
+      new Object[] {
+        builder()
+          .pickupUrgency(uniformLong(0, 1000))
+          .build(),
+        500d,
+        100d,
+      },
+      new Object[] {
+        builder()
+          .pickupUrgency(uniformLong(0, 1000))
+          .pickupTimeWindowLength(
+            normal().bounds(0, 1000).mean(500).std(300).buildLong())
+          .build(),
+        500d,
+        500d,
+      },
+      new Object[] {
+        builder()
+          .pickupUrgency(constant(0L))
+          .pickupTimeWindowLength(constant(0L))
+          .build(),
+        0d,
+        0d
+      },
+      new Object[] {
+        builder()
+          .pickupUrgency(
+            normal().bounds(200, 1200).mean(600).std(200).buildLong())
+          .pickupTimeWindowLength(constant(0L))
+          .build(),
+        600d,
+        600d
+      });
   }
 
   static Iterable<Object[]> c(Iterable<?> in) {
@@ -119,25 +119,25 @@ public class TimeWindowsTest {
 
   static Iterable<Parcel.Builder> parcelBuilders() {
     final Iterator<Point> locations = Iterators.cycle(asList(
-        new Point(3, 3),
-        new Point(8, 1),
-        new Point(2, 0),
-        new Point(0, 0),
-        new Point(1, 1),
-        new Point(7, 6)));
+      new Point(3, 3),
+      new Point(8, 1),
+      new Point(2, 0),
+      new Point(0, 0),
+      new Point(1, 1),
+      new Point(7, 6)));
 
     final Iterator<Long> serviceDurations = Iterators.cycle(asList(
-        0L, 0L, 1L, 2L, 5L, 10L, 10L));
+      0L, 0L, 1L, 2L, 5L, 10L, 10L));
 
     final Iterator<Long> arrivalTimes = Iterators.cycle(asList(0L, 50L, 85L));
 
     final List<Parcel.Builder> builders = newArrayList();
     for (int i = 0; i < 50; i++) {
       builders.add(
-          Parcel.builder(locations.next(), locations.next())
-              .orderAnnounceTime(arrivalTimes.next())
-              .pickupDuration(serviceDurations.next())
-              .deliveryDuration(serviceDurations.next()));
+        Parcel.builder(locations.next(), locations.next())
+          .orderAnnounceTime(arrivalTimes.next())
+          .pickupDuration(serviceDurations.next())
+          .deliveryDuration(serviceDurations.next()));
     }
     return builders;
   }
@@ -183,14 +183,14 @@ public class TimeWindowsTest {
       for (final Parcel.Builder parcelBuilder : parcelBuilders()) {
         for (int i = 0; i < 10; i++) {
           timeWindowGenerator
-              .generate(rng.nextLong(), parcelBuilder, tt, END_TIME);
+            .generate(rng.nextLong(), parcelBuilder, tt, END_TIME);
 
           final long pickDelTT = tt.getShortestTravelTime(
-              parcelBuilder.getPickupLocation(),
-              parcelBuilder.getDeliveryLocation());
+            parcelBuilder.getPickupLocation(),
+            parcelBuilder.getDeliveryLocation());
 
           final long toDepotTT = tt.getTravelTimeToNearestDepot(parcelBuilder
-              .getDeliveryLocation());
+            .getDeliveryLocation());
 
           final TimeWindow pickTW = parcelBuilder.getPickupTimeWindow();
           final TimeWindow delTW = parcelBuilder.getDeliveryTimeWindow();
@@ -199,8 +199,8 @@ public class TimeWindowsTest {
           assertTrue(pickTW.begin() >= 0);
 
           assertTrue(
-              i + " " + tt + " " + pickTW + " " + delTW,
-              pickTW.end() <= delTW.end() + pickDelTT + pickDur);
+            i + " " + tt + " " + pickTW + " " + delTW,
+            pickTW.end() <= delTW.end() + pickDelTT + pickDur);
           // FIXME update and re-enable this test
           // assertTrue(i + " " + tt + " " + pickTW + " " + delTW + " "
           // + pickDelTT + " " + pickDur,

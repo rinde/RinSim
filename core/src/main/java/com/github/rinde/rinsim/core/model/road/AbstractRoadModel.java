@@ -102,11 +102,11 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
   public MoveProgress followPath(MovingRoadUser object, Queue<Point> path,
       TimeLapse time) {
     checkArgument(objLocs.containsKey(object),
-        "Object: %s must have a location.", object);
+      "Object: %s must have a location.", object);
     checkArgument(!path.isEmpty(),
-        "Path can not be empty, found empty path for %s.", object);
+      "Path can not be empty, found empty path for %s.", object);
     checkArgument(time.hasTimeLeft(),
-        "Can not follow path when no time is left. For road user %s.", object);
+      "Can not follow path when no time is left. For road user %s.", object);
     final Point dest = newArrayList(path).get(path.size() - 1);
     objDestinations.put(object, new DestinationPath(dest, path));
     final MoveProgress mp = doFollowPath(object, path, time);
@@ -119,7 +119,7 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
       TimeLapse time) {
     Queue<Point> path;
     if (objDestinations.containsKey(object)
-        && objDestinations.get(object).destination.equals(destination)) {
+      && objDestinations.get(object).destination.equals(destination)) {
       // is valid move? -> assume it is
       path = objDestinations.get(object).path;
     } else {
@@ -161,31 +161,31 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
   @Override
   public void addObjectAt(RoadUser newObj, Point pos) {
     checkArgument(!objLocs.containsKey(newObj), "Object is already added: %s.",
-        newObj);
+      newObj);
     objLocs.put(newObj, point2LocObj(pos));
     eventDispatcher.dispatchEvent(new RoadModelEvent(
-        RoadEventType.ADD_ROAD_USER, this, newObj));
+      RoadEventType.ADD_ROAD_USER, this, newObj));
   }
 
   @Override
   public void addObjectAtSamePosition(RoadUser newObj, RoadUser existingObj) {
     checkArgument(!objLocs.containsKey(newObj), "Object %s is already added.",
-        newObj);
+      newObj);
     checkArgument(objLocs.containsKey(existingObj),
-        "Object %s does not exist.", existingObj);
+      "Object %s does not exist.", existingObj);
     objLocs.put(newObj, objLocs.get(existingObj));
     eventDispatcher.dispatchEvent(new RoadModelEvent(
-        RoadEventType.ADD_ROAD_USER, this, newObj));
+      RoadEventType.ADD_ROAD_USER, this, newObj));
   }
 
   @Override
   public void removeObject(RoadUser roadUser) {
     checkArgument(objLocs.containsKey(roadUser),
-        "RoadUser: %s does not exist.", roadUser);
+      "RoadUser: %s does not exist.", roadUser);
     objLocs.remove(roadUser);
     objDestinations.remove(roadUser);
     eventDispatcher.dispatchEvent(new RoadModelEvent(
-        RoadEventType.REMOVE_ROAD_USER, this, roadUser));
+      RoadEventType.REMOVE_ROAD_USER, this, roadUser));
   }
 
   @Override
@@ -210,7 +210,7 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
   @Override
   public boolean equalPosition(RoadUser obj1, RoadUser obj2) {
     return containsObject(obj1) && containsObject(obj2)
-        && getPosition(obj1).equals(getPosition(obj2));
+      && getPosition(obj1).equals(getPosition(obj2));
   }
 
   @Override
@@ -232,7 +232,7 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
   @Override
   public Point getPosition(RoadUser roadUser) {
     checkArgument(containsObject(roadUser), "RoadUser does not exist: %s.",
-        roadUser);
+      roadUser);
     return locObj2point(objLocs.get(roadUser));
   }
 
@@ -261,7 +261,7 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
       Class<Y> type) {
     final Set<Y> result = new HashSet<>();
     for (final RoadUser ru : getObjects(new SameLocationPredicate(roadUser,
-        type, self))) {
+      type, self))) {
       result.add((Y) ru);
     }
     return result;
@@ -281,14 +281,14 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
   @Override
   public List<Point> getShortestPathTo(RoadUser fromObj, RoadUser toObj) {
     checkArgument(objLocs.containsKey(toObj),
-        "To object (%s) should be in RoadModel.", toObj);
+      "To object (%s) should be in RoadModel.", toObj);
     return getShortestPathTo(fromObj, getPosition(toObj));
   }
 
   @Override
   public List<Point> getShortestPathTo(RoadUser fromObj, Point to) {
     checkArgument(objLocs.containsKey(fromObj),
-        "From object (%s) should be in RoadModel.", fromObj);
+      "From object (%s) should be in RoadModel.", fromObj);
     return getShortestPathTo(getPosition(fromObj), to);
   }
 
@@ -341,7 +341,7 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
     @Override
     public boolean apply(@Nullable RoadUser input) {
       return type.isInstance(input)
-          && model.equalPosition(verifyNotNull(input), reference);
+        && model.equalPosition(verifyNotNull(input), reference);
     }
   }
 

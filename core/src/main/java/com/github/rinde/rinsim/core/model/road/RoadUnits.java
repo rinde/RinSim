@@ -94,9 +94,9 @@ public final class RoadUnits {
     externalDistanceUnit = distanceUnit;
     externalSpeedUnit = speedUnit;
     toExternalDistConv = INTERNAL_DIST_UNIT
-        .getConverterTo(externalDistanceUnit);
+      .getConverterTo(externalDistanceUnit);
     toInternalDistConv = externalDistanceUnit
-        .getConverterTo(INTERNAL_DIST_UNIT);
+      .getConverterTo(INTERNAL_DIST_UNIT);
     toExternalSpeedConv = INTERNAL_SPEED_UNIT.getConverterTo(externalSpeedUnit);
     toInternalSpeedConv = externalSpeedUnit.getConverterTo(INTERNAL_SPEED_UNIT);
 
@@ -112,7 +112,7 @@ public final class RoadUnits {
    */
   public Measure<Double, Length> toExDistMeasure(double distance) {
     return Measure.valueOf(toExternalDistConv.convert(distance),
-        externalDistanceUnit);
+      externalDistanceUnit);
   }
 
   /**

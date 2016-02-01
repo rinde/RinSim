@@ -104,7 +104,7 @@ public final class SolverModel extends AbstractModel<SolverUser> {
     @Override
     public SimSolver build(Solver s) {
       return new SimSolver(Optional.of(s), roadModel, pdpModel, clock,
-          vehiclesList);
+        vehiclesList);
     }
   }
 

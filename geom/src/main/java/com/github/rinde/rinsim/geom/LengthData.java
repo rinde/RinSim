@@ -42,8 +42,8 @@ public abstract class LengthData implements ConnectionData {
    */
   public static LengthData create(double length) {
     checkArgument(length >= 0d && Doubles.isFinite(length),
-        "Only positive values are allowed for length, it is: %s.",
-        length);
+      "Only positive values are allowed for length, it is: %s.",
+      length);
     return new AutoValue_LengthData(Optional.of(length));
   }
 }

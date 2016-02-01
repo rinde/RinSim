@@ -22,7 +22,7 @@ public enum TestObjectiveFunction implements ObjectiveFunction {
     @Override
     public boolean isValidResult(StatisticsDTO stats) {
       return stats.totalParcels == stats.totalDeliveries
-          && stats.totalParcels == stats.totalPickups;
+        && stats.totalParcels == stats.totalPickups;
     }
 
     @Override
@@ -33,7 +33,7 @@ public enum TestObjectiveFunction implements ObjectiveFunction {
     @Override
     public String printHumanReadableFormat(StatisticsDTO stats) {
       return Joiner.on("").join("{dist=", stats.totalDistance, ",parcels=",
-          stats.totalParcels, "}");
+        stats.totalParcels, "}");
     }
   }
 }

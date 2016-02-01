@@ -88,11 +88,11 @@ class AgvModel
   public void registerModelProvider(ModelProvider mp) {
     rm = Optional.fromNullable(mp.tryGetModel(RoadModel.class));
     Optional
-        .fromNullable(mp.tryGetModel(PDPModel.class))
-        .get()
-        .getEventAPI()
-        .addListener(this, PDPModelEventType.END_DELIVERY,
-            PDPModelEventType.END_PICKUP);
+      .fromNullable(mp.tryGetModel(PDPModel.class))
+      .get()
+      .getEventAPI()
+      .addListener(this, PDPModelEventType.END_DELIVERY,
+        PDPModelEventType.END_PICKUP);
   }
 
   @Override
@@ -109,9 +109,9 @@ class AgvModel
       final int num = max;
       for (int i = 0; i < num; i++) {
         final long duration = DoubleMath.roundToLong(
-            FactoryExample.SERVICE_DURATION / 2d
-                + rng.nextDouble() * FactoryExample.SERVICE_DURATION,
-            RoundingMode.CEILING);
+          FactoryExample.SERVICE_DURATION / 2d
+            + rng.nextDouble() * FactoryExample.SERVICE_DURATION,
+          RoundingMode.CEILING);
 
         final Point rnd = rndBorder();
         Point dest;
@@ -128,7 +128,7 @@ class AgvModel
 
         boxes.add(bh);
         simulator.get()
-            .register(verifyNotNull(boxes.get(boxes.size() - 1).box));
+          .register(verifyNotNull(boxes.get(boxes.size() - 1).box));
       }
     }
   }
@@ -154,9 +154,9 @@ class AgvModel
     }
     if (e.getEventType() == PDPModelEventType.END_DELIVERY) {
       final long duration = DoubleMath.roundToLong(
-          FactoryExample.SERVICE_DURATION / 2d
-              + rng.nextDouble() * FactoryExample.SERVICE_DURATION,
-          RoundingMode.CEILING);
+        FactoryExample.SERVICE_DURATION / 2d
+          + rng.nextDouble() * FactoryExample.SERVICE_DURATION,
+        RoundingMode.CEILING);
       simulator.get().unregister(box);
 
       final BoxHandle bh = box.boxHandle;
@@ -171,7 +171,7 @@ class AgvModel
       }
 
       final Box newBox = new Box(box.getDeliveryLocation(),
-          dest, duration, bh);
+        dest, duration, bh);
       bh.box = newBox;
 
       simulator.get().register(newBox);
@@ -204,7 +204,7 @@ class AgvModel
 
   static Builder builder() {
     return Builder.create(ImmutableList.<ImmutableList<Point>>of(),
-        ImmutableList.<Point>of());
+      ImmutableList.<Point>of());
   }
 
   static class BoxHandle {
@@ -242,7 +242,7 @@ class AgvModel
     @Override
     public AgvModel build(DependencyProvider dependencyProvider) {
       final RandomGenerator r = dependencyProvider.get(RandomProvider.class)
-          .newInstance();
+        .newInstance();
       return new AgvModel(r, getPoints(), getBorder());
     }
 

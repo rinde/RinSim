@@ -45,21 +45,21 @@ class Truck extends Vehicle {
     final PDPModel pm = getPDPModel();
     // we always go to the closest available parcel
     final Parcel closest = (Parcel) RoadModels
-        .findClosestObject(rm.getPosition(this), rm, new Predicate<RoadUser>() {
-          @Override
-          public boolean apply(@Nullable RoadUser input) {
-            return input instanceof Parcel
-                && pm.getParcelState((Parcel) input) == ParcelState.AVAILABLE;
-          }
-        });
+      .findClosestObject(rm.getPosition(this), rm, new Predicate<RoadUser>() {
+        @Override
+        public boolean apply(@Nullable RoadUser input) {
+          return input instanceof Parcel
+            && pm.getParcelState((Parcel) input) == ParcelState.AVAILABLE;
+        }
+      });
 
     if (closest != null) {
       rm.moveTo(this, closest, time);
       if (rm.equalPosition(closest, this)
-          && pm
-              .getTimeWindowPolicy()
-              .canPickup(closest.getPickupTimeWindow(), time.getTime(),
-                  closest.getPickupDuration())) {
+        && pm
+          .getTimeWindowPolicy()
+          .canPickup(closest.getPickupTimeWindow(), time.getTime(),
+            closest.getPickupDuration())) {
         pm.pickup(this, closest, time);
       }
     }

@@ -89,7 +89,7 @@ public final class ScenarioGenerator {
     PlaneRMB planeBuilder;
     if (rmb instanceof ForwardingRoadModel.Builder) {
       final ModelBuilder<?, ?> delegate = ((ForwardingRoadModel.Builder<?>) rmb)
-          .getDelegateModelBuilder();
+        .getDelegateModelBuilder();
 
       checkArgument(delegate instanceof PlaneRMB);
       planeBuilder = (PlaneRMB) delegate;
@@ -205,10 +205,10 @@ public final class ScenarioGenerator {
 
     // create
     return Scenario.builder(builder, builder.problemClass)
-        .addModels(modelBuilders)
-        .addEvents(b.build())
-        .instanceId(id)
-        .build();
+      .addModels(modelBuilders)
+      .addEvents(b.build())
+      .instanceId(id)
+      .build();
   }
 
   /**
@@ -238,10 +238,10 @@ public final class ScenarioGenerator {
   @SuppressWarnings("null")
   public static TravelTimes createTravelTimes(Scenario s) {
     final Iterable<AddDepotEvent> depots = FluentIterable.from(s.getEvents())
-        .filter(AddDepotEvent.class);
+      .filter(AddDepotEvent.class);
     final Iterable<AddVehicleEvent> vehicles = FluentIterable.from(
       s.getEvents())
-        .filter(AddVehicleEvent.class);
+      .filter(AddVehicleEvent.class);
 
     final List<RoadModel> roadModels = newArrayList();
 
@@ -256,7 +256,7 @@ public final class ScenarioGenerator {
     }
     checkArgument(roadModels.size() == 1);
     return new DefaultTravelTimes(roadModels.get(0), timeUnit, depots,
-        vehicles);
+      vehicles);
   }
 
   static TravelTimes createTravelTimes(
@@ -277,7 +277,7 @@ public final class ScenarioGenerator {
       }
     }
     throw new IllegalArgumentException("There is no RoadModel supplier in "
-        + modelSuppliers + ".");
+      + modelSuppliers + ".");
   }
 
   /**
@@ -286,11 +286,11 @@ public final class ScenarioGenerator {
    */
   public static class Builder extends AbstractBuilder<Builder> {
     static final ParcelGenerator DEFAULT_PARCEL_GENERATOR = Parcels.builder()
-        .build();
+      .build();
     static final VehicleGenerator DEFAULT_VEHICLE_GENERATOR = Vehicles
-        .builder().build();
+      .builder().build();
     static final DepotGenerator DEFAULT_DEPOT_GENERATOR = Depots
-        .singleCenteredDepot();
+      .singleCenteredDepot();
 
     ParcelGenerator parcelGenerator;
     VehicleGenerator vehicleGenerator;
@@ -428,7 +428,7 @@ public final class ScenarioGenerator {
     @Override
     public long getShortestTravelTime(Point from, Point to) {
       final Iterator<Point> path = roadModel.getShortestPathTo(from, to)
-          .iterator();
+        .iterator();
 
       long travelTime = 0L;
       final Point prev = path.next();

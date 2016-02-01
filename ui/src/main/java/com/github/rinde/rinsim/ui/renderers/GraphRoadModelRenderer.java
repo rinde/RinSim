@@ -84,12 +84,12 @@ public final class GraphRoadModelRenderer extends AbstractCanvasRenderer {
       for (final Point node : graph.getNodes()) {
         helper.setForegroundSysCol(SWT.COLOR_GRAY);
         helper.drawString(node.toString(), node, true,
-            (int) RELATIVE_TEXT_POSITION.x, (int) RELATIVE_TEXT_POSITION.y);
+          (int) RELATIVE_TEXT_POSITION.x, (int) RELATIVE_TEXT_POSITION.y);
       }
     }
 
     for (final Connection<? extends ConnectionData> e : graph
-        .getConnections()) {
+      .getConnections()) {
       helper.setForegroundSysCol(SWT.COLOR_GRAY);
       helper.drawLine(e.from(), e.to());
 
@@ -109,12 +109,12 @@ public final class GraphRoadModelRenderer extends AbstractCanvasRenderer {
   @Override
   public Optional<ViewRect> getViewRect() {
     checkState(!model.getGraph().isEmpty(),
-        "graph may not be empty at this point");
+      "graph may not be empty at this point");
 
     final List<Point> extremes = Graphs.getExtremes(model.getGraph());
     return Optional.of(new ViewRect(
-        PointUtil.sub(extremes.get(0), margin),
-        PointUtil.add(extremes.get(1), margin)));
+      PointUtil.sub(extremes.get(0), margin),
+      PointUtil.add(extremes.get(1), margin)));
   }
 
   /**
@@ -189,7 +189,7 @@ public final class GraphRoadModelRenderer extends AbstractCanvasRenderer {
     @Override
     public GraphRoadModelRenderer build(DependencyProvider dependencyProvider) {
       return new GraphRoadModelRenderer(
-          dependencyProvider.get(GraphRoadModel.class), this);
+        dependencyProvider.get(GraphRoadModel.class), this);
     }
 
     static Builder create() {
@@ -203,7 +203,7 @@ public final class GraphRoadModelRenderer extends AbstractCanvasRenderer {
     static Builder create(int margin, VizOptions opt,
         ImmutableSet<VizOptions> opts) {
       return create(margin,
-          Sets.immutableEnumSet(opt, opts.toArray(new VizOptions[] {})));
+        Sets.immutableEnumSet(opt, opts.toArray(new VizOptions[] {})));
     }
   }
 }

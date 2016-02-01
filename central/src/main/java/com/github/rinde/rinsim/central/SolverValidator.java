@@ -77,20 +77,20 @@ public final class SolverValidator {
 
     final Set<Parcel> inventoryParcels = newHashSet();
     final boolean routeIsPresent = state.getVehicles().get(0).getRoute()
-        .isPresent();
+      .isPresent();
     final Set<Parcel> allParcels = newHashSet();
     for (int i = 0; i < state.getVehicles().size(); i++) {
       final VehicleStateObject vs = state.getVehicles().get(i);
       checkArgument(
         vs.getRoute().isPresent() == routeIsPresent,
         "Either a route should be present for all vehicles, or no route "
-            + "should be present for all vehicles.");
+          + "should be present for all vehicles.");
       if (vs.getRoute().isPresent()) {
         for (final Parcel p : vs.getRoute().get()) {
           checkArgument(
             !allParcels.contains(p),
             "Found parcel which is already present in the route of another "
-                + "vehicle. %s is found in vehicle %s.",
+              + "vehicle. %s is found in vehicle %s.",
             p, i);
         }
         allParcels.addAll(vs.getRoute().get());
@@ -108,14 +108,14 @@ public final class SolverValidator {
       checkArgument(
         intersection.isEmpty(),
         "Parcels can not be available AND in the inventory of a vehicle, "
-            + "found: %s.",
+          + "found: %s.",
         intersection);
       final Set<Parcel> inventoryIntersection = Sets.intersection(
         inventoryParcels, vs.getContents());
       checkArgument(
         inventoryIntersection.isEmpty(),
         "Parcels can not be in the inventory of two vehicles at the same "
-            + "time, found: %s.",
+          + "time, found: %s.",
         inventoryIntersection);
       inventoryParcels.addAll(vs.getContents());
 
@@ -123,14 +123,14 @@ public final class SolverValidator {
       // cargo of the vehicle
       if (vs.getDestination().isPresent()) {
         final boolean isAvailable = state.getAvailableParcels()
-            .contains(vs.getDestination().get());
+          .contains(vs.getDestination().get());
         final boolean isInCargo = vs.getContents()
-            .contains(vs.getDestination().get());
+          .contains(vs.getDestination().get());
         checkArgument(
           isAvailable != isInCargo,
           "Destination must be either available (%s) or in the current "
-              + "vehicle's cargo (%s), but not both (i.e. XOR). Destination: "
-              + "%s, vehicle: %s (out of %s), remaining service time: %s.",
+            + "vehicle's cargo (%s), but not both (i.e. XOR). Destination: "
+            + "%s, vehicle: %s (out of %s), remaining service time: %s.",
           isAvailable, isInCargo, vs.getDestination(), i,
           state.getVehicles().size(),
           vs.getRemainingServiceTime());
@@ -155,11 +155,11 @@ public final class SolverValidator {
     checkArgument(
       vs.getRoute().get().containsAll(vs.getContents()),
       "Vehicle %s's route doesn't contain all locations it has in cargo. "
-          + "Route: %s, cargo: %s.",
+        + "Route: %s, cargo: %s.",
       i, vs.getRoute().get(), vs.getContents());
     if (vs.getDestination().isPresent()) {
       checkArgument(!vs.getRoute().get().isEmpty()
-          && vs.getRoute().get().get(0) == vs.getDestination().get(),
+        && vs.getRoute().get().get(0) == vs.getDestination().get(),
         "First location in route must equal destination (%s), route is: %s.",
         vs.getDestination(), vs.getRoute().get());
     }
@@ -170,13 +170,13 @@ public final class SolverValidator {
         checkArgument(
           freq == 1,
           "A parcel already in cargo should occur once in the route, found %s"
-              + " instance(s). Parcel: %s, route: %s.",
+            + " instance(s). Parcel: %s, route: %s.",
           freq, dp, vs.getRoute().get());
       } else {
         checkArgument(
           freq == 2,
           "A parcel that is not yet in cargo should occur twice in the route, "
-              + "found %s instance(s). Parcel: %s, route: %s.",
+            + "found %s instance(s). Parcel: %s, route: %s.",
           freq, dp, vs.getRoute().get(), vs.getRemainingServiceTime());
       }
     }
@@ -196,7 +196,7 @@ public final class SolverValidator {
     checkArgument(
       routes.size() == state.getVehicles().size(),
       "There must be exactly one route for every vehicle, found %s routes "
-          + "with %s vehicles.",
+        + "with %s vehicles.",
       routes.size(), state.getVehicles().size());
 
     final Set<Parcel> inputParcels = newHashSet(state.getAvailableParcels());
@@ -212,9 +212,9 @@ public final class SolverValidator {
       if (state.getVehicles().get(i).getDestination().isPresent()) {
         checkArgument(
           state.getVehicles().get(i).getDestination().asSet()
-              .contains(route.get(0)),
+            .contains(route.get(0)),
           "The route of vehicle %s should start with its current destination:"
-              + " %s.",
+            + " %s.",
           i, state.getVehicles().get(i).getDestination());
       }
 
@@ -228,19 +228,19 @@ public final class SolverValidator {
           checkArgument(
             frequency == 2,
             "Route %s: a parcel that is picked up needs to be delivered as "
-                + "well, so it should occur twice in the route, found %s "
-                + "occurence(s) of parcel %s.",
+              + "well, so it should occur twice in the route, found %s "
+              + "occurence(s) of parcel %s.",
             i, frequency, p);
         } else {
           checkArgument(
             state.getVehicles().get(i).getContents().contains(p),
             "The parcel in this route is not available, which means it should"
-                + " be in the contents of this vehicle. Parcel: %s.",
+              + " be in the contents of this vehicle. Parcel: %s.",
             p);
           checkArgument(
             frequency == 1,
             "A parcel that is already in cargo should occur once in the "
-                + "route, found %s occurences of parcel %s.",
+              + "route, found %s occurences of parcel %s.",
             frequency, p);
         }
       }
@@ -249,8 +249,8 @@ public final class SolverValidator {
     checkArgument(
       inputParcels.equals(outputParcels),
       "The number of distinct parcels in the routes should equal the number "
-          + "of parcels in the input, parcels that should be added in routes:"
-          + " %s, parcels that should be removed from routes: %s.",
+        + "of parcels in the input, parcels that should be added in routes:"
+        + " %s, parcels that should be removed from routes: %s.",
       Sets.difference(inputParcels, outputParcels),
       Sets.difference(outputParcels, inputParcels));
     return routes;

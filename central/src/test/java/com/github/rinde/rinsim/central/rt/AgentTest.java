@@ -74,22 +74,22 @@ public class AgentTest {
     final List<TimedEvent> events = asList(
       AddParcelEvent.create(
         Parcel.builder(new Point(0, 0), new Point(3, 3))
-            .orderAnnounceTime(200)
-            .pickupTimeWindow(TimeWindow.create(1000, 2000))
-            .buildDTO()),
+          .orderAnnounceTime(200)
+          .pickupTimeWindow(TimeWindow.create(1000, 2000))
+          .buildDTO()),
       AddParcelEvent.create(
         Parcel.builder(new Point(0, 0), new Point(3, 3))
-            .orderAnnounceTime(999)
-            .pickupTimeWindow(TimeWindow.create(60000, 80000))
-            .serviceDuration(180000L)
-            .buildDTO()),
+          .orderAnnounceTime(999)
+          .pickupTimeWindow(TimeWindow.create(60000, 80000))
+          .serviceDuration(180000L)
+          .buildDTO()),
       TimeOutEvent.create(3000));
 
     sim = RealtimeTestHelper.init(Handler.INSTANCE, events)
-        .addModel(RtSolverModel.builder()
-            .withThreadPoolSize(3)
-            .withThreadGrouping(false))
-        .build();
+      .addModel(RtSolverModel.builder()
+        .withThreadPoolSize(3)
+        .withThreadGrouping(false))
+      .build();
   }
 
   /**
@@ -99,7 +99,7 @@ public class AgentTest {
   public void twoSimultaneousComputationsTest() {
     final RealtimeClockController clock =
       (RealtimeClockController) sim.getModelProvider()
-          .getModel(TimeModel.class);
+        .getModel(TimeModel.class);
 
     final List<LogEntry> log = new ArrayList<>();
     clock.getEventAPI().addListener(new Listener() {
@@ -172,9 +172,9 @@ public class AgentTest {
         @Override
         public void handleEvent(Event e) {
           simSolver.get()
-              .solve(SolveArgs.create()
-                  .useCurrentRoutes(
-                    ImmutableList.of(ImmutableList.<Parcel>of())));
+            .solve(SolveArgs.create()
+              .useCurrentRoutes(
+                ImmutableList.of(ImmutableList.<Parcel>of())));
         }
       }, PDPModelEventType.NEW_PARCEL);
     }

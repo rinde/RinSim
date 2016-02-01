@@ -91,12 +91,12 @@ public class TaxiRenderer extends AbstractCanvasRenderer {
 
           gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_DARK_BLUE));
           gc.fillRoundRectangle(x - extent.x / 2, y - extent.y / 2,
-              extent.x + 2, extent.y + 2, ROUND_RECT_ARC_HEIGHT,
-              ROUND_RECT_ARC_HEIGHT);
+            extent.x + 2, extent.y + 2, ROUND_RECT_ARC_HEIGHT,
+            ROUND_RECT_ARC_HEIGHT);
           gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_WHITE));
 
           gc.drawText(text, x - extent.x / 2 + 1, y - extent.y / 2 + 1,
-              true);
+            true);
         }
       }
     }

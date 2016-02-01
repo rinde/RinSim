@@ -139,7 +139,7 @@ public final class RealtimeClockLogger extends AbstractModelVoid
     static LogEntry create(long tickStart, long tickEnd, ClockMode cm,
         Enum<?> ce) {
       return new AutoValue_RealtimeClockLogger_LogEntry(
-          Range.closedOpen(tickStart, tickEnd), cm, ce);
+        Range.closedOpen(tickStart, tickEnd), cm, ce);
     }
   }
 

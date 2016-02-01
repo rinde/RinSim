@@ -99,7 +99,7 @@ public abstract class Option {
   public String toString() {
     if (longName.isPresent()) {
       return Joiner.on("").join(SHORT_PREFIX, shortName, ",", LONG_PREFIX,
-          longName.get());
+        longName.get());
     }
     return SHORT_PREFIX + shortName;
   }
@@ -311,8 +311,8 @@ public abstract class Option {
 
     static void checkOptionName(String name) {
       checkArgument(name.matches(NAME_REGEX),
-          "%s is not a valid option name, it must conform to %s.", name,
-          NAME_REGEX);
+        "%s is not a valid option name, it must conform to %s.", name,
+        NAME_REGEX);
     }
   }
 }

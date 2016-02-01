@@ -68,7 +68,7 @@ public final class RandomSolver implements Solver {
     }
 
     final ImmutableList.Builder<ImmutableList<Parcel>> builder = ImmutableList
-        .builder();
+      .builder();
     // insert contents, shuffle ordering, insert destination if applicable
     for (final VehicleStateObject vso : state.getVehicles()) {
       final List<Parcel> assigned = newArrayList(map.get(vso));
@@ -76,7 +76,7 @@ public final class RandomSolver implements Solver {
       conts.removeAll(vso.getDestination().asSet());
       assigned.addAll(conts);
       if (vso.getDestination().isPresent()
-          && state.getAvailableParcels().contains(vso.getDestination().get())) {
+        && state.getAvailableParcels().contains(vso.getDestination().get())) {
         assigned.add(vso.getDestination().get());
       }
       Collections.shuffle(assigned, new RandomAdaptor(randomGenerator));

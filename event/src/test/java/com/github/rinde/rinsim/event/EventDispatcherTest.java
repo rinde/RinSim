@@ -109,7 +109,7 @@ public class EventDispatcherTest {
     assertEquals(asList(EVENT1), l1.getEventTypeHistory());
     assertEquals(asList(EVENT2, EVENT1), l2.getEventTypeHistory());
     assertEquals(asList(EVENT2, EVENT3, EVENT1, EVENT3),
-        l3.getEventTypeHistory());
+      l3.getEventTypeHistory());
   }
 
   @Test(expected = IllegalArgumentException.class)

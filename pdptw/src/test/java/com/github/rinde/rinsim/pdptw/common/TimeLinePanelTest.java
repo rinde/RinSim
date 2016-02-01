@@ -46,34 +46,34 @@ public class TimeLinePanelTest {
     final Scenario testScenario = ScenarioTestUtil.createRandomScenario(1730);
 
     final Simulator sim = Simulator
-        .builder()
-        .addModel(
-            ScenarioController
-                .builder(testScenario)
-                .withEventHandler(AddParcelEvent.class,
-                    AddParcelEvent.defaultHandler())
-                .withEventHandler(TimeOutEvent.class,
-                    TimeOutEvent.ignoreHandler())
-                .withEventHandler(AddVehicleEvent.class,
-                    new TimedEventHandler<AddVehicleEvent>() {
-                      @Override
-                      public void handleTimedEvent(AddVehicleEvent event,
-                          SimulatorAPI simulator) {
-                        simulator
-                            .register(new RandomVehicle(event.getVehicleDTO()));
-                      }
-                    }))
-        .addModel(
-            View.builder()
-                .with(PlaneRoadModelRenderer.builder())
-                .with(RoadUserRenderer.builder())
-                .with(PDPModelRenderer.builder())
-                .with(TimeLinePanel.builder())
-                .withSpeedUp(200)
-                .withAutoClose()
-                .withSimulatorEndTime(60 * 60 * 1000)
-                .withAutoPlay())
-        .build();
+      .builder()
+      .addModel(
+        ScenarioController
+          .builder(testScenario)
+          .withEventHandler(AddParcelEvent.class,
+            AddParcelEvent.defaultHandler())
+          .withEventHandler(TimeOutEvent.class,
+            TimeOutEvent.ignoreHandler())
+          .withEventHandler(AddVehicleEvent.class,
+            new TimedEventHandler<AddVehicleEvent>() {
+              @Override
+              public void handleTimedEvent(AddVehicleEvent event,
+                  SimulatorAPI simulator) {
+                simulator
+                  .register(new RandomVehicle(event.getVehicleDTO()));
+              }
+            }))
+      .addModel(
+        View.builder()
+          .with(PlaneRoadModelRenderer.builder())
+          .with(RoadUserRenderer.builder())
+          .with(PDPModelRenderer.builder())
+          .with(TimeLinePanel.builder())
+          .withSpeedUp(200)
+          .withAutoClose()
+          .withSimulatorEndTime(60 * 60 * 1000)
+          .withAutoPlay())
+      .build();
 
     sim.start();
   }

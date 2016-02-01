@@ -56,7 +56,7 @@ public class CentralIntegrationTest {
   @Parameters
   public static Collection<Object[]> configs() {
     return Arrays.asList(new Object[][] {//
-        {false, true}, {true, true}, {true, false}, {false, false}});
+      {false, true}, {true, true}, {true, false}, {false, false}});
   }
 
   /**
@@ -65,7 +65,7 @@ public class CentralIntegrationTest {
   @Before
   public void setUp() {
     final Gendreau06Parser parser = Gendreau06Parser.parser().addFile(
-        ScenarioPaths.GENDREAU);
+      ScenarioPaths.GENDREAU);
     if (allowDiversion) {
       parser.allowDiversion();
     }
@@ -83,12 +83,12 @@ public class CentralIntegrationTest {
   @Test
   public void test() {
     Experiment
-        .build(Gendreau06ObjectiveFunction.instance())
-        .addScenario(scenario)
-        .addConfiguration(
-            Central.solverConfiguration(RandomMVArraysSolver.solverSupplier()))
-        .repeat((!offline && allowDiversion) ? 2 : 1)
-        .perform();
+      .build(Gendreau06ObjectiveFunction.instance())
+      .addScenario(scenario)
+      .addConfiguration(
+        Central.solverConfiguration(RandomMVArraysSolver.solverSupplier()))
+      .repeat((!offline && allowDiversion) ? 2 : 1)
+      .perform();
   }
 
   /**
@@ -98,12 +98,12 @@ public class CentralIntegrationTest {
   @Test
   public void testRandomSolver() {
     Experiment
-        .build(Gendreau06ObjectiveFunction.instance())
-        .addScenario(scenario)
-        .addConfiguration(
-            Central.solverConfiguration(SolverValidator.wrap(RandomSolver
-                .supplier())))
-        .repeat(3)
-        .perform();
+      .build(Gendreau06ObjectiveFunction.instance())
+      .addScenario(scenario)
+      .addConfiguration(
+        Central.solverConfiguration(SolverValidator.wrap(RandomSolver
+          .supplier())))
+      .repeat(3)
+      .perform();
   }
 }

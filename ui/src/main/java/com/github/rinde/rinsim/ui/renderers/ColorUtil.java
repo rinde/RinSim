@@ -27,9 +27,9 @@ final class ColorUtil {
 
   static RGB interpolate(RGB c1, RGB c2, double i) {
     return new RGB(
-        interpolate(c1.red, c2.red, i),
-        interpolate(c1.green, c2.green, i),
-        interpolate(c1.blue, c2.blue, i));
+      interpolate(c1.red, c2.red, i),
+      interpolate(c1.green, c2.green, i),
+      interpolate(c1.blue, c2.blue, i));
   }
 
   static int interpolate(int c1, int c2, double i) {

@@ -101,21 +101,21 @@ public final class ListenableGraph<E extends ConnectionData> extends
   public void addConnection(Point from, Point to, E connData) {
     delegate.addConnection(from, to, connData);
     eventDispatcher.dispatchEvent(new GraphEvent(EventTypes.ADD_CONNECTION,
-        this, getConnection(from, to)));
+      this, getConnection(from, to)));
   }
 
   @Override
   public void addConnection(Point from, Point to) {
     delegate.addConnection(from, to);
     eventDispatcher.dispatchEvent(new GraphEvent(EventTypes.ADD_CONNECTION,
-        this, getConnection(from, to)));
+      this, getConnection(from, to)));
   }
 
   @Override
   public void addConnection(Connection<E> connection) {
     delegate.addConnection(connection);
     eventDispatcher.dispatchEvent(new GraphEvent(EventTypes.ADD_CONNECTION,
-        this, connection));
+      this, connection));
   }
 
   @Override
@@ -128,9 +128,9 @@ public final class ListenableGraph<E extends ConnectionData> extends
   @Override
   public Optional<E> setConnectionData(Point from, Point to, E connectionData) {
     final Optional<E> val =
-        delegate.setConnectionData(from, to, connectionData);
+      delegate.setConnectionData(from, to, connectionData);
     eventDispatcher.dispatchEvent(new GraphEvent(
-        EventTypes.CHANGE_CONNECTION_DATA, this, getConnection(from, to)));
+      EventTypes.CHANGE_CONNECTION_DATA, this, getConnection(from, to)));
     return val;
   }
 
@@ -139,7 +139,7 @@ public final class ListenableGraph<E extends ConnectionData> extends
     final Optional<E> val = delegate.removeConnectionData(from, to);
 
     eventDispatcher.dispatchEvent(new GraphEvent(
-        EventTypes.CHANGE_CONNECTION_DATA, this, getConnection(from, to)));
+      EventTypes.CHANGE_CONNECTION_DATA, this, getConnection(from, to)));
     return val;
   }
 
@@ -159,7 +159,7 @@ public final class ListenableGraph<E extends ConnectionData> extends
     // notify listeners
     for (final Connection<?> c : removedConnections) {
       eventDispatcher.dispatchEvent(new GraphEvent(
-          EventTypes.REMOVE_CONNECTION, this, c));
+        EventTypes.REMOVE_CONNECTION, this, c));
     }
   }
 
@@ -168,8 +168,8 @@ public final class ListenableGraph<E extends ConnectionData> extends
     final Connection<?> conn = delegate.getConnection(from, to);
     delegate.removeConnection(from, to);
     eventDispatcher
-        .dispatchEvent(new GraphEvent(
-            EventTypes.REMOVE_CONNECTION, this, conn));
+      .dispatchEvent(new GraphEvent(
+        EventTypes.REMOVE_CONNECTION, this, conn));
   }
 
   @Override
@@ -229,17 +229,17 @@ public final class ListenableGraph<E extends ConnectionData> extends
       }
       final GraphEvent o = (GraphEvent) other;
       return Objects.equals(o.eventType, eventType)
-          && Objects.equals(o.getIssuer(), getIssuer())
-          && Objects.equals(o.connection, connection);
+        && Objects.equals(o.getIssuer(), getIssuer())
+        && Objects.equals(o.connection, connection);
     }
 
     @Override
     public String toString() {
       return MoreObjects.toStringHelper("GraphEvent")
-          .add("type", this.eventType)
-          .add("issuer", this.getIssuer())
-          .add("connection", connection)
-          .toString();
+        .add("type", this.eventType)
+        .add("issuer", this.getIssuer())
+        .add("connection", connection)
+        .toString();
     }
   }
 

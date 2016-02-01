@@ -137,22 +137,22 @@ public final class ArraysSolverDebugger {
         @Nullable SolutionObject currentSolution) {
 
       inputMemory.add(new ArraysObject(travelTime, releaseDates, dueDates,
-          servicePairs, serviceTimes, currentSolution == null ? null
-              : new SolutionObject[] {currentSolution}));
+        servicePairs, serviceTimes, currentSolution == null ? null
+          : new SolutionObject[] {currentSolution}));
       if (print) {
         out.println("int[][] travelTime = " + fix(deepToString(travelTime)));
         out.println("int[] releaseDates = "
-            + fix(Arrays.toString(releaseDates)));
+          + fix(Arrays.toString(releaseDates)));
         out.println("int[] dueDates = " + fix(Arrays.toString(dueDates)));
         out.println(
-            "int[][] servicePairs = " + fix(deepToString(servicePairs)));
+          "int[][] servicePairs = " + fix(deepToString(servicePairs)));
         out.println(
-            "int[] serviceTime = " + fix(Arrays.toString(serviceTimes)));
+          "int[] serviceTime = " + fix(Arrays.toString(serviceTimes)));
       }
 
       final long start = System.currentTimeMillis();
       final SolutionObject sol = solver.solve(travelTime, releaseDates,
-          dueDates, servicePairs, serviceTimes, currentSolution);
+        dueDates, servicePairs, serviceTimes, currentSolution);
       if (print) {
         out.println(System.currentTimeMillis() - start + "ms");
         out.println("route: " + Arrays.toString(sol.route));
@@ -161,8 +161,8 @@ public final class ArraysSolverDebugger {
       }
 
       outputMemory
-          .add(new SolutionObject(copyOf(sol.route, sol.route.length), copyOf(
-              sol.arrivalTimes, sol.arrivalTimes.length), sol.objectiveValue));
+        .add(new SolutionObject(copyOf(sol.route, sol.route.length), copyOf(
+          sol.arrivalTimes, sol.arrivalTimes.length), sol.objectiveValue));
 
       int totalTravelTime = 0;
       for (int i = 1; i < travelTime.length; i++) {
@@ -198,13 +198,13 @@ public final class ArraysSolverDebugger {
         @Nullable SolutionObject[] currentSolutions) {
 
       inputMemory.add(new MVArraysObject(travelTime, releaseDates, dueDates,
-          servicePairs, serviceTimes, vehicleTravelTimes, inventories,
-          remainingServiceTimes, currentDestinations, currentSolutions));
+        servicePairs, serviceTimes, vehicleTravelTimes, inventories,
+        remainingServiceTimes, currentDestinations, currentSolutions));
 
       final SolutionObject[] output = solver.solve(travelTime, releaseDates,
-          dueDates, servicePairs, serviceTimes, vehicleTravelTimes,
-          inventories, remainingServiceTimes, currentDestinations,
-          currentSolutions);
+        dueDates, servicePairs, serviceTimes, vehicleTravelTimes,
+        inventories, remainingServiceTimes, currentDestinations,
+        currentSolutions);
       outputMemory.add(output);
       return output;
     }

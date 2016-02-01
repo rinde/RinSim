@@ -209,11 +209,11 @@ public class Parcel extends PDPObjectImpl implements IParcel {
      */
     public ParcelDTO buildDTO() {
       checkArgument(orderAnnounceTime <= pickupTimeWindow.begin(),
-          "Order arrival time may not be after the pickup TW has already "
-              + "opened.");
+        "Order arrival time may not be after the pickup TW has already "
+          + "opened.");
       return new AutoValue_ParcelDTO(pickupLocation, deliveryLocation,
-          pickupTimeWindow, deliveryTimeWindow, neededCapacity,
-          orderAnnounceTime, pickupDuration, deliveryDuration);
+        pickupTimeWindow, deliveryTimeWindow, neededCapacity,
+        orderAnnounceTime, pickupDuration, deliveryDuration);
     }
 
     /**
@@ -295,7 +295,7 @@ public class Parcel extends PDPObjectImpl implements IParcel {
      */
     public Builder pickupDuration(long duration) {
       checkArgument(duration >= 0,
-          "Pickup duration needs to be strictly positive.");
+        "Pickup duration needs to be strictly positive.");
       pickupDuration = duration;
       return this;
     }
@@ -308,7 +308,7 @@ public class Parcel extends PDPObjectImpl implements IParcel {
      */
     public Builder deliveryDuration(long duration) {
       checkArgument(duration >= 0,
-          "Delivery duration needs to be strictly positive.");
+        "Delivery duration needs to be strictly positive.");
       deliveryDuration = duration;
       return this;
     }

@@ -85,7 +85,7 @@ public enum GendreauProblemClass implements ProblemClass {
       }
     }
     throw new IllegalArgumentException(
-        "There is no problem class with: minutes: " + minutes + ", frequency: "
-            + frequency);
+      "There is no problem class with: minutes: " + minutes + ", frequency: "
+        + frequency);
   }
 }

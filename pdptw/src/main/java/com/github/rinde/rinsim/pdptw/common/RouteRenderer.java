@@ -54,7 +54,7 @@ public class RouteRenderer extends AbstractCanvasRenderer {
   @Override
   public void renderDynamic(GC gc, ViewPort vp, long time) {
     final Set<RouteFollowingVehicle> vehicles = roadModel.getObjectsOfType(
-        RouteFollowingVehicle.class);
+      RouteFollowingVehicle.class);
     for (final RouteFollowingVehicle v : vehicles) {
       final Set<Parcel> seen = newHashSet();
       final Point from = roadModel.getPosition(v);
@@ -64,7 +64,7 @@ public class RouteRenderer extends AbstractCanvasRenderer {
       for (final Parcel parcel : ImmutableList.copyOf(v.getRoute())) {
         Point to;
         if (pdpModel.getParcelState(parcel).isPickedUp()
-            || seen.contains(parcel)) {
+          || seen.contains(parcel)) {
           to = parcel.getDto().getDeliveryLocation();
         } else {
           to = parcel.getDto().getPickupLocation();

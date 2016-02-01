@@ -52,11 +52,11 @@ public class ExperimentTest {
     final Scenario scenario = ScenarioTestUtil.createRandomScenario(123L,
       StatsTracker.builder());
     final Experiment.Builder builder = Experiment
-        .build(TestObjectiveFunction.INSTANCE)
-        .addScenario(scenario)
-        .addConfiguration(ExperimentTestUtil.testConfig("test"))
-        .usePostProcessor(ExperimentTestUtil.testPostProcessor())
-        .withRandomSeed(123);
+      .build(TestObjectiveFunction.INSTANCE)
+      .addScenario(scenario)
+      .addConfiguration(ExperimentTestUtil.testConfig("test"))
+      .usePostProcessor(ExperimentTestUtil.testPostProcessor())
+      .withRandomSeed(123);
 
     final ExperimentResults er = builder.perform();
     assertEquals(123, er.getMasterSeed());
@@ -77,17 +77,17 @@ public class ExperimentTest {
     final Scenario scenario = ScenarioTestUtil.createRandomScenario(123L,
       StatsTracker.builder());
     final Experiment.Builder builder = Experiment
-        .build(TestObjectiveFunction.INSTANCE)
-        .addScenario(scenario)
-        .addConfiguration(ExperimentTestUtil.testConfig("test"))
-        .withRandomSeed(123);
+      .build(TestObjectiveFunction.INSTANCE)
+      .addScenario(scenario)
+      .addConfiguration(ExperimentTestUtil.testConfig("test"))
+      .withRandomSeed(123);
 
     final ExperimentResults er = builder.perform();
 
     assertThat(er.getResults().asList().get(0).getResultObject())
-        .isInstanceOf(String.class);
+      .isInstanceOf(String.class);
     assertThat(er.getResults().asList().get(0).getResultObject())
-        .isEqualTo("simulation duration: 10801000");
+      .isEqualTo("simulation duration: 10801000");
   }
 
   /**
@@ -98,12 +98,12 @@ public class ExperimentTest {
     final Scenario scenario = ScenarioTestUtil.createRandomScenario(123L,
       StatsTracker.builder(), FailureModel.builder());
     final Experiment.Builder builder = Experiment
-        .build(TestObjectiveFunction.INSTANCE)
-        .addScenario(scenario)
-        .addConfiguration(ExperimentTestUtil.testConfig("test"))
-        .withThreads(1)
-        .repeat(3)
-        .withRandomSeed(123);
+      .build(TestObjectiveFunction.INSTANCE)
+      .addScenario(scenario)
+      .addConfiguration(ExperimentTestUtil.testConfig("test"))
+      .withThreads(1)
+      .repeat(3)
+      .withRandomSeed(123);
 
     boolean fail = false;
     try {
@@ -120,13 +120,13 @@ public class ExperimentTest {
     final Scenario scenario = ScenarioTestUtil.createRandomScenario(123L,
       StatsTracker.builder());
     final Experiment.Builder builder = Experiment
-        .build(TestObjectiveFunction.INSTANCE)
-        .addScenario(scenario)
-        .addConfiguration(ExperimentTestUtil.testConfig("test"))
-        .withThreads(1)
-        .usePostProcessor(ExperimentTestUtil.retryOncePostProcessor())
-        .repeat(3)
-        .withRandomSeed(123);
+      .build(TestObjectiveFunction.INSTANCE)
+      .addScenario(scenario)
+      .addConfiguration(ExperimentTestUtil.testConfig("test"))
+      .withThreads(1)
+      .usePostProcessor(ExperimentTestUtil.retryOncePostProcessor())
+      .repeat(3)
+      .withRandomSeed(123);
 
     builder.perform();
   }
@@ -140,14 +140,14 @@ public class ExperimentTest {
     final Scenario s1 = ScenarioTestUtil.createRandomScenario(456L);
     final MASConfiguration c0 = ExperimentTestUtil.testConfig("c0");
     final Experiment.Builder builder = Experiment
-        .build(TestObjectiveFunction.INSTANCE)
-        .addScenario(s0)
-        .addScenario(s1)
-        .addConfiguration(c0)
-        .repeat(2)
-        .withThreads(1)
-        .repeatSeed(3)
-        .withRandomSeed(123);
+      .build(TestObjectiveFunction.INSTANCE)
+      .addScenario(s0)
+      .addScenario(s1)
+      .addConfiguration(c0)
+      .repeat(2)
+      .withThreads(1)
+      .repeatSeed(3)
+      .withRandomSeed(123);
 
     final ExperimentResults er = builder.perform();
     final List<SimulationResult> results = new ArrayList<>(er.getResults());
@@ -178,20 +178,20 @@ public class ExperimentTest {
     final MASConfiguration c0 = ExperimentTestUtil.testConfig("c0");
     final MASConfiguration c1 = ExperimentTestUtil.testConfig("c1");
     final Experiment.Builder builder = Experiment
-        .build(TestObjectiveFunction.INSTANCE)
-        .addScenario(s0)
-        .addScenario(s1)
-        .addConfiguration(c0)
-        .addConfiguration(c1)
-        .repeat(2)
-        .withThreads(1)
-        .repeatSeed(2)
-        .withOrdering(
-          SimulationProperty.SEED_REPS,
-          SimulationProperty.REPS,
-          SimulationProperty.SCENARIO,
-          SimulationProperty.CONFIG)
-        .withRandomSeed(123);
+      .build(TestObjectiveFunction.INSTANCE)
+      .addScenario(s0)
+      .addScenario(s1)
+      .addConfiguration(c0)
+      .addConfiguration(c1)
+      .repeat(2)
+      .withThreads(1)
+      .repeatSeed(2)
+      .withOrdering(
+        SimulationProperty.SEED_REPS,
+        SimulationProperty.REPS,
+        SimulationProperty.SCENARIO,
+        SimulationProperty.CONFIG)
+      .withRandomSeed(123);
 
     final ExperimentResults er = builder.perform();
     final List<SimulationResult> results = new ArrayList<>(er.getResults());
@@ -242,7 +242,7 @@ public class ExperimentTest {
     public void tick(TimeLapse timeLapse) {
       if (timeLapse.getStartTime() == 5000) {
         throw new IllegalStateException(
-            "Hello! Yes? This is the FailureModel speaking.");
+          "Hello! Yes? This is the FailureModel speaking.");
       }
     }
 

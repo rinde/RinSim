@@ -110,7 +110,7 @@ public class UiSchema {
 
   void checkInitialized() {
     checkState(colorRegistry != null,
-        "UiSchema needs to be initialized before it can be used");
+      "UiSchema needs to be initialized before it can be used");
   }
 
   /**
@@ -176,7 +176,7 @@ public class UiSchema {
 
     for (final Entry<String, String> e : imgCache.entrySet()) {
       imageRegistry.put(e.getKey(), new Image(d, getClass()
-          .getResourceAsStream(e.getValue())));
+        .getResourceAsStream(e.getValue())));
     }
   }
 }

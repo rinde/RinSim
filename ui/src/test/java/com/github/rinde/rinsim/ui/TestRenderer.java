@@ -43,10 +43,10 @@ class TestRenderer extends AbstractCanvasRenderer {
     final List<Point> bounds = roadModel.getBounds();
 
     gc.drawLine(vp.toCoordX(bounds.get(0).x), vp.toCoordY(bounds.get(0).y),
-        vp.toCoordX(bounds.get(1).x), vp.toCoordY(bounds.get(1).y));
+      vp.toCoordX(bounds.get(1).x), vp.toCoordY(bounds.get(1).y));
 
     gc.drawText("fancy pancy", vp.toCoordX(bounds.get(0).x),
-        vp.toCoordY(bounds.get(0).y) + 100, true);
+      vp.toCoordY(bounds.get(0).y) + 100, true);
 
   }
 

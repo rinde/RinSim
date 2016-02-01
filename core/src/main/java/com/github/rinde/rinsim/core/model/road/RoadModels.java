@@ -59,7 +59,7 @@ public final class RoadModels {
   public static <T extends RoadUser> T findClosestObject(Point pos,
       RoadModel rm, Collection<T> objects) {
     return Graphs.findClosestObject(pos, objects,
-        new RoadModels.RoadUserToPositionFunction<T>(rm));
+      new RoadModels.RoadUserToPositionFunction<T>(rm));
   }
 
   /**
@@ -76,7 +76,7 @@ public final class RoadModels {
   public static RoadUser findClosestObject(Point pos, RoadModel rm,
       Predicate<RoadUser> predicate) {
     final Collection<RoadUser> filtered = Collections2.filter(rm.getObjects(),
-        predicate);
+      predicate);
     return findClosestObject(pos, rm, filtered);
   }
 
@@ -120,7 +120,7 @@ public final class RoadModels {
    */
   public static List<RoadUser> findClosestObjects(Point pos, RoadModel rm) {
     return RoadModels.findClosestObjects(pos, rm, RoadUser.class,
-        Integer.MAX_VALUE);
+      Integer.MAX_VALUE);
   }
 
   /**
@@ -155,7 +155,7 @@ public final class RoadModels {
   public static List<RoadUser> findClosestObjects(Point pos, RoadModel rm,
       Predicate<RoadUser> predicate, int n) {
     final Collection<RoadUser> filtered = Collections2.filter(rm.getObjects(),
-        predicate);
+      predicate);
     return RoadModels.findClosestObjects(pos, rm, filtered, n);
   }
 
@@ -193,7 +193,7 @@ public final class RoadModels {
   public static <T extends RoadUser> List<T> findClosestObjects(Point pos,
       RoadModel rm, Collection<T> objects, int n) {
     return Graphs.findClosestObjects(pos, objects,
-        new RoadModels.RoadUserToPositionFunction<T>(rm), n);
+      new RoadModels.RoadUserToPositionFunction<T>(rm), n);
   }
 
   /**
@@ -209,7 +209,7 @@ public final class RoadModels {
   public static Collection<RoadUser> findObjectsWithinRadius(
       final Point position, final RoadModel model, final double radius) {
     return RoadModels.findObjectsWithinRadius(position, model, radius,
-        model.getObjects());
+      model.getObjects());
   }
 
   /**
@@ -228,7 +228,7 @@ public final class RoadModels {
       final Point position, final RoadModel model, final double radius,
       final Class<T> type) {
     return RoadModels.findObjectsWithinRadius(position, model, radius,
-        model.getObjectsOfType(type));
+      model.getObjectsOfType(type));
   }
 
   /**
@@ -248,7 +248,7 @@ public final class RoadModels {
       final Point position, final RoadModel model, final double radius,
       Collection<T> objects) {
     return Collections2.filter(objects, new RoadModels.DistancePredicate(
-        position, model, radius));
+      position, model, radius));
   }
 
   /**
@@ -266,12 +266,12 @@ public final class RoadModels {
       Measure<Double, Length> distance, Unit<Duration> outputTimeUnit) {
     // meters
     return Measure.valueOf(distance.doubleValue(SI.METER)
-        // divided by m/s
-        / speed.doubleValue(SI.METERS_PER_SECOND),
-        // gives seconds
-        SI.SECOND)
-        // convert to desired unit
-        .doubleValue(outputTimeUnit);
+      // divided by m/s
+      / speed.doubleValue(SI.METERS_PER_SECOND),
+      // gives seconds
+      SI.SECOND)
+      // convert to desired unit
+      .doubleValue(outputTimeUnit);
   }
 
   @SuppressWarnings("null")
@@ -305,7 +305,7 @@ public final class RoadModels {
     @Override
     public boolean apply(@Nullable RoadUser input) {
       return Point.distance(model.getPosition(verifyNotNull(input)),
-          position) < radius;
+        position) < radius;
     }
   }
 }

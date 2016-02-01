@@ -80,7 +80,7 @@ public class RtSolverModelTestRT extends RtSolverModelTest {
       solvers.get(0).getCurrentSchedule();
     } catch (final IllegalStateException e) {
       assertThat(e.getMessage())
-          .isEqualTo("No schedule has been computed yet.");
+        .isEqualTo("No schedule has been computed yet.");
       fail = true;
     }
     assertThat(fail).isTrue();
@@ -113,7 +113,7 @@ public class RtSolverModelTestRT extends RtSolverModelTest {
     verify(clock, times(1)).switchToSimulatedTime();
 
     assertThat(eventHistory.getEventTypeHistory())
-        .containsExactly(EventType.NEW_SCHEDULE);
+      .containsExactly(EventType.NEW_SCHEDULE);
     assertThat(solvers.get(0).isScheduleUpdated()).isTrue();
     // there was no problem to solve (i.e. no vehicles/parcels) so the provided
     // schedule is empty

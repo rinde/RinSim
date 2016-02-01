@@ -162,7 +162,7 @@ public class StatisticsDTO implements Serializable {
   @Override
   public String toString() {
     return ToStringBuilder.reflectionToString(this,
-        ToStringStyle.MULTI_LINE_STYLE);
+      ToStringStyle.MULTI_LINE_STYLE);
   }
 
   @Override
@@ -178,24 +178,24 @@ public class StatisticsDTO implements Serializable {
     }
     final StatisticsDTO other = (StatisticsDTO) obj;
     return new EqualsBuilder().append(totalDistance, other.totalDistance)
-        .append(totalPickups, other.totalPickups)
-        .append(totalDeliveries, other.totalDeliveries)
-        .append(totalParcels, other.totalParcels)
-        .append(acceptedParcels, other.acceptedParcels)
-        .append(pickupTardiness, other.pickupTardiness)
-        .append(deliveryTardiness, other.deliveryTardiness)
-        .append(simulationTime, other.simulationTime)
-        .append(simFinish, other.simFinish)
-        .append(vehiclesAtDepot, other.vehiclesAtDepot)
-        .append(overTime, other.overTime)
-        .append(totalVehicles, other.totalVehicles)
-        .append(movedVehicles, other.movedVehicles).isEquals();
+      .append(totalPickups, other.totalPickups)
+      .append(totalDeliveries, other.totalDeliveries)
+      .append(totalParcels, other.totalParcels)
+      .append(acceptedParcels, other.acceptedParcels)
+      .append(pickupTardiness, other.pickupTardiness)
+      .append(deliveryTardiness, other.deliveryTardiness)
+      .append(simulationTime, other.simulationTime)
+      .append(simFinish, other.simFinish)
+      .append(vehiclesAtDepot, other.vehiclesAtDepot)
+      .append(overTime, other.overTime)
+      .append(totalVehicles, other.totalVehicles)
+      .append(movedVehicles, other.movedVehicles).isEquals();
   }
 
   @Override
   public int hashCode() {
     return Objects.hashCode(totalDistance, totalPickups, totalParcels,
-        acceptedParcels, pickupTardiness, deliveryTardiness, simulationTime,
-        simFinish, vehiclesAtDepot, overTime, totalVehicles, movedVehicles);
+      acceptedParcels, pickupTardiness, deliveryTardiness, simulationTime,
+      simFinish, vehiclesAtDepot, overTime, totalVehicles, movedVehicles);
   }
 }

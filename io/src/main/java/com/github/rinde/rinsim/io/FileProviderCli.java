@@ -41,24 +41,24 @@ import com.google.common.collect.ImmutableMap;
 public final class FileProviderCli {
 
   private static final ArgHandler<FileProvider.Builder, List<String>> ADD =
-      new ArgHandler<FileProvider.Builder, List<String>>() {
-        @Override
-        public void execute(FileProvider.Builder ref,
-            Optional<List<String>> value) {
-          final List<String> paths = value.get();
-          for (final String p : paths) {
-            ref.add(Paths.get(p));
-          }
+    new ArgHandler<FileProvider.Builder, List<String>>() {
+      @Override
+      public void execute(FileProvider.Builder ref,
+          Optional<List<String>> value) {
+        final List<String> paths = value.get();
+        for (final String p : paths) {
+          ref.add(Paths.get(p));
         }
-      };
+      }
+    };
 
   private static final ArgHandler<FileProvider.Builder, String> FILTER =
-      new ArgHandler<FileProvider.Builder, String>() {
-        @Override
-        public void execute(FileProvider.Builder ref, Optional<String> value) {
-          ref.filter(value.get());
-        }
-      };
+    new ArgHandler<FileProvider.Builder, String>() {
+      @Override
+      public void execute(FileProvider.Builder ref, Optional<String> value) {
+        ref.filter(value.get());
+      }
+    };
 
   private FileProviderCli() {}
 
@@ -77,18 +77,18 @@ public final class FileProviderCli {
       FileProvider.Builder builder) {
     final Map<String, Path> pathMap = createPathMap(builder);
     final Menu.Builder cliBuilder = Menu.builder()
-        .addHelpOption("h", "help", "Print this message")
-        .add(createAddOption(), builder, ADD)
-        .add(createFilterOption(builder), builder, FILTER);
+      .addHelpOption("h", "help", "Print this message")
+      .add(createAddOption(), builder, ADD)
+      .add(createFilterOption(builder), builder, FILTER);
 
     if (!pathMap.isEmpty()) {
       cliBuilder
-          .openGroup()
-          .add(createIncludeOption(pathMap, builder), builder,
-              new IncludeHandler(pathMap))
-          .add(createExcludeOption(pathMap, builder), builder,
-              new ExcludeHandler(pathMap))
-          .closeGroup();
+        .openGroup()
+        .add(createIncludeOption(pathMap, builder), builder,
+          new IncludeHandler(pathMap))
+        .add(createExcludeOption(pathMap, builder), builder,
+          new ExcludeHandler(pathMap))
+        .closeGroup();
     }
     return cliBuilder.build();
   }
@@ -108,17 +108,17 @@ public final class FileProviderCli {
     printPathOptions(pathMap, sb);
     sb.append("This option can not be used together with --exclude.");
     return Option
-        .builder("i", ArgumentParser.stringListParser())
-        .longName("include")
-        .description(sb.toString())
-        .build();
+      .builder("i", ArgumentParser.stringListParser())
+      .longName("include")
+      .description(sb.toString())
+      .build();
   }
 
   static void printPathOptions(Map<String, Path> pathMap, StringBuilder sb) {
     sb.append(
-        "The following paths can be excluded. If this option is not used all "
-            + "paths are automatically "
-            + "included. The current paths:\n");
+      "The following paths can be excluded. If this option is not used all "
+        + "paths are automatically "
+        + "included. The current paths:\n");
     Joiner.on("\n").withKeyValueSeparator(" = ").appendTo(sb, pathMap);
     sb.append("\nThe options should be given as a comma ',' separated list.");
   }
@@ -130,36 +130,36 @@ public final class FileProviderCli {
     printPathOptions(pathMap, sb);
     sb.append("This option can not be used together with --include.");
     return Option.builder("e", ArgumentParser.stringListParser())
-        .longName("exclude")
-        .description(sb.toString())
-        .build();
+      .longName("exclude")
+      .description(sb.toString())
+      .build();
   }
 
   static OptionArg<List<String>> createAddOption() {
     return Option
-        .builder("a", ArgumentParser.stringListParser())
-        .longName("add")
-        .description(
-            "Adds the specified paths. A path may be a file or a directory. "
-                + "If it is a directory it will be searched recursively.")
-        .build();
+      .builder("a", ArgumentParser.stringListParser())
+      .longName("add")
+      .description(
+        "Adds the specified paths. A path may be a file or a directory. "
+          + "If it is a directory it will be searched recursively.")
+      .build();
   }
 
   static OptionArg<String> createFilterOption(Builder ref) {
     return Option
-        .builder("f", ArgumentParser.stringParser())
-        .longName("filter")
-        .description(
-            "Sets a filter of which paths to include. The filter is a string "
-                + "of the form 'syntax:pattern', where 'syntax' is either "
-                + "'glob' or 'regex'.  The current filter is '"
-                + ref.pathPredicate
-                + "', there are "
-                + ref.getNumberOfFiles()
-                + " files that satisfy this filter. For more information about"
-                + " the supported syntax please review the documentation of the"
-                + " java.nio.file.FileSystem.getPathMatcher(String) method.")
-        .build();
+      .builder("f", ArgumentParser.stringParser())
+      .longName("filter")
+      .description(
+        "Sets a filter of which paths to include. The filter is a string "
+          + "of the form 'syntax:pattern', where 'syntax' is either "
+          + "'glob' or 'regex'.  The current filter is '"
+          + ref.pathPredicate
+          + "', there are "
+          + ref.getNumberOfFiles()
+          + " files that satisfy this filter. For more information about"
+          + " the supported syntax please review the documentation of the"
+          + " java.nio.file.FileSystem.getPathMatcher(String) method.")
+      .build();
   }
 
   abstract static class PathSelectorHandler implements
@@ -175,12 +175,12 @@ public final class FileProviderCli {
       final List<String> keys = value.get();
       final List<Path> paths = newArrayList();
       checkArgument(
-          keys.size() <= pathMap.size(),
-          "Too many paths, at most %s paths can be selected.",
-          pathMap.size());
+        keys.size() <= pathMap.size(),
+        "Too many paths, at most %s paths can be selected.",
+        pathMap.size());
       for (final String k : keys) {
         checkArgument(pathMap.containsKey(k),
-            "The key '%s' is not valid. Valid keys: %s.", k, pathMap.keySet());
+          "The key '%s' is not valid. Valid keys: %s.", k, pathMap.keySet());
         paths.add(pathMap.get(k));
       }
       execute(ref, paths);

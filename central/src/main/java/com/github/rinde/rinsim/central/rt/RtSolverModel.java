@@ -171,7 +171,7 @@ public final class RtSolverModel
       return clazz.cast(new RtSimSolverBuilderImpl());
     }
     throw new IllegalArgumentException(
-        getClass().getSimpleName() + " does not provide " + clazz);
+      getClass().getSimpleName() + " does not provide " + clazz);
   }
 
   @Override
@@ -184,11 +184,11 @@ public final class RtSolverModel
     manager.checkExceptions();
     final boolean isComputing = manager.isComputing();
     if (!isComputing && clock.isTicking()
-        && clock.getClockMode() == ClockMode.REAL_TIME) {
+      && clock.getClockMode() == ClockMode.REAL_TIME) {
       if (prevComputing) {
         LOGGER.trace(
           "we have stopped computing, if this stays the same we will attempt "
-              + "to switch to sim time on next tick");
+            + "to switch to sim time on next tick");
         prevComputing = false;
       } else {
         LOGGER.debug(
@@ -336,11 +336,11 @@ public final class RtSolverModel
     @Override
     public RtSolverModel build(DependencyProvider dependencyProvider) {
       final RealtimeClockController c = dependencyProvider
-          .get(RealtimeClockController.class);
+        .get(RealtimeClockController.class);
       final PDPRoadModel rm = dependencyProvider.get(PDPRoadModel.class);
       final PDPModel pm = dependencyProvider.get(PDPModel.class);
       return new RtSolverModel(c, rm, pm, getMode(), getThreadPoolSize(),
-          getThreadGrouping());
+        getThreadGrouping());
     }
 
     static Builder create(Mode m, int t, boolean g) {
@@ -376,7 +376,7 @@ public final class RtSolverModel
     SimSolversManager() {
       simSolvers = new LinkedHashSet<>();
       computingSimSolvers = Collections
-          .synchronizedSet(new LinkedHashSet<RtSimSolverSchedulerBridge>());
+        .synchronizedSet(new LinkedHashSet<RtSimSolverSchedulerBridge>());
       exceptions = Collections.synchronizedList(new ArrayList<Throwable>());
     }
 
@@ -494,7 +494,7 @@ public final class RtSolverModel
       }
       final RtSimSolverSchedulerBridge s =
         new RtSimSolverSchedulerBridge(clock, solver, roadModel, pdpModel,
-            associatedVehicles, executor.get(), manager);
+          associatedVehicles, executor.get(), manager);
       return s.rtSimSolver;
     }
 

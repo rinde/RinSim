@@ -65,8 +65,8 @@ public class ScenarioIOTest {
   @Test
   public void testReaderAdapter() throws IOException {
     final Scenario s = Scenario.builder()
-        .addModel(TimeModel.builder().withTickLength(7L))
-        .build();
+      .addModel(TimeModel.builder().withTickLength(7L))
+      .build();
 
     final Path tmpDir = Files.createTempDirectory("rinsim-scenario-io-test");
     final Path file = Paths.get(tmpDir.toString(), "test.scen");
@@ -74,16 +74,16 @@ public class ScenarioIOTest {
 
     final Scenario out = ScenarioIO.reader().apply(file);
     final Scenario convertedOut =
-        verifyNotNull(ScenarioIO.readerAdapter(ScenarioConverters.toRealtime())
-            .apply(file));
+      verifyNotNull(ScenarioIO.readerAdapter(ScenarioConverters.toRealtime())
+        .apply(file));
 
     assertThat(s).isEqualTo(out);
     assertThat(s).isNotEqualTo(convertedOut);
     assertThat(convertedOut.getModelBuilders())
-        .contains(TimeModel.builder()
-            .withRealTime()
-            .withStartInClockMode(ClockMode.SIMULATED)
-            .withTickLength(7L));
+      .contains(TimeModel.builder()
+        .withRealTime()
+        .withStartInClockMode(ClockMode.SIMULATED)
+        .withTickLength(7L));
 
     Files.delete(file);
     Files.delete(tmpDir);

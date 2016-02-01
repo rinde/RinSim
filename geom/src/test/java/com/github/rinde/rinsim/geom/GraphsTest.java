@@ -64,7 +64,7 @@ public class GraphsTest {
   @Parameters
   public static Collection<Object[]> configs() {
     return Arrays.asList(new Object[][] {{MultimapGraph.class},
-        {TableGraph.class}});
+      {TableGraph.class}});
   }
 
   @Before
@@ -176,7 +176,7 @@ public class GraphsTest {
     final List<Point> points = Arrays.asList(N, NE, E, SE, S, SW, W, NW);
 
     final List<Connection<LengthData>> connections = newArrayList(graph
-        .getConnections());
+      .getConnections());
     for (int i = 1; i < points.size(); i++) {
       assertSame(connections.get(i - 1).from(), points.get(i - 1));
       assertSame(connections.get(i - 1).to(), points.get(i));
@@ -199,7 +199,7 @@ public class GraphsTest {
     }
 
     final List<Point> incomingConn = new ArrayList<Point>(
-        graph.getIncomingConnections(incoming));
+      graph.getIncomingConnections(incoming));
     for (int i = 0; i < incomingConn.size(); i++) {
       assertSame(incomingConn.get(i), points.get(i));
     }
@@ -221,7 +221,7 @@ public class GraphsTest {
     }
 
     final List<Point> outgoingConn = new ArrayList<Point>(
-        graph.getOutgoingConnections(outgoing));
+      graph.getOutgoingConnections(outgoing));
     for (int i = 0; i < outgoingConn.size(); i++) {
       assertSame(outgoingConn.get(i), points.get(i));
     }
@@ -335,7 +335,7 @@ public class GraphsTest {
     };
 
     final List<Point> points = Arrays.asList(new Point(10, 34), new Point(234,
-        2),
+      2),
       new Point(10, 10), new Point(1, 1));
 
     final List<Point> results = Graphs.findClosestObjects(new Point(0, 0),
@@ -395,7 +395,7 @@ public class GraphsTest {
 
     for (final Point p : g.getNodes()) {
       assertArrayEquals(graph.getIncomingConnections(p).toArray(), g
-          .getIncomingConnections(p).toArray());
+        .getIncomingConnections(p).toArray());
     }
 
     for (final Connection<LengthData> c : g.getConnections()) {
@@ -480,7 +480,7 @@ public class GraphsTest {
     testGraph.merge(graph);
 
     final MultimapGraph<LengthData> newGraph = new MultimapGraph<>(
-        testGraph.getMultimap());
+      testGraph.getMultimap());
 
     assertEquals(testGraph.getMultimap(), newGraph.getMultimap());
   }
@@ -494,7 +494,7 @@ public class GraphsTest {
 
     Graphs.addBiPath(graph, N, E, S, W, N);
     assertFalse(graph.setConnectionData(N, E, LengthData.create(100))
-        .isPresent());
+      .isPresent());
     assertEquals(LengthData.create(100),
       graph.removeConnectionData(N, E).get());
   }

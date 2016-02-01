@@ -136,7 +136,7 @@ public final class PDPModelRenderer extends AbstractCanvasRenderer {
           if (state != VehicleState.IDLE) {
             gc.drawText(
               state.toString() + " "
-                  + pdpModel.getVehicleActionInfo(v).timeNeeded(),
+                + pdpModel.getVehicleActionInfo(v).timeNeeded(),
               x, y - STATE_TEXT_OFFSET);
           }
           gc.drawText(
