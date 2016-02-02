@@ -30,6 +30,9 @@ import javax.measure.quantity.Duration;
 import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
@@ -60,6 +63,9 @@ import com.google.common.collect.ImmutableSet;
  */
 public abstract class TimeModel extends AbstractModel<TickListener>
     implements ClockController {
+  private static final Logger LOGGER =
+    LoggerFactory.getLogger(RealtimeModel.class);
+
   final TimeLapse timeLapse;
   final EventDispatcher eventDispatcher;
   volatile boolean isTicking;
@@ -140,6 +146,11 @@ public abstract class TimeModel extends AbstractModel<TickListener>
     }
     // advance time
     timeLapse.next();
+
+    if (Thread.interrupted()) {
+      LOGGER.info("Simulation interrupted after tick {}, stopping.", timeLapse);
+      stop();
+    }
   }
 
   /**
