@@ -275,7 +275,7 @@ public final class ExperimentCli {
       .longName("warmup")
       .description(
         "Sets the warmup period (in ms) of the experiment, default: ",
-        builder.warmupPeriodMs, "ms.")
+        builder.warmupPeriodMs, " ms.")
       .build();
   }
 
