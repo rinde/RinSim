@@ -24,6 +24,7 @@ import java.util.List;
 
 import org.junit.Test;
 
+import com.github.rinde.rinsim.core.model.CountingModelBuilder;
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.Model.AbstractModelVoid;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
@@ -217,6 +218,47 @@ public class ExperimentTest {
     assertSimRes(results.get(14), s1, c0, 1);
     assertSimRes(results.get(15), s1, c1, 1);
     assertSeedEquality(results.subList(12, 16));
+  }
+
+  /**
+   * Tests correct functioning of warmup.
+   */
+  @Test
+  public void testWarmup() {
+    final CountingModelBuilder cmb = new CountingModelBuilder();
+
+    final Scenario scenario = ScenarioTestUtil.createRandomScenario(123L,
+      StatsTracker.builder(), cmb);
+
+    final Experiment.Builder builder = Experiment
+      .build(TestObjectiveFunction.INSTANCE)
+      .addScenario(scenario)
+      .addConfiguration(ExperimentTestUtil.testConfig("test"))
+      .usePostProcessor(ExperimentTestUtil.testPostProcessor())
+      .withWarmup(100L)
+      .withRandomSeed(123);
+
+    assertThat(builder.warmupPeriodMs).isEqualTo(100L);
+
+    assertThat(cmb.getCount()).isEqualTo(0);
+    builder.perform();
+    // it should be called once for the warmup and once for the actual run
+    assertThat(cmb.getCount()).isEqualTo(2);
+
+    // this should disable the warmup
+    builder.withWarmup(0);
+    assertThat(builder.warmupPeriodMs).isEqualTo(0);
+    builder.perform();
+    assertThat(cmb.getCount()).isEqualTo(3);
+
+    boolean fail = false;
+    try {
+      builder.withWarmup(-1);
+    } catch (final IllegalArgumentException e) {
+      fail = true;
+      assertThat(e.getMessage()).contains("Warmup period must be positive");
+    }
+    assertThat(fail).isTrue();
   }
 
   static void assertSimRes(SimulationResult sr, Scenario s, MASConfiguration c,

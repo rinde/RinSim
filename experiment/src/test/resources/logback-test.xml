@@ -1,0 +1,26 @@
+<configuration>
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<!-- encoders are assigned the type ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+		<encoder>
+			<pattern>%-4relative [%thread] %-5level %logger{35} - %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="FILE" class="ch.qos.logback.core.FileAppender">
+		<file>rinsim-central.log</file>
+		<append>false</append>
+		<!-- encoders are assigned the type ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+		<encoder>
+			<pattern>%-4relative [%thread] %-5level %logger{35} - %msg%n</pattern>
+		</encoder>
+	</appender>
+
+
+	<logger name="com.github.rinde.rinsim" level="WARN" />
+	<logger name="com.github.rinde.rinsim.core.model.time" level="TRACE" />
+	<logger name="com.github.rinde.rinsim.experiment" level="TRACE" />
+
+	<root level="INFO">
+		<appender-ref ref="FILE" />
+	</root>
+</configuration>

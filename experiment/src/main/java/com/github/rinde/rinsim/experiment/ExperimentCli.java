@@ -91,9 +91,10 @@ public final class ExperimentCli {
       .add(createDryRunOpt(builder), builder, StringHandler.DRY_RUN)
       .add(createRepetitionsOpt(builder), builder, IntHandlers.REPS)
       .add(createSeedRepetitionsOpt(builder), builder, IntHandlers.SEED_REPS)
-      .add(createSeedOption(builder), builder, LongHandler.SEED)
+      .add(createSeedOption(builder), builder, LongHandlers.SEED)
       .add(createGuiOpt(builder), builder, BooleanHandler.GUI)
       .add(createOrderingOption(builder), builder, OrderingHandler.INSTANCE)
+      .add(createWarmupOption(builder), builder, LongHandlers.WARMUP)
       .addHelpOption("h", "help", "Print this message.");
 
     if (builder.scenarioProviderBuilder.isPresent()) {
@@ -258,15 +259,23 @@ public final class ExperimentCli {
 
   static OptionArg<List<SimulationProperty>> createOrderingOption(
       Builder builder) {
-    return Option
-      .builder("o",
-        ArgumentParser.enumListParser("list", SimulationProperty.class))
+    return Option.builder("o",
+      ArgumentParser.enumListParser("list", SimulationProperty.class))
       .longName("ordering")
       .description(
         "Sets the ordering of simulations as specified by simulation "
           + "properties, default: ",
         Joiner.on(",").join(builder.experimentOrdering),
         ". All options must be specified exactly once.")
+      .build();
+  }
+
+  static OptionArg<Long> createWarmupOption(Builder builder) {
+    return Option.builder("w", ArgumentParser.longParser())
+      .longName("warmup")
+      .description(
+        "Sets the warmup period (in ms) of the experiment, default: ",
+        builder.warmupPeriodMs, "ms.")
       .build();
   }
 
@@ -304,11 +313,17 @@ public final class ExperimentCli {
     }
   }
 
-  enum LongHandler implements ArgHandler<Builder, Long> {
+  enum LongHandlers implements ArgHandler<Builder, Long> {
     SEED {
       @Override
       public void execute(Builder builder, Optional<Long> value) {
         builder.withRandomSeed(value.get());
+      }
+    },
+    WARMUP {
+      @Override
+      public void execute(Builder subject, Optional<Long> argument) {
+        subject.withWarmup(argument.get());
       }
     }
   }
@@ -352,7 +367,7 @@ public final class ExperimentCli {
       public void execute(Builder subject, Optional<Integer> value) {
         subject.numBatches(value.get());
       }
-    }
+    };
   }
 
   enum OrderingHandler

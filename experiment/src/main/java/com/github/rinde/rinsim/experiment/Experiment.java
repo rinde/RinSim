@@ -265,6 +265,7 @@ public final class Experiment {
     long masterSeed;
     int numThreads;
     int numBatches;
+    long warmupPeriodMs;
 
     private Supplier<Computer> computerType;
 
@@ -525,6 +526,22 @@ public final class Experiment {
     }
 
     /**
+     * Set the warmup period for the experiments. This is the number of
+     * milliseconds that the experiment will be run until it will be
+     * interrupted. After the warmup period the experiment will start again
+     * without being interrupted.
+     * @param warmupPeriodMillis The length of the warmup period. Must be
+     *          positive, if <code>0</code> no warmup will be performed.
+     * @return This, as per the builder pattern.
+     */
+    public Builder withWarmup(long warmupPeriodMillis) {
+      checkArgument(warmupPeriodMillis >= 0,
+        "Warmup period must be positive, was %s.", warmupPeriodMillis);
+      warmupPeriodMs = warmupPeriodMillis;
+      return this;
+    }
+
+    /**
      * Specify a {@link PostProcessor} which is used to create a results object
      * and perform error handling. results from a simulation. The data gathered
      * by the post-processor ends up in
@@ -636,6 +653,16 @@ public final class Experiment {
       final ImmutableSet<Scenario> scenarios = getAllScenarios();
       final ImmutableSet<SimArgs> runners =
         createFactorialSetup(seeds, scenarios);
+
+      if (warmupPeriodMs > 0) {
+        checkArgument(computerType == Computers.LOCAL,
+          "Warmup can only be used when experiment is performed locally.");
+        LOGGER.info("Start warmup.");
+
+        new WarmupComputer(computerType.get()).compute(this, runners);
+        LOGGER.info("Warmup finished. {}");
+      }
+
       for (final ResultListener rl : resultListeners) {
         rl.startComputing(runners.size(),
           ImmutableSet.copyOf(configurationsSet),

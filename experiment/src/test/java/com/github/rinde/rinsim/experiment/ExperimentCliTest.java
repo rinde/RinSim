@@ -271,4 +271,14 @@ public class ExperimentCliTest {
         SimulationProperty.CONFIG)
       .inOrder();
   }
+
+  /**
+   * Test the warmup option.
+   */
+  @Test
+  public void testWarmup() {
+    assertThat(menu.execute("-w", "123")).isAbsent();
+    assertThat(builder.warmupPeriodMs).isEqualTo(123);
+    testFail(menu, "w", CauseType.HANDLER_FAILURE, "-w", "-9");
+  }
 }
