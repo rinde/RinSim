@@ -360,8 +360,11 @@ public final class RtSolverModel
       final ImmutableSet.Builder<RealtimeSolver> solvers =
         ImmutableSet.builder();
       synchronized (manager.computingSimSolvers) {
-        for (final RtSimSolverSchedulerBridge s : manager.computingSimSolvers) {
-          solvers.add(s.solver);
+        for (final RtSimSolverSchedulerBridge s : manager.simSolvers) {
+          if (s.solver.isComputing()
+            || manager.computingSimSolvers.contains(s)) {
+            solvers.add(s.solver);
+          }
         }
       }
       return solvers.build();
@@ -396,6 +399,7 @@ public final class RtSolverModel
     }
 
     void register(RtSimSolverSchedulerBridge s) {
+      LOGGER.trace("New solver registered: {}.", s.solver);
       simSolvers.add(s);
       s.getEventAPI().addListener(this,
         EventType.START_COMPUTING,

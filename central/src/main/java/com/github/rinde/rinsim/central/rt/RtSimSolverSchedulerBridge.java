@@ -144,6 +144,8 @@ class RtSimSolverSchedulerBridge {
 
     @Override
     public void solve(final GlobalStateObject state) {
+      LOGGER.trace("Solve: {}, {} available parcels.", solver,
+        state.getAvailableParcels().size());
       realtimeCheck();
       eventDispatcher.dispatchEvent(new Event(
         RtSimSolverSchedulerBridge.EventType.START_COMPUTING, reference));
