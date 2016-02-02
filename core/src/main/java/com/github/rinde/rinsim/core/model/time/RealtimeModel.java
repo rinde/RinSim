@@ -419,7 +419,8 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
           Thread.sleep(THREAD_SLEEP_MS);
         }
       } catch (final InterruptedException e) {
-        throw new IllegalStateException(e);
+        LOGGER.warn("Received interrupt, stopping simulator.");
+        context.stop();
       }
       checkExceptions(context);
       if (isShuttingDown.get()) {

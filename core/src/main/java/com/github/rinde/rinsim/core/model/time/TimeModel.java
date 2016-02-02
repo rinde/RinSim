@@ -147,7 +147,7 @@ public abstract class TimeModel extends AbstractModel<TickListener>
     // advance time
     timeLapse.next();
 
-    if (Thread.interrupted()) {
+    if (Thread.interrupted() && isTicking()) {
       LOGGER.info("Simulation interrupted after tick {}, stopping.", timeLapse);
       stop();
     }

@@ -21,6 +21,8 @@ import static java.util.Arrays.asList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -316,6 +318,28 @@ public class RealtimeModelTestRT extends TimeModelTest<RealtimeModel> {
 
     assertThat(interArrivalTimes.get(3)).isAtMost(500d);
     assertThat(getModel().isExecutorAlive()).isFalse();
+  }
+
+  /**
+   * Tests that the realtime model shuts down as soon as possible upon receiving
+   * an interrupt.
+   */
+  @Test
+  public void testInterrupt() {
+    final Thread main = Thread.currentThread();
+    final long tickLength = getModel().getTickLength();
+
+    Executors.newScheduledThreadPool(1).schedule(new Runnable() {
+      @Override
+      public void run() {
+        main.interrupt();
+      }
+    }, 10 * tickLength, TimeUnit.MILLISECONDS);
+
+    getModel().start();
+
+    assertThat(getModel().getCurrentTime())
+      .isIn(Range.open(9L * tickLength, 11L * tickLength));
   }
 
   static double sum(List<Double> list) {
