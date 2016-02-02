@@ -94,7 +94,7 @@ public abstract class ArgumentParser<V> {
   /**
    * @return List of {@link Integer}s parser.
    */
-  public static ArgumentParser<List<Integer>> intList() {
+  public static ArgumentParser<List<Integer>> intListParser() {
     return INTEGER_LIST;
   }
 
