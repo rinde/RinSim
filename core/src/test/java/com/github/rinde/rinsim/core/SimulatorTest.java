@@ -58,10 +58,10 @@ public class SimulatorTest {
   @Before
   public void setUp() {
     simulator = Simulator.builder()
-        .setRandomGenerator(new MersenneTwister(123L))
-        .setTickLength(100L)
-        .setTimeUnit(SI.SECOND)
-        .build();
+      .setRandomGenerator(new MersenneTwister(123L))
+      .setTickLength(100L)
+      .setTimeUnit(SI.SECOND)
+      .build();
   }
 
   /**
@@ -87,9 +87,9 @@ public class SimulatorTest {
   @Test
   public void testTimeModelSettings() {
     final Simulator sim = Simulator.builder()
-        .setTickLength(123L)
-        .setTimeUnit(NonSI.WEEK)
-        .build();
+      .setTickLength(123L)
+      .setTimeUnit(NonSI.WEEK)
+      .build();
 
     assertThat(sim.getTimeStep()).isEqualTo(123L);
     assertThat(sim.getTimeUnit()).isEqualTo(NonSI.WEEK);
@@ -101,15 +101,15 @@ public class SimulatorTest {
   @Test
   public void testRegister() {
     final Simulator sim = Simulator.builder()
-        .addModel(DummyModel.builder())
-        .addModel(DummyModel.builder())
-        .addModel(DummyModelAsTickListener.builderAsTickListener())
-        .build();
+      .addModel(DummyModel.builder())
+      .addModel(DummyModel.builder())
+      .addModel(DummyModelAsTickListener.builderAsTickListener())
+      .build();
 
     assertThat(sim.getModels().asList().get(0)).isInstanceOf(DummyModel.class);
     assertThat(sim.getModels().asList().get(1)).isInstanceOf(DummyModel.class);
     assertThat(sim.getModels().asList().get(2)).isInstanceOf(
-        DummyModelAsTickListener.class);
+      DummyModelAsTickListener.class);
 
     sim.register(new DummyObject());
 
@@ -139,8 +139,8 @@ public class SimulatorTest {
   @Test
   public void testUnregisterObj() {
     final Simulator sim = Simulator.builder()
-        .addModel(DummyModel.builder())
-        .build();
+      .addModel(DummyModel.builder())
+      .build();
 
     final DummyModel dm = sim.getModelProvider().getModel(DummyModel.class);
 
@@ -170,35 +170,35 @@ public class SimulatorTest {
   @Test
   public void testModelBuilder() {
     final Simulator sim = Simulator.builder()
-        .addModel(new ModelBuilder<DummyModel, DummyObject>() {
-          @Override
-          public DummyModel build(DependencyProvider dp) {
-            final RandomProvider rg = dp.get(RandomProvider.class);
-            rg.newInstance();
-            return new DummyModel();
-          }
+      .addModel(new ModelBuilder<DummyModel, DummyObject>() {
+        @Override
+        public DummyModel build(DependencyProvider dp) {
+          final RandomProvider rg = dp.get(RandomProvider.class);
+          rg.newInstance();
+          return new DummyModel();
+        }
 
-          @Override
-          public ImmutableSet<Class<?>> getDependencies() {
-            return ImmutableSet.<Class<?>>of(RandomProvider.class);
-          }
+        @Override
+        public ImmutableSet<Class<?>> getDependencies() {
+          return ImmutableSet.<Class<?>>of(RandomProvider.class);
+        }
 
-          @Override
-          public Class<DummyObject> getAssociatedType() {
-            return DummyObject.class;
-          }
+        @Override
+        public Class<DummyObject> getAssociatedType() {
+          return DummyObject.class;
+        }
 
-          @Override
-          public ImmutableSet<Class<?>> getProvidingTypes() {
-            return ImmutableSet.<Class<?>>of(Object.class);
-          }
+        @Override
+        public ImmutableSet<Class<?>> getProvidingTypes() {
+          return ImmutableSet.<Class<?>>of(Object.class);
+        }
 
-          @Override
-          public Class<DummyModel> getModelType() {
-            return DummyModel.class;
-          }
-        })
-        .build();
+        @Override
+        public Class<DummyModel> getModelType() {
+          return DummyModel.class;
+        }
+      })
+      .build();
     assertThat((Iterable<?>) sim.getModels()).containsNoDuplicates();
   }
 
@@ -208,9 +208,9 @@ public class SimulatorTest {
   @Test
   public void testCircularDependencies() {
     final Simulator.Builder b = Simulator.builder()
-        .addModel(new CircleA())
-        .addModel(new CircleB())
-        .addModel(new CircleC());
+      .addModel(new CircleA())
+      .addModel(new CircleB())
+      .addModel(new CircleC());
 
     boolean fail = false;
     try {
@@ -227,7 +227,7 @@ public class SimulatorTest {
   @Test
   public void testUnknownDependency() {
     final Simulator.Builder b = Simulator.builder()
-        .addModel(new CircleA());
+      .addModel(new CircleA());
     boolean fail = false;
     try {
       b.build();
@@ -243,13 +243,13 @@ public class SimulatorTest {
   @Test
   public void testDuplicateProvider() {
     final Simulator.Builder b = Simulator.builder()
-        .addModel(new DuplicateA());
+      .addModel(new DuplicateA());
     boolean fail = false;
     try {
       b.addModel(new DuplicateB());
     } catch (final IllegalArgumentException e) {
       assertThat(e.getMessage()).contains(
-          "provider for class java.lang.Object already exists");
+        "provider for class java.lang.Object already exists");
       fail = true;
     }
     assertThat(fail).isTrue();
@@ -261,15 +261,15 @@ public class SimulatorTest {
   @Test
   public void testNopBuilder() {
     final Simulator.Builder b = Simulator.builder()
-        .addModel(new NopBuilder())
-        .addModel(new A())
-        .addModel(new B());
+      .addModel(new NopBuilder())
+      .addModel(new A())
+      .addModel(new B());
     boolean fail = false;
     try {
       b.build();
     } catch (final IllegalStateException e) {
       assertThat(e.getMessage())
-          .containsMatch("dependencies MUST be requested");
+        .containsMatch("dependencies MUST be requested");
       fail = true;
     }
     assertThat(fail).isTrue();
@@ -281,9 +281,9 @@ public class SimulatorTest {
   @Test
   public void testAskTwiceBuilder() {
     final Simulator.Builder b = Simulator.builder()
-        .addModel(new AskTwiceBuilder())
-        .addModel(new A())
-        .addModel(new B());
+      .addModel(new AskTwiceBuilder())
+      .addModel(new A())
+      .addModel(new B());
     boolean fail = false;
     try {
       b.build();
@@ -300,9 +300,9 @@ public class SimulatorTest {
   @Test
   public void testAskWrongTypeBuilder() {
     final Simulator.Builder b = Simulator.builder()
-        .addModel(new AskWrongTypeBuilder())
-        .addModel(new A())
-        .addModel(new B());
+      .addModel(new AskWrongTypeBuilder())
+      .addModel(new A())
+      .addModel(new B());
     boolean fail = false;
     try {
       b.build();
@@ -325,7 +325,7 @@ public class SimulatorTest {
       b.addModel(new AskWithoutAnyDepsBuilder());
     } catch (final IllegalArgumentException e) {
       assertThat(e.getMessage()).containsMatch(
-          "did not declare any dependencies");
+        "did not declare any dependencies");
       fail = true;
     }
     assertThat(fail).isTrue();
@@ -458,8 +458,8 @@ public class SimulatorTest {
     public GenericModel<Object> build(DependencyProvider dependencyProvider) {
       dependencyProvider.get(ProviderForB.class);
       return new GenericModel<>(ImmutableClassToInstanceMap.builder()
-          .put(ProviderForA.class, new ProviderForA())
-          .build());
+        .put(ProviderForA.class, new ProviderForA())
+        .build());
     }
   }
 
@@ -471,8 +471,8 @@ public class SimulatorTest {
     @Override
     public GenericModel<Object> build(DependencyProvider dependencyProvider) {
       return new GenericModel<>(ImmutableClassToInstanceMap.builder()
-          .put(ProviderForB.class, new ProviderForB())
-          .build());
+        .put(ProviderForB.class, new ProviderForB())
+        .build());
     }
   }
 

@@ -60,11 +60,11 @@ public class CollisionGraphRoadModelTest {
   public void setUp() {
     graph = new ListenableGraph<>(new TableGraph<LengthData>());
     model = RoadModelBuilders.dynamicGraph(graph)
-        .withCollisionAvoidance()
-        .withDistanceUnit(SI.METER)
-        .withVehicleLength(1d)
-        .withMinDistance(0)
-        .build(mock(DependencyProvider.class));
+      .withCollisionAvoidance()
+      .withDistanceUnit(SI.METER)
+      .withVehicleLength(1d)
+      .withMinDistance(0)
+      .build(mock(DependencyProvider.class));
 
     NW = new Point(0, 0);
     NE = new Point(10, 0);
@@ -89,7 +89,7 @@ public class CollisionGraphRoadModelTest {
       model.addObjectAtSamePosition(agv2, agv1);
     } catch (final IllegalArgumentException e) {
       assertThat(e.getMessage()).contains(
-          "can not be added on an already occupied position");
+        "can not be added on an already occupied position");
       fail = true;
     }
     assertTrue(fail);
@@ -210,9 +210,9 @@ public class CollisionGraphRoadModelTest {
     model.moveTo(agv2, NE, meter(20));
 
     assertPointEquals(new Point(3, 0), model.getPosition(agv1),
-        GraphRoadModel.DELTA);
+      GraphRoadModel.DELTA);
     assertPointEquals(new Point(2, 0), model.getPosition(agv2),
-        GraphRoadModel.DELTA);
+      GraphRoadModel.DELTA);
 
     // moving is not allowed
     checkNoMovement(model.moveTo(agv2, NE, meter(20)));
@@ -251,9 +251,9 @@ public class CollisionGraphRoadModelTest {
     model.moveTo(agv2, NW, meter(10));
 
     assertPointEquals(new Point(1d - 0.0002777777778, 0),
-        model.getPosition(agv1), GraphRoadModel.DELTA);
+      model.getPosition(agv1), GraphRoadModel.DELTA);
     assertPointEquals(new Point(0, 1.0), model.getPosition(agv2),
-        GraphRoadModel.DELTA);
+      GraphRoadModel.DELTA);
 
     // moving agv2 is not allowed
     checkNoMovement(model.moveTo(agv2, NW, meter(20)));
@@ -276,7 +276,7 @@ public class CollisionGraphRoadModelTest {
     assertEquals(1L, tl3.getTimeLeft());
     model.moveTo(agv1, X, tl3);
     assertPointEquals(new Point(0, -1), model.getPosition(agv1),
-        GraphRoadModel.DELTA);
+      GraphRoadModel.DELTA);
     model.moveTo(agv2, NW, meter(1));
     assertEquals(NW, model.getPosition(agv2));
   }
@@ -291,8 +291,8 @@ public class CollisionGraphRoadModelTest {
     try {
       @SuppressWarnings("unused")
       final CollisionGraphRMB b = RoadModelBuilders.dynamicGraph(graph)
-          .withCollisionAvoidance()
-          .withVehicleLength(0d);
+        .withCollisionAvoidance()
+        .withVehicleLength(0d);
     } catch (final IllegalArgumentException e) {
       fail = true;
     }
@@ -303,18 +303,18 @@ public class CollisionGraphRoadModelTest {
     try {
       @SuppressWarnings("unused")
       final CollisionGraphRMB b = RoadModelBuilders.dynamicGraph(graph)
-          .withCollisionAvoidance()
-          .withVehicleLength(Double.POSITIVE_INFINITY);
+        .withCollisionAvoidance()
+        .withVehicleLength(Double.POSITIVE_INFINITY);
     } catch (final IllegalArgumentException e) {
       fail = true;
     }
     assertTrue(fail);
 
     final CollisionGraphRoadModel cgr1 = RoadModelBuilders.dynamicGraph(graph)
-        .withCollisionAvoidance()
-        .withDistanceUnit(SI.METER)
-        .withVehicleLength(5d)
-        .build(mock(DependencyProvider.class));
+      .withCollisionAvoidance()
+      .withDistanceUnit(SI.METER)
+      .withVehicleLength(5d)
+      .build(mock(DependencyProvider.class));
 
     assertEquals(5d, cgr1.getVehicleLength(), 0);
   }
@@ -325,30 +325,30 @@ public class CollisionGraphRoadModelTest {
   @Test
   public void testBuilderMinDistance() {
     assertEquals(0d, RoadModelBuilders.dynamicGraph(graph)
-        .withCollisionAvoidance()
-        .withMinDistance(0d)
-        .withDistanceUnit(SI.METER)
-        .build(mock(DependencyProvider.class))
-        .getMinDistance(),
-        0);
+      .withCollisionAvoidance()
+      .withMinDistance(0d)
+      .withDistanceUnit(SI.METER)
+      .build(mock(DependencyProvider.class))
+      .getMinDistance(),
+      0);
 
     assertEquals(2d, RoadModelBuilders.dynamicGraph(graph)
-        .withDistanceUnit(SI.METER)
-        .withCollisionAvoidance()
-        .withMinDistance(2d)
-        .build(mock(DependencyProvider.class))
+      .withDistanceUnit(SI.METER)
+      .withCollisionAvoidance()
+      .withMinDistance(2d)
+      .build(mock(DependencyProvider.class))
 
-    .getMinDistance(),
-        0);
+      .getMinDistance(),
+      0);
 
     // min distance may not be > 2 * vehicle length
     boolean fail = false;
     try {
       RoadModelBuilders.dynamicGraph(graph)
-          .withCollisionAvoidance()
-          .withVehicleLength(1d)
-          .withMinDistance(2.000000001)
-          .build(mock(DependencyProvider.class));
+        .withCollisionAvoidance()
+        .withVehicleLength(1d)
+        .withMinDistance(2.000000001)
+        .build(mock(DependencyProvider.class));
     } catch (final IllegalArgumentException e) {
       fail = true;
     }
@@ -359,8 +359,8 @@ public class CollisionGraphRoadModelTest {
     try {
       @SuppressWarnings("unused")
       final CollisionGraphRMB b = RoadModelBuilders.dynamicGraph(graph)
-          .withCollisionAvoidance()
-          .withMinDistance(-1d);
+        .withCollisionAvoidance()
+        .withMinDistance(-1d);
     } catch (final IllegalArgumentException e) {
       fail = true;
     }
@@ -373,7 +373,7 @@ public class CollisionGraphRoadModelTest {
   @Test
   public void testDetectInvalidConnAtConstruction() {
     final ListenableGraph<?> g = new ListenableGraph<>(
-        new TableGraph<LengthData>());
+      new TableGraph<LengthData>());
     // this connection is allowed:
     g.addConnection(new Point(0, 0), new Point(1, 0));
     // this connection is not allowed:
@@ -381,10 +381,10 @@ public class CollisionGraphRoadModelTest {
     boolean fail = false;
     try {
       RoadModelBuilders.dynamicGraph(g)
-          .withCollisionAvoidance()
-          .withVehicleLength(1d)
-          .withMinDistance(.25)
-          .build(mock(DependencyProvider.class));
+        .withCollisionAvoidance()
+        .withVehicleLength(1d)
+        .withMinDistance(.25)
+        .build(mock(DependencyProvider.class));
     } catch (final IllegalArgumentException e) {
       fail = true;
     }

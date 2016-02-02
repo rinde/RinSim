@@ -82,7 +82,7 @@ public class FakeDependencyProvider extends DependencyProvider {
 
     public Builder add(ModelBuilder<?, ?> mb) {
       return add(mb.build(mock(DependencyProvider.class)),
-          mb.getProvidingTypes());
+        mb.getProvidingTypes());
     }
 
     public <U> Builder add(U instance, Class<U> type) {
@@ -92,8 +92,8 @@ public class FakeDependencyProvider extends DependencyProvider {
 
     public DependencyProvider build() {
       return new FakeDependencyProvider(
-          modelMapBuilder.build(),
-          classMapBuilder.build());
+        modelMapBuilder.build(),
+        classMapBuilder.build());
     }
   }
 

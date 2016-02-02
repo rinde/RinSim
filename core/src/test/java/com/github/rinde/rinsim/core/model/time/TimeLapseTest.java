@@ -67,8 +67,8 @@ public class TimeLapseTest {
   @Test
   public void consume1() {
 
-    final int[] start = { 0, 10, 100, 500 };
-    final int[] end = { 100, 1000, 113, 783 };
+    final int[] start = {0, 10, 100, 500};
+    final int[] end = {100, 1000, 113, 783};
 
     for (int i = 0; i < start.length; i++) {
       final TimeLapse tl = create(start[i], end[i]);

@@ -43,14 +43,14 @@ public class StochasticSuppliersDeterminismTest {
   @Parameters
   public static List<Object[]> configs() {
     return asList(new Object[][] {
-        { uniformDouble(0.5, 5.5) },
-        { uniformInt(0, 10) },
-        { uniformLong(-100, 100) },
-        { constant(new Object()) },
-        { constant(100L) },
-        { normal().buildDouble() },
-        { normal().bounds(-1, 1).buildInteger() },
-        { normal().mean(100).std(50).buildLong() }
+      {uniformDouble(0.5, 5.5)},
+      {uniformInt(0, 10)},
+      {uniformLong(-100, 100)},
+      {constant(new Object())},
+      {constant(100L)},
+      {normal().buildDouble()},
+      {normal().bounds(-1, 1).buildInteger()},
+      {normal().mean(100).std(50).buildLong()}
     });
   }
 

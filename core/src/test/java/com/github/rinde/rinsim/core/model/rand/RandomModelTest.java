@@ -204,7 +204,7 @@ public class RandomModelTest {
     assertTrue(fail);
     fail = false;
     try {
-      rng.setSeed(new int[] { 0 });
+      rng.setSeed(new int[] {0});
     } catch (final UnsupportedOperationException e) {
       fail = true;
     }

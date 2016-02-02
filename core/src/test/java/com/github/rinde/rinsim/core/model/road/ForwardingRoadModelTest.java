@@ -44,32 +44,32 @@ public class ForwardingRoadModelTest extends
   @Parameters
   public static Collection<Object[]> configs() {
     return Arrays.asList(new Object[][] //
-    { { new Creator() {
+    {{new Creator() {
       @Override
       public GenericRoadModel create(ForwardingRoadModelTest testClass) {
         return new ForwardingRoadModel(
-            RoadModelBuilders.plane()
-                .withMinPoint(new Point(0, 0))
-                .withMaxPoint(new Point(10, 10))
-                .withDistanceUnit(SI.METER)
-                .withSpeedUnit(SI.METERS_PER_SECOND)
-                .withMaxSpeed(10d)
-                .build(mock(DependencyProvider.class)));
+          RoadModelBuilders.plane()
+            .withMinPoint(new Point(0, 0))
+            .withMaxPoint(new Point(10, 10))
+            .withDistanceUnit(SI.METER)
+            .withSpeedUnit(SI.METERS_PER_SECOND)
+            .withMaxSpeed(10d)
+            .build(mock(DependencyProvider.class)));
       }
-    } }, { new Creator() {
+    }}, {new Creator() {
       @Override
       public GenericRoadModel create(ForwardingRoadModelTest testClass) {
         return new ForwardingRoadModel(RoadModelBuilders.staticGraph(testClass
-            .createGraph()).build(mock(DependencyProvider.class)));
+          .createGraph()).build(mock(DependencyProvider.class)));
       }
-    } }, { new Creator() {
+    }}, {new Creator() {
       @Override
       public GenericRoadModel create(ForwardingRoadModelTest testClass) {
         return new ForwardingRoadModel(new ForwardingRoadModel(
-            new ForwardingRoadModel(RoadModelBuilders.staticGraph(testClass
-                .createGraph()).build(mock(DependencyProvider.class)))));
+          new ForwardingRoadModel(RoadModelBuilders.staticGraph(testClass
+            .createGraph()).build(mock(DependencyProvider.class)))));
       }
-    } } });
+    }}});
   }
 
   Graph<?> createGraph() {

@@ -51,7 +51,7 @@ public class RealtimeModelTest extends TimeModelTest<RealtimeModel> {
   @Parameters
   public static Collection<Object[]> data() {
     return asList(new Object[][] {
-        {TimeModel.builder().withRealTime().withTickLength(100L)}
+      {TimeModel.builder().withRealTime().withTickLength(100L)}
     });
   }
 
@@ -106,16 +106,16 @@ public class RealtimeModelTest extends TimeModelTest<RealtimeModel> {
   @Test
   public void testBuilderClockMode() {
     final RealtimeModel tm1 = (RealtimeModel) TimeModel.builder()
-        .withRealTime()
-        .build(FakeDependencyProvider.empty());
+      .withRealTime()
+      .build(FakeDependencyProvider.empty());
     assertThat(tm1.getClockMode()).isEqualTo(ClockMode.REAL_TIME);
 
     final RealtimeModel tm2 = (RealtimeModel) TimeModel.builder()
-        .withRealTime()
-        .withStartInClockMode(ClockMode.SIMULATED)
-        .withTimeUnit(NonSI.HOUR)
-        .withTickLength(1)
-        .build(FakeDependencyProvider.empty());
+      .withRealTime()
+      .withStartInClockMode(ClockMode.SIMULATED)
+      .withTimeUnit(NonSI.HOUR)
+      .withTickLength(1)
+      .build(FakeDependencyProvider.empty());
 
     assertThat(tm2.getClockMode()).isEqualTo(ClockMode.SIMULATED);
     assertThat(tm2.getTimeUnit()).isEqualTo(NonSI.HOUR);
@@ -125,8 +125,8 @@ public class RealtimeModelTest extends TimeModelTest<RealtimeModel> {
     try {
       @SuppressWarnings("unused")
       final RealtimeBuilder b = TimeModel.builder()
-          .withRealTime()
-          .withStartInClockMode(ClockMode.STOPPED);
+        .withRealTime()
+        .withStartInClockMode(ClockMode.STOPPED);
     } catch (final IllegalArgumentException e) {
       assertThat(e.getMessage()).contains("Can not use");
       fail = true;
@@ -149,7 +149,7 @@ public class RealtimeModelTest extends TimeModelTest<RealtimeModel> {
     } catch (final IllegalArgumentException e) {
       fail = true;
       assertThat(e.getMessage())
-          .contains("does not provide instances of java.lang.Object");
+        .contains("does not provide instances of java.lang.Object");
     }
     assertThat(fail).isTrue();
     assertThat(getModel().isExecutorAlive()).isFalse();

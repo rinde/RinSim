@@ -57,7 +57,7 @@ public class RealtimeModelTestRT extends TimeModelTest<RealtimeModel> {
   @Parameters
   public static Collection<Object[]> data() {
     return asList(new Object[][] {
-        {TimeModel.builder().withRealTime().withTickLength(100L)}
+      {TimeModel.builder().withRealTime().withTickLength(100L)}
     });
   }
 
@@ -109,7 +109,7 @@ public class RealtimeModelTestRT extends TimeModelTest<RealtimeModel> {
     getModel().start();
 
     final PeekingIterator<Long> it =
-        Iterators.peekingIterator(timeStamps.iterator());
+      Iterators.peekingIterator(timeStamps.iterator());
     final List<Double> interArrivalTimes = new ArrayList<>();
     for (long l1 = it.next(); it.hasNext(); l1 = it.next()) {
       final long l2 = it.peek();
@@ -150,10 +150,10 @@ public class RealtimeModelTestRT extends TimeModelTest<RealtimeModel> {
     assertThat(getModel().getClockMode()).isEqualTo(ClockMode.SIMULATED);
     final ListenerEventHistory history = new ListenerEventHistory();
     getModel().getEventAPI().addListener(history,
-        ImmutableSet.<Enum<?>>builder()
-            .add(ClockEventType.values())
-            .add(RtClockEventType.values())
-            .build());
+      ImmutableSet.<Enum<?>>builder()
+        .add(ClockEventType.values())
+        .add(RtClockEventType.values())
+        .build());
 
     final List<Long> times = new ArrayList<>();
     final List<Long> timeLapseTimes = new ArrayList<>();
@@ -164,20 +164,20 @@ public class RealtimeModelTestRT extends TimeModelTest<RealtimeModel> {
         // start in sim time
         if (timeLapse.getTime() == 0) {
           assertThat(history.getEventTypeHistory()).containsExactly(
-              ClockEventType.STARTED, RtClockEventType.SWITCH_TO_SIM_TIME);
+            ClockEventType.STARTED, RtClockEventType.SWITCH_TO_SIM_TIME);
         }
 
         // initiate switch from simulated to real time
         if (timeLapse.getTime() == 100000 || timeLapse.getTime() == 200000) {
           if (timeLapse.getTime() == 100000) {
             assertThat(history.getEventTypeHistory()).containsExactly(
-                ClockEventType.STARTED, RtClockEventType.SWITCH_TO_SIM_TIME);
+              ClockEventType.STARTED, RtClockEventType.SWITCH_TO_SIM_TIME);
           } else {
             assertThat(history.getEventTypeHistory()).containsExactly(
-                ClockEventType.STARTED,
-                RtClockEventType.SWITCH_TO_SIM_TIME,
-                RtClockEventType.SWITCH_TO_REAL_TIME,
-                RtClockEventType.SWITCH_TO_SIM_TIME);
+              ClockEventType.STARTED,
+              RtClockEventType.SWITCH_TO_SIM_TIME,
+              RtClockEventType.SWITCH_TO_REAL_TIME,
+              RtClockEventType.SWITCH_TO_SIM_TIME);
           }
           times.add(System.nanoTime());
           assertThat(getModel().getClockMode()).isEqualTo(ClockMode.SIMULATED);
@@ -187,13 +187,13 @@ public class RealtimeModelTestRT extends TimeModelTest<RealtimeModel> {
           assertThat(getModel().getClockMode()).isEqualTo(ClockMode.SIMULATED);
           if (timeLapse.getTime() == 100000) {
             assertThat(history.getEventTypeHistory()).containsExactly(
-                ClockEventType.STARTED, RtClockEventType.SWITCH_TO_SIM_TIME);
+              ClockEventType.STARTED, RtClockEventType.SWITCH_TO_SIM_TIME);
           } else {
             assertThat(history.getEventTypeHistory()).containsExactly(
-                ClockEventType.STARTED,
-                RtClockEventType.SWITCH_TO_SIM_TIME,
-                RtClockEventType.SWITCH_TO_REAL_TIME,
-                RtClockEventType.SWITCH_TO_SIM_TIME);
+              ClockEventType.STARTED,
+              RtClockEventType.SWITCH_TO_SIM_TIME,
+              RtClockEventType.SWITCH_TO_REAL_TIME,
+              RtClockEventType.SWITCH_TO_SIM_TIME);
           }
         }
         // switch to real time should be completed
@@ -201,16 +201,16 @@ public class RealtimeModelTestRT extends TimeModelTest<RealtimeModel> {
           assertThat(getModel().getClockMode()).isEqualTo(ClockMode.REAL_TIME);
           if (timeLapse.getTime() == 100100) {
             assertThat(history.getEventTypeHistory()).containsExactly(
-                ClockEventType.STARTED,
-                RtClockEventType.SWITCH_TO_SIM_TIME,
-                RtClockEventType.SWITCH_TO_REAL_TIME);
+              ClockEventType.STARTED,
+              RtClockEventType.SWITCH_TO_SIM_TIME,
+              RtClockEventType.SWITCH_TO_REAL_TIME);
           } else {
             assertThat(history.getEventTypeHistory()).containsExactly(
-                ClockEventType.STARTED,
-                RtClockEventType.SWITCH_TO_SIM_TIME,
-                RtClockEventType.SWITCH_TO_REAL_TIME,
-                RtClockEventType.SWITCH_TO_SIM_TIME,
-                RtClockEventType.SWITCH_TO_REAL_TIME);
+              ClockEventType.STARTED,
+              RtClockEventType.SWITCH_TO_SIM_TIME,
+              RtClockEventType.SWITCH_TO_REAL_TIME,
+              RtClockEventType.SWITCH_TO_SIM_TIME,
+              RtClockEventType.SWITCH_TO_REAL_TIME);
           }
         }
 
@@ -228,16 +228,16 @@ public class RealtimeModelTestRT extends TimeModelTest<RealtimeModel> {
           assertThat(getModel().getClockMode()).isEqualTo(ClockMode.REAL_TIME);
           if (timeLapse.getTime() == 100500) {
             assertThat(history.getEventTypeHistory()).containsExactly(
-                ClockEventType.STARTED,
-                RtClockEventType.SWITCH_TO_SIM_TIME,
-                RtClockEventType.SWITCH_TO_REAL_TIME);
+              ClockEventType.STARTED,
+              RtClockEventType.SWITCH_TO_SIM_TIME,
+              RtClockEventType.SWITCH_TO_REAL_TIME);
           } else {
             assertThat(history.getEventTypeHistory()).containsExactly(
-                ClockEventType.STARTED,
-                RtClockEventType.SWITCH_TO_SIM_TIME,
-                RtClockEventType.SWITCH_TO_REAL_TIME,
-                RtClockEventType.SWITCH_TO_SIM_TIME,
-                RtClockEventType.SWITCH_TO_REAL_TIME);
+              ClockEventType.STARTED,
+              RtClockEventType.SWITCH_TO_SIM_TIME,
+              RtClockEventType.SWITCH_TO_REAL_TIME,
+              RtClockEventType.SWITCH_TO_SIM_TIME,
+              RtClockEventType.SWITCH_TO_REAL_TIME);
           }
         }
         // now the switch to simulated should be completed
@@ -245,18 +245,18 @@ public class RealtimeModelTestRT extends TimeModelTest<RealtimeModel> {
           assertThat(getModel().getClockMode()).isEqualTo(ClockMode.SIMULATED);
           if (timeLapse.getTime() == 100600) {
             assertThat(history.getEventTypeHistory()).containsExactly(
-                ClockEventType.STARTED,
-                RtClockEventType.SWITCH_TO_SIM_TIME,
-                RtClockEventType.SWITCH_TO_REAL_TIME,
-                RtClockEventType.SWITCH_TO_SIM_TIME);
+              ClockEventType.STARTED,
+              RtClockEventType.SWITCH_TO_SIM_TIME,
+              RtClockEventType.SWITCH_TO_REAL_TIME,
+              RtClockEventType.SWITCH_TO_SIM_TIME);
           } else {
             assertThat(history.getEventTypeHistory()).containsExactly(
-                ClockEventType.STARTED,
-                RtClockEventType.SWITCH_TO_SIM_TIME,
-                RtClockEventType.SWITCH_TO_REAL_TIME,
-                RtClockEventType.SWITCH_TO_SIM_TIME,
-                RtClockEventType.SWITCH_TO_REAL_TIME,
-                RtClockEventType.SWITCH_TO_SIM_TIME);
+              ClockEventType.STARTED,
+              RtClockEventType.SWITCH_TO_SIM_TIME,
+              RtClockEventType.SWITCH_TO_REAL_TIME,
+              RtClockEventType.SWITCH_TO_SIM_TIME,
+              RtClockEventType.SWITCH_TO_REAL_TIME,
+              RtClockEventType.SWITCH_TO_SIM_TIME);
           }
         }
         // this switch should not have any effect
@@ -287,19 +287,19 @@ public class RealtimeModelTestRT extends TimeModelTest<RealtimeModel> {
     getModel().start();
     assertThat(getModel().getClockMode()).isEqualTo(ClockMode.STOPPED);
     assertThat(history.getEventTypeHistory()).containsExactly(
-        ClockEventType.STARTED,
-        RtClockEventType.SWITCH_TO_SIM_TIME,
-        RtClockEventType.SWITCH_TO_REAL_TIME,
-        RtClockEventType.SWITCH_TO_SIM_TIME,
-        RtClockEventType.SWITCH_TO_REAL_TIME,
-        RtClockEventType.SWITCH_TO_SIM_TIME,
-        ClockEventType.STOPPED);
+      ClockEventType.STARTED,
+      RtClockEventType.SWITCH_TO_SIM_TIME,
+      RtClockEventType.SWITCH_TO_REAL_TIME,
+      RtClockEventType.SWITCH_TO_SIM_TIME,
+      RtClockEventType.SWITCH_TO_REAL_TIME,
+      RtClockEventType.SWITCH_TO_SIM_TIME,
+      ClockEventType.STOPPED);
 
     assertThat(times).hasSize(5);
     assertThat(timeLapseTimes).hasSize(3001);
 
     final PeekingIterator<Long> it = Iterators
-        .peekingIterator(times.iterator());
+      .peekingIterator(times.iterator());
 
     final List<Double> interArrivalTimes = new ArrayList<>();
     for (long l1 = it.next(); it.hasNext(); l1 = it.next()) {

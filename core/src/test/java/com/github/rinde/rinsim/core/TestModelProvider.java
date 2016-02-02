@@ -42,7 +42,7 @@ public class TestModelProvider implements ModelProvider {
       }
     }
     throw new IllegalArgumentException("There is no model of type: "
-        + clazz);
+      + clazz);
   }
 
   @Override
