@@ -277,8 +277,7 @@ public final class Solvers {
       Optional<ImmutableList<ImmutableList<Parcel>>> currentRoutes) {
 
     final ImmutableMap.Builder<VehicleStateObject, Vehicle> vbuilder =
-      ImmutableMap
-        .builder();
+      ImmutableMap.builder();
 
     @Nullable
     Iterator<ImmutableList<Parcel>> routeIterator = null;
@@ -289,11 +288,11 @@ public final class Solvers {
       routeIterator = currentRoutes.get().iterator();
     }
 
-    final ImmutableSet.Builder<Parcel> availableDestParcels = ImmutableSet
-      .builder();
+    final ImmutableSet.Builder<Parcel> availableDestParcels =
+      ImmutableSet.builder();
     for (final Vehicle v : vehicles) {
-      final ImmutableSet<Parcel> contentsMap = ImmutableSet.copyOf(pm
-        .getContents(v));
+      final ImmutableSet<Parcel> contentsMap =
+        ImmutableSet.copyOf(pm.getContents(v));
 
       @Nullable
       ImmutableList<Parcel> route = null;
@@ -311,11 +310,11 @@ public final class Solvers {
     final Set<Parcel> toAdd = Sets.difference(availableParcels,
       availableDestMap);
 
-    final ImmutableSet<Parcel> availableParcelsKeys = ImmutableSet
-      .<Parcel>builder()
-      .addAll(availableParcels)
-      .addAll(toAdd)
-      .build();
+    final ImmutableSet<Parcel> availableParcelsKeys =
+      ImmutableSet.<Parcel>builder()
+        .addAll(availableParcels)
+        .addAll(toAdd)
+        .build();
 
     final ImmutableMap<VehicleStateObject, Vehicle> vehicleMap = vbuilder
       .build();
@@ -351,8 +350,8 @@ public final class Solvers {
     }
 
     return VehicleStateObject.create(vehicle.getDTO(), rm.getPosition(vehicle),
-      contents, remainingServiceTime, destination == null ? null
-        : destination,
+      contents, remainingServiceTime,
+      destination == null ? null : destination,
       route);
   }
 

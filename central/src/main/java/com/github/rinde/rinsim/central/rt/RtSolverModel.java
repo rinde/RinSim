@@ -428,7 +428,7 @@ public final class RtSolverModel
 
     @Override
     public void handleEvent(Event e) {
-      checkExceptions();
+      // checkExceptions();
       synchronized (computingSimSolvers) {
         final boolean isComputingBefore = isComputing();
 
@@ -483,7 +483,8 @@ public final class RtSolverModel
 
     @Override
     public RtSimSolverBuilder setVehicles(Set<? extends Vehicle> vehicles) {
-      checkArgument(!vehicles.isEmpty());
+      checkArgument(!vehicles.isEmpty(),
+        "At least one vehicle must be defined.");
       associatedVehicles = ImmutableSet.<Vehicle>copyOf(vehicles);
       return this;
     }

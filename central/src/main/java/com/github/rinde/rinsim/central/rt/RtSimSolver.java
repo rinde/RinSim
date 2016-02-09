@@ -15,12 +15,15 @@
  */
 package com.github.rinde.rinsim.central.rt;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import com.github.rinde.rinsim.central.GlobalStateObject;
 import com.github.rinde.rinsim.central.Solvers.SolveArgs;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.EventAPI;
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -86,29 +89,37 @@ public abstract class RtSimSolver {
    */
   public abstract EventAPI getEventAPI();
 
-  public static class NewScheduleEvent extends Event {
-    private final ImmutableList<ImmutableList<Parcel>> schedule;
-    private final GlobalStateObject state;
+  public static final class SolverEvent extends Event {
+    private final Optional<ImmutableList<ImmutableList<Parcel>>> schedule;
+    private final Optional<GlobalStateObject> state;
 
-    protected NewScheduleEvent(ImmutableList<ImmutableList<Parcel>> sched,
-        GlobalStateObject st) {
-      super(EventType.NEW_SCHEDULE);
+    SolverEvent(EventType type,
+        Optional<ImmutableList<ImmutableList<Parcel>>> sched,
+        Optional<GlobalStateObject> st) {
+      super(type);
       schedule = sched;
       state = st;
     }
 
+    public boolean hasScheduleAndState() {
+      return schedule.isPresent() && state.isPresent();
+    }
+
     public ImmutableList<ImmutableList<Parcel>> getSchedule() {
-      return schedule;
+      checkState(hasScheduleAndState());
+      return schedule.get();
     }
 
     public GlobalStateObject getState() {
-      return state;
+      checkState(hasScheduleAndState());
+      return state.get();
     }
 
     @Override
     public String toString() {
       return MoreObjects.toStringHelper(getClass())
         .add("schedule", schedule)
+        .add("state", state)
         .toString();
     }
   }
@@ -123,6 +134,12 @@ public abstract class RtSimSolver {
      * Right after this event is dispatched
      * {@link RtSimSolver#isScheduleUpdated()} will return <code>true</code>.
      */
-    NEW_SCHEDULE;
+    NEW_SCHEDULE,
+    /**
+     * This event is dispatched when the solver has stopped computing. Right
+     * after this event is dispatched {@link RtSimSolver#isComputing()} returns
+     * <code>false</code>.
+     */
+    DONE;
   }
 }

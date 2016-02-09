@@ -102,7 +102,7 @@ public abstract class AddParcelEvent implements TimedEvent {
       if (counter >= ALPHABET_SIZE) {
         if (counter >= PARCEL_LIMIT) {
           throw new IllegalStateException(
-            "Too many parcels, this handler is meant for debuggin and should "
+            "Too many parcels, this handler is meant for debugging and should "
               + "not be used in production.");
         }
 

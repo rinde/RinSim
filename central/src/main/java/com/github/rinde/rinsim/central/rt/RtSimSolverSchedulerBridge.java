@@ -31,7 +31,7 @@ import com.github.rinde.rinsim.central.GlobalStateObject.VehicleStateObject;
 import com.github.rinde.rinsim.central.Solvers;
 import com.github.rinde.rinsim.central.Solvers.SimulationConverter;
 import com.github.rinde.rinsim.central.Solvers.SolveArgs;
-import com.github.rinde.rinsim.central.rt.RtSimSolver.NewScheduleEvent;
+import com.github.rinde.rinsim.central.rt.RtSimSolver.SolverEvent;
 import com.github.rinde.rinsim.central.rt.RtSolverModel.SimSolversManager;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
@@ -74,6 +74,7 @@ class RtSimSolverSchedulerBridge {
   final RtSimSolverSchedulerBridge reference;
   final SimSolversManager simSolversManager;
   Optional<ImmutableList<ImmutableList<Parcel>>> currentSchedule;
+
   boolean isUpdated;
 
   RtSimSolverSchedulerBridge(RealtimeClockController c, RealtimeSolver s,
@@ -248,17 +249,24 @@ class RtSimSolverSchedulerBridge {
   }
 
   class InternalScheduler extends Scheduler {
-    InternalScheduler() {}
+    Optional<GlobalStateObject> currentState;
+
+    InternalScheduler() {
+      currentState = Optional.absent();
+    }
 
     @Override
     public void updateSchedule(GlobalStateObject state,
         ImmutableList<ImmutableList<Parcel>> routes) {
       currentSchedule = Optional.of(routes);
+      currentState = Optional.of(state);
       isUpdated = true;
       LOGGER.trace("new schedule");
       try {
-        simSolverEventDispatcher.dispatchEvent(
-          new NewScheduleEvent(routes, state));
+        simSolverEventDispatcher
+          .dispatchEvent(
+            new SolverEvent(RtSimSolver.EventType.NEW_SCHEDULE, currentSchedule,
+              currentState));
       } catch (final RuntimeException e) {
         reportException(e);
       }
@@ -277,6 +285,9 @@ class RtSimSolverSchedulerBridge {
       try {
         eventDispatcher.dispatchEvent(
           new Event(EventType.DONE_COMPUTING, reference));
+        simSolverEventDispatcher
+          .dispatchEvent(new SolverEvent(RtSimSolver.EventType.DONE,
+            currentSchedule, currentState));
       } catch (final RuntimeException e) {
         reportException(e);
       }

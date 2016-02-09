@@ -331,8 +331,9 @@ public class RtSolverModelTest {
     });
     clock.start();
 
-    assertThat(events).hasSize(1);
+    assertThat(events).hasSize(2);
     assertThat(events.get(0).getEventType()).isEqualTo(EventType.NEW_SCHEDULE);
+    assertThat(events.get(1).getEventType()).isEqualTo(EventType.DONE);
   }
 
   static class NopRtSolver implements RealtimeSolver {
