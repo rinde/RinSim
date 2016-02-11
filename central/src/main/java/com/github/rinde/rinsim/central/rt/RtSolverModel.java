@@ -359,12 +359,10 @@ public final class RtSolverModel
     public ImmutableSet<RealtimeSolver> getComputingSolvers() {
       final ImmutableSet.Builder<RealtimeSolver> solvers =
         ImmutableSet.builder();
-      synchronized (manager.computingSimSolvers) {
-        for (final RtSimSolverSchedulerBridge s : manager.simSolvers) {
-          if (s.solver.isComputing()
-            || manager.computingSimSolvers.contains(s)) {
-            solvers.add(s.solver);
-          }
+      for (final RtSimSolverSchedulerBridge s : manager.simSolvers) {
+        if (s.solver.isComputing()
+          || manager.computingSimSolvers.contains(s)) {
+          solvers.add(s.solver);
         }
       }
       return solvers.build();
