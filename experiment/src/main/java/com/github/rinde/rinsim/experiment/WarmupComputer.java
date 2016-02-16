@@ -15,6 +15,8 @@
  */
 package com.github.rinde.rinsim.experiment;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -43,6 +45,12 @@ class WarmupComputer implements Computer {
         main.interrupt();
       }
     }, builder.warmupPeriodMs, TimeUnit.MILLISECONDS);
-    return delegate.compute(builder, inputs);
+
+    // remove listeners only during warmup
+    final List<ResultListener> list = new ArrayList<>(builder.resultListeners);
+    builder.resultListeners.clear();
+    final ExperimentResults results = delegate.compute(builder, inputs);
+    builder.resultListeners.addAll(list);
+    return results;
   }
 }
