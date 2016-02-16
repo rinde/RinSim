@@ -78,8 +78,8 @@ public abstract class GlobalStateObject {
       ImmutableList<VehicleStateObject> vehicles, long time,
       Unit<Duration> timeUnit, Unit<Velocity> speedUnit,
       Unit<Length> distUnit) {
-    return new AutoValue_GlobalStateObject(availableParcels, vehicles, time,
-      timeUnit, speedUnit, distUnit);
+    return new AutoValue_GlobalStateObject(
+      availableParcels, vehicles, time, timeUnit, speedUnit, distUnit);
   }
 
   /**
