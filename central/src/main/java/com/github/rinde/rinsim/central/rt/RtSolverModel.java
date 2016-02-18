@@ -182,6 +182,19 @@ public final class RtSolverModel
   @Override
   public void afterTick(TimeLapse timeLapse) {
     manager.checkExceptions();
+
+    // check computing
+    // synchronized (manager.computingSimSolvers) {
+    // final List<RtSimSolverSchedulerBridge> toRemove = new ArrayList<>();
+    // for (final RtSimSolverSchedulerBridge solv : manager.computingSimSolvers)
+    // {
+    // if (!solv.rtSimSolver.isComputing()) {
+    // toRemove.add(solv);
+    // }
+    // }
+    // manager.computingSimSolvers.removeAll(toRemove);
+    // }
+
     final boolean isComputing = manager.isComputing();
     if (!isComputing && clock.isTicking()
       && clock.getClockMode() == ClockMode.REAL_TIME) {
@@ -406,6 +419,12 @@ public final class RtSolverModel
 
     boolean isComputing() {
       synchronized (computingSimSolvers) {
+        // for (final RtSimSolverSchedulerBridge solv : simSolvers) {
+        // if (solv.rtSimSolver.isComputing()) {
+        // return true;
+        // }
+        // }
+        // return false;
         return !computingSimSolvers.isEmpty();
       }
     }
@@ -427,9 +446,14 @@ public final class RtSolverModel
     @Override
     public void handleEvent(Event e) {
       // checkExceptions();
+
+      // if (isComputing()) {
+      // clock.switchToRealTime();
+      // } else {
+      // stop();
+      // }
       synchronized (computingSimSolvers) {
         final boolean isComputingBefore = isComputing();
-
         LOGGER.trace("receive: {}, computing: {}, clock is ticking: {}, {}", e,
           isComputingBefore, clock.isTicking(), computingSimSolvers);
         if (e.getEventType() == EventType.START_COMPUTING) {
@@ -444,9 +468,9 @@ public final class RtSolverModel
           // this as it can happen due to threading issues.
           computingSimSolvers.remove(e.getIssuer());
 
-          if (!isComputing()) {
-            stop();
-          }
+          // if (!isComputing()) {
+          // stop();
+          // }
 
         } else {
           throw new IllegalArgumentException("Unexpected event: " + e);

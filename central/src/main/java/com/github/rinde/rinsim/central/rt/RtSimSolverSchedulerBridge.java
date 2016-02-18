@@ -263,10 +263,8 @@ class RtSimSolverSchedulerBridge {
       isUpdated = true;
       LOGGER.trace("new schedule");
       try {
-        simSolverEventDispatcher
-          .dispatchEvent(
-            new SolverEvent(RtSimSolver.EventType.NEW_SCHEDULE, currentSchedule,
-              currentState));
+        simSolverEventDispatcher.dispatchEvent(new SolverEvent(
+          RtSimSolver.EventType.NEW_SCHEDULE, currentSchedule, currentState));
       } catch (final RuntimeException e) {
         reportException(e);
       }
@@ -285,8 +283,8 @@ class RtSimSolverSchedulerBridge {
       try {
         eventDispatcher.dispatchEvent(
           new Event(EventType.DONE_COMPUTING, reference));
-        simSolverEventDispatcher
-          .dispatchEvent(new SolverEvent(RtSimSolver.EventType.DONE,
+        simSolverEventDispatcher.dispatchEvent(
+          new SolverEvent(RtSimSolver.EventType.DONE,
             currentSchedule, currentState));
       } catch (final RuntimeException e) {
         reportException(e);

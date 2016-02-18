@@ -99,17 +99,17 @@ public final class EventDispatcher implements EventAPI {
 
     synchronized (listeners) {
       dispatching.incrementAndGet();
-      checkArgument(
-        supportedTypes.contains(e.getEventType()),
-        "Cannot dispatch an event of type %s since it was not registered at "
-          + "this dispatcher.",
-        e.getEventType());
+      checkCanDispatchEventType(e.getEventType());
       for (final Listener l : listeners.get(e.getEventType())) {
         l.handleEvent(e);
       }
       dispatching.decrementAndGet();
     }
 
+    update();
+  }
+
+  void update() {
     if (dispatching.get() == 0) {
       if (!toRemove.isEmpty()) {
         for (final Entry<Enum<?>, Listener> entry : toRemove.entries()) {
@@ -125,6 +125,29 @@ public final class EventDispatcher implements EventAPI {
         toAdd.clear();
       }
     }
+  }
+
+  void checkCanDispatchEventType(Enum<?> eventType) {
+    checkArgument(
+      supportedTypes.contains(eventType),
+      "Cannot dispatch an event of type %s since it was not registered at "
+        + "this dispatcher.",
+      eventType);
+  }
+
+  public void safeDispatchEvent(Event e) {
+    dispatching.incrementAndGet();
+    final Set<Listener> targetListeners;
+    synchronized (listeners) {
+      checkCanDispatchEventType(e.getEventType());
+      targetListeners = ImmutableSet.copyOf(listeners.get(e.getEventType()));
+    }
+
+    for (final Listener l : targetListeners) {
+      l.handleEvent(e);
+    }
+    dispatching.decrementAndGet();
+    update();
   }
 
   /**

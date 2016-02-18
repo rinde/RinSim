@@ -21,6 +21,7 @@ import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Sets.newHashSet;
 
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -55,6 +56,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.LinkedHashMultiset;
+import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
 import com.google.common.math.DoubleMath;
 
@@ -271,10 +274,14 @@ public final class Solvers {
     return routesBuilder.build();
   }
 
-  static StateContext convert(PDPRoadModel rm, PDPModel pm,
+  static StateContext convert(
+      PDPRoadModel rm,
+      PDPModel pm,
       Collection<Vehicle> vehicles,
-      Set<Parcel> availableParcels, Measure<Long, Duration> time,
-      Optional<ImmutableList<ImmutableList<Parcel>>> currentRoutes) {
+      Set<Parcel> availableParcels,
+      Measure<Long, Duration> time,
+      Optional<ImmutableList<ImmutableList<Parcel>>> currentRoutes,
+      boolean fixRoutes) {
 
     final ImmutableMap.Builder<VehicleStateObject, Vehicle> vbuilder =
       ImmutableMap.builder();
@@ -316,12 +323,71 @@ public final class Solvers {
         .addAll(toAdd)
         .build();
 
-    final ImmutableMap<VehicleStateObject, Vehicle> vehicleMap = vbuilder
-      .build();
+    final ImmutableMap<VehicleStateObject, Vehicle> vehicleMap =
+      vbuilder.build();
 
-    return new StateContext(GlobalStateObject.create(availableParcelsKeys,
+    GlobalStateObject gso = GlobalStateObject.create(availableParcelsKeys,
       vehicleMap.keySet().asList(), time.getValue().longValue(),
-      time.getUnit(), rm.getSpeedUnit(), rm.getDistanceUnit()), vehicleMap);
+      time.getUnit(), rm.getSpeedUnit(), rm.getDistanceUnit());
+
+    if (fixRoutes) {
+      gso = fixRoutes(gso);
+    }
+    return new StateContext(gso, vehicleMap);
+  }
+
+  static GlobalStateObject fixRoutes(GlobalStateObject state) {
+    boolean firstVehicle = true;
+    final ImmutableList.Builder<VehicleStateObject> vehicleList =
+      ImmutableList.builder();
+    for (int i = 0; i < state.getVehicles().size(); i++) {
+      final VehicleStateObject vso = state.getVehicles().get(i);
+      checkArgument(vso.getRoute().isPresent());
+
+      final List<Parcel> route = new ArrayList<>(vso.getRoute().get());
+      final Multiset<Parcel> routeContents = LinkedHashMultiset.create(route);
+      for (final Parcel p : routeContents.elementSet()) {
+        if (vso.getContents().contains(p)) {
+          // should occur only once
+          if (routeContents.count(p) > 1) {
+            // remove
+            route.remove(p);
+            checkArgument(routeContents.count(p) == 2);
+          }
+        } else {
+          // should occur twice
+          if (routeContents.count(p) < 2) {
+            route.add(p);
+          } else {
+            checkArgument(routeContents.count(p) == 2);
+          }
+        }
+      }
+
+      if (firstVehicle) {
+        final Set<Parcel> unassigned =
+          GlobalStateObjects.unassignedParcels(state);
+        route.addAll(unassigned);
+        route.addAll(unassigned);
+        firstVehicle = false;
+      }
+
+      vehicleList.add(VehicleStateObject.create(
+        vso.getDto(),
+        vso.getLocation(),
+        vso.getContents(),
+        vso.getRemainingServiceTime(),
+        vso.getDestination().orNull(),
+        ImmutableList.copyOf(route)));
+
+    }
+    return GlobalStateObject.create(
+      state.getAvailableParcels(),
+      vehicleList.build(),
+      state.getTime(),
+      state.getTimeUnit(),
+      state.getSpeedUnit(),
+      state.getDistUnit());
   }
 
   // TODO check for bugs
@@ -377,6 +443,7 @@ public final class Solvers {
   public static final class SolveArgs {
     Optional<ImmutableSet<Parcel>> parcels;
     Optional<ImmutableList<ImmutableList<Parcel>>> currentRoutes;
+    boolean fixRoutes;
 
     private SolveArgs() {
       parcels = Optional.absent();
@@ -440,6 +507,11 @@ public final class Solvers {
         builder.add(ImmutableList.<Parcel>of());
       }
       currentRoutes = Optional.of(builder.build());
+      return this;
+    }
+
+    public SolveArgs fixRoutes() {
+      fixRoutes = true;
       return this;
     }
   }

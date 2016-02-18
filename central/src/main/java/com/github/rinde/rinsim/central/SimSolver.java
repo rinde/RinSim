@@ -93,7 +93,7 @@ public final class SimSolver implements SimulationConverter {
       : ImmutableSet.copyOf(pdpModel.getParcels(ANNOUNCED, AVAILABLE,
         PICKING_UP));
     return Solvers.convert(roadModel, pdpModel, vs, ps, time(),
-      args.currentRoutes);
+      args.currentRoutes, args.fixRoutes);
   }
 
   Measure<Long, Duration> time() {
