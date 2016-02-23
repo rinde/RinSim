@@ -110,6 +110,8 @@ public final class RtSolverModel
   Mode mode;
   boolean prevComputing;
 
+  final List<Event> receivedEvents;
+
   enum Mode {
     MULTI_MODE, SINGLE_MODE, UNKNOWN;
   }
@@ -124,6 +126,8 @@ public final class RtSolverModel
     mode = m;
     threadGroupingEnabled = threadGrouping;
     threadPoolSize = threads;
+
+    receivedEvents = Collections.synchronizedList(new ArrayList<Event>());
 
     clock.getEventAPI().addListener(new Listener() {
       @Override
@@ -194,6 +198,13 @@ public final class RtSolverModel
     // }
     // manager.computingSimSolvers.removeAll(toRemove);
     // }
+
+    synchronized (receivedEvents) {
+      for (final Event e : receivedEvents) {
+        manager.doHandleEvent(e);
+      }
+      receivedEvents.clear();
+    }
 
     final boolean isComputing = manager.isComputing();
     if (!isComputing && clock.isTicking()
@@ -443,15 +454,7 @@ public final class RtSolverModel
       }
     }
 
-    @Override
-    public void handleEvent(Event e) {
-      // checkExceptions();
-
-      // if (isComputing()) {
-      // clock.switchToRealTime();
-      // } else {
-      // stop();
-      // }
+    void doHandleEvent(Event e) {
       synchronized (computingSimSolvers) {
         final boolean isComputingBefore = isComputing();
         LOGGER.trace("receive: {}, computing: {}, clock is ticking: {}, {}", e,
@@ -476,6 +479,11 @@ public final class RtSolverModel
           throw new IllegalArgumentException("Unexpected event: " + e);
         }
       }
+    }
+
+    @Override
+    public void handleEvent(Event e) {
+      receivedEvents.add(e);
     }
 
     void addException(Throwable t) {
