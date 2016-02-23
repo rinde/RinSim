@@ -281,9 +281,9 @@ class RtSimSolverSchedulerBridge {
     public void doneForNow() {
       LOGGER.trace("doneForNow");
       try {
-        eventDispatcher.dispatchEvent(
+        eventDispatcher.safeDispatchEvent(
           new Event(EventType.DONE_COMPUTING, reference));
-        simSolverEventDispatcher.dispatchEvent(
+        simSolverEventDispatcher.safeDispatchEvent(
           new SolverEvent(RtSimSolver.EventType.DONE,
             currentSchedule, currentState));
       } catch (final RuntimeException e) {
