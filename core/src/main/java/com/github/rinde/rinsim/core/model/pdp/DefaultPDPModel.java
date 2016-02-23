@@ -454,41 +454,45 @@ public final class DefaultPDPModel extends PDPModel {
 
   @Override
   protected boolean doRegister(PDPObject element) {
-    synchronized (this) {
-      LOGGER.info("{} register {}", currentTime, element);
-      if (element.getType() == PDPType.PARCEL) {
-        checkArgument(!parcelState.containsValue(element));
-        final Parcel p = (Parcel) element;
-        final ParcelState state = currentTime < p.getPickupTimeWindow().begin()
-          ? ParcelState.ANNOUNCED
-          : ParcelState.AVAILABLE;
+    LOGGER.info("{} register {}", currentTime, element);
+    if (element.getType() == PDPType.PARCEL) {
+      checkArgument(!parcelState.containsValue(element));
+      final Parcel p = (Parcel) element;
+      final ParcelState state = currentTime < p.getPickupTimeWindow().begin()
+        ? ParcelState.ANNOUNCED
+        : ParcelState.AVAILABLE;
+      synchronized (this) {
         parcelState.put(state, (Parcel) element);
+      }
+      eventDispatcher.dispatchEvent(new PDPModelEvent(
+        PDPModelEventType.NEW_PARCEL, self, currentTime, p, null));
+      // if the parcel is immediately available, we send this event as well
+      if (state == ParcelState.AVAILABLE) {
         eventDispatcher.dispatchEvent(new PDPModelEvent(
-          PDPModelEventType.NEW_PARCEL, self, currentTime, p, null));
-        // if the parcel is immediately available, we send this event as
-        // well
-        if (state == ParcelState.AVAILABLE) {
-          eventDispatcher.dispatchEvent(new PDPModelEvent(
-            PDPModelEventType.PARCEL_AVAILABLE, self, currentTime, p, null));
-        }
-      } else {
-        // it is a vehicle or a depot
-        final Container container = (Container) element;
+          PDPModelEventType.PARCEL_AVAILABLE, self, currentTime, p, null));
+      }
+    } else {
+      // it is a vehicle or a depot
+      final Container container = (Container) element;
+      synchronized (this) {
         checkArgument(!containerCapacities.containsKey(container));
         containerCapacities.put(container, container.getCapacity());
         containerContentsSize.put(container, 0d);
-
         if (element.getType() == PDPType.VEHICLE) {
           final Vehicle v = (Vehicle) element;
           vehicleState.put(v, VehicleState.IDLE);
-          eventDispatcher.dispatchEvent(new PDPModelEvent(
-            PDPModelEventType.NEW_VEHICLE, self, currentTime, null, v));
         }
       }
-      element.initPDPObject(self);
 
-      return true;
+      if (element.getType() == PDPType.VEHICLE) {
+        eventDispatcher.dispatchEvent(new PDPModelEvent(
+          PDPModelEventType.NEW_VEHICLE, self, currentTime, null,
+          (Vehicle) element));
+      }
     }
+    element.initPDPObject(self);
+
+    return true;
   }
 
   @Override
