@@ -82,6 +82,8 @@ public abstract class RtSimSolver {
 
   public abstract void cancel();
 
+  public abstract Object getLock();
+
   /**
    * The event API, the supported event types are documented in
    * {@link EventType}.

@@ -230,6 +230,11 @@ class RtSimSolverSchedulerBridge {
     }
 
     @Override
+    public Object getLock() {
+      return solver;
+    }
+
+    @Override
     public boolean isComputing() {
       return solver.isComputing();
     }
