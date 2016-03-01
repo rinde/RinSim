@@ -16,7 +16,7 @@ RinSim uses [Maven](http://maven.apache.org/) for managing its dependencies. Rin
 <dependency>
 	<groupId>com.github.rinde</groupId>
 	<artifactId>rinsim-core</artifactId>
-	<version>3.x.y</version>
+	<version>4.x.y</version>
 </dependency>
 ```	
 Other modules can be added similarly:
@@ -24,12 +24,12 @@ Other modules can be added similarly:
 <dependency>
 	<groupId>com.github.rinde</groupId>
 	<artifactId>rinsim-ui</artifactId>
-	<version>3.x.y</version>
+	<version>4.x.y</version>
 </dependency>
 <dependency>
 	<groupId>com.github.rinde</groupId>
 	<artifactId>rinsim-experiment</artifactId>
-	<version>3.x.y</version>
+	<version>4.x.y</version>
 </dependency>
 ```		
 For more detailed instructions on how create a Maven project in Eclipse and add RinSim as a dependency see the [instructions](docs/howtorun.md). For release notes of the latest release click [here](releasenotes.md).
