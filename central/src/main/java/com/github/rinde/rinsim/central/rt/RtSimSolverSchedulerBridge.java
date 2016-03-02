@@ -182,6 +182,7 @@ class RtSimSolverSchedulerBridge {
         "Clock must be in real-time mode before calling this method, but it "
           + "is in %s mode.",
         clock.getClockMode());
+      clock.switchToRealTime();
     }
 
     @Override
