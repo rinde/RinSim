@@ -199,6 +199,7 @@ public final class RtSolverModel
     // manager.computingSimSolvers.removeAll(toRemove);
     // }
 
+    final boolean wasComputing = manager.isComputing();
     synchronized (receivedEvents) {
       for (final Event e : receivedEvents) {
         manager.doHandleEvent(e);
@@ -206,7 +207,7 @@ public final class RtSolverModel
       receivedEvents.clear();
     }
 
-    final boolean isComputing = manager.isComputing();
+    final boolean isComputing = manager.isComputing() || wasComputing;
     if (!isComputing && clock.isTicking()
       && clock.getClockMode() == ClockMode.REAL_TIME) {
       if (prevComputing) {
