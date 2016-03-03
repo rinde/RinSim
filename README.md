@@ -16,7 +16,7 @@ RinSim uses [Maven](http://maven.apache.org/) for managing its dependencies. Rin
 <dependency>
 	<groupId>com.github.rinde</groupId>
 	<artifactId>rinsim-core</artifactId>
-	<version>3.x.y</version>
+	<version>4.x.y</version>
 </dependency>
 ```	
 Other modules can be added similarly:
@@ -24,18 +24,18 @@ Other modules can be added similarly:
 <dependency>
 	<groupId>com.github.rinde</groupId>
 	<artifactId>rinsim-ui</artifactId>
-	<version>3.x.y</version>
+	<version>4.x.y</version>
 </dependency>
 <dependency>
 	<groupId>com.github.rinde</groupId>
 	<artifactId>rinsim-experiment</artifactId>
-	<version>3.x.y</version>
+	<version>4.x.y</version>
 </dependency>
 ```		
 For more detailed instructions on how create a Maven project in Eclipse and add RinSim as a dependency see the [instructions](docs/howtorun.md). For release notes of the latest release click [here](releasenotes.md).
  
 ## Getting Started 
-Once the simulator is installed, you are ready to explore the simulator. It is recommended to start by running and studying the [examples](example/README.md). When using Maven in Eclipse, the RinSim JavaDocs are automatically made available making exploration of the code much easier. The remainder of this page gives a high level overview of the simulator. If you have questions or like to stay up to date about RinSim you can subscribe to the mailing list at [this page](https://groups.google.com/forum/?fromgroups=#!forum/rinsim) or ask them on [StackOverflow using the RinSim tag](https://stackoverflow.com/questions/tagged/rinsim).
+Once the simulator is installed, you are ready to explore the simulator. It is recommended to start by running and studying the [examples](example/README.md). When using Maven in Eclipse, the RinSim JavaDocs are automatically made available making exploration of the code much easier. The remainder of this page gives a high level overview of the simulator. If you have questions or like to stay up to date about RinSim you can subscribe to the mailing list at [this page](https://groups.google.com/forum/?fromgroups=#!forum/rinsim) or ask them on [StackOverflow](https://stackoverflow.com/) (make sure to mention RinSim and the version number that you use).
 
 ## About
 RinSim is developed at [AgentWise](http://distrinet.cs.kuleuven.be/research/taskforces/agentwise) in the [iMinds-DistriNet group](http://distrinet.cs.kuleuven.be/) at the [Department of Computer Science, KU Leuven, Belgium](http://www.cs.kuleuven.be/). The lead developer is [Rinde van Lon](http://distrinet.cs.kuleuven.be/people/rinde). Valuable contributions were made by Bartosz Michalik and Robrecht Haesevoets.
@@ -57,9 +57,10 @@ In RinSim terminology, the parts of the simulation that define the problem and e
 
 The [Simulator](core/src/main/java/com/github/rinde/rinsim/core/Simulator.java) is the heart of RinSim. Its main concern is to simulate time. This is done in a discrete manner. Time is divided in ticks of a certain length, which is chosen upon initializing the simulator (see examples and code).
 
-Of course time on its own is not so useful, so we can register objects in the simulator, such as objects implementing the  [TickListener](core/src/main/java/com/github/rinde/rinsim/core/TickListener.java) interface. These objects will listen to the internal clock of the simulator. You can also register other objects, as we will see in a moment.
+Of course time on its own is not so useful, so we can register objects in the simulator, such as objects implementing the  [TickListener](core/src/main/java/com/github/rinde/rinsim/core/model/time/TickListener.java) interface. These objects will listen to the internal clock of the simulator. You can also register other objects, as we will see in a moment.
 
-Once started, the simulator will start to tick, and with each tick it will call all registered tickListeners, in turn, to perform some actions within the length of the time step. Time consistency is enforced by the [TimeLapse](core/src/main/java/com/github/rinde/rinsim/core/TimeLapse.java) objects. Each _TickListener_ receives a single _TimeLapse_ object every tick, the time in this object can be 'spent' on actions. This spending can be done only once, as such an agent can not violate the time consistency in the simulator. For example, calling _RoadModel#moveTo(..)_ several times will have no effect. As you can see there is also an _afterTick_, but we'll ignore this for now.
+Once started, the simulator will start to tick, and with each tick it will call all registered tickListeners, in turn, to perform some actions within the length of the time step. Time consistency is enforced by the [TimeLapse](
+core/src/main/java/com/github/rinde/rinsim/core/model/time/TimeLapse.java) objects. Each _TickListener_ receives a single _TimeLapse_ object every tick, the time in this object can be 'spent' on actions. This spending can be done only once, as such an agent can not violate the time consistency in the simulator. For example, calling _RoadModel#moveTo(..)_ several times will have no effect. As you can see there is also an _afterTick_, but we'll ignore this for now.
 
 Apart from simulating time, the simulator has little functionality on its own. All additional functionality (such as movement, communication, etc.) that is required by your simulation, should be delegated to models. These models can be easily plugged (or registered) in the simulator.
 
@@ -70,7 +71,7 @@ Out of the box, RinSim comes with three basic models: _RoadModel_, _Communicatio
 * __RoadModel__: simulates a physical road structure. The _RoadModel_ allows to place and move objects (_RoadUsers_) on roads. It comes in two flavors:
 	* __GraphRoadModel__: A graph based road model, objects can only move on edges of the graph. Several maps are currently available [here](http://people.cs.kuleuven.be/~rinde.vanlon/rinsim/maps/).
 	* __PlaneRoadModel__: A plane based road model, objects can move anywhere within the plane.
-* __PDPModel__: the pickup-and-delivery model. The model collaborates with the _RoadModel_, the models comes with three different _RoadUser_s: _Vehicle_, _Parcel_ and _Depot_. _Vehicles_ can transport _Parcels_ from and to _Depots_. The model enforces capacity constraints, time windows and position consistency.
+* __PDPModel__: the pickup-and-delivery model. The model collaborates with the _RoadModel_, the models comes with three different _RoadUsers_: _Vehicle_, _Parcel_ and _Depot_. _Vehicles_ can transport _Parcels_ from and to _Depots_. The model enforces capacity constraints, time windows and position consistency.
 * __CommunicationModel__: simulates simple message-based communication between objects implementing the _CommunicationUser_ interface.
 It supports both direct messaging and broadcasting.
 It can also take distance, communication radius, and communication reliability into account.
