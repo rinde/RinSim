@@ -53,6 +53,8 @@ import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.LinkedHashMultiset;
+import com.google.common.collect.Multiset;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 
@@ -396,13 +398,15 @@ public final class RtSolverModel
 
   class SimSolversManager implements Listener, UncaughtExceptionHandler {
     final Set<RtSimSolverSchedulerBridge> simSolvers;
-    final Set<RtSimSolverSchedulerBridge> computingSimSolvers;
+    final Multiset<RtSimSolverSchedulerBridge> computingSimSolvers;
     final List<Throwable> exceptions;
 
     SimSolversManager() {
       simSolvers = new LinkedHashSet<>();
-      computingSimSolvers = Collections
-        .synchronizedSet(new LinkedHashSet<RtSimSolverSchedulerBridge>());
+
+      computingSimSolvers = LinkedHashMultiset.create();
+      // Collections
+      // .synchronizedSet(new LinkedHashSet<RtSimSolverSchedulerBridge>());
       exceptions = Collections.synchronizedList(new ArrayList<Throwable>());
     }
 
@@ -468,9 +472,8 @@ public final class RtSolverModel
           computingSimSolvers.add((RtSimSolverSchedulerBridge) e.getIssuer());
         } else if (e.getEventType() == EventType.DONE_COMPUTING) {
           // done computing
-          // it may be the case that the issuer is already removed, we ignore
-          // this as it can happen due to threading issues.
-          computingSimSolvers.remove(e.getIssuer());
+
+          checkState(computingSimSolvers.remove(e.getIssuer()));
 
           // if (!isComputing()) {
           // stop();
