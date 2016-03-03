@@ -33,7 +33,7 @@ Note that by default Maven uses (the ancient) Java 1.5. Since RinSim requires at
 ![New](tutorial/4a.png)
 <br/>
 
-7. You will see an XML view of the file. Paste the following XML between the ``project`` tags.
+7. You will see an XML view of the file. Add (paste) the following XML code between the ``project`` tags. Make sure to not overwrite the existing XML tags.
     ```xml
     <dependencies>
         <dependency>
