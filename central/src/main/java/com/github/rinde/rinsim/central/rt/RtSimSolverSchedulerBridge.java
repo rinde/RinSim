@@ -153,7 +153,7 @@ class RtSimSolverSchedulerBridge {
       LOGGER.trace("Solve: {}, {} available parcels.", solver,
         state.getAvailableParcels().size());
 
-      checkState(solveCount.getAndIncrement() <= 1);
+      solveCount.getAndIncrement();
       realtimeCheck();
 
       if (solveCount.get() == 1) {
