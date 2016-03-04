@@ -113,10 +113,10 @@ public class AgentTest {
     assertThat(log.get(0)).isEqualTo(logEntry(0, SWITCH_TO_SIM_TIME));
     assertThat(log.get(1)).isEqualTo(logEntry(200, SWITCH_TO_REAL_TIME));
     assertThat(log.get(2).eventType()).isEqualTo(SWITCH_TO_SIM_TIME);
-    assertThat(log.get(2).time()).isIn(ImmutableSet.of(400L, 500L));
+    assertThat(log.get(2).time()).isIn(ImmutableSet.of(500L, 600L));
     assertThat(log.get(3)).isEqualTo(logEntry(1000, SWITCH_TO_REAL_TIME));
     assertThat(log.get(4).eventType()).isEqualTo(SWITCH_TO_SIM_TIME);
-    assertThat(log.get(4).time()).isIn(ImmutableSet.of(1200L, 1300L));
+    assertThat(log.get(4).time()).isIn(ImmutableSet.of(1300L, 1400L));
     assertThat(log.get(5)).isEqualTo(logEntry(3000, SWITCH_TO_REAL_TIME));
   }
 

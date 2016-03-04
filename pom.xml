@@ -295,6 +295,8 @@
 					<excludes>
 						<exclude>src/test/resources/**</exclude>
 						<exclude>src/main/resources/**</exclude>
+						<exclude>.apt_generated/**</exclude>
+						<exclude>target/generated-sources/**</exclude>
 					</excludes>
 					<includes>
 						<include>**/*.java</include>

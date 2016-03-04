@@ -20,6 +20,7 @@ import static com.google.common.base.Preconditions.checkState;
 
 import java.util.Set;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.Nullable;
 
@@ -73,6 +74,9 @@ class RtSimSolverSchedulerBridge {
   final Scheduler scheduler;
   final RtSimSolverSchedulerBridge reference;
   final SimSolversManager simSolversManager;
+
+  final AtomicInteger solveCount;
+
   Optional<ImmutableList<ImmutableList<Parcel>>> currentSchedule;
 
   boolean isUpdated;
@@ -101,6 +105,7 @@ class RtSimSolverSchedulerBridge {
     simSolversManager = manager;
     solver.init(scheduler);
     simSolversManager.register(this);
+    solveCount = new AtomicInteger();
   }
 
   public EventAPI getEventAPI() {
@@ -147,10 +152,14 @@ class RtSimSolverSchedulerBridge {
     public void solve(final GlobalStateObject state) {
       LOGGER.trace("Solve: {}, {} available parcels.", solver,
         state.getAvailableParcels().size());
-      realtimeCheck();
-      eventDispatcher.dispatchEvent(new Event(
-        RtSimSolverSchedulerBridge.EventType.START_COMPUTING, reference));
 
+      checkState(solveCount.getAndIncrement() <= 1);
+      realtimeCheck();
+
+      if (solveCount.get() == 1) {
+        eventDispatcher.dispatchEvent(new Event(
+          RtSimSolverSchedulerBridge.EventType.START_COMPUTING, reference));
+      }
       for (final VehicleStateObject vso : state.getVehicles()) {
         checkArgument(vso.getRoute().isPresent(),
           "A route must be present for each vehicle.");
@@ -237,7 +246,7 @@ class RtSimSolverSchedulerBridge {
 
     @Override
     public boolean isComputing() {
-      return solver.isComputing();
+      return solveCount.get() == 0;
     }
 
     class SnapshotCallback implements FutureCallback<Object> {
@@ -285,13 +294,16 @@ class RtSimSolverSchedulerBridge {
 
     @Override
     public void doneForNow() {
-      LOGGER.trace("doneForNow");
+      checkState(solveCount.decrementAndGet() >= 0);
       try {
-        eventDispatcher.safeDispatchEvent(
-          new Event(EventType.DONE_COMPUTING, reference));
-        simSolverEventDispatcher.safeDispatchEvent(
-          new SolverEvent(RtSimSolver.EventType.DONE,
-            currentSchedule, currentState));
+        if (solveCount.get() == 0) {
+          LOGGER.trace("doneForNow");
+          eventDispatcher.safeDispatchEvent(
+            new Event(EventType.DONE_COMPUTING, reference));
+          simSolverEventDispatcher.safeDispatchEvent(
+            new SolverEvent(RtSimSolver.EventType.DONE,
+              currentSchedule, currentState));
+        }
       } catch (final RuntimeException e) {
         reportException(e);
       }

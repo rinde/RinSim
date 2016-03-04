@@ -111,6 +111,7 @@ public final class SolverToRealtimeAdapter implements RealtimeSolver {
     if (isComputing()) {
       LOGGER.trace("attempt to cancel running Solver..");
       currentFuture.get().cancel(true);
+      scheduler.get().doneForNow();
     }
   }
 

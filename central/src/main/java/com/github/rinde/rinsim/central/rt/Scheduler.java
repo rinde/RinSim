@@ -55,7 +55,10 @@ public abstract class Scheduler {
    * {@link RealtimeSolver#problemChanged(com.github.rinde.rinsim.central.GlobalStateObject)}
    * . Calling this method can greatly increase the speed of a simulation
    * because real-time is only used when it is needed, and the simulation is
-   * fast forwarded when it is not needed.
+   * fast forwarded when it is not needed. In order for this to have effect,
+   * this method must be called for each invocation of
+   * {@link RealtimeSolver#problemChanged(GlobalStateObject)} both when the
+   * execution is cancelled and when it completes normally.
    */
   public abstract void doneForNow();
 

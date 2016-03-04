@@ -72,7 +72,7 @@ public class RtSolverModelTestRT extends RtSolverModelTest {
     solvers.get(0).getEventAPI().addListener(eventHistory,
       EventType.NEW_SCHEDULE);
     solvers.get(1).solve(SolveArgs.create());
-    verify(clock, times(1)).switchToRealTime();
+    verify(clock, times(2)).switchToRealTime();
 
     assertThat(solvers.get(0).isScheduleUpdated()).isFalse();
     boolean fail = false;
@@ -87,7 +87,7 @@ public class RtSolverModelTestRT extends RtSolverModelTest {
     assertThat(solvers.get(0).isScheduleUpdated()).isFalse();
     assertThat(eventHistory.getHistory()).isEmpty();
 
-    verify(clock, times(1)).switchToRealTime();
+    verify(clock, times(2)).switchToRealTime();
     verify(clock, times(0)).switchToSimulatedTime();
 
     model.afterTick(TimeLapseFactory.ms(0, 100));
@@ -95,6 +95,7 @@ public class RtSolverModelTestRT extends RtSolverModelTest {
     while (model.manager.isComputing()) {
       verify(clock, times(0)).switchToSimulatedTime();
       model.manager.checkExceptions();
+      model.afterTick(TimeLapseFactory.ms(100, 200));
       try {
         Thread.sleep(10);
       } catch (final InterruptedException e) {
@@ -105,11 +106,11 @@ public class RtSolverModelTestRT extends RtSolverModelTest {
     assertThat(duration).isIn(Range.open(0.9, 1.1));
 
     model.afterTick(TimeLapseFactory.ms(100, 200));
-    verify(clock, times(1)).switchToRealTime();
+    verify(clock, times(3)).switchToRealTime();
     verify(clock, times(0)).switchToSimulatedTime();
 
     model.afterTick(TimeLapseFactory.ms(200, 300));
-    verify(clock, times(1)).switchToRealTime();
+    verify(clock, times(3)).switchToRealTime();
     verify(clock, times(1)).switchToSimulatedTime();
 
     assertThat(eventHistory.getEventTypeHistory())

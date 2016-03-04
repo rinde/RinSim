@@ -138,23 +138,25 @@ public class RealtimeSolverTest {
       SIMULATED, SIMULATED, SIMULATED);
     assertThat(sum(interArrivalTimes.subList(0, 3))).isAtMost(100d);
 
-    assertThat(tt.getClockModes().subList(3, 7)).containsExactly(
-      REAL_TIME, REAL_TIME, REAL_TIME, REAL_TIME);
+    assertThat(tt.getClockModes().subList(3, 8)).containsExactly(
+      REAL_TIME, REAL_TIME, REAL_TIME, REAL_TIME, REAL_TIME);
     assertThat(interArrivalTimes.get(3)).isIn(acceptableDuration);
     assertThat(interArrivalTimes.get(4)).isIn(acceptableDuration);
     assertThat(interArrivalTimes.get(5)).isIn(acceptableDuration);
+    assertThat(interArrivalTimes.get(6)).isIn(acceptableDuration);
 
-    assertThat(tt.getClockModes().subList(7, 10)).containsExactly(
-      SIMULATED, SIMULATED, SIMULATED);
+    assertThat(tt.getClockModes().subList(8, 10)).containsExactly(
+      SIMULATED, SIMULATED);
     assertThat(sum(interArrivalTimes.subList(6, 10))).isAtMost(150d);
 
-    assertThat(tt.getClockModes().subList(10, 14)).containsExactly(
-      REAL_TIME, REAL_TIME, REAL_TIME, REAL_TIME);
+    assertThat(tt.getClockModes().subList(10, 15)).containsExactly(
+      REAL_TIME, REAL_TIME, REAL_TIME, REAL_TIME, REAL_TIME);
     assertThat(interArrivalTimes.get(10)).isIn(acceptableDuration);
     assertThat(interArrivalTimes.get(11)).isIn(acceptableDuration);
     assertThat(interArrivalTimes.get(12)).isIn(acceptableDuration);
+    assertThat(interArrivalTimes.get(13)).isIn(acceptableDuration);
 
-    assertThat(tt.getClockModes().subList(14, 30)).doesNotContain(REAL_TIME);
+    assertThat(tt.getClockModes().subList(15, 30)).doesNotContain(REAL_TIME);
     assertThat(sum(interArrivalTimes.subList(13, 30))).isAtMost(150d);
     assertThat(tt.getClockModes().get(30)).isEqualTo(REAL_TIME);
   }
@@ -304,7 +306,7 @@ public class RealtimeSolverTest {
       solverChecker.schedulerChecker.get();
     assertThat(solverChecker.initCalls).isEqualTo(1);
     assertThat(solverChecker.problemChangedCalls).isEqualTo(2);
-    assertThat(schedulerChecker.doneForNowCalls).isEqualTo(1);
+    assertThat(schedulerChecker.doneForNowCalls).isEqualTo(2);
     assertThat(schedulerChecker.updateScheduleCalls).isEqualTo(1);
   }
 

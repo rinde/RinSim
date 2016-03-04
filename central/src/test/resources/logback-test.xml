@@ -24,9 +24,10 @@
 	<logger name="com.github.rinde.rinsim.core.model.time" level="INFO" />
 	<logger name="com.github.rinde.rinsim.scenario" level="WARN" />
 	<logger name="com.github.rinde.rinsim.pdptw" level="WARN" />
-	<logger name="com.github.rinde.rinsim.central" level="WARN" />
-	<logger name="com.github.rinde.rinsim.central.rt.AffinityGroupThreadFactory" level="TRACE" />
+	<logger name="com.github.rinde.rinsim.central" level="TRACE" />
 	<logger name="com.github.rinde.rinsim.central.rt.RtSolverModel" level="TRACE" />
+	<logger name="com.github.rinde.rinsim.central.rt.RtSimSolverSchedulerBridge" level="TRACE" />
+	<logger name="com.github.rinde.rinsim.central.rt.SolverToRealtimeAdapter" level="TRACE" />
 
 	<root level="INFO">
 		<appender-ref ref="FILE" />
