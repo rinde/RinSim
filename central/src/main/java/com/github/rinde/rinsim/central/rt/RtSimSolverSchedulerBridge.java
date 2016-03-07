@@ -246,7 +246,7 @@ class RtSimSolverSchedulerBridge {
 
     @Override
     public boolean isComputing() {
-      return solveCount.get() == 0;
+      return solveCount.get() > 0;
     }
 
     class SnapshotCallback implements FutureCallback<Object> {
