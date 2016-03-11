@@ -155,6 +155,7 @@ class RtSimSolverSchedulerBridge {
 
       solveCount.getAndIncrement();
       realtimeCheck();
+      clock.switchToRealTime();
 
       if (solveCount.get() == 1) {
         eventDispatcher.dispatchEvent(new Event(
@@ -191,7 +192,6 @@ class RtSimSolverSchedulerBridge {
         "Clock must be in real-time mode before calling this method, but it "
           + "is in %s mode.",
         clock.getClockMode());
-      clock.switchToRealTime();
     }
 
     @Override
