@@ -657,6 +657,8 @@ public final class Experiment {
       if (warmupPeriodMs > 0) {
         checkArgument(computerType == Computers.LOCAL,
           "Warmup can only be used when experiment is performed locally.");
+        checkArgument(!showGui,
+          "Gui can not be shown in combination with a warmup period.");
         LOGGER.info("Start warmup.");
 
         new WarmupComputer(computerType.get()).compute(this, runners);
