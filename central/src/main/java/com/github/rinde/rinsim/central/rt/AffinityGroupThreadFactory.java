@@ -150,7 +150,7 @@ public final class AffinityGroupThreadFactory implements ThreadFactory {
     numThreads.incrementAndGet();
     LOGGER.info("Starting {}.", Thread.currentThread().getName());
     final AffinityLock lock = verifyNotNull(affinityLock);
-    checkState(lock.isAllocated(), "Failed to allocate %s.", lock);
+    checkState(lock.isAllocated(), "Failed to allocate lock: %s.", lock);
     Affinity.setAffinity(lock.cpuId());
   }
 

@@ -294,8 +294,8 @@ class RtSimSolverSchedulerBridge {
 
     @Override
     public void doneForNow() {
-      checkState(solveCount.decrementAndGet() >= 0);
       try {
+        checkState(solveCount.decrementAndGet() >= 0);
         if (solveCount.get() == 0) {
           LOGGER.trace("doneForNow");
           eventDispatcher.safeDispatchEvent(
