@@ -225,6 +225,7 @@ public class RouteFollowingVehicle extends Vehicle {
    */
   public void setRoute(Iterable<? extends Parcel> r) {
     final Iterable<Parcel> adjustedRoute = routeAdjuster.adjust(r, this);
+    LOGGER.trace("{} setRoute {}", this, adjustedRoute);
 
     // note: the following checks can not detect if a parcel has been set to
     // multiple vehicles at the same time
@@ -473,8 +474,18 @@ public class RouteFollowingVehicle extends Vehicle {
   /**
    * @return the currentTime
    */
-  protected TimeLapse getCurrentTime() {
+  protected TimeLapse getCurrentTimeLapse() {
     return currentTime.get();
+  }
+
+  /**
+   * @return the current time.
+   */
+  protected long getCurrentTime() {
+    if (currentTime.isPresent()) {
+      return currentTime.get().getTime();
+    }
+    return 0L;
   }
 
   /**

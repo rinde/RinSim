@@ -59,9 +59,16 @@ public final class ExperimentTestUtil {
   }
 
   public static Simulator init(Scenario scenario,
-      MASConfiguration config, long seed, boolean showGui) {
-    return Experiment.init(scenario, config, seed, showGui,
+      MASConfiguration config, long seed) {
+    return Experiment.init(scenario, config, seed, false,
       Optional.<ModelBuilder<?, ?>>absent());
+  }
+
+  public static Simulator init(Scenario scenario,
+      MASConfiguration config, long seed, boolean showGui,
+      ModelBuilder<?, ?> guiBuilder) {
+    return Experiment.init(scenario, config, seed, showGui,
+      Optional.<ModelBuilder<?, ?>>of(guiBuilder));
   }
 
   public static StatisticsDTO singleRun(Scenario scenario,

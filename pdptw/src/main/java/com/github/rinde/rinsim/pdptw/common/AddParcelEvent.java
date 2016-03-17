@@ -60,8 +60,8 @@ public abstract class AddParcelEvent implements TimedEvent {
   /**
    * {@link TimedEventHandler} that creates {@link Parcel}s with an overridden
    * toString implementation. The first 26 parcels are named
-   * <code>A,B,C..Y,Z</code>, parcel 27 to 702 are named
-   * <code>AA,AB..YZ,ZZ</code>. If more than 702 parcels are created the
+   * <code>A,B,C,..,Y,Z</code>, parcel 27 to 702 are named
+   * <code>AA,AB,..,YZ,ZZ</code>. If more than 702 parcels are created the
    * {@link TimedEventHandler} will throw an {@link IllegalStateException}. This
    * handler should only be used for debugging purposes and is not thread safe.
    * @return A newly constructed handler.

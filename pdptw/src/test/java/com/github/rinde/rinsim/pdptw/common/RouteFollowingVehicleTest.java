@@ -253,7 +253,7 @@ public class RouteFollowingVehicleTest {
 
     final TimeLapse dtl = copy(tl);
     d.tick(dtl);
-    assertSame(dtl, d.getCurrentTime());
+    assertSame(dtl, d.getCurrentTimeLapse());
     assertFalse(dtl.hasTimeLeft());
 
     // tests whether internal states of vehicle match the state of the pdp model
