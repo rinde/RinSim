@@ -17,6 +17,9 @@ package com.github.rinde.rinsim.experiment;
 
 import java.io.PrintStream;
 
+import org.joda.time.Duration;
+import org.joda.time.format.PeriodFormat;
+
 import com.github.rinde.rinsim.experiment.Experiment.SimulationResult;
 import com.github.rinde.rinsim.experiment.PostProcessor.FailureStrategy;
 import com.github.rinde.rinsim.scenario.Scenario;
@@ -33,6 +36,7 @@ public class CommandLineProgress implements ResultListener {
   private int total;
   private int received;
   private int failures;
+  private long startTime;
 
   /**
    * Create a new instance.
@@ -47,6 +51,7 @@ public class CommandLineProgress implements ResultListener {
       ImmutableSet<MASConfiguration> configurations,
       ImmutableSet<Scenario> scenarios,
       int repetitions) {
+    startTime = System.currentTimeMillis();
     printStream.print("Start computing: ");
     printStream.print(numberOfSimulations);
     printStream.print(" simulations (=");
@@ -69,8 +74,11 @@ public class CommandLineProgress implements ResultListener {
     } else {
       received++;
     }
+    final Duration dur =
+      new Duration(startTime, System.currentTimeMillis());
     printStream.println(Joiner.on("")
-      .join(received, "/", total, " (failures: ", failures, ")"));
+      .join(received, "/", total, " (failures: ", failures, ", duration: ",
+        PeriodFormat.getDefault().print(dur.toPeriod()), ")"));
   }
 
   @Override

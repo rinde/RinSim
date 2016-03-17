@@ -57,6 +57,7 @@ public class ExperimentTest {
       .addScenario(scenario)
       .addConfiguration(ExperimentTestUtil.testConfig("test"))
       .usePostProcessor(ExperimentTestUtil.testPostProcessor())
+      .addResultListener(new CommandLineProgress(System.out))
       .withRandomSeed(123);
 
     final ExperimentResults er = builder.perform();
