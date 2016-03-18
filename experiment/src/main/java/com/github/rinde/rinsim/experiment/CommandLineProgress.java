@@ -86,7 +86,7 @@ public class CommandLineProgress implements ResultListener {
   @Override
   public void doneComputing(ExperimentResults results) {
     final Duration dur = new Duration(startTime, System.currentTimeMillis());
-    printStream.println("Computing done, duration: " +
-      PeriodFormat.getDefault().print(dur.toPeriod()) + ".");
+    printStream.println("Computing done, duration: "
+      + PeriodFormat.getDefault().print(dur.toPeriod()) + ".");
   }
 }
