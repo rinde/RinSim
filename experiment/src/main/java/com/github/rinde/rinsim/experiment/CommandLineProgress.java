@@ -50,7 +50,8 @@ public class CommandLineProgress implements ResultListener {
   public void startComputing(int numberOfSimulations,
       ImmutableSet<MASConfiguration> configurations,
       ImmutableSet<Scenario> scenarios,
-      int repetitions) {
+      int repetitions,
+      int seedRepetitions) {
     startTime = System.currentTimeMillis();
     printStream.print("Start computing: ");
     printStream.print(numberOfSimulations);
@@ -60,7 +61,9 @@ public class CommandLineProgress implements ResultListener {
     printStream.print(scenarios.size());
     printStream.print(" scenarios x ");
     printStream.print(repetitions);
-    printStream.println(" repetitions)");
+    printStream.print(" repetitions x ");
+    printStream.print(seedRepetitions);
+    printStream.println(" seed repetitions)");
 
     total = numberOfSimulations;
     received = 0;

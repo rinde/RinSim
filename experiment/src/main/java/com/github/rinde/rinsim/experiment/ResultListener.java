@@ -32,12 +32,14 @@ public interface ResultListener {
    *          executed.
    * @param configurations The set of configurations that will be used.
    * @param scenarios The set of scenarios.
-   * @param repetitions The number of repetitions.
+   * @param repetitions The number of repetitions (different seeds).
+   * @param seedRepetitions The number of repetitions of each seed.
    */
   void startComputing(int numberOfSimulations,
       ImmutableSet<MASConfiguration> configurations,
       ImmutableSet<Scenario> scenarios,
-      int repetitions);
+      int repetitions,
+      int seedRepetitions);
 
   // TODO extend description, the SimulationResult may be a failed simulation
   /**

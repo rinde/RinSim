@@ -669,7 +669,9 @@ public final class Experiment {
         rl.startComputing(runners.size(),
           ImmutableSet.copyOf(configurationsSet),
           scenarios,
-          repetitions);
+          repetitions,
+          seedRepetitions);
+
       }
       // run Forrest run!
       return computerType.get().compute(this, runners);
