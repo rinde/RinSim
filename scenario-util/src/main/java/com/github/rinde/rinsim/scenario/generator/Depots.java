@@ -101,7 +101,7 @@ public final class Depots {
 
     /**
      * Sets the number of depots that the {@link DepotGenerator} should
-     * generate. This number is {@link StochasticSupplier} itself meaning that
+     * generate. This number is a {@link StochasticSupplier} itself meaning that
      * it can be drawn from a random distribution.
      * @param nd The number of depots.
      * @return This, as per the builder pattern.

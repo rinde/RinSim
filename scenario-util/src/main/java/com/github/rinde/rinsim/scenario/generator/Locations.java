@@ -325,7 +325,9 @@ public final class Locations {
     }
 
     /**
-     * Create a normal distributed {@link LocationGenerator}.
+     * Create a normal distributed {@link LocationGenerator}. This method
+     * requires min, max, mean and std be set for both dimensions, also it
+     * requires to set a redraw strategy.
      * @return A normal distributed generator.
      */
     public LocationGenerator buildNormal() {
@@ -406,11 +408,11 @@ public final class Locations {
     private static StochasticSupplier<Double> normalVar(Optional<Double> min,
         Optional<Double> max, Optional<Double> mean, Optional<Double> std,
         Optional<Boolean> redraw) {
-      checkArgument(min.isPresent());
-      checkArgument(max.isPresent());
-      checkArgument(mean.isPresent());
-      checkArgument(std.isPresent());
-      checkArgument(redraw.isPresent());
+      checkArgument(min.isPresent(), "Min should be set.");
+      checkArgument(max.isPresent(), "Max should be set.");
+      checkArgument(mean.isPresent(), "Mean should be set.");
+      checkArgument(std.isPresent(), "Std should be set.");
+      checkArgument(redraw.isPresent(), "Redraw should be set.");
       final StochasticSuppliers.Builder builder = StochasticSuppliers.normal()
         .mean(mean.get())
         .std(std.get())

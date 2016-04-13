@@ -22,8 +22,9 @@ import java.util.Comparator;
 import javax.annotation.Nullable;
 
 /**
+ * An event that is part of a scenario. It has a time at which it should be
+ * dispatched. Implementations should be immutable.
  * @author Rinde van Lon
- *
  */
 public interface TimedEvent {
   /**
