@@ -22,6 +22,8 @@ import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicie
 import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.experiment.Experiment;
+import com.github.rinde.rinsim.experiment.Experiment.SimulationResult;
+import com.github.rinde.rinsim.experiment.ExperimentResults;
 import com.github.rinde.rinsim.experiment.MASConfiguration;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.AddDepotEvent;
@@ -38,13 +40,22 @@ import com.github.rinde.rinsim.ui.View;
 import com.github.rinde.rinsim.ui.renderers.PDPModelRenderer;
 import com.github.rinde.rinsim.ui.renderers.PlaneRoadModelRenderer;
 import com.github.rinde.rinsim.util.TimeWindow;
+import com.google.common.base.Optional;
 
 /**
- *
- * Check documentation of {@link Experiment} and {@link Scenario}.
+ * This example shows how to use the {@link Experiment} class to define and run
+ * an experiment. It shows how to construct a {@link Scenario} and
+ * {@link MASConfiguration} which are both requirements for an example. The
+ * intermediate steps in the example are documented, however, make sure to also
+ * read the documentation of each method for extra information about what it
+ * does.
+ * <p>
+ * If this class is run on MacOS it might be necessary to use
+ * -XstartOnFirstThread as a VM argument.
  * @author Rinde van Lon
  */
 public final class ExperimentExample {
+  // some constants used in the experiment
   private static final Point RESOLUTION = new Point(800, 700);
   private static final double VEHICLE_SPEED_KMH = 30d;
   private static final double MAX_VEHICLE_SPEED_KMH = 50d;
@@ -81,12 +92,13 @@ public final class ExperimentExample {
    * @param args The arguments supplied to the application.
    */
   public static void main(String[] args) {
+    final Optional<ExperimentResults> results;
 
     // Starts the experiment builder. The experiment requires an objective
     // function. Here we use the objective function for a PDPTW as defined in a
     // paper by Gendreau et al (2006). A custom objective function can be
     // defined by implementing the ObjectiveFunction interface.
-    Experiment.build(Gendreau06ObjectiveFunction.instance())
+    results = Experiment.build(Gendreau06ObjectiveFunction.instance())
 
       // Adds a configuration to the experiment. A configuration configures an
       // algorithm that is supposed to handle or 'solve' a problem specified by
@@ -97,8 +109,16 @@ public final class ExperimentExample {
       .addConfiguration(MASConfiguration.builder()
         .addEventHandler(AddDepotEvent.class, AddDepotEvent.defaultHandler())
         .addEventHandler(AddParcelEvent.class, AddParcelEvent.defaultHandler())
+        // There is no default handle for vehicle events, here a non functioning
+        // handler is added, it can be changed to add a custom vehicle to the
+        // simulator.
         .addEventHandler(AddVehicleEvent.class, CustomVehicleHandler.INSTANCE)
         .addEventHandler(TimeOutEvent.class, TimeOutEvent.ignoreHandler())
+
+        // Note: if you multi-agent system requires the aid of a model (e.g.
+        // CommModel) it can be added directly in the configuration. Models that
+        // are only used for the solution side should not be added in the
+        // scenario as they are not part of the problem.
         .build())
 
       // Adds the newly constructed scenario to the experiment. Every
@@ -109,14 +129,21 @@ public final class ExperimentExample {
       // have a unique random seed that is given to the simulator.
       .repeat(2)
 
-      // The master random seed from which all random seeds for the simulations
-      // will be drawn.
+      // The master random seed from which all random seeds for the
+      // simulations will be drawn.
       .withRandomSeed(0)
 
       // The number of threads the experiment will use, this allows to run
       // several simulations in parallel. Note that when the GUI is used the
       // number of threads must be set to 1.
       .withThreads(1)
+
+      // We add a post processor to the experiment. A post processor can read
+      // the state of the simulator after it has finished. It can be used to
+      // gather simulation results. The objects created by the post processor
+      // end up in the ExperimentResults object that is returned by the
+      // perform(..) method of Experiment.
+      .usePostProcessor(new ExamplePostProcessor())
 
       // Adds the GUI just like it is added to a Simulator object.
       .showGui(View.builder()
@@ -125,12 +152,26 @@ public final class ExperimentExample {
         .with(TimeLinePanel.builder())
         .withResolution((int) RESOLUTION.x, (int) RESOLUTION.y)
         .withAutoPlay()
+        .withAutoClose()
         .withTitleAppendix("Experiments example"))
 
-      // Starts the experiment, but first reads the command-line arguments that
-      // are specified for this application. By supplying the '-h' option you
-      // can see an overview of the supported options.
+      // Starts the experiment, but first reads the command-line arguments
+      // that are specified for this application. By supplying the '-h' option
+      // you can see an overview of the supported options.
       .perform(System.out, args);
+
+    if (results.isPresent()) {
+
+      for (final SimulationResult sr : results.get().getResults()) {
+        // The SimulationResult contains all information about a specific
+        // simulation, the result object is the object created by the post
+        // processor, a String in this case.
+        System.out.println(
+          sr.getSimArgs().getRandomSeed() + " " + sr.getResultObject());
+      }
+    } else {
+      throw new IllegalStateException("Experiment did not complete.");
+    }
   }
 
   /**
@@ -186,16 +227,19 @@ public final class ExperimentExample {
       // simulation before or after this event is dispatched, that depends on
       // the stop condition (see below).
       .addEvent(TimeOutEvent.create(M60))
+      .scenarioLength(M60)
 
       // Adds a plane road model as this is part of the problem
       .addModel(RoadModelBuilders.plane()
         .withMinPoint(MIN_POINT)
         .withMaxPoint(MAX_POINT)
         .withMaxSpeed(MAX_VEHICLE_SPEED_KMH))
+
       // Adds the pdp model
       .addModel(
         DefaultPDPModel.builder()
           .withTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED))
+
       // The stop condition indicates when the simulator should stop the
       // simulation. Typically this is the moment when all tasks are performed.
       // Custom stop conditions can be created by implementing the StopCondition
@@ -208,35 +252,10 @@ public final class ExperimentExample {
 
   enum CustomVehicleHandler implements TimedEventHandler<AddVehicleEvent> {
     INSTANCE {
-
       @Override
       public void handleTimedEvent(AddVehicleEvent event, SimulatorAPI sim) {
         // add you own vehicle to the simulator here
       }
     }
   }
-
-  // final ScenarioGenerator smallSg =
-  // ScenarioGenerator.builder(SimpleProblemClass.create("SMALL"))
-  // .depots(Depots.singleCenteredDepot())
-  // .parcels(Parcels.builder()
-  // .locations(Locations.builder()
-  // .square(5d)
-  // .mean(2d)
-  // .std(2d)
-  // .redrawWhenOutOfBounds()
-  // .buildNormal())
-  // .build())
-  // .addModel(RoadModelBuilders.plane())
-  // .build();
-  //
-  // final RandomGenerator rng = new MersenneTwister(123L);
-  //
-  // final List<Scenario> scenarios = new ArrayList<>();
-  // for (int i = 0; i < NUM_SCENARIOS_PER_CLASS; i++) {
-  // scenarios.add(smallSg.generate(rng, "s" + Integer.toString(i)));
-  // }
-  //
-  // System.out.println(scenarios);
-
 }
