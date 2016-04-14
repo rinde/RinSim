@@ -216,6 +216,10 @@ public final class Experiment {
     } catch (final Exception e) {
       final FailureStrategy strategy =
         args.getPostProcessor().handleFailure(e, sim, args);
+      checkNotNull(strategy,
+        "An exception (%s) occured in the simulation but the PostProcessor %s "
+          + "failed to handle the failure.",
+        e.toString(), args.getPostProcessor());
 
       if (strategy == FailureStrategy.INCLUDE) {
         return args.getPostProcessor().collectResults(sim, args);

@@ -51,10 +51,23 @@ public final class ScenarioConverters {
     return TimeModelConverter.TO_RT;
   }
 
+  /**
+   * Returns a function that converts {@link Scenario} instances to simulated
+   * time versions. If a builder for {@link TimeModel} is present in the
+   * scenario, it is replaced by a simulated time version. If no builder for
+   * {@link TimeModel} is present a simulated time builder is added.
+   * @return A scenario converter function.
+   */
   public static Function<Scenario, Scenario> toSimulatedtime() {
     return TimeModelConverter.TO_ST;
   }
 
+  /**
+   * Adapts a function that converts {@link TimedEvent} instances to a function
+   * that converts entire {@link Scenario} instances.
+   * @param converter The converter to adapt.
+   * @return The adapted converter.
+   */
   public static Function<Scenario, Scenario> eventConverter(
       final Function<TimedEvent, TimedEvent> converter) {
     return new Function<Scenario, Scenario>() {

@@ -44,9 +44,11 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 
 /**
- * Scenario is an immutable list of events sorted by the time stamp. To obtain
- * an instance there are a number of builder methods available such as
- * {@link #builder()}.
+ * Scenario is mainly an immutable list of events sorted by the time stamp.
+ * Additionally it defines and configures models that are needed to run the
+ * scenario. A scenario should only contain information related to the problem
+ * side of a simulation. To construct custom scenario instances there are a
+ * number of builder methods available such as {@link #builder()}.
  * @author Rinde van Lon
  * @author Bartosz Michalik
  */

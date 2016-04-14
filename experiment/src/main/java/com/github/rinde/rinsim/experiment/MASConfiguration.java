@@ -32,7 +32,14 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 /**
- * This represents a configuration of a multi-agent system in a simulation.
+ * This represents a configuration of a multi-agent system in a simulation. The
+ * multi-agent system can be controlled in a centralized or a decentralized
+ * manner. The configuration consists of a set of {@link ModelBuilder}s that
+ * configure the models necessary for the multi-agent system and it consists of
+ * {@link TimedEventHandler}s, there should be a handler for each type of event
+ * in the scenario for which the configuration is used.
+ * <p>
+ * Constructing instances can be done via {@link #builder()}.
  * @author Rinde van Lon
  */
 @AutoValue
@@ -165,8 +172,7 @@ public abstract class MASConfiguration implements Serializable {
     Builder addDefaultPDPTWHandlers() {
       return addEventHandler(TimeOutEvent.class, TimeOutEvent.ignoreHandler())
         .addEventHandler(AddDepotEvent.class, AddDepotEvent.defaultHandler())
-        .addEventHandler(AddParcelEvent.class,
-          AddParcelEvent.defaultHandler());
+        .addEventHandler(AddParcelEvent.class, AddParcelEvent.defaultHandler());
     }
 
     /**

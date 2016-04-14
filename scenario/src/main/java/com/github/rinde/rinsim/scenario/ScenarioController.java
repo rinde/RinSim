@@ -378,6 +378,12 @@ public final class ScenarioController extends AbstractModel<StopModel>
         getStopModelBuilder(), isIgnoreRedundantHandlers());
     }
 
+    /**
+     * Adds the map of {@link Class} to {@link TimedEventHandler} to the 
+     * builder.
+     * @param entries The event handler mapping. 
+     * @return A new builder instance with the specified handlers added.
+     */
     public Builder withEventHandlers(
         Map<Class<? extends TimedEvent>, TimedEventHandler<?>> entries) {
       for (final Entry<Class<? extends TimedEvent>, TimedEventHandler<?>> entry : entries

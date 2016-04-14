@@ -48,7 +48,7 @@ public interface StopCondition {
    * A provider of types.
    * @author Rinde van Lon
    */
-  public interface TypeProvider {
+  interface TypeProvider {
 
     /**
      * Retrieves an instance of the specified type.
