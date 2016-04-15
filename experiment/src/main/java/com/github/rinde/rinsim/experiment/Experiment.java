@@ -744,9 +744,6 @@ public final class Experiment {
       final ImmutableSet.Builder<SimArgs> runnerBuilder =
         ImmutableSet.builder();
 
-      // final List<ExperimentOrdering> ordering =
-      // asList(ExperimentOrdering.values());
-
       final List<Set<? extends Object>> input = new ArrayList<>();
       for (final SimulationProperty eo : experimentOrdering) {
         input.add(eo.select(configurationsSet, scenarios, seedSet, seedReps));
@@ -775,44 +772,6 @@ public final class Experiment {
           seed.get(), rep.get(), objectiveFunction, showGui, postProc,
           uiCreator));
       }
-
-      // for (final MASConfiguration configuration : conf) {
-      // for (final Scenario scenario : scenarios) {
-      // for (int i = 0; i < seedRepetitions; i++) {
-      // final long seed = seeds.get(i);
-      // for (int j = 0; j < seedRepetitions; j++) {
-      // runnerBuilder.add(SimArgs.create(scenario, configuration,
-      // seed, j, objectiveFunction, showGui, postProc, uiCreator));
-      // }
-      // }
-      // }
-      // }
-      // final Ordering<SimArgs> configOrder =
-      // Ordering.explicit(conf.asList()).onResultOf(SimArgs.toConfig());
-      //
-      // final Ordering<SimArgs> scenarioOrder =
-      // Ordering.explicit(scenarios.asList()).onResultOf(SimArgs.toScenario());
-      //
-      // final Ordering<SimArgs> seedOrder =
-      // Ordering.natural().onResultOf(SimArgs.toSeed());
-      // final Ordering<SimArgs> seedRepOrder =
-      // Ordering.natural().onResultOf(SimArgs.toRepeat());
-      //
-      // final List<ExperimentOrdering> ordering =
-      // asList(ExperimentOrdering.values());
-      //
-      // final Ordering<SimArgs> compound;
-      //
-      // for (final ExperimentOrdering eo : ordering) {
-      //
-      // Ordering<SimArgs> toAdd;
-      // if (eo == ExperimentOrdering.CONFIG) {
-      // toAdd = configOrder;
-      // } else if (eo == ExperimentOrdering.SCENARIO) {
-      //
-      // }
-      // }
-
       return runnerBuilder.build();
     }
 
