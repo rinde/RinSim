@@ -16,13 +16,14 @@
 package com.github.rinde.rinsim.experiment;
 
 /**
- *
+ * Exception that is thrown when an experiment run has been aborted.
  * @author Rinde van Lon
  */
 public class AbortExperimentException extends RuntimeException {
 
-  public AbortExperimentException(String message, Throwable cause) {
+  private static final long serialVersionUID = 7129907239020058583L;
+
+  AbortExperimentException(String message, Throwable cause) {
     super(message, cause);
   }
-
 }

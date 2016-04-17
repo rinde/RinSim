@@ -107,12 +107,6 @@ import com.google.common.collect.Sets;
 public final class Experiment {
   static final Logger LOGGER = LoggerFactory.getLogger(Experiment.class);
 
-  // TODO add strict mode which checks whether there are not too many
-  // vehicles/parcels/depots?
-
-  // TODO ObjectiveFunction might fit better inside the PostProcessor?
-  // it has no real function in the experiment..
-
   enum Computers implements Supplier<Computer> {
     LOCAL {
       @Override
