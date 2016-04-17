@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,20 +90,20 @@ public final class Metrics {
       TravelTimes tt) {
     checkArgument(
       event.getParcelDTO().getPickupTimeWindow().begin() <= event.getParcelDTO()
-          .getDeliveryTimeWindow().begin(),
+        .getDeliveryTimeWindow().begin(),
       "Delivery TW begin may not be before pickup TW begin.");
     checkArgument(
       event.getParcelDTO().getPickupTimeWindow().end() <= event.getParcelDTO()
-          .getDeliveryTimeWindow().end(),
+        .getDeliveryTimeWindow().end(),
       "Delivery TW end may not be before pickup TW end.");
 
     // pickup lower bound,
     final long pickupLb = event.getParcelDTO().getPickupTimeWindow().begin();
     // pickup upper bound
     final long pickupUb = event.getParcelDTO().getPickupTimeWindow().end()
-        + event.getParcelDTO().getPickupDuration();
+      + event.getParcelDTO().getPickupDuration();
     final double pickupLoad = event.getParcelDTO().getPickupDuration()
-        / (double) (pickupUb - pickupLb);
+      / (double) (pickupUb - pickupLb);
     final LoadPart pickupPart = new LoadPart(pickupLb, pickupUb, pickupLoad);
 
     final long expectedTravelTime = tt.getShortestTravelTime(
@@ -117,7 +117,7 @@ public final class Metrics {
       travelLb + expectedTravelTime);
 
     final double travelLoad = expectedTravelTime
-        / (double) (travelUb - travelLb);
+      / (double) (travelUb - travelLb);
     final LoadPart travelPart = new LoadPart(travelLb, travelUb, travelLoad);
 
     // delivery lower bound: the first possible time the delivery can start,
@@ -126,15 +126,15 @@ public final class Metrics {
     final long deliveryLb = Math.max(
       event.getParcelDTO().getDeliveryTimeWindow().begin(),
       pickupLb + event.getParcelDTO().getPickupDuration()
-          + expectedTravelTime);
+        + expectedTravelTime);
     // delivery upper bound: the latest possible time the delivery can end
     final long deliveryUb = Math.max(
       event.getParcelDTO().getDeliveryTimeWindow().end(),
       deliveryLb) + event.getParcelDTO().getDeliveryDuration();
     final double deliveryLoad = event.getParcelDTO().getDeliveryDuration()
-        / (double) (deliveryUb - deliveryLb);
+      / (double) (deliveryUb - deliveryLb);
     final LoadPart deliveryPart = new LoadPart(deliveryLb, deliveryUb,
-        deliveryLoad);
+      deliveryLoad);
 
     return ImmutableList.of(pickupPart, travelPart, deliveryPart);
   }
@@ -208,8 +208,8 @@ public final class Metrics {
     final List<Class<?>> toMove = new ArrayList<>();
     for (final Class<?> c : set.elementSet()) {
       if (!Modifier.isPublic(c.getModifiers())
-          && TimedEvent.class.isAssignableFrom(c.getSuperclass())
-          && !set.contains(c.getSuperclass())) {
+        && TimedEvent.class.isAssignableFrom(c.getSuperclass())
+        && !set.contains(c.getSuperclass())) {
         toMove.add(c);
       }
     }
@@ -254,11 +254,11 @@ public final class Metrics {
   static void checkParcelTWStrictness(AddParcelEvent event,
       TravelTimes travelTimes) {
     final long firstDepartureTime = event.getParcelDTO()
-        .getPickupTimeWindow().begin()
-        + event.getParcelDTO().getPickupDuration();
+      .getPickupTimeWindow().begin()
+      + event.getParcelDTO().getPickupDuration();
     final long latestDepartureTime = event.getParcelDTO()
-        .getPickupTimeWindow().end()
-        + event.getParcelDTO().getPickupDuration();
+      .getPickupTimeWindow().end()
+      + event.getParcelDTO().getPickupDuration();
 
     final double travelTime = travelTimes.getShortestTravelTime(
       event.getParcelDTO().getPickupLocation(),
@@ -266,16 +266,16 @@ public final class Metrics {
 
     checkArgument(
       event.getParcelDTO().getDeliveryTimeWindow().begin() >= firstDepartureTime
-          + travelTime,
+        + travelTime,
       "The begin of the delivery time window (%s) is too early, "
-          + "should be >= %s.",
+        + "should be >= %s.",
       event.getParcelDTO().getDeliveryTimeWindow(), firstDepartureTime
-          + travelTime);
+        + travelTime);
     checkArgument(
       latestDepartureTime + travelTime <= event.getParcelDTO()
-          .getDeliveryTimeWindow().end(),
+        .getDeliveryTimeWindow().end(),
       "The end of the pickup time window %s is too late, or end of delivery "
-          + "is too early.",
+        + "is too early.",
       event.getParcelDTO().getPickupTimeWindow().end());
   }
 
@@ -309,7 +309,7 @@ public final class Metrics {
       Iterable<Double> input, double binSize) {
     final ImmutableSortedMultiset.Builder<Double> builder =
       ImmutableSortedMultiset
-          .naturalOrder();
+        .naturalOrder();
     for (final double d : input) {
       checkArgument(!Double.isInfinite(d) && !Double.isNaN(d),
         "Only finite numbers are accepted, found %s.", d);
@@ -354,9 +354,9 @@ public final class Metrics {
    */
   public static StatisticalSummary measureUrgency(Scenario s) {
     final List<Long> urgencyValues = FluentIterable.from(s.getEvents())
-        .filter(AddParcelEvent.class)
-        .transform(Urgency.PICKUP)
-        .toList();
+      .filter(AddParcelEvent.class)
+      .transform(Urgency.PICKUP)
+      .toList();
     return toStatisticalSummary(urgencyValues);
   }
 
@@ -406,7 +406,7 @@ public final class Metrics {
 
     // this is the expected interarrival time
     final double expectedInterArrivalTime = lengthOfDay
-        / numEvents;
+      / numEvents;
 
     // deviation to expectedInterArrivalTime
     double sumDeviation = 0;
@@ -418,7 +418,7 @@ public final class Metrics {
       if (delta < expectedInterArrivalTime) {
         final double diff = expectedInterArrivalTime - delta;
         final double scaledPrev = diff / expectedInterArrivalTime
-            * prevDeviation;
+          * prevDeviation;
         final double cur = diff + scaledPrev;
         sumDeviation += cur;
         maxDeviation += scaledPrev;
@@ -453,7 +453,7 @@ public final class Metrics {
     for (final TimedEvent se : s.getEvents()) {
       if (se instanceof AddParcelEvent) {
         builder
-            .add(((AddParcelEvent) se).getParcelDTO().getOrderAnnounceTime());
+          .add(((AddParcelEvent) se).getParcelDTO().getOrderAnnounceTime());
       }
     }
     return builder.build();
@@ -508,7 +508,7 @@ public final class Metrics {
     @Override
     public String toString() {
       return MoreObjects.toStringHelper("LoadPart").add("begin", tw.begin())
-          .add("end", tw.end()).add("load", load).toString();
+        .add("end", tw.end()).add("load", load).toString();
     }
   }
 }

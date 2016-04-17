@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import com.github.rinde.rinsim.pdptw.common.AddParcelEvent;
 import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
 import com.github.rinde.rinsim.pdptw.common.RouteRenderer;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
-import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06ObjectiveFunction;
 import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Parser;
 import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Scenario;
 import com.github.rinde.rinsim.ui.View;
@@ -62,48 +61,45 @@ public final class GradientFieldExample {
    */
   public static void run(final boolean testing) {
     View.Builder viewBuilder = View.builder()
-        .with(PlaneRoadModelRenderer.builder())
-        .with(RoadUserRenderer.builder()
-            .withImageAssociation(
-                Truck.class, "/graphics/perspective/bus-44.png")
-            .withImageAssociation(
-                Depot.class, "/graphics/flat/warehouse-32.png")
-            .withImageAssociation(
-                GFParcel.class, "/graphics/flat/hailing-cab-32.png"))
-        .with(GradientFieldRenderer.builder())
-        .with(RouteRenderer.builder())
-        .with(PDPModelRenderer.builder());
+      .with(PlaneRoadModelRenderer.builder())
+      .with(RoadUserRenderer.builder()
+        .withImageAssociation(
+          Truck.class, "/graphics/perspective/bus-44.png")
+        .withImageAssociation(
+          Depot.class, "/graphics/flat/warehouse-32.png")
+        .withImageAssociation(
+          GFParcel.class, "/graphics/flat/hailing-cab-32.png"))
+      .with(GradientFieldRenderer.builder())
+      .with(RouteRenderer.builder())
+      .with(PDPModelRenderer.builder());
 
     if (testing) {
       viewBuilder = viewBuilder.withAutoClose()
-          .withAutoPlay()
-          .withSpeedUp(TEST_SPEED_UP)
-          .withSimulatorEndTime(TEST_END_TIME);
+        .withAutoPlay()
+        .withSpeedUp(TEST_SPEED_UP)
+        .withSimulatorEndTime(TEST_END_TIME);
     }
 
     final Gendreau06Scenario scenario = Gendreau06Parser
-        .parser().addFile(GradientFieldExample.class
-            .getResourceAsStream("/data/gendreau06/req_rapide_1_240_24"),
-            "req_rapide_1_240_24")
-        .allowDiversion()
-        .parse().get(0);
+      .parser().addFile(GradientFieldExample.class
+        .getResourceAsStream("/data/gendreau06/req_rapide_1_240_24"),
+        "req_rapide_1_240_24")
+      .allowDiversion()
+      .parse().get(0);
 
-    final Gendreau06ObjectiveFunction objFunc = Gendreau06ObjectiveFunction
-        .instance();
-    Experiment
-        .build(objFunc)
-        .withRandomSeed(RANDOM_SEED)
-        .withThreads(1)
-        .addConfiguration(MASConfiguration.pdptwBuilder()
-            .setName("GradientFieldConfiguration")
-            .addEventHandler(AddVehicleEvent.class, VehicleHandler.INSTANCE)
-            .addEventHandler(AddParcelEvent.class, ParcelHandler.INSTANCE)
-            .addModel(GradientModel.builder())
-            .build())
-        .addScenario(scenario)
-        .showGui(viewBuilder)
-        .repeat(1)
-        .perform();
+    Experiment.builder()
+      .withRandomSeed(RANDOM_SEED)
+      .withThreads(1)
+      .addConfiguration(MASConfiguration.pdptwBuilder()
+        .setName("GradientFieldConfiguration")
+        .addEventHandler(AddVehicleEvent.class, VehicleHandler.INSTANCE)
+        .addEventHandler(AddParcelEvent.class, ParcelHandler.INSTANCE)
+        .addModel(GradientModel.builder())
+        .build())
+      .addScenario(scenario)
+      .showGui(viewBuilder)
+      .repeat(1)
+      .perform();
   }
 
   enum VehicleHandler implements TimedEventHandler<AddVehicleEvent> {

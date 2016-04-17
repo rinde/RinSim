@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,31 +29,31 @@ import com.github.rinde.rinsim.event.Listener;
  */
 public class ListenerEventHistory implements Listener {
 
-    private final List<Event> history;
+  private final List<Event> history;
 
-    public ListenerEventHistory() {
-        history = new ArrayList<Event>();
-    }
+  public ListenerEventHistory() {
+    history = new ArrayList<Event>();
+  }
 
-    @Override
-    public void handleEvent(Event e) {
-        history.add(e);
-        e.toString();
-    }
+  @Override
+  public void handleEvent(Event e) {
+    history.add(e);
+    e.toString();
+  }
 
-    public List<Event> getHistory() {
-        return Collections.unmodifiableList(history);
-    }
+  public List<Event> getHistory() {
+    return Collections.unmodifiableList(history);
+  }
 
-    public List<Enum<?>> getEventTypeHistory() {
-        final List<Enum<?>> types = new ArrayList<Enum<?>>();
-        for (final Event e : history) {
-            types.add(e.eventType);
-        }
-        return types;
+  public List<Enum<?>> getEventTypeHistory() {
+    final List<Enum<?>> types = new ArrayList<Enum<?>>();
+    for (final Event e : history) {
+      types.add(e.eventType);
     }
+    return types;
+  }
 
-    public void clear() {
-        history.clear();
-    }
+  public void clear() {
+    history.clear();
+  }
 }

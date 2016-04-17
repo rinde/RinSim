@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,8 +42,8 @@ public abstract class LengthData implements ConnectionData {
    */
   public static LengthData create(double length) {
     checkArgument(length >= 0d && Doubles.isFinite(length),
-        "Only positive values are allowed for length, it is: %s.",
-        length);
+      "Only positive values are allowed for length, it is: %s.",
+      length);
     return new AutoValue_LengthData(Optional.of(length));
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,15 +47,15 @@ public class ViewTest {
   @Test
   public void testRenderer() {
     final Simulator sim = Simulator.builder()
-        .addModel(RoadModelBuilders.plane())
-        .addModel(View.builder()
-            .withTitleAppendix("ViewTest")
-            .withAutoClose()
-            .withAutoPlay()
-            .withSimulatorEndTime(10000)
-            .with(PlaneRoadModelRenderer.builder())
-            .with(TestRenderer.builder()))
-        .build();
+      .addModel(RoadModelBuilders.plane())
+      .addModel(View.builder()
+        .withTitleAppendix("ViewTest")
+        .withAutoClose()
+        .withAutoPlay()
+        .withSimulatorEndTime(10000)
+        .with(PlaneRoadModelRenderer.builder())
+        .with(TestRenderer.builder()))
+      .build();
 
     sim.start();
 
@@ -67,18 +67,18 @@ public class ViewTest {
   @Test
   public void testRealtime() {
     final Simulator sim = Simulator.builder()
-        .addModel(TimeModel.builder()
-            .withRealTime()
-            .withTickLength(100L))
-        .addModel(RoadModelBuilders.plane())
-        .addModel(View.builder()
-            .withTitleAppendix("ViewTest")
-            .withAutoClose()
-            .withAutoPlay()
-            .withSimulatorEndTime(1000)
-            .with(PlaneRoadModelRenderer.builder())
-            .with(TestRenderer.builder()))
-        .build();
+      .addModel(TimeModel.builder()
+        .withRealTime()
+        .withTickLength(100L))
+      .addModel(RoadModelBuilders.plane())
+      .addModel(View.builder()
+        .withTitleAppendix("ViewTest")
+        .withAutoClose()
+        .withAutoPlay()
+        .withSimulatorEndTime(1000)
+        .with(PlaneRoadModelRenderer.builder())
+        .with(TestRenderer.builder()))
+      .build();
     sim.start();
   }
 
@@ -89,17 +89,17 @@ public class ViewTest {
   @Test
   public void closeWindowWhilePlaying() {
     final Simulator sim = Simulator.builder()
-        .addModel(RoadModelBuilders.plane())
-        .addModel(
-            DefaultPDPModel.builder()
-                .withTimeWindowPolicy(TimeWindowPolicies.LIBERAL))
-        .addModel(
-            View.builder()
-                .withTitleAppendix("ViewTest")
-                .with(PlaneRoadModelRenderer.builder())
-                .with(RoadUserRenderer.builder())
-                .withAutoPlay())
-        .build();
+      .addModel(RoadModelBuilders.plane())
+      .addModel(
+        DefaultPDPModel.builder()
+          .withTimeWindowPolicy(TimeWindowPolicies.LIBERAL))
+      .addModel(
+        View.builder()
+          .withTitleAppendix("ViewTest")
+          .with(PlaneRoadModelRenderer.builder())
+          .with(RoadUserRenderer.builder())
+          .withAutoPlay())
+      .build();
 
     sim.register(new TickListener() {
       @Override
@@ -107,7 +107,7 @@ public class ViewTest {
         if (timeLapse.getTime() >= 15 * 1000) {
           final Display disp = UITestTools.findDisplay();
           verifyNotNull(disp).syncExec(
-              new Runnable() {
+            new Runnable() {
             @Override
             public void run() {
               verifyNotNull(disp).getActiveShell().close();

@@ -4,12 +4,19 @@ jdk:
   - oraclejdk7
   - openjdk7
 
+# OpenJDK 7 buffer overflow workaround
+before_install:
+  - cat /etc/hosts # optionally check the content *before*
+  - sudo hostname "$(hostname | cut -c1-63)"
+  - sed -e "s/^\\(127\\.0\\.0\\.1.*\\)/\\1 $(hostname | cut -c1-63)/" /etc/hosts | sudo tee /etc/hosts
+  - cat /etc/hosts # optionally check the content *after*
+
 install: mvn install -DskipTests=true
 
 script: 
   - mvn verify -Dskip.test.categories=gui,realtime
 
-sudo: false
+sudo: required
 cache:
   directories:
     - '$HOME/.m2/repository'

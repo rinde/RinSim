@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.eclipse.swt.graphics.RGB;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
+import com.github.rinde.rinsim.core.model.pdp.Depot;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.VehicleState;
@@ -61,10 +62,13 @@ public final class PDPModelRenderer extends AbstractCanvasRenderer {
   private final PDPModel pdpModel;
   private final RoadModel roadModel;
   private final boolean drawDestLines;
+  private final RenderHelper helper;
 
   PDPModelRenderer(RoadModel rm, PDPModel pm, Device d, boolean lines) {
     roadModel = rm;
     pdpModel = pm;
+
+    helper = new RenderHelper();
 
     drawDestLines = lines;
 
@@ -86,9 +90,16 @@ public final class PDPModelRenderer extends AbstractCanvasRenderer {
 
   @Override
   public void renderDynamic(GC gc, ViewPort vp, long time) {
+    helper.adapt(gc, vp);
     synchronized (pdpModel) {
       final Map<RoadUser, Point> posMap = roadModel.getObjectsAndPositions();
       final Set<Vehicle> vehicles = pdpModel.getVehicles();
+
+      final Set<Depot> depots = roadModel.getObjectsOfType(Depot.class);
+      for (final Depot d : depots) {
+        helper.setBackgroundSysCol(SWT.COLOR_GRAY);
+        helper.fillRect(posMap.get(d), OVAL_RADIUS_PX);
+      }
 
       for (final Vehicle v : vehicles) {
         if (posMap.containsKey(v)) {
@@ -114,9 +125,9 @@ public final class PDPModelRenderer extends AbstractCanvasRenderer {
               }
               gc.drawLine(x, y, xd, yd);
               gc.fillOval(xd - OVAL_RADIUS_PX, yd - OVAL_RADIUS_PX,
-                  OVAL_DIAMETER_PX, OVAL_DIAMETER_PX);
+                OVAL_DIAMETER_PX, OVAL_DIAMETER_PX);
               gc.drawOval(xd - OVAL_RADIUS_PX, yd - OVAL_RADIUS_PX,
-                  OVAL_DIAMETER_PX, OVAL_DIAMETER_PX);
+                OVAL_DIAMETER_PX, OVAL_DIAMETER_PX);
             }
           }
           gc.setBackground(backgroundInfo);
@@ -124,16 +135,19 @@ public final class PDPModelRenderer extends AbstractCanvasRenderer {
           final VehicleState state = pdpModel.getVehicleState(v);
           if (state != VehicleState.IDLE) {
             gc.drawText(
-                state.toString() + " "
-                    + pdpModel.getVehicleActionInfo(v).timeNeeded(),
-                x, y - STATE_TEXT_OFFSET);
+              state.toString() + " "
+                + pdpModel.getVehicleActionInfo(v).timeNeeded(),
+              x, y - STATE_TEXT_OFFSET);
           }
-          gc.drawText(Double.toString(size), x, y);
+          gc.drawText(
+            String.format("%d (%1.1f)", pdpModel.getContents(v).size(), size),
+            x,
+            y);
         }
       }
 
       final Collection<Parcel> parcels = pdpModel.getParcels(
-          ParcelState.AVAILABLE, ParcelState.ANNOUNCED);
+        ParcelState.AVAILABLE, ParcelState.ANNOUNCED);
       for (final Parcel parcel : parcels) {
 
         final Point p = posMap.get(parcel);
@@ -142,7 +156,7 @@ public final class PDPModelRenderer extends AbstractCanvasRenderer {
           final int y = vp.toCoordY(p.y);
           gc.setForeground(lightGray);
           gc.drawLine(x, y, vp.toCoordX(parcel.getDeliveryLocation().x),
-              vp.toCoordY(parcel.getDeliveryLocation().y));
+            vp.toCoordY(parcel.getDeliveryLocation().y));
 
           if (parcel.getPickupTimeWindow().isBeforeStart(time)) {
             gc.setBackground(darkGreen);
@@ -153,7 +167,7 @@ public final class PDPModelRenderer extends AbstractCanvasRenderer {
           }
           gc.setForeground(black);
           gc.fillOval(x - OVAL_RADIUS_PX, y - OVAL_RADIUS_PX, OVAL_DIAMETER_PX,
-              OVAL_DIAMETER_PX);
+            OVAL_DIAMETER_PX);
         }
       }
     }

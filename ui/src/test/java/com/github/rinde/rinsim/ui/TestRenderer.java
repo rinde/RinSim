@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,10 +43,10 @@ class TestRenderer extends AbstractCanvasRenderer {
     final List<Point> bounds = roadModel.getBounds();
 
     gc.drawLine(vp.toCoordX(bounds.get(0).x), vp.toCoordY(bounds.get(0).y),
-        vp.toCoordX(bounds.get(1).x), vp.toCoordY(bounds.get(1).y));
+      vp.toCoordX(bounds.get(1).x), vp.toCoordY(bounds.get(1).y));
 
     gc.drawText("fancy pancy", vp.toCoordX(bounds.get(0).x),
-        vp.toCoordY(bounds.get(0).y) + 100, true);
+      vp.toCoordY(bounds.get(0).y) + 100, true);
 
   }
 

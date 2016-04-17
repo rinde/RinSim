@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,23 +61,23 @@ public final class CommExample {
   public static void run(boolean testing) {
 
     View.Builder viewBuilder = View.builder()
-        .with(PlaneRoadModelRenderer.builder())
-        .with(CommRenderer.builder()
-            .withReliabilityColors()
-            .withMessageCount());
+      .with(PlaneRoadModelRenderer.builder())
+      .with(CommRenderer.builder()
+        .withReliabilityColors()
+        .withMessageCount());
 
     if (testing) {
       viewBuilder = viewBuilder.withSpeedUp(TEST_SPEEDUP)
-          .withAutoClose()
-          .withAutoPlay()
-          .withSimulatorEndTime(TEST_STOP_TIME);
+        .withAutoClose()
+        .withAutoPlay()
+        .withSimulatorEndTime(TEST_STOP_TIME);
     }
 
     final Simulator sim = Simulator.builder()
-        .addModel(RoadModelBuilders.plane())
-        .addModel(CommModel.builder())
-        .addModel(viewBuilder)
-        .build();
+      .addModel(RoadModelBuilders.plane())
+      .addModel(CommModel.builder())
+      .addModel(viewBuilder)
+      .build();
 
     for (int i = 0; i < NUM_AGENTS; i++) {
       sim.register(new RandomBroadcastAgent(sim.getRandomGenerator()));

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,7 +79,7 @@ public final class Graphs {
   public static <E extends ConnectionData> void addPath(Graph<E> graph,
       Iterable<Point> path) {
     final PeekingIterator<Point> it =
-        Iterators.peekingIterator(path.iterator());
+      Iterators.peekingIterator(path.iterator());
     while (it.hasNext()) {
       final Point n = it.next();
       if (it.hasNext()) {
@@ -219,12 +219,12 @@ public final class Graphs {
 
         // tentative_g_score := g_score[x] + dist_between(x,y)
         final double tgScore = gScore.get(current)
-            + h.calculateCost(graph, current, outgoingPoint);
+          + h.calculateCost(graph, current, outgoingPoint);
         boolean tIsBetter = false;
 
         if (!fScore.values().contains(outgoingPoint)) {
           hScore.put(outgoingPoint,
-              h.estimateCost(graph, outgoingPoint, to));
+            h.estimateCost(graph, outgoingPoint, to));
           tIsBetter = true;
         } else if (tgScore < gScore.get(outgoingPoint)) {
           tIsBetter = true;
@@ -235,10 +235,10 @@ public final class Graphs {
           gScore.put(outgoingPoint, tgScore);
 
           double fScoreValue = gScore.get(outgoingPoint)
-              + hScore.get(outgoingPoint);
+            + hScore.get(outgoingPoint);
           while (fScore.containsKey(fScoreValue)) {
             fScoreValue = Double.longBitsToDouble(Double
-                .doubleToLongBits(fScoreValue) + 1);
+              .doubleToLongBits(fScoreValue) + 1);
           }
           fScore.put(fScoreValue, outgoingPoint);
         }
@@ -304,7 +304,7 @@ public final class Graphs {
     Collections.sort(objs);
     final List<T> results = new ArrayList<>();
     for (final ObjectWithDistance<T> o : objs.subList(0,
-        Math.min(n, objs.size()))) {
+      Math.min(n, objs.size()))) {
       results.add(o.obj);
     }
     return results;
@@ -431,13 +431,13 @@ public final class Graphs {
     @Override
     public Collection<Point> getOutgoingConnections(Point node) {
       return Collections.unmodifiableCollection(delegate
-          .getOutgoingConnections(node));
+        .getOutgoingConnections(node));
     }
 
     @Override
     public Collection<Point> getIncomingConnections(Point node) {
       return Collections.unmodifiableCollection(delegate
-          .getIncomingConnections(node));
+        .getIncomingConnections(node));
     }
 
     @Override

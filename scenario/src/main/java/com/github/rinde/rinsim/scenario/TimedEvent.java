@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,16 @@
  */
 package com.github.rinde.rinsim.scenario;
 
+import static com.google.common.base.Verify.verifyNotNull;
+
 import java.util.Comparator;
 
 import javax.annotation.Nullable;
 
 /**
+ * An event that is part of a scenario. It has a time at which it should be
+ * dispatched. Implementations should be immutable.
  * @author Rinde van Lon
- *
  */
 public interface TimedEvent {
   /**
@@ -33,7 +36,7 @@ public interface TimedEvent {
    * Comparator for comparing {@link TimedEvent}s on their time.
    * @author Rinde van Lon
    */
-  public enum TimeComparator implements Comparator<TimedEvent> {
+  enum TimeComparator implements Comparator<TimedEvent> {
     /**
      * Comparator for comparing {@link TimedEvent}s on their time.
      */
@@ -41,9 +44,9 @@ public interface TimedEvent {
 
     @Override
     public int compare(@Nullable TimedEvent o1, @Nullable TimedEvent o2) {
-      assert o1 != null;
-      assert o2 != null;
-      return (int) (o1.getTime() - o2.getTime());
+      return Long.compare(
+        verifyNotNull(o1).getTime(),
+        verifyNotNull(o2).getTime());
     }
   }
 }

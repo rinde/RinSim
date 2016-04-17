@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ public class TimeSeriesTest {
   public void testFilter() {
     final TimeSeriesGenerator original = homogenousPoisson(500, 20);
     final TimeSeriesGenerator filtered = filter(original,
-        numEventsPredicate(20));
+      numEventsPredicate(20));
     final RandomGenerator rng = new MersenneTwister(123L);
     for (int i = 0; i < 10; i++) {
       assertEquals(20, filtered.generate(rng.nextLong()).size());

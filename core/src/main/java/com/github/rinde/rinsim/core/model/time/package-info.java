@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 /**
+ * Simulation of time. There are two different ways for simulating time:
+ * simulated time and real-time. Both types can be configured using
+ * {@link com.github.rinde.rinsim.core.model.time.TimeModel#builder()
+ * TimeModel.builder()}.
  * @author Rinde van Lon
- *
  */
 @javax.annotation.ParametersAreNonnullByDefault
 package com.github.rinde.rinsim.core.model.time;

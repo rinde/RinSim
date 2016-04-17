@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,9 +63,9 @@ public class DebugSolverCreator implements StochasticSupplier<Solver> {
   public DebugSolverCreator(MultiVehicleArraysSolver arrSolver,
       Unit<Duration> timeUnit) {
     arraysSolver = ArraysSolverDebugger.wrap(
-        ArraysSolverValidator.wrap(arrSolver), false);
+      ArraysSolverValidator.wrap(arrSolver), false);
     solver = SolverDebugger.wrap(SolverValidator
-        .wrap(new MultiVehicleSolverAdapter(arraysSolver, timeUnit)), false);
+      .wrap(new MultiVehicleSolverAdapter(arraysSolver, timeUnit)), false);
   }
 
   @Override

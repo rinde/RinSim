@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,9 +64,9 @@ public final class TimeLapse {
    */
   public void consume(long time) {
     checkArgument(time >= 0,
-        "the time to consume must be a positive value, it is %s.", time);
+      "the time to consume must be a positive value, it is %s.", time);
     checkArgument(timeLeft - time >= 0,
-        "there is not enough time left to consume %s.", time);
+      "there is not enough time left to consume %s.", time);
     timeLeft -= time;
   }
 
@@ -148,10 +148,10 @@ public final class TimeLapse {
   @Override
   public String toString() {
     return new StringBuilder("[")
-        .append(startTime)
-        .append(",")
-        .append(endTime)
-        .append(")")
-        .toString();
+      .append(startTime)
+      .append(",")
+      .append(endTime)
+      .append(")")
+      .toString();
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,28 @@
 package com.github.rinde.rinsim.central.rt;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Verify.verify;
-import static com.google.common.collect.Sets.newHashSet;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.github.rinde.rinsim.central.Central;
+import com.github.rinde.rinsim.central.GlobalStateObject;
 import com.github.rinde.rinsim.central.Solver;
 import com.github.rinde.rinsim.central.Solvers.SolveArgs;
 import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.CompositeModelBuilder;
 import com.github.rinde.rinsim.core.model.DependencyProvider;
-import com.github.rinde.rinsim.core.model.Model.AbstractModel;
+import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
-import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.PDPModelEventType;
 import com.github.rinde.rinsim.core.model.pdp.PDPModelEvent;
@@ -51,6 +57,7 @@ import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.util.StochasticSupplier;
 import com.google.auto.value.AutoValue;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
@@ -62,8 +69,7 @@ import com.google.common.collect.ImmutableSet;
  * @author Rinde van Lon
  */
 public final class RtCentral {
-
-  private static final boolean DEFAULT_SLEEP_ON_CHANGE = false;
+  private static final Logger LOGGER = LoggerFactory.getLogger(RtCentral.class);
 
   private RtCentral() {}
 
@@ -79,7 +85,7 @@ public final class RtCentral {
    */
   public static Builder builder(
       StochasticSupplier<? extends RealtimeSolver> solverSupplier) {
-    return Builder.create(solverSupplier, DEFAULT_SLEEP_ON_CHANGE);
+    return Builder.create(solverSupplier, ImmutableSet.<Options>of());
   }
 
   /**
@@ -111,12 +117,11 @@ public final class RtCentral {
   public static MASConfiguration solverConfiguration(
       StochasticSupplier<? extends RealtimeSolver> solverSupplier,
       String nameSuffix) {
-    return MASConfiguration.pdptwBuilder()
-        .addModel(builder(solverSupplier))
-        .addEventHandler(AddVehicleEvent.class, vehicleHandler())
-        .setName(String.format("RtCentral-%s%s", solverSupplier, nameSuffix))
-        .build();
+    return configBuilder(solverSupplier, nameSuffix)
+      .addModel(builder(solverSupplier))
+      .build();
   }
+  // TODO create builder
 
   /**
    * Constructs a new {@link MASConfiguration} that uses a {@link Solver}
@@ -136,8 +141,29 @@ public final class RtCentral {
       nameSuffix);
   }
 
-  static TimedEventHandler<AddVehicleEvent> vehicleHandler() {
+  public static MASConfiguration solverConfigurationAdapt(
+      StochasticSupplier<? extends Solver> solverSupplier, String nameSuffix,
+      boolean threadGrouping) {
+    return configBuilder(solverSupplier, nameSuffix)
+      .addModel(builder(AdapterSupplier.create(solverSupplier))
+        .withThreadGrouping(threadGrouping))
+      .build();
+  }
+
+  static MASConfiguration.Builder configBuilder(
+      StochasticSupplier<?> solverSupplier,
+      String nameSuffix) {
+    return MASConfiguration.pdptwBuilder()
+      .addEventHandler(AddVehicleEvent.class, vehicleHandler())
+      .setName(String.format("RtCentral-%s%s", solverSupplier, nameSuffix));
+  }
+
+  public static TimedEventHandler<AddVehicleEvent> vehicleHandler() {
     return VehicleCreator.INSTANCE;
+  }
+
+  enum Options {
+    SLEEP_ON_CHANGE, THREAD_GROUPING, CONTINUOUS_UPDATES;
   }
 
   /**
@@ -146,7 +172,7 @@ public final class RtCentral {
    */
   @AutoValue
   public abstract static class Builder
-      extends AbstractModelBuilder<RtCentralModel, Parcel>
+      extends ModelBuilder.AbstractModelBuilder<RtCentralModel, Parcel>
       implements CompositeModelBuilder<RtCentralModel, Parcel>, Serializable {
 
     private static final long serialVersionUID = -3900188597329698413L;
@@ -162,12 +188,12 @@ public final class RtCentral {
 
     abstract StochasticSupplier<RealtimeSolver> getSolverSupplier();
 
-    abstract boolean getSleepOnChange();
+    abstract ImmutableSet<Options> getOptions();
 
     /**
      * If set to <code>true</code> the model will wait half a tick (wall clock
      * time) after it has started a new computation. By sleeping half a tick the
-     * solver has time to do a some computations already, and, if it is fast
+     * solver has time to do some computations already, and, if it is fast
      * enough if may already be finished. When it is already finished computing,
      * the new schedule will be applied immediately. If set to
      * <code>false</code> the model will not wait, this means that a new
@@ -178,7 +204,27 @@ public final class RtCentral {
      * @return A new builder instance with the flag.
      */
     public Builder withSleepOnChange(boolean flag) {
-      return create(getSolverSupplier(), flag);
+      return change(Options.SLEEP_ON_CHANGE, flag);
+    }
+
+    // sets thread grouping property of RtSolverModel
+    public Builder withThreadGrouping(boolean flag) {
+      return change(Options.THREAD_GROUPING, flag);
+    }
+
+    // continuous updates = rtcentral sends updates all the time
+    public Builder withContinuousUpdates(boolean flag) {
+      return change(Options.CONTINUOUS_UPDATES, flag);
+    }
+
+    Builder change(Options option, boolean toAdd) {
+      final Set<Options> opts = new LinkedHashSet<>(getOptions());
+      if (toAdd) {
+        opts.add(option);
+      } else {
+        opts.remove(option);
+      }
+      return create(getSolverSupplier(), opts);
     }
 
     @Override
@@ -186,19 +232,21 @@ public final class RtCentral {
         DependencyProvider dependencyProvider) {
       final RandomProvider rnd = dependencyProvider.get(RandomProvider.class);
       final RealtimeSolver solver = getSolverSupplier()
-          .get(rnd.masterInstance().nextLong());
+        .get(rnd.masterInstance().nextLong());
       final RtSimSolver s = dependencyProvider.get(RtSimSolverBuilder.class)
-          .build(solver);
+        .build(solver);
       final RealtimeClockController clock = dependencyProvider
-          .get(RealtimeClockController.class);
+        .get(RealtimeClockController.class);
       final PDPRoadModel rm = dependencyProvider.get(PDPRoadModel.class);
       final PDPModel pm = dependencyProvider.get(PDPModel.class);
-      return new RtCentral.RtCentralModel(clock, s, rm, pm, getSleepOnChange());
+      return new RtCentral.RtCentralModel(clock, s, rm, pm, getOptions());
     }
 
     @Override
     public ImmutableSet<ModelBuilder<?, ?>> getChildren() {
-      return ImmutableSet.<ModelBuilder<?, ?>>of(RtSolverModel.builder());
+      return ImmutableSet.<ModelBuilder<?, ?>>of(
+        RtSolverModel.builder().withThreadGrouping(
+          getOptions().contains(Options.THREAD_GROUPING)));
     }
 
     @Override
@@ -209,9 +257,10 @@ public final class RtCentral {
     @SuppressWarnings("unchecked")
     static Builder create(
         StochasticSupplier<? extends RealtimeSolver> solverSupplier,
-        boolean sleepOnChange) {
+        Set<Options> options) {
       return new AutoValue_RtCentral_Builder(
-          (StochasticSupplier<RealtimeSolver>) solverSupplier, sleepOnChange);
+        (StochasticSupplier<RealtimeSolver>) solverSupplier,
+        ImmutableSet.copyOf(options));
     }
   }
 
@@ -230,7 +279,7 @@ public final class RtCentral {
         final RouteFollowingVehicle vehicle = (RouteFollowingVehicle) v;
         checkArgument(vehicle.isDelayedRouteChangingAllowed(),
           "%s requires that all registered %s instances allow delayed route "
-              + "changing",
+            + "changing",
           RtCentral.class.getSimpleName(),
           RouteFollowingVehicle.class.getSimpleName());
       }
@@ -251,24 +300,26 @@ public final class RtCentral {
     }
   }
 
-  static final class RtCentralModel extends AbstractModel<Parcel>
+  static final class RtCentralModel extends Model.AbstractModel<Parcel>
       implements TickListener {
     private boolean problemHasChanged;
 
     private final PDPRoadModel roadModel;
-    private final PDPModel pdpModel;
     private final RtSimSolver solver;
     private final RealtimeClockController clock;
     private final boolean sleepOnChange;
+    private final List<RouteFollowingVehicle> vehicles;
+    private final boolean continuousUpdates;
 
     RtCentralModel(RealtimeClockController c, RtSimSolver s, PDPRoadModel rm,
-        PDPModel pm, boolean sleepOnC) {
+        PDPModel pm, ImmutableSet<Options> opts) {
       problemHasChanged = false;
       clock = c;
       solver = s;
       roadModel = rm;
-      pdpModel = pm;
-      sleepOnChange = sleepOnC;
+      sleepOnChange = opts.contains(Options.SLEEP_ON_CHANGE);
+      continuousUpdates = opts.contains(Options.CONTINUOUS_UPDATES);
+      vehicles = new ArrayList<>();
 
       pm.getEventAPI().addListener(VehicleChecker.INSTANCE,
         PDPModelEventType.NEW_VEHICLE);
@@ -288,22 +339,25 @@ public final class RtCentral {
       return false;
     }
 
-    void notifySolverOfChange(TimeLapse timeLapse, boolean sleepAfterNotify) {
-      final Set<RouteFollowingVehicle> vehicles = roadModel
-          .getObjectsOfType(RouteFollowingVehicle.class);
-
+    ImmutableList<ImmutableList<Parcel>> getCurrentRoutes() {
       // gather current routes
       final ImmutableList.Builder<ImmutableList<Parcel>> currentRouteBuilder =
-        ImmutableList
-            .builder();
+        ImmutableList.builder();
       for (final RouteFollowingVehicle vehicle : vehicles) {
-        final ImmutableList<Parcel> l = ImmutableList.copyOf(vehicle
-            .getRoute());
+        final ImmutableList<Parcel> l =
+          ImmutableList.copyOf(vehicle.getRoute());
         currentRouteBuilder.add(l);
       }
+      return currentRouteBuilder.build();
+    }
 
-      solver.solve(
-        SolveArgs.create().useCurrentRoutes(currentRouteBuilder.build()));
+    void notifySolverOfChange(TimeLapse timeLapse, boolean sleepAfterNotify) {
+      LOGGER.trace("notifySolverOfChange {} sleepAfterNotify:{}", timeLapse,
+        sleepAfterNotify);
+      verify(clock.getClockMode() == ClockMode.REAL_TIME,
+        "Problem detected at %s.", timeLapse);
+      problemHasChanged = false;
+      solver.solve(SolveArgs.create().useCurrentRoutes(getCurrentRoutes()));
 
       if (sleepAfterNotify) {
         try {
@@ -316,44 +370,71 @@ public final class RtCentral {
 
     @Override
     public void tick(TimeLapse timeLapse) {
-      if (problemHasChanged) {
-        verify(clock.getClockMode() == ClockMode.REAL_TIME,
-          "Problem detected at %s.", timeLapse);
-        problemHasChanged = false;
+      if (vehicles.isEmpty()) {
+        vehicles.addAll(
+          roadModel.getObjectsOfType(RouteFollowingVehicle.class));
+        checkState(!vehicles.isEmpty(),
+          "At least one vehicle must have been added to the simulator in order "
+            + "for %s to work.",
+          RtCentral.class.getSimpleName());
+      }
+
+      final boolean didProblemChange = problemHasChanged;
+
+      if (didProblemChange && sleepOnChange) {
+        // this method modifies problemHasChanged
         notifySolverOfChange(timeLapse, sleepOnChange);
       }
 
       if (solver.isScheduleUpdated()) {
-        final Set<RouteFollowingVehicle> vehicles = roadModel
-            .getObjectsOfType(RouteFollowingVehicle.class);
+        final GlobalStateObject state =
+          solver.getCurrentState(SolveArgs.create());
 
-        final ImmutableList<ImmutableList<Parcel>> schedule = solver
-            .getCurrentSchedule();
+        final List<List<Parcel>> schedule =
+          ScheduleUtil.fixSchedule(solver.getCurrentSchedule(), state);
 
         checkArgument(schedule.size() == vehicles.size(),
           "An invalid schedule was created, a valid schedule should contain "
-              + "one route for each vehicle, routes: %s, vehicles: %s.",
+            + "one route for each vehicle, routes: %s, vehicles: %s.",
           schedule.size(), vehicles.size());
 
-        final Iterator<ImmutableList<Parcel>> routes = schedule.iterator();
-        boolean inconsistencyDetected = false;
+        final Iterator<List<Parcel>> routes = schedule.iterator();
+        int i = 0;
         for (final RouteFollowingVehicle vehicle : vehicles) {
-          vehicle.setRouteSafe(routes.next());
+          final List<Parcel> newRoute = routes.next();
+          vehicle.setRoute(newRoute);
+          final List<Parcel> actualRoute = new ArrayList<>(vehicle.getRoute());
 
-          final Set<Parcel> contents = pdpModel.getContents(vehicle);
-          final Set<Parcel> routeSet = newHashSet(vehicle.getRoute());
-          for (final Parcel p : contents) {
-            if (!routeSet.contains(p)) {
-              inconsistencyDetected = true;
-              break;
-            }
+          if (!actualRoute.equals(newRoute)) {
+            LOGGER.warn("something went wrong");
+            LOGGER.warn("state");
+            LOGGER.warn("available: " + state.getAvailableParcels());
+            LOGGER.warn("vehicles:" + Joiner.on(System.lineSeparator())
+              .join(state.getVehicles()));
+            LOGGER.warn("current schedule: ");
+            LOGGER.warn(Joiner.on(System.lineSeparator())
+              .join(solver.getCurrentSchedule()));
+            LOGGER.warn("fixed");
+            LOGGER.warn(Joiner.on(System.lineSeparator()).join(schedule));
+            LOGGER.warn("problem in vehicle" + i);
+            throw new IllegalStateException(
+              "Route was not applied correctly, new route: " + newRoute
+                + " but result is: " + vehicle.getRoute());
           }
+          i++;
         }
+      }
 
-        if (inconsistencyDetected) {
-          // launch solver again
-          notifySolverOfChange(timeLapse, false);
-        }
+      if (didProblemChange && !sleepOnChange) {
+        // this method changes problemHasChanged
+        notifySolverOfChange(timeLapse, sleepOnChange);
+      }
+
+      if (!didProblemChange
+        && continuousUpdates
+        && clock.getClockMode() == ClockMode.REAL_TIME) {
+        solver.sendSnapshot(
+          SolveArgs.create().useCurrentRoutes(getCurrentRoutes()));
       }
     }
 
@@ -375,7 +456,7 @@ public final class RtCentral {
     @SuppressWarnings("unchecked")
     static AdapterSupplier create(StochasticSupplier<? extends Solver> ss) {
       return new AutoValue_RtCentral_AdapterSupplier(
-          (StochasticSupplier<Solver>) ss);
+        (StochasticSupplier<Solver>) ss);
     }
 
     @Override

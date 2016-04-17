@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,10 +62,10 @@ public class SolutionObject {
   @Override
   public String toString() {
     return new StringBuilder("Route: ").append(Arrays.toString(route))
-        .append("\n").append("Arrival times: ")
-        .append(Arrays.toString(arrivalTimes))
-        .append(System.getProperty("line.separator"))
-        .append("Objective: ").append(objectiveValue).toString();
+      .append("\n").append("Arrival times: ")
+      .append(Arrays.toString(arrivalTimes))
+      .append(System.getProperty("line.separator"))
+      .append("Objective: ").append(objectiveValue).toString();
   }
 
 }

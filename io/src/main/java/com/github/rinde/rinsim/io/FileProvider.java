@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ public final class FileProvider<T> implements Supplier<ImmutableSet<T>> {
   public ImmutableSet<T> get() {
     try {
       final PathCollector<T> pc = new PathCollector<>(pathPredicate,
-          pathReader);
+        pathReader);
       for (final Path path : roots) {
         Files.walkFileTree(path, pc);
       }
@@ -141,7 +141,7 @@ public final class FileProvider<T> implements Supplier<ImmutableSet<T>> {
     public Builder filter(String syntaxAndPattern) {
       checkNotNull(syntaxAndPattern);
       pathPredicate = new PredicateAdapter(syntaxAndPattern, FileSystems
-          .getDefault().getPathMatcher(syntaxAndPattern));
+        .getDefault().getPathMatcher(syntaxAndPattern));
       return this;
     }
 
@@ -214,7 +214,7 @@ public final class FileProvider<T> implements Supplier<ImmutableSet<T>> {
       checkNotNull(converter);
       checkArgument(!paths.isEmpty(), "No paths are specified.");
       return new FileProvider<>(ImmutableList.copyOf(paths),
-          pathPredicate, converter);
+        pathPredicate, converter);
     }
 
     int getNumberOfFiles() {
@@ -242,7 +242,7 @@ public final class FileProvider<T> implements Supplier<ImmutableSet<T>> {
             throws IOException {
       if (pathPredicate.apply(file)) {
         convertedPaths.add(verifyNotNull(pathReader.apply(file), "%s",
-            pathReader));
+          pathReader));
       }
       return FileVisitResult.CONTINUE;
     }

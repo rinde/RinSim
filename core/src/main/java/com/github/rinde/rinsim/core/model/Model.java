@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ public interface Model<T> {
    * @author Rinde van Lon
    * @param <T> The type that is supported by this model.
    */
-  public abstract class AbstractModel<T> implements Model<T> {
+  abstract class AbstractModel<T> implements Model<T> {
 
     private final Class<T> supportedType;
 
@@ -85,9 +85,9 @@ public interface Model<T> {
     @Nonnull
     public <U> U get(Class<U> clazz) {
       throw new IllegalArgumentException(
-          "This model (" + getClass().getSimpleName()
-              + ") does not support providing any objects (" + toString()
-              + ").");
+        "This model (" + getClass().getSimpleName()
+          + ") does not support providing any objects (" + toString()
+          + ").");
     }
   }
 
@@ -95,7 +95,7 @@ public interface Model<T> {
    * Abstract implementation of a model without supported type.
    * @author Rinde van Lon
    */
-  public abstract class AbstractModelVoid extends AbstractModel<Void> {
+  abstract class AbstractModelVoid extends AbstractModel<Void> {
 
     @Override
     public final boolean register(Void element) {

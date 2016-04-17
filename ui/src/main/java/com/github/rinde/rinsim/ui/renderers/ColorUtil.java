@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,9 @@ final class ColorUtil {
 
   static RGB interpolate(RGB c1, RGB c2, double i) {
     return new RGB(
-        interpolate(c1.red, c2.red, i),
-        interpolate(c1.green, c2.green, i),
-        interpolate(c1.blue, c2.blue, i));
+      interpolate(c1.red, c2.red, i),
+      interpolate(c1.green, c2.green, i),
+      interpolate(c1.blue, c2.blue, i));
   }
 
   static int interpolate(int c1, int c2, double i) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,9 +63,9 @@ public abstract class Message {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper("Message")
-        .add("sender", getSender())
-        .add("contents", getContents())
-        .toString();
+      .add("sender", getSender())
+      .add("contents", getContents())
+      .toString();
   }
 
   static Message createDirect(CommUser from, CommUser to, MessageContents m,
@@ -76,6 +76,6 @@ public abstract class Message {
   static Message createBroadcast(CommUser from, MessageContents m,
       Predicate<CommUser> p) {
     return new AutoValue_Message(
-        from, Optional.<CommUser>absent(), m, p);
+      from, Optional.<CommUser>absent(), m, p);
   }
 }

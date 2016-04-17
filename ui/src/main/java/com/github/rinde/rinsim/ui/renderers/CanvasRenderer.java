@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ public interface CanvasRenderer extends Renderer {
    * Abstract implementation of {@link CanvasRenderer}.
    * @author Rinde van Lon
    */
-  public abstract class AbstractCanvasRenderer extends AbstractModelVoid
+  abstract class AbstractCanvasRenderer extends AbstractModelVoid
       implements CanvasRenderer {
 
     @Override
@@ -68,7 +68,7 @@ public interface CanvasRenderer extends Renderer {
    * @author Rinde van Lon
    * @param <T> The type to support.
    */
-  public abstract class AbstractTypedCanvasRenderer<T> extends AbstractModel<T>
+  abstract class AbstractTypedCanvasRenderer<T> extends AbstractModel<T>
       implements CanvasRenderer {
 
     @Override

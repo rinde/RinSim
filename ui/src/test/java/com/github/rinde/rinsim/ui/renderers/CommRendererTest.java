@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,23 +60,23 @@ public class CommRendererTest {
   public void testRenderer() {
     final RandomGenerator rng = new MersenneTwister(123L);
     final Simulator sim = Simulator.builder()
-        .setRandomGenerator(rng)
-        .addModel(CommModel.builder())
-        .addModel(RoadModelBuilders.plane())
-        .addModel(
-            View.builder()
-                .with(CommRenderer.builder()
-                    .withReliabilityColors(new RGB(0, 0, 255),
-                        new RGB(255, 255, 0))
-                    .withReliabilityPercentage()
-                    .withMessageCount())
-                .with(PlaneRoadModelRenderer.builder())
-                .withAutoPlay()
-                .withAutoClose()
-                .withSpeedUp(10)
-                .withSimulatorEndTime(1000 * 60 * 5))
-        .addModel(TestModel.Builder.create())
-        .build();
+      .setRandomGenerator(rng)
+      .addModel(CommModel.builder())
+      .addModel(RoadModelBuilders.plane())
+      .addModel(
+        View.builder()
+          .with(CommRenderer.builder()
+            .withReliabilityColors(new RGB(0, 0, 255),
+              new RGB(255, 255, 0))
+            .withReliabilityPercentage()
+            .withMessageCount())
+          .with(PlaneRoadModelRenderer.builder())
+          .withAutoPlay()
+          .withAutoClose()
+          .withSpeedUp(10)
+          .withSimulatorEndTime(1000 * 60 * 5))
+      .addModel(TestModel.Builder.create())
+      .build();
 
     for (int i = 0; i < 20; i++) {
       sim.register(new CommAgent(rng, (i + 1) / 10d, i * (1d / 20d)));
@@ -95,7 +95,7 @@ public class CommRendererTest {
     final RGB reliableIn = new RGB(0, 0, 255);
 
     final CommRenderer.Builder b = CommRenderer.builder()
-        .withReliabilityColors(unreliableIn, reliableIn);
+      .withReliabilityColors(unreliableIn, reliableIn);
 
     assertThat(b.reliableColor()).isNotSameAs(reliableIn);
     assertThat(b.unreliableColor()).isNotSameAs(unreliableIn);
@@ -103,7 +103,7 @@ public class CommRendererTest {
     assertThat(b.unreliableColor()).isEqualTo(unreliableIn);
   }
 
-  static class TestModel extends AbstractModel<CommUser>implements
+  static class TestModel extends AbstractModel<CommUser> implements
       TickListener {
     SimulatorAPI simulator;
     Set<CommUser> users;
@@ -182,8 +182,8 @@ public class CommRendererTest {
         builder.setMaxRange(range);
       }
       device = Optional.of(builder
-          .setReliability(reliability)
-          .build());
+        .setReliability(reliability)
+        .build());
     }
 
     @Override

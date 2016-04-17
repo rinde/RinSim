@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.experiment.Experiment.SimArgs;
-import com.github.rinde.rinsim.experiment.ExperimentTest.TestPostProcessor;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
@@ -44,9 +43,7 @@ import com.github.rinde.rinsim.pdptw.common.ScenarioTestUtil;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
 import com.github.rinde.rinsim.pdptw.common.StatsStopConditions;
 import com.github.rinde.rinsim.pdptw.common.StatsTracker;
-import com.github.rinde.rinsim.pdptw.common.TestObjectiveFunction;
 import com.github.rinde.rinsim.scenario.Scenario;
-import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06ObjectiveFunction;
 import com.github.rinde.rinsim.scenario.generator.ScenarioGenerator;
 import com.google.common.collect.ImmutableList;
 
@@ -66,12 +63,12 @@ public class JppfTest {
   @BeforeClass
   public static void setUp() {
     JPPFConfiguration.getProperties().setBoolean("jppf.local.node.enabled",
-        true);
+      true);
     JPPFDriver.main(new String[] {"noLauncher"});
     driver = JPPFDriver.getInstance();
 
     scenario = ScenarioTestUtil.createRandomScenario(123L,
-        StatsTracker.builder());
+      StatsTracker.builder());
   }
 
   /**
@@ -90,17 +87,16 @@ public class JppfTest {
     final List<Integer> ints = asList(1, 2, 5, 10);
     final List<ExperimentResults> allResults = newArrayList();
 
-    final Experiment.Builder experimentBuilder = Experiment
-        .build(TestObjectiveFunction.INSTANCE)
-        .computeDistributed()
-        .addScenario(scenario)
-        .withRandomSeed(123)
-        .repeat(10)
-        .addConfiguration(ExperimentTest.testConfig("A"));
+    final Experiment.Builder experimentBuilder = Experiment.builder()
+      .computeDistributed()
+      .addScenario(scenario)
+      .withRandomSeed(123)
+      .repeat(10)
+      .addConfiguration(ExperimentTestUtil.testConfig("A"));
     for (final int i : ints) {
       allResults.add(
-          experimentBuilder.numBatches(i)
-              .perform());
+        experimentBuilder.numBatches(i)
+          .perform());
     }
     assertEquals(4, allResults.size());
     for (int i = 0; i < allResults.size() - 1; i++) {
@@ -115,14 +111,13 @@ public class JppfTest {
   @SuppressWarnings("unchecked")
   @Test
   public void determinismLocalVsJppf() {
-    final Experiment.Builder experimentBuilder = Experiment
-        .build(TestObjectiveFunction.INSTANCE)
-        .computeDistributed()
-        .addScenario(scenario)
-        .withRandomSeed(123)
-        .repeat(1)
-        .usePostProcessor(new TestPostProcessor())
-        .addConfiguration(ExperimentTest.testConfig("A"));
+    final Experiment.Builder experimentBuilder = Experiment.builder()
+      .computeDistributed()
+      .addScenario(scenario)
+      .withRandomSeed(123)
+      .repeat(1)
+      .usePostProcessor(ExperimentTestUtil.testPostProcessor())
+      .addConfiguration(ExperimentTestUtil.testConfig("A"));
 
     final ExperimentResults results3 = experimentBuilder.perform();
     experimentBuilder.computeLocal();
@@ -130,10 +125,10 @@ public class JppfTest {
     assertEquals(results3, results4);
 
     assertThat(results3.getResults().asList().get(0).getResultObject())
-        .isInstanceOf(ImmutableList.class);
+      .isInstanceOf(ImmutableList.class);
     assertThat(
-        (List<Point>) results3.getResults().asList().get(0).getResultObject())
-            .hasSize(10);
+      (List<Point>) results3.getResults().asList().get(0).getResultObject())
+        .hasSize(10);
   }
 
   /**
@@ -144,31 +139,30 @@ public class JppfTest {
   public void determinismGeneratedScenarioLocalVsJppf() {
     final RandomGenerator rng = new MersenneTwister(123L);
     final Scenario generatedScenario = ScenarioGenerator
-        .builder()
-        .addModel(
-            PDPRoadModel.builder(
-                RoadModelBuilders.plane()
-                    .withMaxSpeed(20d))
-                .withAllowVehicleDiversion(true))
-        .addModel(
-            DefaultPDPModel.builder()
-                .withTimeWindowPolicy(TimeWindowPolicies.LIBERAL))
-        .setStopCondition(StatsStopConditions.timeOutEvent())
-        .build().generate(rng, "hoi");
+      .builder()
+      .addModel(
+        PDPRoadModel.builder(
+          RoadModelBuilders.plane()
+            .withMaxSpeed(20d))
+          .withAllowVehicleDiversion(true))
+      .addModel(
+        DefaultPDPModel.builder()
+          .withTimeWindowPolicy(TimeWindowPolicies.LIBERAL))
+      .setStopCondition(StatsStopConditions.timeOutEvent())
+      .build().generate(rng, "hoi");
 
-    final Experiment.Builder experimentBuilder = Experiment
-        .build(Gendreau06ObjectiveFunction.instance())
-        .computeDistributed()
-        .addScenario(generatedScenario)
-        .withRandomSeed(123)
-        .repeat(1)
-        .usePostProcessor(new TestPostProcessor())
-        .addConfiguration(ExperimentTest.testConfig("A"));
+    final Experiment.Builder experimentBuilder = Experiment.builder()
+      .computeDistributed()
+      .addScenario(generatedScenario)
+      .withRandomSeed(123)
+      .repeat(1)
+      .usePostProcessor(ExperimentTestUtil.testPostProcessor())
+      .addConfiguration(ExperimentTestUtil.testConfig("A"));
 
     final ExperimentResults resultsDistributed = experimentBuilder.perform();
     final ExperimentResults resultsLocal = experimentBuilder
-        .computeLocal()
-        .perform();
+      .computeLocal()
+      .perform();
     assertEquals(resultsLocal, resultsDistributed);
   }
 
@@ -178,30 +172,33 @@ public class JppfTest {
    */
   @Test(expected = IllegalArgumentException.class)
   public void testFaultyPostProcessor() {
-    Experiment.build(Gendreau06ObjectiveFunction.instance())
-        .computeDistributed()
-        .addScenario(scenario)
-        .withRandomSeed(123)
-        .repeat(1)
-        .usePostProcessor(new TestFaultyPostProcessor())
-        .addConfiguration(ExperimentTest.testConfig("A"))
-        .perform();
+    Experiment.builder()
+      .computeDistributed()
+      .addScenario(scenario)
+      .withRandomSeed(123)
+      .repeat(1)
+      .usePostProcessor(new TestFaultyPostProcessor())
+      .addConfiguration(ExperimentTestUtil.testConfig("A"))
+      .perform();
 
   }
 
-  /**
-   * Tests whether a not serializable objective function generates an exception.
-   */
-  @Test(expected = IllegalArgumentException.class)
-  public void testNotSerializableObjFunc() {
-    Experiment
-        .build(new NotSerializableObjFunc())
-        .computeDistributed()
-        .addScenario(scenario)
-        .withRandomSeed(123)
-        .repeat(1)
-        .addConfiguration(ExperimentTest.testConfig("A"))
-        .perform();
+  @Test
+  public void testRetryPostProcessor() {
+    final Experiment.Builder builder = Experiment.builder()
+      .addScenario(scenario)
+      .computeDistributed()
+      .addConfiguration(ExperimentTestUtil.testConfig("test"))
+      .usePostProcessor(ExperimentTestUtil.retryOncePostProcessor())
+      .repeat(3)
+      .withRandomSeed(123);
+
+    final ExperimentResults er = builder.perform();
+
+    for (int i = 0; i < er.getResults().size(); i++) {
+      assertThat(er.getResults().asList().get(0).getResultObject())
+        .isEqualTo("SUCCESS");
+    }
   }
 
   static class TestFaultyPostProcessor implements

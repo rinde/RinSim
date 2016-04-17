@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,18 +40,18 @@ public class RoadUserRendererTest {
   @Test
   public void test() {
     final Simulator sim = Simulator.builder()
-        .addModel(RoadModelBuilders.plane())
-        .addModel(View.builder()
-            .with(PlaneRoadModelRenderer.builder())
-            .with(RoadUserRenderer.builder()
-                .withColorAssociation(Agent1.class, new RGB(255, 0, 255))
-                .withColorAssociation(Agent2.class, new RGB(0, 0, 255))
-                .withColorAssociation(Agent3.class, new RGB(255, 200, 0))
-                .withCircleAroundObjects())
-            .withAutoPlay()
-            .withAutoClose()
-            .withSimulatorEndTime(10000))
-        .build();
+      .addModel(RoadModelBuilders.plane())
+      .addModel(View.builder()
+        .with(PlaneRoadModelRenderer.builder())
+        .with(RoadUserRenderer.builder()
+          .withColorAssociation(Agent1.class, new RGB(255, 0, 255))
+          .withColorAssociation(Agent2.class, new RGB(0, 0, 255))
+          .withColorAssociation(Agent3.class, new RGB(255, 200, 0))
+          .withCircleAroundObjects())
+        .withAutoPlay()
+        .withAutoClose()
+        .withSimulatorEndTime(10000))
+      .build();
 
     for (int i = 0; i < 11; i++) {
       if (i != 5) {

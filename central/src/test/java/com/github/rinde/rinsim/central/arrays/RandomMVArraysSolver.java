@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,7 +73,7 @@ public class RandomMVArraysSolver implements MultiVehicleArraysSolver {
       }
     }
     final Set<Integer> curDestSet = newLinkedHashSet(Ints
-        .asList(currentDestinations));
+      .asList(currentDestinations));
 
     for (int i = 0; i < inventories.length; i++) {
       if (!curDestSet.contains(inventories[i][1])) {
@@ -117,14 +117,14 @@ public class RandomMVArraysSolver implements MultiVehicleArraysSolver {
       routes.get(i).add(routes.get(i).size(), n - 1);
       final int[] route = Ints.toArray(routes.get(i));
       final int[] arrivalTimes = ArraysSolvers.computeArrivalTimes(route,
-          travelTime, remainingServiceTimes[i], vehicleTravelTimes[i],
-          serviceTimes, releaseDates);
+        travelTime, remainingServiceTimes[i], vehicleTravelTimes[i],
+        serviceTimes, releaseDates);
       final int totalTravelTime = ArraysSolvers.computeTotalTravelTime(route,
-          travelTime, vehicleTravelTimes[i]);
+        travelTime, vehicleTravelTimes[i]);
       final int tardiness = ArraysSolvers.computeRouteTardiness(route,
-          arrivalTimes, serviceTimes, dueDates, remainingServiceTimes[i]);
+        arrivalTimes, serviceTimes, dueDates, remainingServiceTimes[i]);
       sols[i] = new SolutionObject(route, arrivalTimes, totalTravelTime
-          + tardiness);
+        + tardiness);
     }
     return sols;
   }
@@ -140,7 +140,7 @@ public class RandomMVArraysSolver implements MultiVehicleArraysSolver {
       @Override
       public MultiVehicleArraysSolver get(long seed) {
         return ArraysSolverValidator.wrap(new RandomMVArraysSolver(
-            new MersenneTwister(seed)));
+          new MersenneTwister(seed)));
       }
     };
   }
@@ -150,9 +150,9 @@ public class RandomMVArraysSolver implements MultiVehicleArraysSolver {
       @Override
       public Solver get(long seed) {
         return SolverValidator.wrap(new MultiVehicleSolverAdapter(
-            ArraysSolverValidator.wrap(new RandomMVArraysSolver(
-                new MersenneTwister(seed))),
-            NonSI.MINUTE));
+          ArraysSolverValidator.wrap(new RandomMVArraysSolver(
+            new MersenneTwister(seed))),
+          NonSI.MINUTE));
       }
     };
   }

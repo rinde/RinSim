@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,6 @@ package com.github.rinde.rinsim.central;
 public class ScenarioPaths {
 
   public static final String GENDREAU =
-      "../scenario-util/files/test/gendreau06/req_rapide_1_240_24";
+    "../scenario-util/files/test/gendreau06/req_rapide_1_240_24";
 
 }

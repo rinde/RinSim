@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -146,11 +146,11 @@ public final class CommDevice {
   public void send(MessageContents contents, CommUser recipient) {
     checkRegistered();
     checkArgument(user != recipient,
-        "Can not send message to self %s.",
-        recipient);
+      "Can not send message to self %s.",
+      recipient);
     checkArgument(model.contains(recipient),
-        "%s can not send message to unknown recipient: %s.",
-        user, recipient);
+      "%s can not send message to unknown recipient: %s.",
+      user, recipient);
     outbox.add(Message.createDirect(user, recipient, contents, rangePredicate));
   }
 
@@ -235,7 +235,7 @@ public final class CommDevice {
 
   void checkRegistered() {
     checkState(isRegistered(),
-        "This CommDevice is unregistered and can therefore not be used.");
+      "This CommDevice is unregistered and can therefore not be used.");
   }
 
   boolean isRegistered() {
@@ -245,10 +245,10 @@ public final class CommDevice {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper("CommDevice")
-        .add("owner", user)
-        .add("reliability", reliability)
-        .add("range", maxRange)
-        .toString();
+      .add("owner", user)
+      .add("reliability", reliability)
+      .add("range", maxRange)
+      .toString();
   }
 
   static CommDeviceBuilder builder(CommModel m, CommUser u) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -102,8 +102,8 @@ class DemoPanel extends AbstractModel<Void>
   public void handleEvent(@Nullable Event event) {
     assert event != null;
     final Iterator<Point> points = SwarmDemo.measureString(
-        ((Text) event.widget).getText(), SwarmDemo.FONT_SIZE, SPACING, 0)
-        .iterator();
+      ((Text) event.widget).getText(), SwarmDemo.FONT_SIZE, SPACING, 0)
+      .iterator();
     final List<Vehicle> vs = newArrayList(vehicles);
     if (event.type == SWT.DefaultSelection) {
       Collections.shuffle(vs, new RandomAdaptor(rng));
@@ -147,7 +147,7 @@ class DemoPanel extends AbstractModel<Void>
     public DemoPanel build(DependencyProvider dependencyProvider) {
       final RoadModel rm = dependencyProvider.get(RoadModel.class);
       final RandomGenerator r = dependencyProvider.get(RandomProvider.class)
-          .newInstance();
+        .newInstance();
       return new DemoPanel(string(), rm, r);
     }
   }

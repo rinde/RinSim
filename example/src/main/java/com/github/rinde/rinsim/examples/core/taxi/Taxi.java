@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,10 +37,10 @@ class Taxi extends Vehicle {
 
   Taxi(Point startPosition, int capacity) {
     super(VehicleDTO.builder()
-        .capacity(capacity)
-        .startPosition(startPosition)
-        .speed(SPEED)
-        .build());
+      .capacity(capacity)
+      .startPosition(startPosition)
+      .speed(SPEED)
+      .build());
     curr = Optional.absent();
   }
 
@@ -57,7 +57,7 @@ class Taxi extends Vehicle {
     }
     if (!curr.isPresent()) {
       curr = Optional.fromNullable(RoadModels.findClosestObject(
-          rm.getPosition(this), rm, Parcel.class));
+        rm.getPosition(this), rm, Parcel.class));
     }
 
     if (curr.isPresent()) {

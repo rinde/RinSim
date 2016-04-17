@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,15 +77,15 @@ public final class Simulator implements SimulatorAPI {
 
   Simulator(Builder b) {
     modelManager = b.mmBuilder
-        .add(SimulatorModelBuilder.create(this))
-        .addDefaultProvider(
-            RandomModel.builder().withRandomGenerator(
-                StochasticSuppliers.constant(b.rng)))
-        .addDefaultProvider(
-            TimeModel.builder()
-                .withTickLength(b.tickLength)
-                .withTimeUnit(b.timeUnit))
-        .build();
+      .add(SimulatorModelBuilder.create(this))
+      .addDefaultProvider(
+        RandomModel.builder().withRandomGenerator(
+          StochasticSuppliers.constant(b.rng)))
+      .addDefaultProvider(
+        TimeModel.builder()
+          .withTickLength(b.tickLength)
+          .withTimeUnit(b.timeUnit))
+      .build();
     toUnregister = new LinkedHashSet<>();
     clock = modelManager.getModel(TimeModel.class);
     rand = modelManager.getModel(RandomModel.class);
@@ -101,7 +101,7 @@ public final class Simulator implements SimulatorAPI {
   @Deprecated
   public boolean register(Model<?> m) {
     throw new UnsupportedOperationException(
-        "Models can be added via Simulator.builder().");
+      "Models can be added via Simulator.builder().");
   }
 
   @Override
@@ -308,7 +308,7 @@ public final class Simulator implements SimulatorAPI {
      */
     public Builder setTickLength(long length) {
       checkArgument(length > 0,
-          "Tick length must be strictly positive but is %s.", length);
+        "Tick length must be strictly positive but is %s.", length);
       tickLength = length;
       return this;
     }

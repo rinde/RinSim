@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Arrays.asList;
 
 import java.util.HashSet;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
+import com.google.common.collect.SetMultimap;
 
 /**
  * Basic event dispatcher for easily dispatching {@link Event}s to
@@ -38,7 +41,7 @@ public final class EventDispatcher implements EventAPI {
   /**
    * A map of event types to registered {@link Listener}s.
    */
-  protected final Multimap<Enum<?>, Listener> listeners;
+  protected final SetMultimap<Enum<?>, Listener> listeners;
 
   /**
    * The set of event types that this event dispatcher supports.
@@ -52,6 +55,10 @@ public final class EventDispatcher implements EventAPI {
    */
   protected final PublicEventAPI publicAPI;
 
+  private final AtomicInteger dispatching;
+  private final SetMultimap<Enum<?>, Listener> toRemove;
+  private final SetMultimap<Enum<?>, Listener> toAdd;
+
   /**
    * Creates a new {@link EventDispatcher} instance which is capable of
    * dispatching any {@link Event} with a <code>type</code> attribute that is
@@ -60,9 +67,15 @@ public final class EventDispatcher implements EventAPI {
    *          supports.
    */
   public EventDispatcher(Set<Enum<?>> supportedEventTypes) {
-    listeners = LinkedHashMultimap.create();
+    checkArgument(!supportedEventTypes.isEmpty(),
+      "At least one event type must be supported.");
+    listeners = Multimaps.synchronizedSetMultimap(
+      LinkedHashMultimap.<Enum<?>, Listener>create());
     supportedTypes = ImmutableSet.copyOf(supportedEventTypes);
     publicAPI = new PublicEventAPI(this);
+    dispatching = new AtomicInteger(0);
+    toRemove = LinkedHashMultimap.create();
+    toAdd = LinkedHashMultimap.create();
   }
 
   /**
@@ -83,14 +96,58 @@ public final class EventDispatcher implements EventAPI {
    *          be dispatched.
    */
   public void dispatchEvent(Event e) {
+
+    synchronized (listeners) {
+      dispatching.incrementAndGet();
+      checkCanDispatchEventType(e.getEventType());
+      for (final Listener l : listeners.get(e.getEventType())) {
+        l.handleEvent(e);
+      }
+      dispatching.decrementAndGet();
+    }
+
+    update();
+  }
+
+  void update() {
+    if (dispatching.get() == 0) {
+      if (!toRemove.isEmpty()) {
+        for (final Entry<Enum<?>, Listener> entry : toRemove.entries()) {
+          removeListener(entry.getValue(), entry.getKey());
+        }
+        toRemove.clear();
+      }
+      if (!toAdd.isEmpty()) {
+        for (final Entry<Enum<?>, Listener> entry : toAdd.entries()) {
+          add(entry.getValue(),
+            ImmutableSet.<Enum<?>>of(entry.getKey()), false);
+        }
+        toAdd.clear();
+      }
+    }
+  }
+
+  void checkCanDispatchEventType(Enum<?> eventType) {
     checkArgument(
-        supportedTypes.contains(e.getEventType()),
-        "Cannot dispatch an event of type %s since it was not registered at "
-            + "this dispatcher.",
-        e.getEventType());
-    for (final Listener l : listeners.get(e.getEventType())) {
+      supportedTypes.contains(eventType),
+      "Cannot dispatch an event of type %s since it was not registered at "
+        + "this dispatcher.",
+      eventType);
+  }
+
+  public void safeDispatchEvent(Event e) {
+    dispatching.incrementAndGet();
+    final Set<Listener> targetListeners;
+    synchronized (listeners) {
+      checkCanDispatchEventType(e.getEventType());
+      targetListeners = ImmutableSet.copyOf(listeners.get(e.getEventType()));
+    }
+
+    for (final Listener l : targetListeners) {
       l.handleEvent(e);
     }
+    dispatching.decrementAndGet();
+    update();
   }
 
   /**
@@ -98,8 +155,8 @@ public final class EventDispatcher implements EventAPI {
    */
   @Override
   public void addListener(Listener listener, Enum<?>... eventTypes) {
-    addListener(listener, ImmutableSet.copyOf(eventTypes),
-        eventTypes.length == 0);
+    add(listener, ImmutableSet.copyOf(eventTypes),
+      eventTypes.length == 0);
   }
 
   /**
@@ -108,7 +165,7 @@ public final class EventDispatcher implements EventAPI {
   @Override
   public void addListener(Listener listener,
       Iterable<? extends Enum<?>> eventTypes) {
-    addListener(listener, ImmutableSet.copyOf(eventTypes), false);
+    add(listener, ImmutableSet.<Enum<?>>copyOf(eventTypes), false);
   }
 
   /**
@@ -124,15 +181,21 @@ public final class EventDispatcher implements EventAPI {
    * @param all Indicates whether <code>eventTypes</code> is used or if the
    *          listener is registered to all event types.
    */
-  protected void addListener(Listener listener,
-      ImmutableSet<Enum<?>> eventTypes,
-      boolean all) {
-    final Set<Enum<?>> theTypes =
+  void add(Listener listener, ImmutableSet<Enum<?>> eventTypes, boolean all) {
+    synchronized (listeners) {
+      final Set<Enum<?>> theTypes =
         all ? supportedTypes : ImmutableSet.copyOf(eventTypes);
-    for (final Enum<?> eventType : theTypes) {
-      checkArgument(supportedTypes.contains(eventType),
+
+      for (final Enum<?> eventType : theTypes) {
+        checkArgument(supportedTypes.contains(eventType),
           "A listener for type %s is not allowed.", eventType);
-      listeners.put(eventType, listener);
+
+        if (dispatching.get() == 0) {
+          listeners.put(eventType, listener);
+        } else {
+          toAdd.put(eventType, listener);
+        }
+      }
     }
   }
 
@@ -150,24 +213,31 @@ public final class EventDispatcher implements EventAPI {
   @Override
   public void removeListener(Listener listener,
       Iterable<? extends Enum<?>> eventTypes) {
-    if (Iterables.isEmpty(eventTypes)) {
-      // remove all store keys in intermediate set to avoid concurrent
-      // modifications
-      final Set<Enum<?>> keys = new HashSet<>(listeners.keySet());
-      for (final Enum<?> eventType : keys) {
-        if (listeners.containsEntry(eventType, listener)) {
-          removeListener(listener, eventType);
+    synchronized (listeners) {
+      if (Iterables.isEmpty(eventTypes)) {
+        // remove all store keys in intermediate set to avoid concurrent
+        // modifications
+        final Set<Enum<?>> keys = new HashSet<>(listeners.keySet());
+        for (final Enum<?> eventType : keys) {
+          if (listeners.containsEntry(eventType, listener)) {
+            removeListener(listener, eventType);
+          }
         }
-      }
-    } else {
-      for (final Enum<?> eventType : eventTypes) {
-        checkNotNull(eventType, "event type to remove can not be null");
-        checkArgument(
+      } else {
+        for (final Enum<?> eventType : eventTypes) {
+          checkNotNull(eventType, "event type to remove can not be null");
+          checkArgument(
             containsListener(listener, eventType),
-            "The listener %s for the type %s cannot be removed because it does "
-                + "not exist.",
+            "The listener %s for the type %s cannot be removed because it "
+              + "does not exist.",
             listener, eventType);
-        listeners.remove(eventType, listener);
+
+          if (dispatching.get() == 0) {
+            listeners.remove(eventType, listener);
+          } else {
+            toRemove.put(eventType, listener);
+          }
+        }
       }
     }
   }

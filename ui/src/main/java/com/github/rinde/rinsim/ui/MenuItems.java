@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,25 +58,25 @@ public enum MenuItems {
    * The default accelerators, designed for keyboards with a QWERTY layout.
    */
   public static final ImmutableMap<MenuItems, Integer> QWERTY_ACCELERATORS =
-      ImmutableMap.<MenuItems, Integer>builder()
-          .put(PLAY, SWT.MOD1 + 'P')
-          .put(NEXT_TICK, SWT.MOD1 + SWT.SHIFT + ']')
-          .put(INCREASE_SPEED, SWT.MOD1 + ']')
-          .put(DECREASE_SPEED, SWT.MOD1 + '[')
-          .put(ZOOM_IN, SWT.MOD1 + '+')
-          .put(ZOOM_OUT, SWT.MOD1 + '-')
-          .build();
+    ImmutableMap.<MenuItems, Integer>builder()
+      .put(PLAY, SWT.MOD1 + 'P')
+      .put(NEXT_TICK, SWT.MOD1 + SWT.SHIFT + ']')
+      .put(INCREASE_SPEED, SWT.MOD1 + ']')
+      .put(DECREASE_SPEED, SWT.MOD1 + '[')
+      .put(ZOOM_IN, SWT.MOD1 + '+')
+      .put(ZOOM_OUT, SWT.MOD1 + '-')
+      .build();
 
   /**
    * Accelerators designed for keyboards with an AZERTY layout.
    */
   public static final ImmutableMap<MenuItems, Integer> AZERTY_ACCELERATORS =
-      ImmutableMap.<MenuItems, Integer>builder()
-          .put(MenuItems.PLAY, SWT.MOD1 + 'P')
-          .put(MenuItems.NEXT_TICK, SWT.MOD1 + SWT.SHIFT + '$')
-          .put(MenuItems.INCREASE_SPEED, SWT.MOD1 + '$')
-          .put(MenuItems.DECREASE_SPEED, SWT.MOD1 + '^')
-          .put(MenuItems.ZOOM_IN, SWT.MOD1 + '+')
-          .put(MenuItems.ZOOM_OUT, SWT.MOD1 + '-')
-          .build();
+    ImmutableMap.<MenuItems, Integer>builder()
+      .put(MenuItems.PLAY, SWT.MOD1 + 'P')
+      .put(MenuItems.NEXT_TICK, SWT.MOD1 + SWT.SHIFT + '$')
+      .put(MenuItems.INCREASE_SPEED, SWT.MOD1 + '$')
+      .put(MenuItems.DECREASE_SPEED, SWT.MOD1 + '^')
+      .put(MenuItems.ZOOM_IN, SWT.MOD1 + '+')
+      .put(MenuItems.ZOOM_OUT, SWT.MOD1 + '-')
+      .build();
 }

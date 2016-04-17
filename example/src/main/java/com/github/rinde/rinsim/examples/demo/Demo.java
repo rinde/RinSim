@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,7 +88,7 @@ public final class Demo {
     final Monitor primary = d.getPrimaryMonitor();
     shell.setLocation(primary.getClientArea().x, primary.getClientArea().y);
     shell.setSize(primary.getClientArea().width,
-        primary.getClientArea().height);
+      primary.getClientArea().height);
 
     final Composite controlsComposite = new Composite(shell, SWT.NONE);
     controlsComposite.setLayout(new RowLayout(SWT.HORIZONTAL));
@@ -108,7 +108,7 @@ public final class Demo {
       b.setData(m);
       final boolean isPrimary = m.equals(d.getPrimaryMonitor());
       b.setText(i + " " + m.getBounds().width + "x" + m.getBounds().height
-          + (isPrimary ? " PRIMARY" : ""));
+        + (isPrimary ? " PRIMARY" : ""));
       b.setSelection(!isPrimary);
       monitorCheckBoxes.add(b);
     }
@@ -135,8 +135,8 @@ public final class Demo {
     runButton.setFont(newFont);
 
     runButton.addSelectionListener(
-        new RunButtonHandler(runButton, shell, demoRunners, controlsComposite,
-            demoCheckBoxes, monitorCheckBoxes, timeText));
+      new RunButtonHandler(runButton, shell, demoRunners, controlsComposite,
+        demoCheckBoxes, monitorCheckBoxes, timeText));
 
     shell.addListener(SWT.Close, new org.eclipse.swt.widgets.Listener() {
       @Override
@@ -244,12 +244,12 @@ public final class Demo {
           }
         }
         final ImmutableList<DemoType> demoTypes =
-            ImmutableList.copyOf(types);
+          ImmutableList.copyOf(types);
         for (final Button b : monitorCheckBoxes) {
           if (b.getSelection()) {
             final Monitor m = (Monitor) b.getData();
             final DemoRunner dr =
-                new DemoRunner(shell.getDisplay(), demoTypes, index);
+              new DemoRunner(shell.getDisplay(), demoTypes, index);
             index++;
 
             dr.setTime(Double.parseDouble(timeText.getText()));
@@ -289,21 +289,21 @@ public final class Demo {
       final Rectangle displayBounds = parent.getDisplay().getBounds();
 
       final double maxDimension = Math.max(displayBounds.width,
-          displayBounds.height);
+        displayBounds.height);
 
       final double wRatio = m.getBounds().width / maxDimension;
       final double hRatio = m.getBounds().height / maxDimension;
 
       final double xRatio =
-          (m.getBounds().x - displayBounds.x) / maxDimension;
+        (m.getBounds().x - displayBounds.x) / maxDimension;
       final double yRatio =
-          (m.getBounds().y - displayBounds.y) / maxDimension;
+        (m.getBounds().y - displayBounds.y) / maxDimension;
 
       final double displayWidth =
-          parent.getShell().getBounds().width - MARGIN * 2;
+        parent.getShell().getBounds().width - MARGIN * 2;
 
       group.setSize((int) (wRatio * displayWidth),
-          (int) (hRatio * displayWidth));
+        (int) (hRatio * displayWidth));
 
       final int xLoc = MARGIN + (int) (xRatio * displayWidth);
       final int yLoc = MARGIN + (int) (yRatio * displayWidth);
@@ -346,7 +346,7 @@ public final class Demo {
         @Override
         public void run() {
           label.setText(monitor.getBounds().width + " x "
-              + monitor.getBounds().height + "\n" + runner.getState());
+            + monitor.getBounds().height + "\n" + runner.getState());
         }
       });
     }
@@ -435,8 +435,8 @@ public final class Demo {
             @Override
             public void run() {
               sims.add(TaxiExample.run(false, time,
-                  "/data/maps/leuven-simple.dot",
-                  display, monitor, l));
+                "/data/maps/leuven-simple.dot",
+                display, monitor, l));
             }
           });
 

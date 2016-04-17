@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,13 +91,13 @@ public class CategoryMap<C, V> implements SetMultimap<C, V> {
   @Override
   public boolean containsEntry(Object key, Object value) {
     return valueCategoryMap.containsKey(value)
-        && valueCategoryMap.get(value).equals(key);
+      && valueCategoryMap.get(value).equals(key);
   }
 
   @Override
   public boolean remove(Object key, Object value) {
     return categoryValueMultiMap.remove(key, value)
-        && valueCategoryMap.remove(value) != null;
+      && valueCategoryMap.remove(value) != null;
   }
 
   public boolean removeValue(V value) {

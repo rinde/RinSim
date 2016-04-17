@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,16 +63,45 @@ public abstract class Gendreau06Scenario extends Scenario {
 
   static Gendreau06Scenario create(List<? extends TimedEvent> pEvents, long ts,
       GendreauProblemClass problemClass, int instanceNumber,
-      boolean diversion) {
+      boolean diversion, boolean realtime) {
+    final TimeModel.Builder timeModelBuilder = TimeModel.builder()
+      .withTickLength(ts)
+      .withTimeUnit(SI.MILLI(SI.SECOND));
+
+    final ImmutableSet<ModelBuilder<?, ?>> modelBuilders =
+      ImmutableSet.<ModelBuilder<?, ?>>builder()
+        .add(realtime ? timeModelBuilder.withRealTime() : timeModelBuilder)
+        .add(
+          PDPRoadModel.builder(
+            RoadModelBuilders.plane()
+              .withMinPoint(MIN)
+              .withMaxPoint(MAX)
+              .withDistanceUnit(SI.KILOMETER)
+              .withSpeedUnit(MAX_SPEED.getUnit())
+              .withMaxSpeed(MAX_SPEED.getValue()))
+            .withAllowVehicleDiversion(diversion))
+        .add(
+          DefaultPDPModel.builder()
+            .withTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED))
+        .add(
+          StatsTracker.builder())
+        .build();
 
     return new AutoValue_Gendreau06Scenario(
-        ImmutableList.<TimedEvent>copyOf(pEvents),
-        problemClass, Integer.toString(instanceNumber), ts, diversion);
+      ImmutableList.<TimedEvent>copyOf(pEvents),
+      modelBuilders,
+      Integer.toString(instanceNumber),
+      ts,
+      diversion,
+      problemClass);
   }
 
   abstract long getTickSize();
 
   abstract boolean getAllowDiversion();
+
+  @Override
+  public abstract GendreauProblemClass getProblemClass();
 
   @Override
   public TimeWindow getTimeWindow() {
@@ -86,27 +115,4 @@ public abstract class Gendreau06Scenario extends Scenario {
       StatsStopConditions.timeOutEvent());
   }
 
-  @Override
-  public ImmutableSet<ModelBuilder<?, ?>> getModelBuilders() {
-    return ImmutableSet.<ModelBuilder<?, ?>>builder()
-        .add(
-          TimeModel.builder()
-              .withTickLength(getTickSize())
-              .withTimeUnit(SI.MILLI(SI.SECOND)))
-        .add(
-          PDPRoadModel.builder(
-            RoadModelBuilders.plane()
-                .withMinPoint(MIN)
-                .withMaxPoint(MAX)
-                .withDistanceUnit(SI.KILOMETER)
-                .withSpeedUnit(MAX_SPEED.getUnit())
-                .withMaxSpeed(MAX_SPEED.getValue()))
-              .withAllowVehicleDiversion(getAllowDiversion()))
-        .add(
-          DefaultPDPModel.builder()
-              .withTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED))
-        .add(
-          StatsTracker.builder())
-        .build();
-  }
 }

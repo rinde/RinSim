@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,37 +61,37 @@ public class GeneratedScenarioIOTest {
     TestUtil.testPrivateConstructor(Vehicles.class);
     TestUtil.testPrivateConstructor(Depots.class);
     final ScenarioGenerator generator = ScenarioGenerator
-        .builder(TestPC.CLASS_A)
-        .scenarioLength(4 * 60 * 60 * 1000L)
-        .setStopCondition(
-          StopConditions.and(
-            StatsStopConditions.anyTardiness(),
-            StatsStopConditions.timeOutEvent()))
-        .parcels(
-          Parcels
-              .builder()
-              .announceTimes(
-                TimeSeries.homogenousPoisson(4 * 60 * 60 * 1000L, 10))
-              .locations(Locations.builder().square(5).buildUniform())
-              .timeWindows(TimeWindows.builder().build())
-              .build())
-        // .deliveryDurations(constant(10L))
-        .addModel(
-          PDPRoadModel.builder(
-            RoadModelBuilders.plane()
-                .withMaxSpeed(50d))
-              .withAllowVehicleDiversion(true))
-        .addModel(
-          DefaultPDPModel.builder()
-              .withTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED))
-        .build();
+      .builder(TestPC.CLASS_A)
+      .scenarioLength(4 * 60 * 60 * 1000L)
+      .setStopCondition(
+        StopConditions.and(
+          StatsStopConditions.anyTardiness(),
+          StatsStopConditions.timeOutEvent()))
+      .parcels(
+        Parcels
+          .builder()
+          .announceTimes(
+            TimeSeries.homogenousPoisson(4 * 60 * 60 * 1000L, 10))
+          .locations(Locations.builder().square(5).buildUniform())
+          .timeWindows(TimeWindows.builder().build())
+          .build())
+      // .deliveryDurations(constant(10L))
+      .addModel(
+        PDPRoadModel.builder(
+          RoadModelBuilders.plane()
+            .withMaxSpeed(50d))
+          .withAllowVehicleDiversion(true))
+      .addModel(
+        DefaultPDPModel.builder()
+          .withTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED))
+      .build();
 
     final Scenario scenario = generator
-        .generate(new MersenneTwister(123), "id123");
+      .generate(new MersenneTwister(123), "id123");
 
     // if this call fails, something has changed in the scenario format.
     final Scenario originalScenario = ScenarioIO.read(Paths
-        .get("files/scen.json"));
+      .get("files/scen.json"));
     assertEquals("Change in scenario format detected.", originalScenario,
       scenario);
 

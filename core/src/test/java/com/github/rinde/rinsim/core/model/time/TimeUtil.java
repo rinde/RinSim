@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ public final class TimeUtil {
 
   public static List<Double> interArrivalTimes(Iterable<Long> timeStamps) {
     final PeekingIterator<Long> it =
-        Iterators.peekingIterator(timeStamps.iterator());
+      Iterators.peekingIterator(timeStamps.iterator());
     final List<Double> interArrivalTimes = new ArrayList<>();
     for (long l1 = it.next(); it.hasNext(); l1 = it.next()) {
       final long l2 = it.peek();
@@ -75,18 +75,18 @@ public final class TimeUtil {
           @Override
           public void handleEvent(Event e) {
             final List<Double> beforeDurations =
-                interArrivalTimes(beforeTimeStamps);
+              interArrivalTimes(beforeTimeStamps);
             final List<Double> afterDurations =
-                interArrivalTimes(afterTimeStamps);
+              interArrivalTimes(afterTimeStamps);
 
             for (int i = 0; i < simTimeLapses.size(); i++) {
               if (i > 0) {
                 System.out.printf("\t %1.3f \t %1.3f\n",
-                    beforeDurations.get(i - 1),
-                    afterDurations.get(i - 1));
+                  beforeDurations.get(i - 1),
+                  afterDurations.get(i - 1));
               }
               System.out.println(simTimeLapses.get(i).lowerEndpoint() + "\t\t\t"
-                  + clockModes.get(i));
+                + clockModes.get(i));
 
             }
           }
@@ -126,7 +126,7 @@ public final class TimeUtil {
     public void tick(TimeLapse timeLapse) {
       beforeTimeStamps.add(System.nanoTime());
       simTimeLapses.add(
-          Range.closedOpen(timeLapse.getStartTime(), timeLapse.getEndTime()));
+        Range.closedOpen(timeLapse.getStartTime(), timeLapse.getEndTime()));
       clockModes.add(clock.getClockMode());
     }
 
@@ -155,7 +155,7 @@ public final class TimeUtil {
       @Override
       public TimeTracker build(DependencyProvider dependencyProvider) {
         final RealtimeClockController clock =
-            dependencyProvider.get(RealtimeClockController.class);
+          dependencyProvider.get(RealtimeClockController.class);
         return new TimeTracker(clock, debugPrinting());
       }
     }

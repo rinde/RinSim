@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package com.github.rinde.rinsim.central;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
@@ -48,9 +49,9 @@ public final class RandomSolver implements Solver {
 
   @Override
   public ImmutableList<ImmutableList<Parcel>> solve(GlobalStateObject state) {
+    checkArgument(!state.getVehicles().isEmpty(), "Need at least one vehicle.");
     final LinkedListMultimap<VehicleStateObject, Parcel> map =
-      LinkedListMultimap
-          .create();
+      LinkedListMultimap.create();
 
     final Set<Parcel> available = newLinkedHashSet(state.getAvailableParcels());
     final Set<Parcel> destinations = newLinkedHashSet();
@@ -67,7 +68,7 @@ public final class RandomSolver implements Solver {
     }
 
     final ImmutableList.Builder<ImmutableList<Parcel>> builder = ImmutableList
-        .builder();
+      .builder();
     // insert contents, shuffle ordering, insert destination if applicable
     for (final VehicleStateObject vso : state.getVehicles()) {
       final List<Parcel> assigned = newArrayList(map.get(vso));
@@ -75,7 +76,7 @@ public final class RandomSolver implements Solver {
       conts.removeAll(vso.getDestination().asSet());
       assigned.addAll(conts);
       if (vso.getDestination().isPresent()
-          && state.getAvailableParcels().contains(vso.getDestination().get())) {
+        && state.getAvailableParcels().contains(vso.getDestination().get())) {
         assigned.add(vso.getDestination().get());
       }
       Collections.shuffle(assigned, new RandomAdaptor(randomGenerator));

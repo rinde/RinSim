@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -99,7 +99,7 @@ public abstract class Option {
   public String toString() {
     if (longName.isPresent()) {
       return Joiner.on("").join(SHORT_PREFIX, shortName, ",", LONG_PREFIX,
-          longName.get());
+        longName.get());
     }
     return SHORT_PREFIX + shortName;
   }
@@ -311,8 +311,8 @@ public abstract class Option {
 
     static void checkOptionName(String name) {
       checkArgument(name.matches(NAME_REGEX),
-          "%s is not a valid option name, it must conform to %s.", name,
-          NAME_REGEX);
+        "%s is not a valid option name, it must conform to %s.", name,
+        NAME_REGEX);
     }
   }
 }

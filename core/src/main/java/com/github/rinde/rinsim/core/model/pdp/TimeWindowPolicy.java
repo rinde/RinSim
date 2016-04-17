@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ public interface TimeWindowPolicy {
    * Defines several default time window policies.
    * @author Rinde van Lon
    */
-  public enum TimeWindowPolicies implements TimeWindowPolicy {
+  enum TimeWindowPolicies implements TimeWindowPolicy {
     /**
      * Everything is fine, everything is going to be all right. Treats time
      * windows as a soft constraints.

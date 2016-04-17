@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
 
@@ -29,14 +32,26 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.central.GlobalStateObject;
+import com.github.rinde.rinsim.central.Solver;
+import com.github.rinde.rinsim.central.Solvers.SolveArgs;
+import com.github.rinde.rinsim.central.rt.RtSimSolver.EventType;
 import com.github.rinde.rinsim.central.rt.RtSolverModel.Mode;
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.FakeDependencyProvider;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
+import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController;
+import com.github.rinde.rinsim.core.model.time.TickListener;
+import com.github.rinde.rinsim.core.model.time.TimeLapse;
+import com.github.rinde.rinsim.core.model.time.TimeLapseFactory;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
+import com.github.rinde.rinsim.event.Event;
+import com.github.rinde.rinsim.event.Listener;
+import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.testutil.TestUtil;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 import autovalue.shaded.com.google.common.common.base.Optional;
 
@@ -61,8 +76,8 @@ public class RtSolverModelTest {
   @Before
   public void setUp() {
     clock = spy((RealtimeClockController) TimeModel.builder()
-        .withRealTime()
-        .build(FakeDependencyProvider.empty()));
+      .withRealTime()
+      .build(FakeDependencyProvider.empty()));
     doNothing().when(clock).switchToRealTime();
     doNothing().when(clock).switchToSimulatedTime();
 
@@ -71,12 +86,13 @@ public class RtSolverModelTest {
     when(rm.getDistanceUnit()).thenReturn(SI.KILOMETER);
 
     dependencyProvider = FakeDependencyProvider.builder()
-        .add(clock, RealtimeClockController.class)
-        .add(rm, PDPRoadModel.class)
-        .add(DefaultPDPModel.builder())
-        .build();
+      .add(clock, RealtimeClockController.class)
+      .add(rm, PDPRoadModel.class)
+      .add(DefaultPDPModel.builder())
+      .build();
 
     model = RtSolverModel.builder().build(dependencyProvider);
+    ((TimeModel) clock).register(model);
     assertThat(model.mode).isEqualTo(Mode.UNKNOWN);
 
     TestUtil.testEnum(Mode.class);
@@ -181,7 +197,81 @@ public class RtSolverModelTest {
     } catch (final IllegalArgumentException e) {
       fail = true;
       assertThat(e.getMessage()).contains(
-        "only provides " + RtSimSolverBuilder.class.getSimpleName());
+        " does not provide " + Object.class.toString());
+    }
+    assertThat(fail).isTrue();
+  }
+
+  /**
+   * Tests that exception thrown in a client thread is catched and rethrown in
+   * main thread.
+   */
+  @Test
+  public void testExceptionPropagation() {
+    final RtSimSolver rss =
+      model.get(RtSimSolverBuilder.class).build(new RealtimeSolver() {
+        @Override
+        public void init(Scheduler scheduler) {}
+
+        @Override
+        public void problemChanged(GlobalStateObject snapshot) {
+          throw new IllegalArgumentException("This is a test");
+        }
+
+        @Override
+        public void receiveSnapshot(GlobalStateObject snapshot) {
+          throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void cancel() {}
+
+        @Override
+        public boolean isComputing() {
+          return false;
+        }
+      });
+
+    rss.solve(SolveArgs.create());
+
+    boolean fail = false;
+    try {
+      while (true) {
+        // loop is needed because the solver may be executed at a slightly later
+        // time
+        model.tick(TimeLapseFactory.create(0, 1000));
+      }
+    } catch (final IllegalArgumentException e) {
+      assertThat(e.getMessage()).isEqualTo("This is a test");
+      fail = true;
+    }
+    assertThat(fail).isTrue();
+  }
+
+  /**
+   * Test exception propagation.
+   */
+  @Test
+  public void testExceptionPropagation2() {
+    final RtSimSolver rss =
+      model.get(RtSimSolverBuilder.class).build(new Solver() {
+        @Override
+        public ImmutableList<ImmutableList<Parcel>> solve(
+            GlobalStateObject state) {
+          throw new IllegalArgumentException("This is a test");
+        }
+      });
+    rss.solve(SolveArgs.create());
+    boolean fail = false;
+    try {
+      // loop is needed because the solver may be executed at a slightly later
+      // time
+      while (true) {
+        model.tick(TimeLapseFactory.create(0, 1000));
+      }
+    } catch (final IllegalArgumentException e) {
+      assertThat(e.getMessage()).isEqualTo("This is a test");
+      fail = true;
     }
     assertThat(fail).isTrue();
   }
@@ -192,14 +282,96 @@ public class RtSolverModelTest {
   @Test
   public void testBuilder() {
     final RtSolverModel m = RtSolverModel.builder()
-        .withMultiMode()
-        .build(dependencyProvider);
+      .withMultiMode()
+      .build(dependencyProvider);
     assertThat(m.mode).isEqualTo(Mode.MULTI_MODE);
 
     final RtSolverModel m2 = RtSolverModel.builder()
-        .withSingleMode()
-        .build(dependencyProvider);
+      .withSingleMode()
+      .build(dependencyProvider);
     assertThat(m2.mode).isEqualTo(Mode.SINGLE_MODE);
+  }
+
+  /**
+   * Test that two consecutive invocations of the same sim solver are handled
+   * correctly. The correct behavior is that the calculation of the first
+   * invocation is cancelled.
+   */
+  @Test
+  public void testConcurrentSolvers() {
+    final RtSimSolverBuilder b = model.get(RtSimSolverBuilder.class);
+    final RtSimSolver simSolver = b.build(SolverToRealtimeAdapter
+      .create(SleepySolver.create(1000, new NopSolver())));
+    final Parcel p = Parcel.builder(new Point(0, 0), new Point(1, 1))
+      .build();
+
+    final List<Event> events = new ArrayList<>();
+    simSolver.getEventAPI().addListener(new Listener() {
+      @Override
+      public void handleEvent(Event e) {
+        events.add(e);
+      }
+    });
+
+    ((TimeModel) clock).register(new TickListener() {
+      @Override
+      public void tick(TimeLapse timeLapse) {
+        if (timeLapse.getStartTime() == 0L) {
+          simSolver.solve(SolveArgs.create().useParcels(ImmutableSet.of(p)));
+          simSolver.solve(SolveArgs.create().useParcels(ImmutableSet.of(p)));
+        }
+      }
+
+      @Override
+      public void afterTick(TimeLapse timeLapse) {
+        if (timeLapse.getStartTime() == 3000L) {
+          clock.stop();
+        }
+      }
+    });
+    clock.start();
+
+    assertThat(events).hasSize(2);
+    assertThat(events.get(0).getEventType()).isEqualTo(EventType.NEW_SCHEDULE);
+    assertThat(events.get(1).getEventType()).isEqualTo(EventType.DONE);
+  }
+
+  static class NopRtSolver implements RealtimeSolver {
+
+    public NopRtSolver() {}
+
+    @Override
+    public void init(Scheduler scheduler) {}
+
+    @Override
+    public void receiveSnapshot(GlobalStateObject snapshot) {}
+
+    @Override
+    public void problemChanged(GlobalStateObject snapshot) {}
+
+    @Override
+    public void cancel() {}
+
+    @Override
+    public boolean isComputing() {
+      return false;
+    }
+
+  }
+
+  static class NopSolver implements Solver {
+
+    @Override
+    public ImmutableList<ImmutableList<Parcel>> solve(GlobalStateObject state)
+        throws InterruptedException {
+
+      final ImmutableList.Builder<ImmutableList<Parcel>> b =
+        ImmutableList.builder();
+      for (int i = 0; i < state.getVehicles().size(); i++) {
+        b.add(ImmutableList.<Parcel>of());
+      }
+      return b.build();
+    }
   }
 
   static class FakeRealtimeSolver implements RealtimeSolver {
@@ -217,7 +389,18 @@ public class RtSolverModelTest {
     }
 
     @Override
+    public void problemChanged(GlobalStateObject snapshot) {}
+
+    @Override
     public void receiveSnapshot(GlobalStateObject snapshot) {}
+
+    @Override
+    public void cancel() {}
+
+    @Override
+    public boolean isComputing() {
+      return false;
+    }
 
   }
 

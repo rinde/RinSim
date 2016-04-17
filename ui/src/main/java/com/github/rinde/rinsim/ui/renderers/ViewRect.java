@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,6 @@ public class ViewRect {
   @Override
   public String toString() {
     return new StringBuilder().append("{ViewRect: ").append(min).append(" ")
-        .append(max).append("}").toString();
+      .append(max).append("}").toString();
   }
 }

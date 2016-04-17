@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ public class PDPDecorationTest {
   @Test
   public void decoration() {
     final PDPModel defaultPDPModel = DefaultPDPModel.builder()
-        .build(mock(DependencyProvider.class));
+      .build(mock(DependencyProvider.class));
     assertSame(defaultPDPModel, defaultPDPModel.self);
 
     final PDPModel forwardA = new ForwardingA(defaultPDPModel);
@@ -53,7 +53,7 @@ public class PDPDecorationTest {
   @Test
   public void decorationFail() {
     final PDPModel defaultPDPModel = DefaultPDPModel.builder()
-        .build(mock(DependencyProvider.class));
+      .build(mock(DependencyProvider.class));
     assertSame(defaultPDPModel, defaultPDPModel.self);
 
     final PDPModel forwardA = new ForwardingA(defaultPDPModel);

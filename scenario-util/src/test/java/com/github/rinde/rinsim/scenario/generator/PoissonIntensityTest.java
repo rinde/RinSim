@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,18 +60,18 @@ public class PoissonIntensityTest {
   @Parameters
   public static Collection<Object[]> data() {
     return Arrays
-        .asList(new Object[][] {
-            {IntensityFunctions.sineIntensity().area(10).period(20).build()},
-            {IntensityFunctions.sineIntensity().area(10).height(.5).period(20)
-                .build()},
-            {IntensityFunctions.sineIntensity().area(10).height(-.5).period(20)
-                .build()},
-            {IntensityFunctions.sineIntensity().area(10).phaseShift(0)
-                .period(20)
-                .build()},
-            {IntensityFunctions.sineIntensity().area(10).height(1).period(20)
-                .build()}
-        });
+      .asList(new Object[][] {
+        {IntensityFunctions.sineIntensity().area(10).period(20).build()},
+        {IntensityFunctions.sineIntensity().area(10).height(.5).period(20)
+          .build()},
+        {IntensityFunctions.sineIntensity().area(10).height(-.5).period(20)
+          .build()},
+        {IntensityFunctions.sineIntensity().area(10).phaseShift(0)
+          .period(20)
+          .build()},
+        {IntensityFunctions.sineIntensity().area(10).height(1).period(20)
+          .build()}
+      });
   }
 
   /**
@@ -95,7 +95,7 @@ public class PoissonIntensityTest {
     }
     for (final Multiset.Entry<Double> entry : ms.entrySet()) {
       final double prob = intensityFunction.apply(entry.getElement())
-          / intensityFunction.getMax();
+        / intensityFunction.getMax();
       final double observation = entry.getCount() / (double) repetitions;
       assertEquals(prob, observation, 0.015);
     }
@@ -110,7 +110,7 @@ public class PoissonIntensityTest {
     final RandomGenerator rng = new MersenneTwister(123);
 
     final TimeSeriesGenerator pp = TimeSeries.nonHomogenousPoisson(100d,
-        intensityFunction);
+      intensityFunction);
 
     final Multiset<Double> ms = TreeMultiset.create();
     final int repetitions = 10000;
@@ -122,8 +122,8 @@ public class PoissonIntensityTest {
     }
     for (final Multiset.Entry<Double> entry : ms.entrySet()) {
       final double exp = IntensityFunctions.areaByIntegration(
-          intensityFunction,
-          entry.getElement() - 1d, entry.getElement());
+        intensityFunction,
+        entry.getElement() - 1d, entry.getElement());
 
       final double observation = entry.getCount() / (double) repetitions;
       assertEquals(exp, observation, 0.05);

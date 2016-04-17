@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,12 @@
  */
 package com.github.rinde.rinsim.central;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
+import com.github.rinde.rinsim.central.GlobalStateObject.VehicleStateObject;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.google.common.collect.ImmutableList;
 
@@ -27,15 +31,61 @@ public final class TestSolvers {
   public static Solver asSolver(
       Iterable<ImmutableList<ImmutableList<Parcel>>> schedules) {
     final Iterator<ImmutableList<ImmutableList<Parcel>>> it = schedules
-        .iterator();
+      .iterator();
     return SolverValidator.wrap(
-        new Solver() {
-          @Override
-          public ImmutableList<ImmutableList<Parcel>> solve(
-              GlobalStateObject state) {
-            return it.next();
+      new Solver() {
+        @Override
+        public ImmutableList<ImmutableList<Parcel>> solve(
+            GlobalStateObject state) {
+          return it.next();
+        }
+      });
+  }
+
+  public static Solver lazyInsertion() {
+    return Implementation.LAZY_INSERT;
+  }
+
+  enum Implementation implements Solver {
+    LAZY_INSERT {
+
+      @Override
+      public ImmutableList<ImmutableList<Parcel>> solve(GlobalStateObject state)
+          throws InterruptedException {
+
+        final List<List<Parcel>> mutSchedule =
+          new ArrayList<>(state.getVehicles().size());
+        for (final VehicleStateObject vso : state.getVehicles()) {
+          mutSchedule.add(new ArrayList<>(vso.getRoute().get()));
+        }
+
+        final Set<Parcel> unscheduled =
+          GlobalStateObjects.unassignedParcels(state);
+
+        for (final Parcel p : unscheduled) {
+          int index = 0;
+          int minJobs = mutSchedule.get(0).size();
+
+          for (int i = 1; i < mutSchedule.size(); i++) {
+            final int jobs = mutSchedule.get(i).size();
+            if (jobs < minJobs) {
+              index = i;
+              minJobs = jobs;
+            }
           }
-        });
+          mutSchedule.get(index).add(0, p);
+          mutSchedule.get(index).add(0, p);
+        }
+
+        final ImmutableList.Builder<ImmutableList<Parcel>> schedule =
+          ImmutableList.builder();
+        for (final List<Parcel> row : mutSchedule) {
+          schedule.add(ImmutableList.copyOf(row));
+        }
+        return schedule.build();
+      }
+
+    }
   }
 
 }

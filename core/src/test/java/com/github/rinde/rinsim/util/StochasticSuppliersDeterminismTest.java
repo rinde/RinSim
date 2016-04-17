@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,14 +43,14 @@ public class StochasticSuppliersDeterminismTest {
   @Parameters
   public static List<Object[]> configs() {
     return asList(new Object[][] {
-        { uniformDouble(0.5, 5.5) },
-        { uniformInt(0, 10) },
-        { uniformLong(-100, 100) },
-        { constant(new Object()) },
-        { constant(100L) },
-        { normal().buildDouble() },
-        { normal().bounds(-1, 1).buildInteger() },
-        { normal().mean(100).std(50).buildLong() }
+      {uniformDouble(0.5, 5.5)},
+      {uniformInt(0, 10)},
+      {uniformLong(-100, 100)},
+      {constant(new Object())},
+      {constant(100L)},
+      {normal().buildDouble()},
+      {normal().bounds(-1, 1).buildInteger()},
+      {normal().mean(100).std(50).buildLong()}
     });
   }
 

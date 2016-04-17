@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ public enum TestObjectiveFunction implements ObjectiveFunction {
     @Override
     public boolean isValidResult(StatisticsDTO stats) {
       return stats.totalParcels == stats.totalDeliveries
-          && stats.totalParcels == stats.totalPickups;
+        && stats.totalParcels == stats.totalPickups;
     }
 
     @Override
@@ -33,7 +33,7 @@ public enum TestObjectiveFunction implements ObjectiveFunction {
     @Override
     public String printHumanReadableFormat(StatisticsDTO stats) {
       return Joiner.on("").join("{dist=", stats.totalDistance, ",parcels=",
-          stats.totalParcels, "}");
+        stats.totalParcels, "}");
     }
   }
 }

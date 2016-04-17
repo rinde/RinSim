@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,16 +85,16 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
   @Override
   public Point getRandomPosition(RandomGenerator rnd) {
     return new Point(min.x + rnd.nextDouble() * width, min.y
-        + rnd.nextDouble() * height);
+      + rnd.nextDouble() * height);
   }
 
   @Override
   public void addObjectAt(RoadUser obj, Point pos) {
     checkArgument(
-        isPointInBoundary(pos),
-        "objects can only be added within the boundaries of the plane, %s is "
-            + "not in the boundary.",
-        pos);
+      isPointInBoundary(pos),
+      "objects can only be added within the boundaries of the plane, %s is "
+        + "not in the boundary.",
+      pos);
     super.addObjectAt(obj, pos);
   }
 
@@ -106,37 +106,37 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
 
     double traveled = 0;
     final double speed = min(unitConversion.toInSpeed(object.getSpeed()),
-        maxSpeed);
+      maxSpeed);
     if (speed == 0d) {
       // FIXME add test for this case, also check GraphRoadModel
       final Measure<Double, Length> dist = Measure.valueOf(0d,
-          getDistanceUnit());
+        getDistanceUnit());
       final Measure<Long, Duration> dur = Measure.valueOf(0L,
-          time.getTimeUnit());
+        time.getTimeUnit());
       return MoveProgress.create(dist, dur, new ArrayList<Point>());
     }
 
     final List<Point> travelledNodes = new ArrayList<>();
     while (time.hasTimeLeft() && !path.isEmpty()) {
       checkArgument(isPointInBoundary(path.peek()),
-          "points in the path must be within the predefined boundary of the "
-              + "plane");
+        "points in the path must be within the predefined boundary of the "
+          + "plane");
 
       // distance in internal time unit that can be traveled with timeleft
       final double travelDistance = speed
-          * unitConversion.toInTime(time.getTimeLeft(),
-              time.getTimeUnit());
+        * unitConversion.toInTime(time.getTimeLeft(),
+          time.getTimeUnit());
       final double stepLength = unitConversion.toInDist(Point
-          .distance(loc, path.peek()));
+        .distance(loc, path.peek()));
 
       if (travelDistance >= stepLength) {
         loc = path.remove();
         travelledNodes.add(loc);
 
         final long timeSpent = DoubleMath.roundToLong(
-            unitConversion.toExTime(stepLength / speed,
-                time.getTimeUnit()),
-            RoundingMode.HALF_DOWN);
+          unitConversion.toExTime(stepLength / speed,
+            time.getTimeUnit()),
+          RoundingMode.HALF_DOWN);
         time.consume(timeSpent);
         traveled += stepLength;
       } else {
@@ -158,24 +158,24 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
 
     // convert to external units
     final Measure<Double, Length> distTraveled = unitConversion
-        .toExDistMeasure(traveled);
+      .toExDistMeasure(traveled);
     final Measure<Long, Duration> timeConsumed = Measure.valueOf(
-        time.getTimeConsumed() - startTimeConsumed, time.getTimeUnit());
+      time.getTimeConsumed() - startTimeConsumed, time.getTimeUnit());
     return MoveProgress.create(distTraveled, timeConsumed, travelledNodes);
   }
 
   @Override
   public List<Point> getShortestPathTo(Point from, Point to) {
     checkArgument(
-        isPointInBoundary(from),
-        "from must be within the predefined boundary of the plane, from is %s, "
-            + "boundary: min %s, max %s.",
-        to, min, max);
+      isPointInBoundary(from),
+      "from must be within the predefined boundary of the plane, from is %s, "
+        + "boundary: min %s, max %s.",
+      to, min, max);
     checkArgument(
-        isPointInBoundary(to),
-        "to must be within the predefined boundary of the plane, to is %s,"
-            + " boundary: min %s, max %s.",
-        to, min, max);
+      isPointInBoundary(to),
+      "to must be within the predefined boundary of the plane, to is %s,"
+        + " boundary: min %s, max %s.",
+      to, min, max);
     return asList(from, to);
   }
 

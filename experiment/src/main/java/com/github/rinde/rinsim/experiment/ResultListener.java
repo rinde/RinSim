@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 package com.github.rinde.rinsim.experiment;
 
 import com.github.rinde.rinsim.experiment.Experiment.SimulationResult;
+import com.github.rinde.rinsim.scenario.Scenario;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Implementors get notified of the progress of an {@link Experiment}.
@@ -23,12 +25,23 @@ import com.github.rinde.rinsim.experiment.Experiment.SimulationResult;
  */
 public interface ResultListener {
   /**
-   * This method is called to signal the start of an experiment.
+   * This method is called to signal the start of an experiment. The number of
+   * simulations equals:
+   * <code>|configurations| x |scenarios| x repetitions</code>.
    * @param numberOfSimulations The number of simulations that is going to be
    *          executed.
+   * @param configurations The set of configurations that will be used.
+   * @param scenarios The set of scenarios.
+   * @param repetitions The number of repetitions (different seeds).
+   * @param seedRepetitions The number of repetitions of each seed.
    */
-  void startComputing(int numberOfSimulations);
+  void startComputing(int numberOfSimulations,
+      ImmutableSet<MASConfiguration> configurations,
+      ImmutableSet<Scenario> scenarios,
+      int repetitions,
+      int seedRepetitions);
 
+  // TODO extend description, the SimulationResult may be a failed simulation
   /**
    * This method is called to signal the completion of a single experiment.
    * @param result The {@link SimulationResult} of the simulation that is
@@ -38,6 +51,7 @@ public interface ResultListener {
 
   /**
    * This method is called to signal the end of the experiment.
+   * @param results The results.
    */
-  void doneComputing();
+  void doneComputing(ExperimentResults results);
 }

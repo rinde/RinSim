@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package com.github.rinde.rinsim.pdptw.common;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Verify.verify;
-import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.newLinkedList;
 import static java.util.Collections.unmodifiableCollection;
 
@@ -59,7 +58,9 @@ import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedHashMultiset;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multiset;
+import com.google.common.collect.Sets;
 import com.google.common.math.DoubleMath;
 
 /**
@@ -83,11 +84,8 @@ import com.google.common.math.DoubleMath;
  */
 public class RouteFollowingVehicle extends Vehicle {
 
-  /**
-   * The logger of the vehicle.
-   */
-  protected static final Logger LOGGER = LoggerFactory
-      .getLogger(RouteFollowingVehicle.class);
+  private static final Logger LOGGER = LoggerFactory
+    .getLogger(RouteFollowingVehicle.class);
 
   /**
    * The state machine that defines the states and the allowed transitions
@@ -123,22 +121,37 @@ public class RouteFollowingVehicle extends Vehicle {
 
   private Optional<Measure<Double, Velocity>> speed;
   private final boolean allowDelayedRouteChanges;
+  private final RouteAdjuster routeAdjuster;
 
   /**
    * Initializes the vehicle.
-   * @param pDto The {@link VehicleDTO} that defines this vehicle.
+   * @param dto The {@link VehicleDTO} that defines this vehicle.
    * @param allowDelayedRouteChanging This boolean changes the behavior of the
    *          {@link #setRoute(Iterable)} method.
    */
-  public RouteFollowingVehicle(VehicleDTO pDto,
+  public RouteFollowingVehicle(VehicleDTO dto,
       boolean allowDelayedRouteChanging) {
-    super(pDto);
+    this(dto, allowDelayedRouteChanging, RouteAdjusters.NOP);
+  }
+
+  /**
+   * Initializes the vehicle.
+   * @param dto The {@link VehicleDTO} that defines this vehicle.
+   * @param allowDelayedRouteChanging This boolean changes the behavior of the
+   *          {@link #setRoute(Iterable)} method.
+   * @param adjuster Allows to set a route adjuster to 'fix' routes if
+   *          necessary.
+   */
+  public RouteFollowingVehicle(VehicleDTO dto,
+      boolean allowDelayedRouteChanging, RouteAdjuster adjuster) {
+    super(dto);
     depot = Optional.absent();
     speed = Optional.absent();
     route = newLinkedList();
     newRoute = Optional.absent();
     currentTime = Optional.absent();
     allowDelayedRouteChanges = allowDelayedRouteChanging;
+    routeAdjuster = adjuster;
 
     stateMachine = createStateMachine();
     waitState = stateMachine.getStateOfType(Wait.class);
@@ -191,13 +204,14 @@ public class RouteFollowingVehicle extends Vehicle {
    * models normally <i>should</i> throw exceptions whenever a vehicle attempts
    * to revisit an already delivered parcel.
    * <p>
-   * In some case the models do not allow this vehicle to change its route
+   * In some cases the models do not allow this vehicle to change its route
    * immediately. If this is the case the route is changed the next time this
    * vehicle enters its {@link #waitState}. If
    * {@link #isDelayedRouteChangingAllowed()} is set to <code>false</code> any
-   * attempts to to this will result in a runtime exception, in this case the
-   * caller must ensure that a route is always changed immediately. The
-   * situations when the route is changed immediately are:
+   * attempts to do this will result in a runtime exception, in this case the
+   * caller must ensure that a route can be changed immediately or call this
+   * method at a later time. The situations when the route is changed
+   * immediately are:
    * <ul>
    * <li>If the vehicle is waiting.</li>
    * <li>If diversion is allowed and the vehicle is not currently servicing.
@@ -210,35 +224,36 @@ public class RouteFollowingVehicle extends Vehicle {
    *          {@link Iterable} using its iteration order.
    */
   public void setRoute(Iterable<? extends Parcel> r) {
+    final Iterable<Parcel> adjustedRoute = routeAdjuster.adjust(r, this);
+    LOGGER.trace("{} setRoute {}", this, adjustedRoute);
+
     // note: the following checks can not detect if a parcel has been set to
     // multiple vehicles at the same time
-
-    final Multiset<Parcel> routeSet = LinkedHashMultiset.create(r);
-
+    final Multiset<Parcel> routeSet = LinkedHashMultiset.create(adjustedRoute);
     for (final Parcel dp : routeSet.elementSet()) {
       final ParcelState state = getPDPModel().getParcelState(dp);
       checkArgument(
         !state.isDelivered(),
         "A parcel that is already delivered can not be part of a route. "
-            + "Parcel %s in route %s.",
-        dp, r);
+          + "Parcel %s in route %s.",
+        dp, adjustedRoute);
       if (state.isTransitionState()) {
         if (state == ParcelState.PICKING_UP) {
           checkArgument(
             getPDPModel().getVehicleState(this) == VehicleState.PICKING_UP,
             "When a parcel in the route is in PICKING UP state the vehicle "
-                + "must also be in that state, route: %s.",
-            r);
+              + "must also be in that state, route: %s.",
+            adjustedRoute, getPDPModel().getVehicleState(this));
         } else {
           checkArgument(
             getPDPModel().getVehicleState(this) == VehicleState.DELIVERING,
             "When a parcel in the route is in DELIVERING state the vehicle"
-                + " must also be in that state.");
+              + " must also be in that state.");
         }
         checkArgument(
           getPDPModel().getVehicleActionInfo(this).getParcel() == dp,
           "A parcel in the route that is being serviced should be serviced by"
-              + " this truck. This truck is servicing %s.",
+            + " this truck. This truck is servicing %s.",
           getPDPModel().getVehicleActionInfo(this).getParcel());
       }
 
@@ -246,99 +261,44 @@ public class RouteFollowingVehicle extends Vehicle {
       if (state.isPickedUp()) {
         checkArgument(getPDPModel().getContents(this).contains(dp),
           "A parcel that is in cargo state must be in cargo of this "
-              + "vehicle.");
+            + "vehicle.");
         checkArgument(
           frequency <= 1,
           "A parcel that is in cargo may not occur more than once in a route,"
-              + " found %s instance(s) of %s.",
+            + " found %s instance(s) of %s.",
           frequency, dp, state);
       } else {
         checkArgument(
           frequency <= 2,
           "A parcel that is available may not occur more than twice in a "
-              + "route, found %s instance(s).",
-          frequency);
+            + "route, found %s instance(s) of %s (with state %s). Route: %s.",
+          frequency, dp, state, adjustedRoute);
       }
     }
 
-    final boolean firstEqualsFirst = firstEqualsFirstInRoute(r);
+    final boolean firstEqualsFirst = firstEqualsFirstInRoute(adjustedRoute);
     final boolean divertable = isDiversionAllowed
-        && !stateMachine.stateIs(serviceState);
+      && !stateMachine.stateIs(serviceState);
 
     if (stateMachine.stateIs(waitState)
-        || route.isEmpty()
-        || divertable
-        || firstEqualsFirst) {
-      route = newLinkedList(r);
+      || route.isEmpty()
+      || divertable
+      || firstEqualsFirst) {
+      route = newLinkedList(adjustedRoute);
       newRoute = Optional.absent();
     } else {
       checkArgument(
         allowDelayedRouteChanges,
-        "Diversion is not allowed and delayed route changes are also not "
-            + "allowed, rejected route: %s.",
-        r);
-      newRoute = Optional.of(newLinkedList(r));
+        "Diversion is not allowed in current state and delayed route changes "
+          + "are also not allowed, rejected route: %s.",
+        adjustedRoute);
+      newRoute = Optional.of(newLinkedList(adjustedRoute));
     }
-  }
-
-  /**
-   * Safe version of {@link #setRoute(Iterable)}. This method can be used when
-   * there is a possibility that a computed route for a vehicle may no longer be
-   * valid because of progressing of time. This can for example occur in case of
-   * a real-time simulation where the route is calculated in a separate thread,
-   * in this case it is possible that the simulated world has already changed in
-   * such a way that the route is invalid. This method detects such changes and
-   * adapts the specified route to make it valid again. Note that this method
-   * assumes that the specified route was valid at some point in the past, if
-   * this isn't true this method may yield unexpected results. If the route is
-   * valid calling this method is equivalent to calling
-   * {@link #setRoute(Iterable)} directly.
-   * <p>
-   * There are generally three events that can cause a route to become invalid:
-   * <ul>
-   * <li>A parcel that occurs in the route has been delivered, all occurrences
-   * of this parcel will be removed from the route.</li>
-   * <li>A parcel that occurs in the route has been picked up by another vehicle
-   * (or is in the process of being picked up), all occurrences of this parcel
-   * will be removed from the route.</li>
-   * <li>A parcel that occurs twice in the route but has already been picked up
-   * by this vehicle, the first occurrence in the route will be removed.</li>
-   * </ul>
-   *
-   * @param r The route to set. The elements are copied from the
-   *          {@link Iterable} using its iteration order.
-   */
-  public void setRouteSafe(Iterable<Parcel> r) {
-    final List<Parcel> routeList = newArrayList(r);
-    final Multiset<Parcel> routeSet = LinkedHashMultiset.create(r);
-
-    for (final Parcel p : routeSet.elementSet()) {
-      final ParcelState state = getPDPModel().getParcelState(p);
-      if (state.isDelivered()) {
-        // remove all occurrences
-        routeList.removeAll(Collections.singleton(p));
-      } else if (state.isPickedUp()) {
-        // in this case the parcel is either: IN_CARGO or DELIVERING
-        if (!getPDPModel().getContents(this).contains(p)) {
-          // if we don't carry the parcel it must have been picked up by someone
-          // else, remove it from our route
-          routeList.removeAll(Collections.singleton(p));
-        } else if (routeSet.count(p) == 2) {
-          // in this case it is in cargo and it occurs twice in our route
-          // (which is one too many), therefore first occurrence is removed
-          routeList.remove(p);
-        }
-      } else if (state == ParcelState.PICKING_UP && !isPickingUp(p)) {
-        // in this case the parcel is being picked up by another vehicle
-        routeList.removeAll(Collections.singleton(p));
-      }
-    }
-    setRoute(routeList);
   }
 
   boolean isPickingUp(Parcel p) {
     return getPDPModel().getVehicleState(this) == VehicleState.PICKING_UP
-        && getPDPModel().getVehicleActionInfo(this).getParcel().equals(p);
+      && getPDPModel().getVehicleActionInfo(this).getParcel().equals(p);
   }
 
   /**
@@ -361,7 +321,7 @@ public class RouteFollowingVehicle extends Vehicle {
   protected final boolean firstEqualsFirstInRoute(
       Iterable<? extends Parcel> r) {
     return !Iterables.isEmpty(r) && !route.isEmpty()
-        && r.iterator().next().equals(route.element());
+      && r.iterator().next().equals(route.element());
   }
 
   @Override
@@ -374,10 +334,10 @@ public class RouteFollowingVehicle extends Vehicle {
     checkArgument(getRoadModel() instanceof PDPRoadModel,
       "This vehicle requires the PDPRoadModel.");
     isDiversionAllowed = ((PDPRoadModel) getRoadModel())
-        .isVehicleDiversionAllowed();
+      .isVehicleDiversionAllowed();
     depot = Optional.of(depots.iterator().next());
     speed = Optional.of(Measure.valueOf(getSpeed(), getRoadModel()
-        .getSpeedUnit()));
+      .getSpeedUnit()));
   }
 
   /**
@@ -415,19 +375,19 @@ public class RouteFollowingVehicle extends Vehicle {
     checkArgument(
       !parcelState.isTransitionState() && !parcelState.isDelivered(),
       "Parcel state may not be a transition state nor may it be delivered, "
-          + "it is %s.",
+        + "it is %s.",
       parcelState, parcelState.isTransitionState() ? getPDPModel()
-          .getVehicleActionInfo(this).timeNeeded() : null);
+        .getVehicleActionInfo(this).timeNeeded() : null);
     final boolean isPickup = !parcelState.isPickedUp();
     // if it is available, we know we can't be too early
     if (isPickup && parcelState == ParcelState.AVAILABLE) {
       return false;
     }
     final Point loc = isPickup ? p.getDto().getPickupLocation() : p
-        .getDeliveryLocation();
+      .getDeliveryLocation();
     final long travelTime = computeTravelTimeTo(loc, time.getTimeUnit());
     final long openingTime = isPickup ? p.getPickupTimeWindow().begin() : p
-        .getDeliveryTimeWindow().begin();
+      .getDeliveryTimeWindow().begin();
     final long latestTimeToLeave = openingTime - travelTime;
     return latestTimeToLeave >= time.getEndTime();
   }
@@ -441,7 +401,7 @@ public class RouteFollowingVehicle extends Vehicle {
   protected long computeTravelTimeTo(Point p, Unit<Duration> timeUnit) {
     final Measure<Double, Length> distance = Measure.valueOf(Point.distance(
       getRoadModel().getPosition(this), p), getRoadModel()
-          .getDistanceUnit());
+        .getDistanceUnit());
 
     return DoubleMath.roundToLong(
       RoadModels.computeTravelTime(speed.get(), distance, timeUnit),
@@ -459,7 +419,7 @@ public class RouteFollowingVehicle extends Vehicle {
     final long travelTime = computeTravelTimeTo(
       getRoadModel().getPosition(depot.get()), time.getTimeUnit());
     return time.getEndTime() - 1 >= getAvailabilityTimeWindow().end()
-        - travelTime;
+      - travelTime;
   }
 
   /**
@@ -472,8 +432,18 @@ public class RouteFollowingVehicle extends Vehicle {
   /**
    * @return the currentTime
    */
-  protected TimeLapse getCurrentTime() {
+  protected TimeLapse getCurrentTimeLapse() {
     return currentTime.get();
+  }
+
+  /**
+   * @return the current time.
+   */
+  protected long getCurrentTime() {
+    if (currentTime.isPresent()) {
+      return currentTime.get().getTime();
+    }
+    return 0L;
   }
 
   /**
@@ -498,15 +468,15 @@ public class RouteFollowingVehicle extends Vehicle {
     final WaitAtService waitAtService = new WaitAtService();
     final Service service = new Service();
     return StateMachine.create(wait)
-        .explicitRecursiveTransitions()
-        .addTransition(wait, DefaultEvent.GOTO, gotos)
-        .addTransition(gotos, DefaultEvent.NOGO, wait)
-        .addTransition(gotos, DefaultEvent.ARRIVED, waitAtService)
-        .addTransition(gotos, DefaultEvent.REROUTE, gotos)
-        .addTransition(waitAtService, DefaultEvent.REROUTE, gotos)
-        .addTransition(waitAtService, DefaultEvent.NOGO, wait)
-        .addTransition(waitAtService, DefaultEvent.READY_TO_SERVICE, service)
-        .addTransition(service, DefaultEvent.DONE, wait).build();
+      .explicitRecursiveTransitions()
+      .addTransition(wait, DefaultEvent.GOTO, gotos)
+      .addTransition(gotos, DefaultEvent.NOGO, wait)
+      .addTransition(gotos, DefaultEvent.ARRIVED, waitAtService)
+      .addTransition(gotos, DefaultEvent.REROUTE, gotos)
+      .addTransition(waitAtService, DefaultEvent.REROUTE, gotos)
+      .addTransition(waitAtService, DefaultEvent.NOGO, wait)
+      .addTransition(waitAtService, DefaultEvent.READY_TO_SERVICE, service)
+      .addTransition(service, DefaultEvent.DONE, wait).build();
   }
 
   void checkCurrentParcelOwnership() {
@@ -514,6 +484,42 @@ public class RouteFollowingVehicle extends Vehicle {
       !getPDPModel().getParcelState(route.peek()).isTransitionState(),
       "Parcel is already being serviced by another vehicle. Parcel state: %s",
       getPDPModel().getParcelState(route.peek()));
+  }
+
+  /**
+   * Fixes routes that have become invalid due to natural progressing of time.
+   * Invalidation over time can for example occur in case of a real-time
+   * simulation where the route is calculated in a separate thread, in this case
+   * it is possible that the simulated world has already changed in such a way
+   * that the route is invalid. This method detects such changes and adapts the
+   * specified route to make it valid again. Note that this method assumes that
+   * the specified route was valid at some point in the past, if this isn't true
+   * this {@link RouteAdjuster} may yield unexpected results. If the route is
+   * valid at the time this adjuster is used the route will be left unchanged.
+   * <p>
+   * There are four situations that are fixed by this adjuster:
+   * <ul>
+   * <li>A parcel that occurs in the route has been delivered, all occurrences
+   * of this parcel will be removed from the route.</li>
+   * <li>A parcel that occurs in the route has been picked up by another vehicle
+   * (or is in the process of being picked up), all occurrences of this parcel
+   * will be removed from the route.</li>
+   * <li>A parcel that occurs twice in the route but has already been picked up
+   * by this vehicle, the first occurrence in the route will be removed.</li>
+   * <li>A parcel that no longer occurs in the route but is in the cargo of the
+   * vehicle, the parcel will be added at the end of the route.</li>
+   * </ul>
+   * @return The route adjuster.
+   */
+  public static RouteAdjuster delayAdjuster() {
+    return RouteAdjusters.DELAY_ADJUSTER;
+  }
+
+  /**
+   * @return A no-operation {@link RouteAdjuster}.
+   */
+  public static RouteAdjuster nopAdjuster() {
+    return RouteAdjusters.NOP;
   }
 
   /**
@@ -591,13 +597,13 @@ public class RouteFollowingVehicle extends Vehicle {
       checkState(
         getPDPModel().getVehicleState(context) == VehicleState.IDLE,
         "We can only be in Wait state when the vehicle is idle, "
-            + "vehicle is %s.",
+          + "vehicle is %s.",
         getPDPModel().getVehicleState(context));
       if (event == DefaultEvent.NOGO) {
         checkArgument(isDiversionAllowed);
       }
       if (context.newRoute.isPresent()) {
-        context.setRouteSafe(context.newRoute.get());
+        context.setRoute(context.newRoute.get());
       }
     }
 
@@ -613,8 +619,8 @@ public class RouteFollowingVehicle extends Vehicle {
         }
         // else it is too early, and we do nothing
       } else if (currentTime.get().hasTimeLeft()
-          && isEndOfDay(currentTime.get())
-          && !getRoadModel().equalPosition(context, depot.get())) {
+        && isEndOfDay(currentTime.get())
+        && !getRoadModel().equalPosition(context, depot.get())) {
         // check if it is time to go back to the depot
         getRoadModel().moveTo(context, depot.get(), currentTime.get());
       }
@@ -671,7 +677,7 @@ public class RouteFollowingVehicle extends Vehicle {
       }
       getRoadModel().moveTo(context, cur, currentTime.get());
       if (getRoadModel().equalPosition(context, cur)
-          && currentTime.get().hasTimeLeft()) {
+        && currentTime.get().hasTimeLeft()) {
         return DefaultEvent.ARRIVED;
       }
       return null;
@@ -731,9 +737,9 @@ public class RouteFollowingVehicle extends Vehicle {
       // if parcel is not ready yet, wait
       final boolean pickup = !pm.getContents(context).contains(cur);
       final long timeUntilReady = (pickup
-          ? cur.getDto().getPickupTimeWindow().begin()
-          : cur.getDto().getDeliveryTimeWindow().begin())
-          - time.getTime();
+        ? cur.getDto().getPickupTimeWindow().begin()
+        : cur.getDto().getDeliveryTimeWindow().begin())
+        - time.getTime();
       if (timeUntilReady > 0) {
         if (time.getTimeLeft() < timeUntilReady) {
           // in this case we can not yet start servicing
@@ -777,6 +783,79 @@ public class RouteFollowingVehicle extends Vehicle {
         return DefaultEvent.DONE;
       }
       return null;
+    }
+  }
+
+  /**
+   * Implementations can modify the incoming route and return the modified
+   * version.
+   * @author Rinde van Lon
+   */
+  public interface RouteAdjuster {
+    /**
+     * Adjusts the route. Implementations should be pure functions, i.e. have no
+     * side-effects.
+     * @param route The incoming route.
+     * @param vehicle The vehicle which is owner of the route.
+     * @return The outgoing possibly modified route
+     */
+    Iterable<Parcel> adjust(Iterable<? extends Parcel> route,
+        RouteFollowingVehicle vehicle);
+  }
+
+  enum RouteAdjusters implements RouteAdjuster {
+    NOP {
+      @SuppressWarnings("unchecked")
+      @Override
+      public Iterable<Parcel> adjust(Iterable<? extends Parcel> r,
+          RouteFollowingVehicle vehicle) {
+        return (Iterable<Parcel>) r;
+      }
+    },
+
+    DELAY_ADJUSTER {
+      @SuppressWarnings("synthetic-access")
+      @Override
+      public Iterable<Parcel> adjust(Iterable<? extends Parcel> r,
+          RouteFollowingVehicle vehicle) {
+        final List<Parcel> routeList = Lists.<Parcel>newArrayList(r);
+        final Multiset<Parcel> routeSet = LinkedHashMultiset.<Parcel>create(r);
+
+        // removals
+        for (final Parcel p : routeSet.elementSet()) {
+          final ParcelState state = vehicle.getPDPModel().getParcelState(p);
+          if (state.isDelivered()) {
+            // remove all occurrences
+            routeList.removeAll(Collections.singleton(p));
+          } else if (state.isPickedUp()) {
+            // in this case the parcel is either: IN_CARGO or DELIVERING
+            if (!vehicle.getPDPModel().getContents(vehicle).contains(p)) {
+              // if we don't carry the parcel it must have been picked up by
+              // someone else, remove it from our route
+              routeList.removeAll(Collections.singleton(p));
+            } else if (routeSet.count(p) == 2) {
+              // in this case it is in cargo and it occurs twice in our route
+              // (which is one too many), therefore first occurrence is removed
+              routeList.remove(p);
+            }
+          } else if (state == ParcelState.PICKING_UP
+            && !vehicle.isPickingUp(p)) {
+            // in this case the parcel is being picked up by another vehicle
+            routeList.removeAll(Collections.singleton(p));
+          }
+        }
+
+        // additions
+        // loop through cargo, add all parcels that are not in the list
+        final Set<Parcel> contents = vehicle.getPDPModel().getContents(vehicle);
+        routeList.addAll(Sets.difference(contents, routeSet.elementSet()));
+        return routeList;
+      }
+
+      @Override
+      public String toString() {
+        return RouteFollowingVehicle.class.getSimpleName() + ".delayAdjuster()";
+      }
     }
   }
 }

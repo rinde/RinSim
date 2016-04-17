@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,28 +45,28 @@ public class PDPModelRendererTest {
   @Test
   public void test() {
     final Simulator sim = Simulator.builder()
-        .addModel(TimeModel.builder().withRealTime())
-        .addModel(RoadModelBuilders.plane())
-        .addModel(DefaultPDPModel.builder())
-        .addModel(View.builder()
-            .with(PlaneRoadModelRenderer.builder())
-            .with(RoadUserRenderer.builder()
-                .withColorAssociation(Depot.class, new RGB(255, 200, 0))
-                .withCircleAroundObjects())
-            .with(PDPModelRenderer.builder()
-                .withDestinationLines())
-            .withAutoPlay()
-            .withAutoClose()
-            .withSimulatorEndTime(5000))
-        .build();
+      .addModel(TimeModel.builder().withRealTime())
+      .addModel(RoadModelBuilders.plane())
+      .addModel(DefaultPDPModel.builder())
+      .addModel(View.builder()
+        .with(PlaneRoadModelRenderer.builder())
+        .with(RoadUserRenderer.builder()
+          .withColorAssociation(Depot.class, new RGB(255, 200, 0))
+          .withCircleAroundObjects())
+        .with(PDPModelRenderer.builder()
+          .withDestinationLines())
+        .withAutoPlay()
+        .withAutoClose()
+        .withSimulatorEndTime(5000))
+      .build();
 
     for (int i = 0; i < 10; i++) {
       if (i != 5) {
         sim.register(Parcel.builder(new Point(i, i + 1), new Point(5, 5))
-            .build());
+          .build());
         sim
-            .register(
-                new TestVehicle(new Point(i, 10 - i), new Point(i, i + 1)));
+          .register(
+            new TestVehicle(new Point(i, 10 - i), new Point(i, i + 1)));
       }
     }
     sim.register(new Depot(new Point(5, 5)));

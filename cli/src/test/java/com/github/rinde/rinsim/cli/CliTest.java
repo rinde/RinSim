@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package com.github.rinde.rinsim.cli;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.truth.Truth.assertThat;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -23,6 +24,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Before;
@@ -52,81 +54,80 @@ public class CliTest {
     TestUtil.testEnum(DefaultHelpFormatter.class);
 
     list = newArrayList();
-    menu = Menu
-        .builder()
-        .add(
-            Option.builder("a", ArgumentParser.LONG).build(),
-            list,
-            new ArgHandler<List<Object>, Long>() {
-              @Override
-              public void execute(List<Object> ref, Optional<Long> value) {
-                ref.add(value.get());
-              }
-            })
-        .add(
-            Option
-                .builder("aa", ArgumentParser.LONG_LIST)
-                .longName("add-all")
-                .description(
-                    "Add all longs, and then some. Please note that using this option may alter the universe beyond recognition. Use at your own risk.\n\nFooter of the message.")
-                .setOptionalArgument()
-                .build(),
-            list,
-            new ArgHandler<List<Object>, List<Long>>() {
-              @Override
-              public void execute(List<Object> ref,
-                  Optional<List<Long>> value) {
-                if (value.isPresent()) {
-                  ref.addAll(value.get());
-                }
-              }
-            })
-        .add(
-            Option.builder("asl", ArgumentParser.STRING_LIST).build(),
-            list,
-            new ArgHandler<List<Object>, List<String>>() {
-              @Override
-              public void execute(List<Object> ref,
-                  Optional<List<String>> value) {
-                ref.addAll(value.get());
-              }
-            })
-        .openGroup()
-        .add(Option.builder("x").build(), list, dummyHandler())
-        .add(Option.builder("y").build(), list, dummyHandler())
-        .add(Option.builder("z").build(), list, dummyHandler())
-        .closeGroup()
-        .add(
-            Option.builder("as", ArgumentParser.STRING).build(),
-            list,
-            new ArgHandler<List<Object>, String>() {
-              @Override
-              public void execute(List<Object> ref, Optional<String> value) {
-                ref.addAll(value.asSet());
-              }
-            })
-        .addHelpOption("h", "help", "Print this message")
-        .add(Option.builder("failure", ArgumentParser.BOOLEAN).build(), list,
-            new ArgHandler<List<Object>, Boolean>() {
-              @Override
-              public void execute(List<Object> subject, Optional<Boolean> b) {
-                if (b.get()) {
-                  throw new IllegalArgumentException();
-                }
-                throw new IllegalStateException();
-              }
-            })
-        .add(Option.builder("happy", ArgumentParser.BOOLEAN).build(), list,
-            new ArgHandler<List<Object>, Boolean>() {
-              @Override
-              public void execute(List<Object> subject, Optional<Boolean> b) {
-                subject.add(b.get());
-              }
-            })
-        .footer("This is the bottom")
-        .header("This is the header")
-        .commandLineSyntax("ctrl-alt-del")
-        .build();
+    menu = Menu.builder()
+      .add(Option.builder("a", ArgumentParser.longParser()).build(),
+        list,
+        new ArgHandler<List<Object>, Long>() {
+          @Override
+          public void execute(List<Object> ref, Optional<Long> value) {
+            ref.add(value.get());
+          }
+        })
+      .add(Option.builder("aa", ArgumentParser.longListParser())
+        .longName("add-all")
+        .description("Add all longs, and then some. Please note that "
+          + "using this option may alter the universe "
+          + "beyond recognition. Use at your own risk.\n\n"
+          + "Footer of the message.")
+        .setOptionalArgument()
+        .build(),
+        list,
+        new ArgHandler<List<Object>, List<Long>>() {
+          @Override
+          public void execute(List<Object> ref, Optional<List<Long>> value) {
+            if (value.isPresent()) {
+              ref.addAll(value.get());
+            }
+          }
+        })
+      .add(Option.builder("asl", ArgumentParser.stringListParser()).build(),
+        list,
+        new ArgHandler<List<Object>, List<String>>() {
+          @Override
+          public void execute(List<Object> ref,
+              Optional<List<String>> value) {
+            ref.addAll(value.get());
+          }
+        })
+      .openGroup()
+      .add(Option.builder("x").build(), list, dummyHandler())
+      .add(Option.builder("y").build(), list, dummyHandler())
+      .add(Option.builder("z").build(), list, dummyHandler())
+      .closeGroup()
+      .add(Option.builder("as", ArgumentParser.stringParser()).build(),
+        list,
+        new ArgHandler<List<Object>, String>() {
+          @Override
+          public void execute(List<Object> ref, Optional<String> value) {
+            ref.addAll(value.asSet());
+          }
+        })
+      .addHelpOption("h", "help", "Print this message")
+      .add(Option.builder("failure", ArgumentParser
+        .booleanParser())
+        .build(),
+        list,
+        new ArgHandler<List<Object>, Boolean>() {
+          @Override
+          public void execute(List<Object> subject, Optional<Boolean> b) {
+            if (b.get()) {
+              throw new IllegalArgumentException();
+            }
+            throw new IllegalStateException();
+          }
+        })
+      .add(Option.builder("happy", ArgumentParser.booleanParser()).build(),
+        list,
+        new ArgHandler<List<Object>, Boolean>() {
+          @Override
+          public void execute(List<Object> subject, Optional<Boolean> b) {
+            subject.add(b.get());
+          }
+        })
+      .footer("This is the bottom")
+      .header("This is the header")
+      .commandLineSyntax("ctrl-alt-del")
+      .build();
   }
 
   /**
@@ -135,17 +136,16 @@ public class CliTest {
   @Test(expected = IllegalArgumentException.class)
   public void duplicateOptions() {
     final Object subject = new Object();
-    Menu.builder()
-        .add(
-            Option.builder("a").build(),
-            subject,
-            dummyHandler())
-        .add(
-            Option.builder("aa", ArgumentParser.STRING)
-                .longName("a")
-                .build(),
-            subject,
-            CliTest.<Object, String>dummyArgHandler());
+    Menu
+      .builder()
+      .add(Option.builder("a").build(),
+        subject,
+        dummyHandler())
+      .add(Option.builder("aa", ArgumentParser.stringParser())
+        .longName("a")
+        .build(),
+        subject,
+        CliTest.<Object, String>dummyArgHandler());
   }
 
   /**
@@ -286,9 +286,9 @@ public class CliTest {
   @Test
   public void testAddSubMenu() {
     final Menu m = Menu.builder()
-        .addSubMenu("l", "list.", menu)
-        .addHelpOption("d", "delp", "Help")
-        .build();
+      .addSubMenu("l", "list.", menu)
+      .addHelpOption("d", "delp", "Help")
+      .build();
     // help options are not copied
     assertFalse(m.containsOption("h"));
     assertFalse(m.containsOption("lh"));
@@ -311,16 +311,16 @@ public class CliTest {
   @Test
   public void multipleGroups() {
     final Menu m = Menu.builder()
-        .openGroup()
-        .add(Option.builder("a").build(), list, dummyHandler())
-        .add(Option.builder("b").build(), list, dummyHandler())
-        .openGroup()
-        .add(Option.builder("c").build(), list, dummyHandler())
-        .add(Option.builder("d").build(), list, dummyHandler())
-        .add(Option.builder("e").build(), list, dummyHandler())
-        .closeGroup()
-        .addHelpOption("h", "help", "Print me")
-        .build();
+      .openGroup()
+      .add(Option.builder("a").build(), list, dummyHandler())
+      .add(Option.builder("b").build(), list, dummyHandler())
+      .openGroup()
+      .add(Option.builder("c").build(), list, dummyHandler())
+      .add(Option.builder("d").build(), list, dummyHandler())
+      .add(Option.builder("e").build(), list, dummyHandler())
+      .closeGroup()
+      .addHelpOption("h", "help", "Print me")
+      .build();
 
     assertFalse(m.execute("-a", "-c").isPresent());
     assertFalse(m.execute("-b", "-d").isPresent());
@@ -343,9 +343,9 @@ public class CliTest {
   @Test(expected = IllegalArgumentException.class)
   public void failGroup2() {
     Menu.builder()
-        .openGroup()
-        .add(Option.builder("v").build(), list, dummyHandler())
-        .closeGroup();
+      .openGroup()
+      .add(Option.builder("v").build(), list, dummyHandler())
+      .closeGroup();
   }
 
   /**
@@ -354,8 +354,8 @@ public class CliTest {
   @Test(expected = IllegalStateException.class)
   public void failHelpOption() {
     Menu.builder()
-        .openGroup()
-        .addHelpOption("h", "help", "Hello");
+      .openGroup()
+      .addHelpOption("h", "help", "Hello");
   }
 
   /**
@@ -366,10 +366,10 @@ public class CliTest {
     final HelpFormatter defaultFormatter = DefaultHelpFormatter.INSTANCE;
     final HelpFormatter customFormatter = new DummyHelpFormatter();
     final Menu m = Menu.builder()
-        .addHelpOption("h", "help", "help")
-        .commandLineSyntax("")
-        .helpFormatter(customFormatter)
-        .build();
+      .addHelpOption("h", "help", "help")
+      .commandLineSyntax("")
+      .helpFormatter(customFormatter)
+      .build();
 
     assertEquals(" -h,--help   help\n", defaultFormatter.format(m));
     assertEquals("[h, help]", customFormatter.format(m));
@@ -414,6 +414,121 @@ public class CliTest {
     assertEquals("APPLE-TREE", o.getLongName().get());
   }
 
+  /**
+   * Test for list of prefixed ints.
+   */
+  @Test
+  public void testPrefixedIntList() {
+    final List<String> consumer = new ArrayList<>();
+    final Menu m = Menu.builder()
+      .addHelpOption("h", "help", "Hi")
+      .add(Option.builder("i", ArgumentParser.prefixedIntList("t")).build(),
+        consumer,
+        new ArgHandler<List<String>, List<String>>() {
+          @Override
+          public void execute(List<String> subject,
+              Optional<List<String>> argument) {
+            subject.addAll(argument.get());
+          }
+        })
+      .build();
+
+    m.execute("-i", "t1,..,t5");
+    assertThat(consumer)
+      .containsExactly("t1", "t2", "t3", "t4", "t5")
+      .inOrder();
+
+    consumer.clear();
+    m.execute("-i", "t1,..,t3,..,t5");
+    assertThat(consumer)
+      .containsExactly("t1", "t2", "t3", "t4", "t5")
+      .inOrder();
+
+    testFail(m, "i", CauseType.INVALID_ARG_FORMAT, "-i", "t1,..,t2");
+    testFail(m, "i", CauseType.INVALID_ARG_FORMAT, "-i", "t3,..,t1");
+    testFail(m, "i", CauseType.INVALID_ARG_FORMAT, "-i", "t3,..,tn");
+    testFail(m, "i", CauseType.INVALID_ARG_FORMAT, "-i", "..,tn");
+    testFail(m, "i", CauseType.INVALID_ARG_FORMAT, "-i", "t7,..");
+  }
+
+  /**
+   * Tests correct parsing of enum.
+   */
+  @Test
+  public void testEnum() {
+    final List<TestEnum> consumer = new ArrayList<>();
+    final Menu m = Menu.builder()
+      .addHelpOption("h", "help", "Hi")
+      .add(Option.builder("e",
+        ArgumentParser.enumParser("testenum", TestEnum.class)).build(),
+        consumer,
+        new AddToListHandler<TestEnum>())
+      .build();
+
+    m.execute("-e", "A");
+    assertThat(consumer)
+      .containsExactly(TestEnum.A);
+    consumer.clear();
+    m.execute("-e", "B");
+    assertThat(consumer)
+      .containsExactly(TestEnum.B);
+    consumer.clear();
+
+    testFail(m, "e", CauseType.INVALID_ARG_FORMAT, "-e", "a");
+    testFail(m, "e", CauseType.INVALID_ARG_FORMAT, "-e", "NON_EXISTING_ENUM");
+    assertThat(consumer).isEmpty();
+  }
+
+  /**
+   * Tests correct parsing of list of enums.
+   */
+  @Test
+  public void testEnumList() {
+    final List<List<TestEnum>> consumer = new ArrayList<>();
+    final Menu m = Menu
+      .builder()
+      .addHelpOption("h", "help", "Hi")
+      .add(Option.builder("e",
+        ArgumentParser.enumListParser("enum list", TestEnum.class)).build(),
+        consumer,
+        new AddToListHandler<List<TestEnum>>())
+      .build();
+
+    m.execute("-e", "A,B,C");
+    assertThat(consumer)
+      .containsExactly(asList(TestEnum.A, TestEnum.B, TestEnum.C))
+      .inOrder();
+    consumer.clear();
+    m.execute("-e", "C,B,A");
+    assertThat(consumer)
+      .containsExactly(asList(TestEnum.C, TestEnum.B, TestEnum.A))
+      .inOrder();
+    consumer.clear();
+
+    m.execute("-e", "B");
+    assertThat(consumer)
+      .containsExactly(asList(TestEnum.B));
+    consumer.clear();
+
+    testFail(m, "e", CauseType.INVALID_ARG_FORMAT, "-e", "a");
+    testFail(m, "e", CauseType.INVALID_ARG_FORMAT, "-e", "NON_EXISTING_ENUM");
+    testFail(m, "e", CauseType.INVALID_ARG_FORMAT, "-e", "A,B,C,D");
+    assertThat(consumer).isEmpty();
+  }
+
+  static class AddToListHandler<T> implements ArgHandler<List<T>, T> {
+    AddToListHandler() {}
+
+    @Override
+    public void execute(List<T> subject, Optional<T> argument) {
+      subject.addAll(argument.asSet());
+    }
+  }
+
+  enum TestEnum {
+    A, B, C, LONG_ENUM_NAME;
+  }
+
   void testFail(String failingOptionName, CauseType causeType,
       String... args) {
     testFail(menu, failingOptionName, causeType, args);
@@ -431,8 +546,10 @@ public class CliTest {
     try {
       m.execute(args);
     } catch (final CliException e) {
-      assertEquals(failingOptionName, e.getMenuOption().get().getShortName());
-      assertEquals(causeType, e.getCauseType());
+      assertEquals(failingOptionName, e
+        .getMenuOption().get().getShortName());
+      assertEquals(causeType, e
+        .getCauseType());
       return;
     }
     fail("No exception occured.");
@@ -448,7 +565,8 @@ public class CliTest {
     try {
       m.execute(args);
     } catch (final CliException e) {
-      assertEquals(causeType, e.getCauseType());
+      assertEquals(causeType, e
+        .getCauseType());
       return;
     }
     fail("No exception occured.");

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -109,7 +109,7 @@ public class EventDispatcherTest {
     assertEquals(asList(EVENT1), l1.getEventTypeHistory());
     assertEquals(asList(EVENT2, EVENT1), l2.getEventTypeHistory());
     assertEquals(asList(EVENT2, EVENT3, EVENT1, EVENT3),
-        l3.getEventTypeHistory());
+      l3.getEventTypeHistory());
   }
 
   @Test(expected = IllegalArgumentException.class)

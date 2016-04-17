@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,11 +70,11 @@ public final class Menu {
     helpFormatter = b.helpFormatter;
 
     final ImmutableList.Builder<ImmutableSet<Option>> groupsBuilder =
-        ImmutableList
-            .builder();
+      ImmutableList
+        .builder();
     final ImmutableMultimap.Builder<Option, Option> groups2Builder =
-        ImmutableMultimap
-            .builder();
+      ImmutableMultimap
+        .builder();
     for (final Set<Option> group : b.groups) {
       groupsBuilder.add(ImmutableSet.copyOf(group));
       for (final Option opt : group) {
@@ -112,31 +112,31 @@ public final class Menu {
    */
   public Optional<String> execute(String... args) {
     final PeekingIterator<String> it = Iterators.peekingIterator(Iterators
-        .forArray(args));
+      .forArray(args));
     final Set<Option> selectedOptions = newLinkedHashSet();
     while (it.hasNext()) {
       final String arg = it.next();
       final Optional<OptionParser> optParser = parseOption(arg);
 
       checkCommand(optParser.isPresent(), "Found unrecognized command: '%s'.",
-          arg);
+        arg);
       checkAlreadySelected(
-          !selectedOptions.contains(optParser.get().getOption()),
-          optParser.get().getOption(),
-          "Option is already selected: %s.", optParser.get().getOption());
+        !selectedOptions.contains(optParser.get().getOption()),
+        optParser.get().getOption(),
+        "Option is already selected: %s.", optParser.get().getOption());
 
       if (groupMap.containsKey(optParser.get().getOption())) {
         // this option is part of a option group
         final SetView<Option> intersect = Sets.intersection(
-            selectedOptions,
-            newLinkedHashSet(groupMap.get(optParser.get().getOption())));
+          selectedOptions,
+          newLinkedHashSet(groupMap.get(optParser.get().getOption())));
 
         checkAlreadySelected(
-            intersect.isEmpty(),
-            optParser.get().getOption(),
-            "An option from the same group as '%s' has already been selected: "
-                + "'%s'.",
-            optParser.get().getOption(), intersect);
+          intersect.isEmpty(),
+          optParser.get().getOption(),
+          "An option from the same group as '%s' has already been selected: "
+            + "'%s'.",
+          optParser.get().getOption(), intersect);
       }
 
       selectedOptions.add(optParser.get().getOption());
@@ -153,7 +153,7 @@ public final class Menu {
         optParser.get().parse(arguments);
       } catch (IllegalArgumentException | IllegalStateException e) {
         throw new CliException(e.getMessage(), e, CauseType.HANDLER_FAILURE,
-            optParser.get().getOption());
+          optParser.get().getOption());
       }
     }
     return Optional.absent();
@@ -214,7 +214,7 @@ public final class Menu {
       @Override
       public int compare(@Nullable Option o1, @Nullable Option o2) {
         return verifyNotNull(o1).getShortName().compareTo(
-            verifyNotNull(o2).getShortName());
+          verifyNotNull(o2).getShortName());
       }
     });
     return ImmutableList.copyOf(options);
@@ -248,9 +248,9 @@ public final class Menu {
   static void unexpectedArgument(List<String> argument, Option option) {
     if (!argument.isEmpty()) {
       throw new CliException(String.format(
-          "The option %s does not support an argument. Found '%s'.", option,
-          argument), CauseType.UNEXPECTED_ARG,
-          option);
+        "The option %s does not support an argument. Found '%s'.", option,
+        argument), CauseType.UNEXPECTED_ARG,
+        option);
     }
   }
 
@@ -324,9 +324,9 @@ public final class Menu {
     public Builder addHelpOption(String sn, String ln, String desc) {
       checkState(!buildingGroup, "A help option can not be added to a group.");
       final OptionNoArg option = Option.builder(sn)
-          .longName(ln)
-          .description(desc)
-          .buildHelpOption();
+        .longName(ln)
+        .description(desc)
+        .buildHelpOption();
       add(new HelpParser(option));
       addedHelpOption = true;
       return this;
@@ -389,10 +389,10 @@ public final class Menu {
       buildingGroup = false;
       final int groupOptions = groups.get(groups.size() - 1).size();
       checkArgument(
-          groupOptions >= 2,
-          "At least two options need to be added to a group, found %s "
-              + "option(s).",
-          groupOptions);
+        groupOptions >= 2,
+        "At least two options need to be added to a group, found %s "
+          + "option(s).",
+        groupOptions);
       return this;
     }
 
@@ -449,21 +449,21 @@ public final class Menu {
     public Builder addSubMenu(String shortPrefix, String longPrefix,
         Menu menu) {
       checkArgument(shortPrefix.matches(Option.NAME_REGEX),
-          "The short prefix may not be an empty string.");
+        "The short prefix may not be an empty string.");
       checkArgument(longPrefix.matches(Option.NAME_REGEX),
-          "The long prefix may not be an empty string.");
+        "The long prefix may not be an empty string.");
       checkState(
-          !buildingGroup,
-          "A submenu can not be added inside a group. First close the group "
-              + "before adding a submenu.");
+        !buildingGroup,
+        "A submenu can not be added inside a group. First close the group "
+          + "before adding a submenu.");
 
       final Set<OptionParser> newOptions = newLinkedHashSet(menu.optionMap
-          .values());
+        .values());
       for (final Set<Option> group : menu.groups) {
         openGroup();
         for (final Option option : group) {
           final OptionParser exec = menu.optionMap.get(option
-              .getShortName());
+            .getShortName());
           add(adapt(exec, shortPrefix, longPrefix));
           newOptions.remove(exec);
         }
@@ -472,8 +472,8 @@ public final class Menu {
       for (final OptionParser exec : newOptions) {
         if (!exec.getOption().isHelpOption()) {
           add(adapt(exec,
-              shortPrefix,
-              longPrefix));
+            shortPrefix,
+            longPrefix));
         }
       }
       return this;
@@ -481,8 +481,8 @@ public final class Menu {
 
     void checkDuplicateOption(String name) {
       checkArgument(!optionNames.contains(name),
-          "Duplicate options are not allowed, found duplicate: '%s'.", name,
-          optionNames);
+        "Duplicate options are not allowed, found duplicate: '%s'.", name,
+        optionNames);
     }
 
     void add(OptionParser e) {
@@ -519,15 +519,15 @@ public final class Menu {
       final Option opt = exec.getOption();
       if (opt instanceof OptionArg<?>) {
         final OptionArg<?> adapted = adaptNames(
-            Option.builder((OptionArg<?>) opt),
-            shortPrefix, longPrefix)
-                .build();
+          Option.builder((OptionArg<?>) opt),
+          shortPrefix, longPrefix)
+            .build();
         return ((ArgParser) exec).newInstance(adapted);
       }
       final OptionNoArg adapted = adaptNames(
-          Option.builder((OptionNoArg) opt),
-          shortPrefix, longPrefix)
-              .build();
+        Option.builder((OptionNoArg) opt),
+        shortPrefix, longPrefix)
+          .build();
       return ((NoArgParser<?>) exec).newInstance(adapted);
     }
 
@@ -537,7 +537,7 @@ public final class Menu {
      */
     public Menu build() {
       checkArgument(addedHelpOption,
-          "At least one help option is required for creating a menu.");
+        "At least one help option is required for creating a menu.");
       return new Menu(this);
     }
   }
@@ -605,13 +605,13 @@ public final class Menu {
       Optional<V> value;
       if (!arguments.isEmpty()) {
         value = Optional
-            .of(option.argumentType.parse(option,
-                Joiner.on(ArgumentParser.ARG_LIST_SEPARATOR).join(arguments)));
+          .of(option.argumentType.parse(option,
+            Joiner.on(ArgumentParser.ARG_LIST_SEPARATOR).join(arguments)));
       } else if (!option.isArgOptional()) {
         throw new CliException("The option " + option + " requires a "
-            + option.argumentType.name() + " argument.",
-            CauseType.MISSING_ARG,
-            option);
+          + option.argumentType.name() + " argument.",
+          CauseType.MISSING_ARG,
+          option);
       } else {
         value = Optional.absent();
       }

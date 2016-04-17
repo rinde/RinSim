@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,9 @@ import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.measure.quantity.Duration;
 import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
@@ -60,6 +63,9 @@ import com.google.common.collect.ImmutableSet;
  */
 public abstract class TimeModel extends AbstractModel<TickListener>
     implements ClockController {
+  private static final Logger LOGGER =
+    LoggerFactory.getLogger(RealtimeModel.class);
+
   final TimeLapse timeLapse;
   final EventDispatcher eventDispatcher;
   volatile boolean isTicking;
@@ -68,14 +74,14 @@ public abstract class TimeModel extends AbstractModel<TickListener>
   TimeModel(AbstractBuilder<?> builder, Enum<?>... additionalEventTypes) {
     tickListeners = new CopyOnWriteArraySet<>();
     final Set<Enum<?>> allEventTypes = ImmutableSet.<Enum<?>>builder()
-        .add(ClockEventType.values())
-        .add(additionalEventTypes)
-        .build();
+      .add(ClockEventType.values())
+      .add(additionalEventTypes)
+      .build();
     eventDispatcher = new EventDispatcher(allEventTypes);
 
     // time lapse is reused in a Flyweight kind of style
     timeLapse = new TimeLapse(builder.getTimeUnit(), 0L,
-        builder.getTickLength());
+      builder.getTickLength());
   }
 
   /**
@@ -98,6 +104,11 @@ public abstract class TimeModel extends AbstractModel<TickListener>
   @Override
   public abstract void tick();
 
+  @OverridingMethodsMustInvokeSuper
+  void cleanUpAfterException() {
+    eventDispatcher.dispatchEvent(new Event(ClockEventType.STOPPED, this));
+  }
+
   @Override
   @Nonnull
   public <U> U get(Class<U> clazz) {
@@ -105,15 +116,15 @@ public abstract class TimeModel extends AbstractModel<TickListener>
       return clazz.cast(this);
     }
     throw new IllegalArgumentException(
-        getClass().getSimpleName() + " does not provide instances of "
-            + clazz.getName() + ".");
+      getClass().getSimpleName() + " does not provide instances of "
+        + clazz.getName() + ".");
   }
 
   @OverridingMethodsMustInvokeSuper
   @Override
   public boolean register(TickListener element) {
     checkArgument(tickListeners.add(element),
-        "A TickListener can not be registered more than once: %s.", element);
+      "A TickListener can not be registered more than once: %s.", element);
     return true;
   }
 
@@ -135,6 +146,11 @@ public abstract class TimeModel extends AbstractModel<TickListener>
     }
     // advance time
     timeLapse.next();
+
+    if (Thread.interrupted() && isTicking()) {
+      LOGGER.info("Simulation interrupted after tick {}, stopping.", timeLapse);
+      stop();
+    }
   }
 
   /**
@@ -182,7 +198,7 @@ public abstract class TimeModel extends AbstractModel<TickListener>
   @CheckReturnValue
   public static Builder builder() {
     return Builder.create(AbstractBuilder.DEFAULT_TIME_STEP,
-        AbstractBuilder.DEFAULT_TIME_UNIT);
+      AbstractBuilder.DEFAULT_TIME_UNIT);
   }
 
   /**
@@ -267,7 +283,7 @@ public abstract class TimeModel extends AbstractModel<TickListener>
     @CheckReturnValue
     public RealtimeBuilder withRealTime() {
       return RealtimeBuilder.create(getTickLength(), getTimeUnit(),
-          ClockMode.REAL_TIME);
+        ClockMode.REAL_TIME);
     }
 
     @CheckReturnValue
@@ -295,7 +311,7 @@ public abstract class TimeModel extends AbstractModel<TickListener>
 
     RealtimeBuilder() {
       setProvidingTypes(Clock.class, ClockController.class,
-          RealtimeClockController.class);
+        RealtimeClockController.class);
     }
 
     /**
@@ -313,8 +329,8 @@ public abstract class TimeModel extends AbstractModel<TickListener>
     @CheckReturnValue
     public RealtimeBuilder withStartInClockMode(ClockMode mode) {
       checkArgument(mode != ClockMode.STOPPED,
-          "Can not use %s as starting mode in %s.", ClockMode.STOPPED,
-          toString());
+        "Can not use %s as starting mode in %s.", ClockMode.STOPPED,
+        toString());
       return create(getTickLength(), getTimeUnit(), mode);
     }
 

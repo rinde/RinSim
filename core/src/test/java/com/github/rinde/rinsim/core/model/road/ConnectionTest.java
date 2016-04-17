@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,16 +38,16 @@ public class ConnectionTest {
 
     assertEquals(10, Connection.create(a, b).getLength(), GraphRoadModel.DELTA);
     final Connection<MultiAttributeData> conn = Connection.create(a, b,
-        MultiAttributeData.builder()
-            .setLength(12)
-            .setMaxSpeed(1d)
-            .build());
+      MultiAttributeData.builder()
+        .setLength(12)
+        .setMaxSpeed(1d)
+        .build());
     assertEquals(12, conn.getLength(), GraphRoadModel.DELTA);
 
     final Connection<MultiAttributeData> conn2 = Connection.create(a, b,
-        MultiAttributeData.builder()
-            .setMaxSpeed(1d)
-            .build());
+      MultiAttributeData.builder()
+        .setMaxSpeed(1d)
+        .build());
     assertEquals(10, conn2.getLength(), GraphRoadModel.DELTA);
   }
 }

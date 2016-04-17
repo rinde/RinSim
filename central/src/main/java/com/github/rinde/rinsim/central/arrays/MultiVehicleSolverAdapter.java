@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,14 +47,14 @@ public class MultiVehicleSolverAdapter implements Solver {
   @Override
   public ImmutableList<ImmutableList<Parcel>> solve(GlobalStateObject state) {
     final MVArraysObject o = ArraysSolvers.toMultiVehicleArrays(state,
-        outputTimeUnit);
+      outputTimeUnit);
 
     final SolutionObject[] sols = solver.solve(o.travelTime, o.releaseDates,
-        o.dueDates, o.servicePairs, o.serviceTimes, o.vehicleTravelTimes,
-        o.inventories, o.remainingServiceTimes, o.currentDestinations,
-        o.currentSolutions);
+      o.dueDates, o.servicePairs, o.serviceTimes, o.vehicleTravelTimes,
+      o.inventories, o.remainingServiceTimes, o.currentDestinations,
+      o.currentSolutions);
     final ImmutableList.Builder<ImmutableList<Parcel>> b = ImmutableList
-        .builder();
+      .builder();
     for (final SolutionObject sol : sols) {
       b.add(ArraysSolvers.convertSolutionObject(sol, o.index2parcel));
     }

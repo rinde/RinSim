@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,13 +89,13 @@ public class Gendreau06Test {
     final Gendreau06Scenario scenario = create(2, minutes(15),
       AddParcelEvent.create(
         Parcel.builder(new Point(2, 1), new Point(4, 1))
-            .pickupTimeWindow(TimeWindow.create(0, 720000))
-            .deliveryTimeWindow(TimeWindow.create(5, 720000))
-            .neededCapacity(0)
-            .orderAnnounceTime(0L)
-            .pickupDuration(0L)
-            .deliveryDuration(0L)
-            .buildDTO()));
+          .pickupTimeWindow(TimeWindow.create(0, 720000))
+          .deliveryTimeWindow(TimeWindow.create(5, 720000))
+          .neededCapacity(0)
+          .orderAnnounceTime(0L)
+          .pickupDuration(0L)
+          .deliveryDuration(0L)
+          .buildDTO()));
     final StatisticsDTO dto = runProblem(scenario, useGui);
 
     // the second truck will turn around just one tick distance before
@@ -120,13 +120,13 @@ public class Gendreau06Test {
     final Gendreau06Scenario scenario = create(1, minutes(6),
       AddParcelEvent.create(
         Parcel.builder(new Point(2, 1), new Point(4, 1))
-            .pickupTimeWindow(TimeWindow.create(0, minutes(12)))
-            .deliveryTimeWindow(TimeWindow.create(5, minutes(12)))
-            .neededCapacity(0)
-            .orderAnnounceTime(0L)
-            .pickupDuration(0L)
-            .deliveryDuration(0L)
-            .buildDTO()));
+          .pickupTimeWindow(TimeWindow.create(0, minutes(12)))
+          .deliveryTimeWindow(TimeWindow.create(5, minutes(12)))
+          .neededCapacity(0)
+          .orderAnnounceTime(0L)
+          .pickupDuration(0L)
+          .deliveryDuration(0L)
+          .buildDTO()));
 
     final StatisticsDTO dto = runProblem(scenario, useGui);
 
@@ -185,49 +185,49 @@ public class Gendreau06Test {
       long tw1b, long tw1e, long tw2b, long tw2e) {
     return AddParcelEvent.create(
       Parcel.builder(new Point(x1, y1), new Point(x2, y2))
-          .pickupTimeWindow(TimeWindow.create(tw1b, tw1e))
-          .deliveryTimeWindow(TimeWindow.create(tw2b, tw2e))
-          .neededCapacity(0)
-          .orderAnnounceTime(0L)
-          .pickupDuration(0L)
-          .deliveryDuration(0L)
-          .buildDTO());
+        .pickupTimeWindow(TimeWindow.create(tw1b, tw1e))
+        .deliveryTimeWindow(TimeWindow.create(tw2b, tw2e))
+        .neededCapacity(0)
+        .orderAnnounceTime(0L)
+        .pickupDuration(0L)
+        .deliveryDuration(0L)
+        .buildDTO());
   }
 
   static StatisticsDTO runProblem(Gendreau06Scenario s, boolean useGui) {
 
     final Simulator.Builder simBuilder = Simulator
-        .builder()
-        .setRandomSeed(123L)
-        .addModel(
-          ScenarioController
-              .builder(s)
-              .withEventHandler(AddDepotEvent.class,
-                AddDepotEvent.defaultHandler())
-              .withEventHandler(AddParcelEvent.class,
-                AddParcelEvent.defaultHandler())
-              .withEventHandler(TimeOutEvent.class,
-                TimeOutEvent.ignoreHandler())
-              .withEventHandler(AddVehicleEvent.class,
-                new TimedEventHandler<AddVehicleEvent>() {
-                  @Override
-                  public void handleTimedEvent(AddVehicleEvent event,
-                      SimulatorAPI simulator) {
-                    simulator
-                        .register(new SimpleTruck(event.getVehicleDTO(),
-                            new ClosestParcelStrategy()));
-                  }
-                }));
+      .builder()
+      .setRandomSeed(123L)
+      .addModel(
+        ScenarioController
+          .builder(s)
+          .withEventHandler(AddDepotEvent.class,
+            AddDepotEvent.defaultHandler())
+          .withEventHandler(AddParcelEvent.class,
+            AddParcelEvent.defaultHandler())
+          .withEventHandler(TimeOutEvent.class,
+            TimeOutEvent.ignoreHandler())
+          .withEventHandler(AddVehicleEvent.class,
+            new TimedEventHandler<AddVehicleEvent>() {
+              @Override
+              public void handleTimedEvent(AddVehicleEvent event,
+                  SimulatorAPI simulator) {
+                simulator
+                  .register(new SimpleTruck(event.getVehicleDTO(),
+                    new ClosestParcelStrategy()));
+              }
+            }));
 
     if (useGui) {
       simBuilder.addModel(
         View.builder()
-            .with(PlaneRoadModelRenderer.builder())
-            .with(RoadUserRenderer.builder())
-            .with(PDPModelRenderer.builder())
-            .withSpeedUp(50)
-            .withAutoClose()
-            .withAutoPlay());
+          .with(PlaneRoadModelRenderer.builder())
+          .with(RoadUserRenderer.builder())
+          .with(PDPModelRenderer.builder())
+          .withSpeedUp(50)
+          .withAutoClose()
+          .withAutoPlay());
     }
 
     final Simulator sim = simBuilder.build();
@@ -245,11 +245,11 @@ public class Gendreau06Test {
     events.add(AddDepotEvent.create(-1, depotPosition));
     for (int i = 0; i < numVehicles; i++) {
       events.add(AddVehicleEvent.create(-1, VehicleDTO.builder()
-          .startPosition(depotPosition)
-          .speed(truckSpeed)
-          .capacity(0)
-          .availabilityTimeWindow(TimeWindow.always())
-          .build()));
+        .startPosition(depotPosition)
+        .speed(truckSpeed)
+        .capacity(0)
+        .availabilityTimeWindow(TimeWindow.always())
+        .build()));
     }
 
     events.addAll(asList(parcelEvents));
@@ -257,7 +257,7 @@ public class Gendreau06Test {
     events.add(TimeOutEvent.create(endTime));
 
     return Gendreau06Scenario.create(events, 1000L,
-      GendreauProblemClass.LONG_LOW_FREQ, 1, false);
+      GendreauProblemClass.LONG_LOW_FREQ, 1, false, false);
   }
 
   static class SimpleTruck extends Vehicle {
@@ -314,7 +314,7 @@ public class Gendreau06Test {
     public void execute(TimeLapse time) {
       while (time.hasTimeLeft()) {
         final Set<Parcel> parcels = newHashSet(pdpModel
-            .getParcels(ParcelState.AVAILABLE));
+          .getParcels(ParcelState.AVAILABLE));
         if (!pdpModel.getContents(vehicle).isEmpty()) {
           parcels.addAll(pdpModel.getContents(vehicle));
         }
@@ -323,7 +323,7 @@ public class Gendreau06Test {
         Parcel closest = null;
         for (final Parcel p : parcels) {
           final Point pos = pdpModel.containerContains(vehicle, p) ? p
-              .getDeliveryLocation() : roadModel.getPosition(p);
+            .getDeliveryLocation() : roadModel.getPosition(p);
           final double d = Point.distance(roadModel.getPosition(vehicle), pos);
           if (d < dist) {
             dist = d;

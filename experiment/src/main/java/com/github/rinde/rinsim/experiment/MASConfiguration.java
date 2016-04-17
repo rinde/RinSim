@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,14 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 /**
- * This represents a configuration of a multi-agent system in a simulation.
+ * This represents a configuration of a multi-agent system in a simulation. The
+ * multi-agent system can be controlled in a centralized or a decentralized
+ * manner. The configuration consists of a set of {@link ModelBuilder}s that
+ * configure the models necessary for the multi-agent system and it consists of
+ * {@link TimedEventHandler}s, there should be a handler for each type of event
+ * in the scenario for which the configuration is used.
+ * <p>
+ * Constructing instances can be done via {@link #builder()}.
  * @author Rinde van Lon
  */
 @AutoValue
@@ -164,9 +171,8 @@ public abstract class MASConfiguration implements Serializable {
 
     Builder addDefaultPDPTWHandlers() {
       return addEventHandler(TimeOutEvent.class, TimeOutEvent.ignoreHandler())
-          .addEventHandler(AddDepotEvent.class, AddDepotEvent.defaultHandler())
-          .addEventHandler(AddParcelEvent.class,
-              AddParcelEvent.defaultHandler());
+        .addEventHandler(AddDepotEvent.class, AddDepotEvent.defaultHandler())
+        .addEventHandler(AddParcelEvent.class, AddParcelEvent.defaultHandler());
     }
 
     /**
@@ -174,9 +180,9 @@ public abstract class MASConfiguration implements Serializable {
      */
     public MASConfiguration build() {
       return new AutoValue_MASConfiguration(
-          name,
-          modelsBuilder.build(),
-          ImmutableMap.copyOf(eventHandlers));
+        name,
+        modelsBuilder.build(),
+        ImmutableMap.copyOf(eventHandlers));
     }
 
     static void checkSerializable(Object o) {

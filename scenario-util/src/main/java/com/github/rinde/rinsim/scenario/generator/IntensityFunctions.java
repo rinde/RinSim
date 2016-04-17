@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -146,18 +146,18 @@ public final class IntensityFunctions {
       }
       return Math.max(0d,
         getAmplitude()
-            * Math.sin(x * getFrequency() * TWO_PI - Math.PI * getPhaseShift())
-            + getHeight());
+          * Math.sin(x * getFrequency() * TWO_PI - Math.PI * getPhaseShift())
+          + getHeight());
     }
 
     @Override
     public String toString() {
       return new StringBuilder().append("{f(x) = ")
-          .append(getAmplitude()).append(" * ")
-          .append("sin(x * ").append(getFrequency())
-          .append(" * 2pi - pi * ").append(getPhaseShift())
-          .append(") + ").append(getHeight()).append("}")
-          .toString();
+        .append(getAmplitude()).append(" * ")
+        .append("sin(x * ").append(getFrequency())
+        .append(" * 2pi - pi * ").append(getPhaseShift())
+        .append(") + ").append(getHeight()).append("}")
+        .toString();
     }
 
     /**
@@ -175,8 +175,8 @@ public final class IntensityFunctions {
       final double d = roots[0];
       final double e = roots[1];
       return a * Math.sin(Math.PI * c * (d - e))
-          * Math.sin(HALF_PI - Math.PI * c * (d + e))
-          / (Math.PI * c) + b * (e - d);
+        * Math.sin(HALF_PI - Math.PI * c * (d + e))
+        / (Math.PI * c) + b * (e - d);
     }
 
     double[] roots() {
@@ -203,7 +203,7 @@ public final class IntensityFunctions {
       final double height = b.heightSup.get(rng.nextLong());
       final double phaseShift = b.phaseShiftSup.get(rng.nextLong());
       return new AutoValue_IntensityFunctions_SineIntensity(amplitude,
-          frequency, height, phaseShift);
+        frequency, height, phaseShift);
     }
   }
 
@@ -219,7 +219,7 @@ public final class IntensityFunctions {
     private static final Predicate<Double> POSITIVE = Range.open(0d,
       Double.MAX_VALUE);
     private static final Predicate<Double> GREATER_THAN_MINUS_ONE = Range
-        .openClosed(-1d, Double.MAX_VALUE);
+      .openClosed(-1d, Double.MAX_VALUE);
     private static final Predicate<Double> FINITE = Range.closed(
       Double.MIN_VALUE, Double.MAX_VALUE);
 

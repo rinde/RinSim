@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,7 +85,7 @@ public final class UITestTools {
               }
             }
             for (final MenuItem menu : d.getShells()[0].getMenuBar()
-                .getItems()) {
+              .getItems()) {
               if (menu.getText().contains("Control")) {
                 for (final MenuItem m : menu.getMenu().getItems()) {
                   if (m.getText().contains("Play")) {
@@ -105,7 +105,7 @@ public final class UITestTools {
           }
 
           d.syncExec(
-              new Runnable() {
+            new Runnable() {
             @Override
             public void run() {
               d.getShells()[0].close();
@@ -122,7 +122,7 @@ public final class UITestTools {
    */
   public static void closeActiveShell(long delay) {
     final ScheduledExecutorService scheduler = Executors
-        .newScheduledThreadPool(1);
+      .newScheduledThreadPool(1);
     scheduler.schedule(new Runnable() {
       @Override
       public void run() {
@@ -138,11 +138,11 @@ public final class UITestTools {
     final Display disp = findDisplay();
     checkState(disp != null);
     disp.syncExec(
-        new Runnable() {
-          @Override
-          public void run() {
-            disp.getShells()[0].close();
-          }
-        });
+      new Runnable() {
+        @Override
+        public void run() {
+          disp.getShells()[0].close();
+        }
+      });
   }
 }

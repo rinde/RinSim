@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,8 +66,8 @@ class RandomBroadcastAgent implements MovingRoadUser, CommUser, TickListener {
       builder.setMaxRange(range);
     }
     device = Optional.of(builder
-        .setReliability(reliability)
-        .build());
+      .setReliability(reliability)
+      .build());
   }
 
   @Override
@@ -92,8 +92,8 @@ class RandomBroadcastAgent implements MovingRoadUser, CommUser, TickListener {
       device.get().broadcast(Messages.NICE_TO_MEET_YOU);
     } else if (device.get().getReceivedCount() == 0) {
       device.get().broadcast(Messages.HELLO_WORLD);
-    } else
-      if (timeLapse.getStartTime() - lastReceiveTime > LONELINESS_THRESHOLD) {
+    } else if (timeLapse.getStartTime()
+      - lastReceiveTime > LONELINESS_THRESHOLD) {
       device.get().broadcast(Messages.WHERE_IS_EVERYBODY);
     }
   }

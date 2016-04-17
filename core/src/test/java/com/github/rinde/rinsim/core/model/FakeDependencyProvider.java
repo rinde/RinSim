@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,7 +82,7 @@ public class FakeDependencyProvider extends DependencyProvider {
 
     public Builder add(ModelBuilder<?, ?> mb) {
       return add(mb.build(mock(DependencyProvider.class)),
-          mb.getProvidingTypes());
+        mb.getProvidingTypes());
     }
 
     public <U> Builder add(U instance, Class<U> type) {
@@ -92,8 +92,8 @@ public class FakeDependencyProvider extends DependencyProvider {
 
     public DependencyProvider build() {
       return new FakeDependencyProvider(
-          modelMapBuilder.build(),
-          classMapBuilder.build());
+        modelMapBuilder.build(),
+        classMapBuilder.build());
     }
   }
 

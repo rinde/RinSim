@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,23 +76,28 @@ public final class SimSolver implements SimulationConverter {
    * @return A list of routes, one for each vehicle.
    */
   public List<Queue<Parcel>> solve(StateContext state) {
-    return Solvers.convertRoutes(state, solver.get().solve(state.state));
+    try {
+      return Solvers.convertRoutes(state, solver.get().solve(state.state));
+    } catch (final InterruptedException e) {
+      throw new IllegalStateException(
+        "The solver is interrupted, can't continue.", e);
+    }
   }
 
   @Override
   public StateContext convert(SolveArgs args) {
     final Collection<Vehicle> vs = vehicles.isEmpty() ? roadModel
-        .getObjectsOfType(Vehicle.class) : vehicles;
+      .getObjectsOfType(Vehicle.class) : vehicles;
     final Set<Parcel> ps = args.parcels.isPresent()
-        ? args.parcels.get()
-        : ImmutableSet.copyOf(pdpModel.getParcels(ANNOUNCED, AVAILABLE,
-            PICKING_UP));
+      ? args.parcels.get()
+      : ImmutableSet.copyOf(pdpModel.getParcels(ANNOUNCED, AVAILABLE,
+        PICKING_UP));
     return Solvers.convert(roadModel, pdpModel, vs, ps, time(),
-        args.currentRoutes);
+      args.currentRoutes, args.fixRoutes);
   }
 
   Measure<Long, Duration> time() {
     return Measure.valueOf(clock.getCurrentTime(),
-        clock.getTimeUnit());
+      clock.getTimeUnit());
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,8 +77,8 @@ public final class View
     listeners = new LinkedHashSet<>();
     Display.setAppName("RinSim");
     final Display d = builder.display().isPresent()
-        ? builder.display().get()
-        : Display.getCurrent();
+      ? builder.display().get()
+      : Display.getCurrent();
     final boolean isDisplayOwner = d == null;
     display = isDisplayOwner ? new Display() : Display.getCurrent();
 
@@ -138,7 +138,7 @@ public final class View
     }
     if (builder.callback().isPresent()) {
       builder.callback().get()
-          .handleEvent(new Event(Clock.ClockEventType.STOPPED, null));
+        .handleEvent(new Event(Clock.ClockEventType.STOPPED, null));
     }
   }
 
@@ -229,7 +229,7 @@ public final class View
     Builder() {
       setDependencies(ClockController.class);
       setProvidingTypes(Shell.class, Device.class, Display.class,
-          MainView.class);
+        MainView.class);
     }
 
     abstract ImmutableSet<ModelBuilder<? extends Renderer, ?>> renderers();
@@ -260,12 +260,12 @@ public final class View
     @CheckReturnValue
     public Builder with(ModelBuilder<? extends Renderer, ?> builder) {
       return create(ImmutableSet
-          .<ModelBuilder<? extends Renderer, ?>>builder()
-          .addAll(renderers())
-          .add(builder)
-          .build(),
-          viewOptions(), accelerators(), speedUp(), stopTime(), title(),
-          screenSize(), callback(), monitor(), display());
+        .<ModelBuilder<? extends Renderer, ?>>builder()
+        .addAll(renderers())
+        .add(builder)
+        .build(),
+        viewOptions(), accelerators(), speedUp(), stopTime(), title(),
+        screenSize(), callback(), monitor(), display());
     }
 
     /**
@@ -276,11 +276,11 @@ public final class View
     @CheckReturnValue
     public Builder withAutoPlay() {
       return create(
-          renderers(),
-          Sets.immutableEnumSet(ViewOption.AUTO_PLAY,
-              viewOptions().toArray(new ViewOption[] {})),
-          accelerators(), speedUp(), stopTime(), title(), screenSize(),
-          callback(), monitor(), display());
+        renderers(),
+        Sets.immutableEnumSet(ViewOption.AUTO_PLAY,
+          viewOptions().toArray(new ViewOption[] {})),
+        accelerators(), speedUp(), stopTime(), title(), screenSize(),
+        callback(), monitor(), display());
     }
 
     /**
@@ -292,11 +292,11 @@ public final class View
     @CheckReturnValue
     public Builder withAutoClose() {
       return create(
-          renderers(),
-          Sets.immutableEnumSet(ViewOption.AUTO_CLOSE,
-              viewOptions().toArray(new ViewOption[] {})),
-          accelerators(), speedUp(), stopTime(), title(), screenSize(),
-          callback(), monitor(), display());
+        renderers(),
+        Sets.immutableEnumSet(ViewOption.AUTO_CLOSE,
+          viewOptions().toArray(new ViewOption[] {})),
+        accelerators(), speedUp(), stopTime(), title(), screenSize(),
+        callback(), monitor(), display());
     }
 
     /**
@@ -308,8 +308,8 @@ public final class View
     public Builder withSimulatorEndTime(long simulationTime) {
       checkArgument(simulationTime > 0);
       return create(renderers(), viewOptions(), accelerators(), speedUp(),
-          simulationTime,
-          title(), screenSize(), callback(), monitor(), display());
+        simulationTime,
+        title(), screenSize(), callback(), monitor(), display());
     }
 
     /**
@@ -321,7 +321,7 @@ public final class View
     @CheckReturnValue
     public Builder withSpeedUp(int speed) {
       return create(renderers(), viewOptions(), accelerators(), speed,
-          stopTime(), title(), screenSize(), callback(), monitor(), display());
+        stopTime(), title(), screenSize(), callback(), monitor(), display());
     }
 
     /**
@@ -333,8 +333,8 @@ public final class View
     @CheckReturnValue
     public Builder withDisplay(Display d) {
       return create(renderers(), viewOptions(), accelerators(), speedUp(),
-          stopTime(), title(), screenSize(), callback(), monitor(),
-          Optional.of(d));
+        stopTime(), title(), screenSize(), callback(), monitor(),
+        Optional.of(d));
     }
 
     /**
@@ -346,8 +346,8 @@ public final class View
     @CheckReturnValue
     public Builder withTitleAppendix(String titleAppendix) {
       return create(renderers(), viewOptions(), accelerators(), speedUp(),
-          stopTime(), titleAppendix, screenSize(), callback(), monitor(),
-          display());
+        stopTime(), titleAppendix, screenSize(), callback(), monitor(),
+        display());
     }
 
     /**
@@ -358,11 +358,11 @@ public final class View
     @CheckReturnValue
     public Builder withNoResizing() {
       return create(
-          renderers(),
-          Sets.immutableEnumSet(ViewOption.DISALLOW_RESIZE,
-              viewOptions().toArray(new ViewOption[] {})),
-          accelerators(), speedUp(), stopTime(), title(), screenSize(),
-          callback(), monitor(), display());
+        renderers(),
+        Sets.immutableEnumSet(ViewOption.DISALLOW_RESIZE,
+          viewOptions().toArray(new ViewOption[] {})),
+        accelerators(), speedUp(), stopTime(), title(), screenSize(),
+        callback(), monitor(), display());
     }
 
     /**
@@ -373,11 +373,11 @@ public final class View
     @CheckReturnValue
     public Builder withFullScreen() {
       return create(
-          renderers(),
-          Sets.immutableEnumSet(ViewOption.FULL_SCREEN,
-              viewOptions().toArray(new ViewOption[] {})),
-          accelerators(), speedUp(), stopTime(), title(), screenSize(),
-          callback(), monitor(), display());
+        renderers(),
+        Sets.immutableEnumSet(ViewOption.FULL_SCREEN,
+          viewOptions().toArray(new ViewOption[] {})),
+        accelerators(), speedUp(), stopTime(), title(), screenSize(),
+        callback(), monitor(), display());
     }
 
     /**
@@ -390,11 +390,11 @@ public final class View
     @CheckReturnValue
     public Builder withResolution(int width, int height) {
       checkArgument(width > 0 && height > 0,
-          "Only positive dimensions are allowed, input: %s x %s.", width,
-          height);
+        "Only positive dimensions are allowed, input: %s x %s.", width,
+        height);
       return create(renderers(), viewOptions(), accelerators(), speedUp(),
-          stopTime(), title(), new Point(width, height), callback(), monitor(),
-          display());
+        stopTime(), title(), new Point(width, height), callback(), monitor(),
+        display());
     }
 
     /**
@@ -407,8 +407,8 @@ public final class View
     @CheckReturnValue
     public Builder withMonitor(Monitor m) {
       return create(renderers(), viewOptions(), accelerators(), speedUp(),
-          stopTime(), title(), screenSize(), callback(), Optional.of(m),
-          display());
+        stopTime(), title(), screenSize(), callback(), Optional.of(m),
+        display());
     }
 
     /**
@@ -424,8 +424,8 @@ public final class View
     @CheckReturnValue
     public Builder withAccelerators(Map<MenuItems, Integer> acc) {
       return create(renderers(), viewOptions(), ImmutableMap.copyOf(acc),
-          speedUp(), stopTime(), title(), screenSize(), callback(), monitor(),
-          display());
+        speedUp(), stopTime(), title(), screenSize(), callback(), monitor(),
+        display());
     }
 
     /**
@@ -437,11 +437,11 @@ public final class View
     @CheckReturnValue
     public Builder withAsync() {
       return create(
-          renderers(),
-          Sets.immutableEnumSet(ViewOption.ASYNC,
-              viewOptions().toArray(new ViewOption[] {})),
-          accelerators(), speedUp(), stopTime(), title(), screenSize(),
-          callback(), monitor(), display());
+        renderers(),
+        Sets.immutableEnumSet(ViewOption.ASYNC,
+          viewOptions().toArray(new ViewOption[] {})),
+        accelerators(), speedUp(), stopTime(), title(), screenSize(),
+        callback(), monitor(), display());
     }
 
     /**
@@ -452,15 +452,15 @@ public final class View
     @CheckReturnValue
     public Builder withCallback(Listener l) {
       return create(renderers(), viewOptions(), accelerators(), speedUp(),
-          stopTime(), title(), screenSize(), Optional.of(l), monitor(),
-          display());
+        stopTime(), title(), screenSize(), Optional.of(l), monitor(),
+        display());
     }
 
     @CheckReturnValue
     @Override
     public View build(DependencyProvider dependencyProvider) {
       checkArgument(!renderers().isEmpty(),
-          "At least one renderer needs to be defined.");
+        "At least one renderer needs to be defined.");
 
       final ClockController cc = dependencyProvider.get(ClockController.class);
       return new View(this, cc);
@@ -469,9 +469,9 @@ public final class View
     @Override
     public ImmutableSet<ModelBuilder<?, ?>> getChildren() {
       return ImmutableSet.<ModelBuilder<?, ?>>builder()
-          .add(SimulationViewer.builder(this))
-          .addAll(renderers())
-          .build();
+        .add(SimulationViewer.builder(this))
+        .addAll(renderers())
+        .build();
     }
 
     static Builder create() {
@@ -479,18 +479,18 @@ public final class View
       @Nullable
       final Locale loc = InputContext.getInstance().getLocale();
       if (loc != null
-          && loc.getLanguage().equals(Locale.FRENCH.getLanguage())) {
+        && loc.getLanguage().equals(Locale.FRENCH.getLanguage())) {
         accelerators = MenuItems.AZERTY_ACCELERATORS;
       } else {
         accelerators = MenuItems.QWERTY_ACCELERATORS;
       }
 
       return create(ImmutableSet.<ModelBuilder<? extends Renderer, ?>>of(),
-          ImmutableSet.<ViewOption>of(), accelerators, 1, -1L, "Simulator",
-          DEFAULT_WINDOW_SIZE,
-          Optional.<Listener>absent(),
-          Optional.<Monitor>absent(),
-          Optional.<Display>absent());
+        ImmutableSet.<ViewOption>of(), accelerators, 1, -1L, "Simulator",
+        DEFAULT_WINDOW_SIZE,
+        Optional.<Listener>absent(),
+        Optional.<Monitor>absent(),
+        Optional.<Display>absent());
     }
 
     static Builder create(
@@ -505,7 +505,7 @@ public final class View
         Optional<Monitor> monitor,
         Optional<Display> display) {
       return new AutoValue_View_Builder(renderers, viewOptions, accelerators,
-          speedUp, stopTime, title, screenSize, callback, monitor, display);
+        speedUp, stopTime, title, screenSize, callback, monitor, display);
     }
   }
 }

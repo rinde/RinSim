@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,13 +54,13 @@ public class CompositeModelsTest {
   @Test
   public void testComposite() {
     final ModelManager mm = ModelManager.builder()
-        .add(new ModelA.Builder())
-        .build();
+      .add(new ModelA.Builder())
+      .build();
 
     final Iterable<Class<?>> classes = transform(mm.getModels(), toClass());
 
     assertThat(classes).containsAllOf(ModelA.class, ModelAsub1.class,
-        ModelAsub1sub1.class, ModelAsub2.class).inOrder();
+      ModelAsub1sub1.class, ModelAsub2.class).inOrder();
   }
 
   /**
@@ -69,17 +69,17 @@ public class CompositeModelsTest {
   @Test
   public void testCompositeDefault() {
     final ModelManager mm = ModelManager.builder()
-        .addDefaultProvider(new ModelA.Builder())
-        .build();
+      .addDefaultProvider(new ModelA.Builder())
+      .build();
 
     final Iterable<Class<?>> classes = transform(mm.getModels(), toClass());
 
     assertThat(classes).containsAllOf(ModelA.class, ModelAsub1.class,
-        ModelAsub1sub1.class, ModelAsub2.class).inOrder();
+      ModelAsub1sub1.class, ModelAsub2.class).inOrder();
   }
 
   static class ModelA extends NopModel {
-    static class Builder extends NopBuilder<ModelA>implements
+    static class Builder extends NopBuilder<ModelA> implements
         CompositeModelBuilder<ModelA, Void> {
       Builder() {
         setDependencies(ModelAsub1sub1.class);
@@ -94,14 +94,14 @@ public class CompositeModelsTest {
       @Override
       public ImmutableSet<ModelBuilder<?, ?>> getChildren() {
         return ImmutableSet.<ModelBuilder<?, ?>>of(
-            new ModelAsub1.Builder(),
-            new ModelAsub2.Builder());
+          new ModelAsub1.Builder(),
+          new ModelAsub2.Builder());
       }
     }
   }
 
   static class ModelAsub1 extends NopModel {
-    static class Builder extends NopBuilder<ModelAsub1>implements
+    static class Builder extends NopBuilder<ModelAsub1> implements
         CompositeModelBuilder<ModelAsub1, Void> {
       @Override
       public ModelAsub1 build(DependencyProvider dependencyProvider) {
@@ -111,7 +111,7 @@ public class CompositeModelsTest {
       @Override
       public ImmutableSet<ModelBuilder<?, ?>> getChildren() {
         return ImmutableSet
-            .<ModelBuilder<?, ?>>of(new ModelAsub1sub1.Builder());
+          .<ModelBuilder<?, ?>>of(new ModelAsub1sub1.Builder());
       }
     }
   }
@@ -143,7 +143,7 @@ public class CompositeModelsTest {
     @Override
     public String toString() {
       return getClass().getDeclaringClass().getSimpleName() + "."
-          + getClass().getSimpleName();
+        + getClass().getSimpleName();
     }
   }
 

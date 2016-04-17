@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,13 +30,13 @@ import com.google.common.collect.ImmutableList;
  */
 public final class Depots {
   private static final DepotGenerator SINGLE_CENTERED_DEPOT_GENERATOR =
-      new DepotGenerator() {
-        @Override
-        public Iterable<? extends AddDepotEvent> generate(long seed,
-            Point center) {
-          return ImmutableList.of(AddDepotEvent.create(-1, center));
-        }
-      };
+    new DepotGenerator() {
+      @Override
+      public Iterable<? extends AddDepotEvent> generate(long seed,
+          Point center) {
+        return ImmutableList.of(AddDepotEvent.create(-1, center));
+      }
+    };
 
   private Depots() {}
 
@@ -77,12 +77,14 @@ public final class Depots {
    * @author Rinde van Lon
    */
   public static class Builder {
+    private static final Point DEFAULT_POSITION = new Point(0d, 0d);
+
     StochasticSupplier<Point> positions;
     StochasticSupplier<Integer> numberOfDepots;
     StochasticSupplier<Long> times;
 
     Builder() {
-      positions = StochasticSuppliers.constant(new Point(0d, 0d));
+      positions = StochasticSuppliers.constant(DEFAULT_POSITION);
       numberOfDepots = StochasticSuppliers.constant(1);
       times = StochasticSuppliers.constant(-1L);
     }
@@ -99,7 +101,7 @@ public final class Depots {
 
     /**
      * Sets the number of depots that the {@link DepotGenerator} should
-     * generate. This number is {@link StochasticSupplier} itself meaning that
+     * generate. This number is a {@link StochasticSupplier} itself meaning that
      * it can be drawn from a random distribution.
      * @param nd The number of depots.
      * @return This, as per the builder pattern.
@@ -145,7 +147,7 @@ public final class Depots {
       rng.setSeed(seed);
       final int num = numberOfDepots.get(rng.nextLong());
       final ImmutableList.Builder<AddDepotEvent> builder = ImmutableList
-          .builder();
+        .builder();
       for (int i = 0; i < num; i++) {
         final long time = times.get(rng.nextLong());
         final Point position = positions.get(rng.nextLong());

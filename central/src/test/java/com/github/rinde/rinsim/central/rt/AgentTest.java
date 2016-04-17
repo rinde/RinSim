@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,6 +53,7 @@ import com.github.rinde.rinsim.testutil.RealtimeTests;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -73,21 +74,22 @@ public class AgentTest {
     final List<TimedEvent> events = asList(
       AddParcelEvent.create(
         Parcel.builder(new Point(0, 0), new Point(3, 3))
-            .orderAnnounceTime(200)
-            .pickupTimeWindow(TimeWindow.create(1000, 2000))
-            .buildDTO()),
+          .orderAnnounceTime(200)
+          .pickupTimeWindow(TimeWindow.create(1000, 2000))
+          .buildDTO()),
       AddParcelEvent.create(
         Parcel.builder(new Point(0, 0), new Point(3, 3))
-            .orderAnnounceTime(999)
-            .pickupTimeWindow(TimeWindow.create(60000, 80000))
-            .serviceDuration(180000L)
-            .buildDTO()),
+          .orderAnnounceTime(999)
+          .pickupTimeWindow(TimeWindow.create(60000, 80000))
+          .serviceDuration(180000L)
+          .buildDTO()),
       TimeOutEvent.create(3000));
 
     sim = RealtimeTestHelper.init(Handler.INSTANCE, events)
-        .addModel(RtSolverModel.builder())
-        .build();
-
+      .addModel(RtSolverModel.builder()
+        .withThreadPoolSize(3)
+        .withThreadGrouping(false))
+      .build();
   }
 
   /**
@@ -97,7 +99,7 @@ public class AgentTest {
   public void twoSimultaneousComputationsTest() {
     final RealtimeClockController clock =
       (RealtimeClockController) sim.getModelProvider()
-          .getModel(TimeModel.class);
+        .getModel(TimeModel.class);
 
     final List<LogEntry> log = new ArrayList<>();
     clock.getEventAPI().addListener(new Listener() {
@@ -111,10 +113,10 @@ public class AgentTest {
     assertThat(log.get(0)).isEqualTo(logEntry(0, SWITCH_TO_SIM_TIME));
     assertThat(log.get(1)).isEqualTo(logEntry(200, SWITCH_TO_REAL_TIME));
     assertThat(log.get(2).eventType()).isEqualTo(SWITCH_TO_SIM_TIME);
-    assertThat(log.get(2).time()).isIn(ImmutableSet.of(300L, 400L));
+    assertThat(log.get(2).time()).isIn(ImmutableSet.of(500L, 600L));
     assertThat(log.get(3)).isEqualTo(logEntry(1000, SWITCH_TO_REAL_TIME));
     assertThat(log.get(4).eventType()).isEqualTo(SWITCH_TO_SIM_TIME);
-    assertThat(log.get(4).time()).isIn(ImmutableSet.of(1100L, 1200L));
+    assertThat(log.get(4).time()).isIn(ImmutableSet.of(1300L, 1400L));
     assertThat(log.get(5)).isEqualTo(logEntry(3000, SWITCH_TO_REAL_TIME));
   }
 
@@ -169,7 +171,10 @@ public class AgentTest {
       getPDPModel().getEventAPI().addListener(new Listener() {
         @Override
         public void handleEvent(Event e) {
-          simSolver.get().solve(SolveArgs.create());
+          simSolver.get()
+            .solve(SolveArgs.create()
+              .useCurrentRoutes(
+                ImmutableList.of(ImmutableList.<Parcel>of())));
         }
       }, PDPModelEventType.NEW_PARCEL);
     }

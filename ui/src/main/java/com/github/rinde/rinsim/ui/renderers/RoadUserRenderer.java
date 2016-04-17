@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,11 +44,14 @@ public final class RoadUserRenderer extends AbstractCanvasRenderer {
 
   private final RoadModel model;
   private final boolean useEncirclement;
+  private final boolean useTextLabel;
   private final UiSchema uiSchema;
 
-  RoadUserRenderer(RoadModel rm, UiSchema schema, boolean encirclement) {
+  RoadUserRenderer(RoadModel rm, UiSchema schema, boolean encirclement,
+      boolean textLabel) {
     model = rm;
     useEncirclement = encirclement;
+    useTextLabel = textLabel;
     uiSchema = schema;
   }
 
@@ -81,15 +84,21 @@ public final class RoadUserRenderer extends AbstractCanvasRenderer {
           if (useEncirclement) {
             gc.setForeground(gc.getBackground());
             gc.drawOval((int) (vp.origin.x + (p.x - vp.rect.min.x) * vp.scale)
-                - outerRadius, (int) (vp.origin.y + (p.y - vp.rect.min.y)
-                    * vp.scale)
-                    - outerRadius,
-                2 * outerRadius, 2 * outerRadius);
+              - outerRadius,
+              (int) (vp.origin.y + (p.y - vp.rect.min.y)
+                * vp.scale)
+                - outerRadius,
+              2 * outerRadius, 2 * outerRadius);
           }
           gc.fillOval((int) (vp.origin.x + (p.x - vp.rect.min.x) * vp.scale)
-              - radius, (int) (vp.origin.y + (p.y - vp.rect.min.y) * vp.scale)
-                  - radius,
-              2 * radius, 2 * radius);
+            - radius,
+            (int) (vp.origin.y + (p.y - vp.rect.min.y) * vp.scale)
+              - radius,
+            2 * radius, 2 * radius);
+        }
+
+        if (useTextLabel) {
+          gc.drawText(entry.getKey().toString(), x, y, true);
         }
 
       }
@@ -123,6 +132,8 @@ public final class RoadUserRenderer extends AbstractCanvasRenderer {
 
     abstract boolean useEncirclement();
 
+    abstract boolean useTextLabel();
+
     abstract ImmutableMap<Class<?>, RGB> colorMap();
 
     abstract ImmutableMap<Class<?>, String> imageMap();
@@ -133,7 +144,12 @@ public final class RoadUserRenderer extends AbstractCanvasRenderer {
      */
     @CheckReturnValue
     public Builder withCircleAroundObjects() {
-      return create(true, colorMap(), imageMap());
+      return create(true, useTextLabel(), colorMap(), imageMap());
+    }
+
+    @CheckReturnValue
+    public Builder withToStringLabel() {
+      return create(useEncirclement(), true, colorMap(), imageMap());
     }
 
     /**
@@ -155,11 +171,12 @@ public final class RoadUserRenderer extends AbstractCanvasRenderer {
     @CheckReturnValue
     public Builder withColorAssociation(Class<?> type, RGB rgb) {
       return create(useEncirclement(),
-          ImmutableMap.<Class<?>, RGB>builder()
-              .putAll(colorMap())
-              .put(type, rgb)
-              .build(),
-          imageMap());
+        useTextLabel(),
+        ImmutableMap.<Class<?>, RGB>builder()
+          .putAll(colorMap())
+          .put(type, rgb)
+          .build(),
+        imageMap());
     }
 
     /**
@@ -172,11 +189,11 @@ public final class RoadUserRenderer extends AbstractCanvasRenderer {
      */
     @CheckReturnValue
     public Builder withImageAssociation(Class<?> type, String fileName) {
-      return create(useEncirclement(), colorMap(),
-          ImmutableMap.<Class<?>, String>builder()
-              .putAll(imageMap())
-              .put(type, fileName)
-              .build());
+      return create(useEncirclement(), useTextLabel(), colorMap(),
+        ImmutableMap.<Class<?>, String>builder()
+          .putAll(imageMap())
+          .put(type, fileName)
+          .build());
     }
 
     @Override
@@ -184,24 +201,26 @@ public final class RoadUserRenderer extends AbstractCanvasRenderer {
       final RoadModel rm = dependencyProvider.get(RoadModel.class);
 
       final UiSchema uis = new UiSchema(colorMap().isEmpty()
-          && imageMap().isEmpty());
+        && imageMap().isEmpty());
       for (final Entry<Class<?>, RGB> entry : colorMap().entrySet()) {
         uis.add(entry.getKey(), entry.getValue());
       }
       for (final Entry<Class<?>, String> entry : imageMap().entrySet()) {
         uis.add(entry.getKey(), entry.getValue());
       }
-      return new RoadUserRenderer(rm, uis, useEncirclement());
+      return new RoadUserRenderer(rm, uis, useEncirclement(), useTextLabel());
     }
 
     static Builder create() {
-      return create(false, ImmutableMap.<Class<?>, RGB>of(),
-          ImmutableMap.<Class<?>, String>of());
+      return create(false, false, ImmutableMap.<Class<?>, RGB>of(),
+        ImmutableMap.<Class<?>, String>of());
     }
 
-    static Builder create(boolean circle, ImmutableMap<Class<?>, RGB> colMap,
+    static Builder create(boolean circle, boolean label,
+        ImmutableMap<Class<?>, RGB> colMap,
         ImmutableMap<Class<?>, String> imgMap) {
-      return new AutoValue_RoadUserRenderer_Builder(circle, colMap, imgMap);
+      return new AutoValue_RoadUserRenderer_Builder(circle, label, colMap,
+        imgMap);
     }
   }
 

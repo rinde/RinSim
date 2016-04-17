@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,19 +55,19 @@ public final class StateMachines {
     final Map<State<?, ?>, Integer> idMap = newHashMap();
     for (final State<?, ?> s : allStates) {
       builder.append(NODE).append(id).append(LABEL_OPEN).append(s.name())
-          .append(LABEL_CLOSE);
+        .append(LABEL_CLOSE);
       idMap.put(s, id);
       id++;
     }
     builder.append(NODE).append(id).append(NODE_DEFINITION);
     builder.append(NODE).append(id).append(CONN).append(NODE)
-        .append(idMap.get(fsm.startState)).append(NL);
+      .append(idMap.get(fsm.startState)).append(NL);
 
     for (final Cell<?, ?, ?> cell : fsm.transitionTable.cellSet()) {
       final int id1 = idMap.get(cell.getRowKey());
       final int id2 = idMap.get(cell.getValue());
       builder.append(NODE).append(id1).append(CONN).append(NODE).append(id2)
-          .append(LABEL_OPEN).append(cell.getColumnKey()).append(LABEL_CLOSE);
+        .append(LABEL_OPEN).append(cell.getColumnKey()).append(LABEL_CLOSE);
     }
     builder.append(FILE_CLOSE);
     return builder.toString();

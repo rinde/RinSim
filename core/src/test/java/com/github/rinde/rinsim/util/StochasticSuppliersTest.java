@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,7 @@ public class StochasticSuppliersTest {
   boolean chiSquare(List<? extends Number> expectations,
       List<? extends Number> observations, double confidence) {
     final double chi = TestUtils.chiSquareTest(Doubles.toArray(expectations),
-        Longs.toArray(observations));
+      Longs.toArray(observations));
     return !(chi < confidence);
   }
 
@@ -76,7 +76,7 @@ public class StochasticSuppliersTest {
   @Test
   public void testCheckedSupplier() {
     final Predicate<Double> positive = Range.closedOpen(0d,
-        Double.POSITIVE_INFINITY);
+      Double.POSITIVE_INFINITY);
 
     checked(constant(0d), positive).get(0);
     checked(constant(453453453.34), positive).get(0);
@@ -104,17 +104,17 @@ public class StochasticSuppliersTest {
    */
   @Test
   public void testNormalScaleMean() {
-    final double[] means = new double[] { 1d, 2d, 3d, 10d, 100d };
-    final double[] sds = new double[] { 1d, 1d, 3d, 5d, 100d };
+    final double[] means = new double[] {1d, 2d, 3d, 10d, 100d};
+    final double[] sds = new double[] {1d, 1d, 3d, 5d, 100d};
 
     for (int i = 0; i < means.length; i++) {
       final StochasticSupplier<Double> ss = StochasticSuppliers.normal()
-          .mean(means[i])
-          .std(sds[i])
-          .lowerBound(0)
-          .scaleMean()
-          .redrawWhenOutOfBounds()
-          .buildDouble();
+        .mean(means[i])
+        .std(sds[i])
+        .lowerBound(0)
+        .scaleMean()
+        .redrawWhenOutOfBounds()
+        .buildDouble();
 
       final RandomGenerator rng = new MersenneTwister(123);
       final SummaryStatistics stats = new SummaryStatistics();

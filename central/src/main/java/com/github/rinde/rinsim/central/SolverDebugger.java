@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,13 +41,14 @@ public final class SolverDebugger implements Solver {
   }
 
   @Override
-  public ImmutableList<ImmutableList<Parcel>> solve(GlobalStateObject state) {
+  public ImmutableList<ImmutableList<Parcel>> solve(GlobalStateObject state)
+      throws InterruptedException {
     if (print) {
       System.out.println(state);
     }
     inputs.add(state);
     final ImmutableList<ImmutableList<Parcel>> result = delegate
-        .solve(state);
+      .solve(state);
     outputs.add(result);
     if (print) {
       System.out.println(result);

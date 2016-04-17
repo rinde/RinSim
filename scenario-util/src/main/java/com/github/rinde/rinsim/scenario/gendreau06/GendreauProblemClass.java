@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ public enum GendreauProblemClass implements ProblemClass {
    */
   public final int vehicles;
 
-  private GendreauProblemClass(long d, long f, int v) {
+  GendreauProblemClass(long d, long f, int v) {
     duration = d;
     frequency = f;
     vehicles = v;
@@ -85,7 +85,7 @@ public enum GendreauProblemClass implements ProblemClass {
       }
     }
     throw new IllegalArgumentException(
-        "There is no problem class with: minutes: " + minutes + ", frequency: "
-            + frequency);
+      "There is no problem class with: minutes: " + minutes + ", frequency: "
+        + frequency);
   }
 }

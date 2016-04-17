@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -105,7 +105,8 @@ public abstract class TimeWindow implements Serializable {
    */
   public static TimeWindow create(long begin, long end) {
     checkArgument(begin >= 0, "Time must be non-negative.");
-    checkArgument(begin <= end, "Begin can not be later than end.");
+    checkArgument(begin <= end, "Begin (%s) can not be later than end (%s).",
+      begin, end);
     return new AutoValue_TimeWindow(begin, end);
   }
 

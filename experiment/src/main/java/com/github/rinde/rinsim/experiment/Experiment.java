@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,19 +18,23 @@ package com.github.rinde.rinsim.experiment;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Verify.verifyNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
 import java.io.PrintStream;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.annotation.Nullable;
 
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
@@ -43,8 +47,6 @@ import com.github.rinde.rinsim.pdptw.common.StatsTracker;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.ScenarioController;
 import com.github.rinde.rinsim.scenario.ScenarioIO;
-import com.github.rinde.rinsim.scenario.TimedEvent;
-import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.util.StochasticSupplier;
 import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
@@ -52,8 +54,12 @@ import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ComparisonChain;
+import com.google.common.collect.ContiguousSet;
+import com.google.common.collect.DiscreteDomain;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Range;
 import com.google.common.collect.Sets;
 
 /**
@@ -99,8 +105,7 @@ import com.google.common.collect.Sets;
  * @author Rinde van Lon
  */
 public final class Experiment {
-  // TODO add strict mode which checks whether there are not too many
-  // vehicles/parcels/depots?
+  static final Logger LOGGER = LoggerFactory.getLogger(Experiment.class);
 
   enum Computers implements Supplier<Computer> {
     LOCAL {
@@ -120,13 +125,11 @@ public final class Experiment {
   private Experiment() {}
 
   /**
-   * Create an experiment with the specified {@link ObjectiveFunction}.
-   * @param objectiveFunction The objective function which is used to evaluate
-   *          all simulation runs.
-   * @return An {@link Builder} instance as per the builder pattern.
+   * Start building a new experiment.
+   * @return A new {@link Builder} instance.
    */
-  public static Builder build(ObjectiveFunction objectiveFunction) {
-    return new Builder(objectiveFunction);
+  public static Builder builder() {
+    return new Builder();
   }
 
   /**
@@ -134,28 +137,20 @@ public final class Experiment {
    * @param scenario The scenario to run on.
    * @param configuration The configuration to use.
    * @param seed The seed of the run.
-   * @param objFunc The {@link ObjectiveFunction} to use.
    * @param showGui If <code>true</code> enables the gui.
    * @param postProcessor The post processor to use for this run.
    * @param uic The UICreator to use.
    * @return The {@link SimulationResult} generated in the run.
    */
   public static SimulationResult singleRun(Scenario scenario,
-      MASConfiguration configuration, long seed, ObjectiveFunction objFunc,
-      boolean showGui, PostProcessor<?> postProcessor,
-      @Nullable ModelBuilder<?, ?> uic) {
+      MASConfiguration configuration, long seed, boolean showGui,
+      PostProcessor<?> postProcessor, @Nullable ModelBuilder<?, ?> uic) {
 
     final ExperimentRunner er = new ExperimentRunner(SimArgs.create(scenario,
-        configuration, seed, objFunc, showGui, postProcessor, uic));
+      configuration, seed, 0, showGui, postProcessor, uic));
     final SimulationResult res = er.call();
     checkState(res != null);
     return res;
-  }
-
-  @SuppressWarnings("unchecked")
-  static <T extends TimedEvent> ScenarioController.Builder add(
-      ScenarioController.Builder b, Class<T> type, TimedEventHandler<?> h) {
-    return b.withEventHandler(type, (TimedEventHandler<T>) h);
   }
 
   /**
@@ -166,27 +161,23 @@ public final class Experiment {
    * @return The {@link Simulator} instance.
    */
   @VisibleForTesting
-  static Simulator init(Scenario scenario,
-      MASConfiguration config, long seed, boolean showGui,
-      Optional<ModelBuilder<?, ?>> uiCreator) {
+  static Simulator init(Scenario scenario, MASConfiguration config, long seed,
+      boolean showGui, Optional<ModelBuilder<?, ?>> uiCreator) {
 
-    ScenarioController.Builder scenContrBuilder = ScenarioController.builder(
+    final ScenarioController.Builder scenContrBuilder =
+      ScenarioController.builder(
         scenario)
-        .withIgnoreRedundantHandlers(true);
+        .withIgnoreRedundantHandlers(true)
+        .withEventHandlers(config.getEventHandlers());
 
-    for (final Entry<Class<? extends TimedEvent>, TimedEventHandler<?>> entry : config
-        .getEventHandlers().entrySet()) {
-      scenContrBuilder =
-          add(scenContrBuilder, entry.getKey(), entry.getValue());
-    }
     final Simulator.Builder simBuilder = Simulator.builder()
-        .setRandomSeed(seed)
-        .addModel(scenContrBuilder)
-        .addModels(config.getModels());
+      .setRandomSeed(seed)
+      .addModel(scenContrBuilder)
+      .addModels(config.getModels());
 
     final boolean hasStatsTracker =
-        containsStatisticsProvider(scenContrBuilder.getChildren())
-            || containsStatisticsProvider(config.getModels());
+      containsStatisticsProvider(scenContrBuilder.getChildren())
+        || containsStatisticsProvider(config.getModels());
 
     if (!hasStatsTracker) {
       simBuilder.addModel(StatsTracker.builder());
@@ -202,19 +193,23 @@ public final class Experiment {
 
   static Object perform(SimArgs args) {
     final Simulator sim = Experiment.init(args.getScenario(),
-        args.getMasConfig(), args.getRandomSeed(), args.isShowGui(),
-        args.getUiCreator());
+      args.getMasConfig(), args.getRandomSeed(), args.isShowGui(),
+      args.getUiCreator());
 
     try {
       sim.start();
       final Object resultObject =
-          args.getPostProcessor().collectResults(sim, args);
+        args.getPostProcessor().collectResults(sim, args);
       checkNotNull(resultObject, "PostProcessor may not return null.");
       return resultObject;
 
     } catch (final Exception e) {
       final FailureStrategy strategy =
-          args.getPostProcessor().handleFailure(e, sim, args);
+        args.getPostProcessor().handleFailure(e, sim, args);
+      checkNotNull(strategy,
+        "An exception (%s) occured in the simulation but the PostProcessor %s "
+          + "failed to handle the failure.",
+        e.toString(), args.getPostProcessor());
 
       if (strategy == FailureStrategy.INCLUDE) {
         return args.getPostProcessor().collectResults(sim, args);
@@ -240,11 +235,18 @@ public final class Experiment {
    * @author Rinde van Lon
    */
   public static final class Builder {
-    final ObjectiveFunction objectiveFunction;
+    static final List<SimulationProperty> DEFAULT_EXPERIMENT_ORDERING =
+      ImmutableList.of(
+        SimulationProperty.CONFIG,
+        SimulationProperty.SCENARIO,
+        SimulationProperty.REPS,
+        SimulationProperty.SEED_REPS);
+
     final Set<MASConfiguration> configurationsSet;
     final ImmutableSet.Builder<Scenario> scenariosBuilder;
     Optional<FileProvider.Builder> scenarioProviderBuilder;
     Function<Path, ? extends Scenario> fileReader;
+    List<SimulationProperty> experimentOrdering;
 
     final List<ResultListener> resultListeners;
     @Nullable
@@ -252,14 +254,15 @@ public final class Experiment {
     PostProcessor<?> postProc;
     boolean showGui;
     int repetitions;
+    int seedRepetitions;
     long masterSeed;
     int numThreads;
     int numBatches;
+    long warmupPeriodMs;
 
     private Supplier<Computer> computerType;
 
-    Builder(ObjectiveFunction objFunc) {
-      objectiveFunction = objFunc;
+    Builder() {
       configurationsSet = newLinkedHashSet();
       scenariosBuilder = ImmutableSet.builder();
       scenarioProviderBuilder = Optional.absent();
@@ -267,11 +270,13 @@ public final class Experiment {
       resultListeners = newArrayList();
       showGui = false;
       repetitions = 1;
+      seedRepetitions = 1;
       masterSeed = 0L;
       numThreads = Runtime.getRuntime().availableProcessors();
       numBatches = 1;
       computerType = Computers.LOCAL;
       postProc = PostProcessors.defaultPostProcessor();
+      experimentOrdering = DEFAULT_EXPERIMENT_ORDERING;
     }
 
     /**
@@ -281,20 +286,47 @@ public final class Experiment {
      */
     public Builder repeat(int times) {
       checkArgument(times > 0,
-          "The number of repetitions must be strictly positive, was %s.",
-          times);
+        "The number of repetitions must be strictly positive, was %s.",
+        times);
       repetitions = times;
       return this;
     }
 
     /**
-     * Enable the GUI for each simulation. When a large number of simulations is
-     * performed this may slow down the experiment significantly. The GUI can
-     * not be shown when more than one thread is used.
+     * Sets the number of repetitions for each combination of
+     * {@link MASConfiguration}, {@link Scenario} and <code>seed</code>. This
+     * allows to run exactly the same simulation twice, generally there are two
+     * use cases for doing this:
+     * <ol>
+     * <li>To test whether the simulation is deterministic, each simulation run
+     * with the same input should give exactly the same output.</li>
+     * <li>If the simulation is known to be non-deterministic (e.g. because of
+     * hardware dependence), the influence of the non-determinism on the results
+     * can be evaluated.</li>
+     * </ol>
+     * @param times The number of times to repeat simulations with the same
+     *          {@link MASConfiguration}, {@link Scenario} and <code>seed</code>
+     *          .
      * @return This, as per the builder pattern.
      */
-    public Builder showGui() {
-      showGui = true;
+    public Builder repeatSeed(int times) {
+      checkArgument(times > 0,
+        "The number of seed repetitions must be strictly positive, was %s.",
+        times);
+      seedRepetitions = times;
+      return this;
+    }
+
+    /**
+     * Enable or disable the GUI for each simulation. When a large number of
+     * simulations is performed this may slow down the experiment significantly.
+     * The GUI can not be shown when more than one thread is used.
+     * @param show Show the GUI for each simulation if <code>true</code>, or
+     *          hide it if <code>false</code>.
+     * @return This, as per the builder pattern.
+     */
+    public Builder showGui(boolean show) {
+      showGui = show;
       return this;
     }
 
@@ -308,7 +340,84 @@ public final class Experiment {
      */
     public Builder showGui(ModelBuilder<?, ?> uic) {
       uiCreator = uic;
-      return showGui();
+      return showGui(true);
+    }
+
+    /**
+     * Specifies the ordering of simulations. The resulting order of simulations
+     * is the order in which the simulations are offered to the executor. It
+     * depends on the executor's behavior whether this ordering is respected. In
+     * case the experiment is executed locally, the execution order <i>will</i>
+     * be respected, in a distributed setting this may not always be the case.
+     * <p>
+     * For example, consider the following settings:
+     * <ul>
+     * <li>{@link #repeat(int)} is set to 3.</li>
+     * <li>{@link #repeatSeed(int)} is set to 2.</li>
+     * <li>The ordering starts with <code>[{@link SimulationProperty#SEED_REPS},
+     *  {@link SimulationProperty#REPS}, ..]</code></li>
+     * </ul>
+     * The result will be that simulations first ordered by their seed creation
+     * order, and second by their repetition number:
+     * <ol>
+     * <li>seed0, rep0, ..</li>
+     * <li>seed0, rep1, ..</li>
+     * <li>seed0, rep2, ..</li>
+     * <li>seed1, rep0, ..</li>
+     * <li>seed1, rep1, ..</li>
+     * <li>seed1, rep2, ..</li>
+     * </ol>
+     * The default order is {@link SimulationProperty#CONFIG},
+     * {@link SimulationProperty#SCENARIO}, {@link SimulationProperty#REPS},
+     * {@link SimulationProperty#SEED_REPS}.
+     *
+     * @param experimentOrder The order of simulation creation, all
+     *          {@link SimulationProperty}s must be specified.
+     * @return This, as per the builder pattern.
+     */
+    public Builder withOrdering(SimulationProperty... experimentOrder) {
+      return withOrdering(ImmutableList.copyOf(checkNotNull(experimentOrder)));
+    }
+
+    /**
+     * Specifies the ordering of simulations. The resulting order of simulations
+     * is the order in which the simulations are offered to the executor. It
+     * depends on the executor's behavior whether this ordering is respected. In
+     * case the experiment is executed locally, the execution order <i>will</i>
+     * be respected, in a distributed setting this may not always be the case.
+     * <p>
+     * For example, consider the following settings:
+     * <ul>
+     * <li>{@link #repeat(int)} is set to 3.</li>
+     * <li>{@link #repeatSeed(int)} is set to 2.</li>
+     * <li>The ordering starts with <code>[{@link SimulationProperty#SEED_REPS},
+     *  {@link SimulationProperty#REPS}, ..]</code></li>
+     * </ul>
+     * The result will be that simulations first ordered by their seed creation
+     * order, and second by their repetition number:
+     * <ol>
+     * <li>seed0, rep0, ..</li>
+     * <li>seed0, rep1, ..</li>
+     * <li>seed0, rep2, ..</li>
+     * <li>seed1, rep0, ..</li>
+     * <li>seed1, rep1, ..</li>
+     * <li>seed1, rep2, ..</li>
+     * </ol>
+     * The default order is {@link SimulationProperty#CONFIG},
+     * {@link SimulationProperty#SCENARIO}, {@link SimulationProperty#REPS},
+     * {@link SimulationProperty#SEED_REPS}.
+     *
+     * @param experimentOrder The order of simulation creation, all
+     *          {@link SimulationProperty}s must be specified.
+     * @return This, as per the builder pattern.
+     */
+    public Builder withOrdering(Iterable<SimulationProperty> experimentOrder) {
+      checkArgument(
+        Iterables.size(experimentOrder) == SimulationProperty.values().length,
+        "Each experiment ordering should be specified exactly once, is: %s.",
+        experimentOrder);
+      experimentOrdering = ImmutableList.copyOf(experimentOrder);
+      return this;
     }
 
     /**
@@ -334,7 +443,7 @@ public final class Experiment {
     public Builder addConfigurations(Iterable<MASConfiguration> configs) {
       final Set<MASConfiguration> newConfigs = ImmutableSet.copyOf(configs);
       checkArgument(Sets.intersection(configurationsSet, newConfigs)
-          .isEmpty());
+        .isEmpty());
       configurationsSet.addAll(newConfigs);
       return this;
     }
@@ -387,13 +496,13 @@ public final class Experiment {
 
     /**
      * Specify the number of threads to use for computing the experiments, the
-     * default is <code>1</code>.
+     * default equals {@link Runtime#availableProcessors()}.
      * @param threads The number of threads to use.
      * @return This, as per the builder pattern.
      */
     public Builder withThreads(int threads) {
       checkArgument(threads > 0,
-          "Only a positive number of threads is allowed, was %s.", threads);
+        "Only a positive number of threads is allowed, was %s.", threads);
       numThreads = threads;
       return this;
     }
@@ -405,6 +514,22 @@ public final class Experiment {
      */
     public Builder withRandomSeed(long seed) {
       masterSeed = seed;
+      return this;
+    }
+
+    /**
+     * Set the warmup period for the experiments. This is the number of
+     * milliseconds that the experiment will be run until it will be
+     * interrupted. After the warmup period the experiment will start again
+     * without being interrupted.
+     * @param warmupPeriodMillis The length of the warmup period. Must be
+     *          positive, if <code>0</code> no warmup will be performed.
+     * @return This, as per the builder pattern.
+     */
+    public Builder withWarmup(long warmupPeriodMillis) {
+      checkArgument(warmupPeriodMillis >= 0,
+        "Warmup period must be positive, was %s.", warmupPeriodMillis);
+      warmupPeriodMs = warmupPeriodMillis;
       return this;
     }
 
@@ -430,7 +555,7 @@ public final class Experiment {
      */
     public Builder numBatches(int num) {
       checkArgument(num > 0,
-          "The number of batches must be strictly positive, was %s.", num);
+        "The number of batches must be strictly positive, was %s.", num);
       numBatches = num;
       return this;
     }
@@ -451,10 +576,9 @@ public final class Experiment {
      * distributed fashion:
      * <ul>
      * <li>{@link #withThreads(int)}</li>
-     * <li>{@link #showGui()}</li>
+     * <li>{@link #showGui(boolean)}</li>
      * <li>{@link #showGui(ModelBuilder)}</li>
      * </ul>
-     *
      * @return This, as per the builder pattern.
      */
     public Builder computeDistributed() {
@@ -488,7 +612,7 @@ public final class Experiment {
         @Override
         public Computer get() {
           return new DryRunComputer(originalComputerType, verbose, stream,
-              error);
+            error);
         }
       };
       return this;
@@ -515,11 +639,33 @@ public final class Experiment {
      */
     public ExperimentResults perform() {
       checkArgument(numThreads == 1 || !showGui,
-          "The GUI can not be shown when using more than one thread.");
+        "The GUI can not be shown when using more than one thread.");
       final List<Long> seeds = generateSeeds();
 
+      final ImmutableSet<Scenario> scenarios = getAllScenarios();
+      final ImmutableSet<SimArgs> runners =
+        createFactorialSetup(seeds, scenarios);
+
+      if (warmupPeriodMs > 0) {
+        checkArgument(computerType == Computers.LOCAL,
+          "Warmup can only be used when experiment is performed locally.");
+        checkArgument(!showGui,
+          "Gui can not be shown in combination with a warmup period.");
+        LOGGER.info("Start warmup.");
+
+        new WarmupComputer(computerType.get()).compute(this, runners);
+        LOGGER.info("Warmup finished. {}");
+      }
+
+      for (final ResultListener rl : resultListeners) {
+        rl.startComputing(runners.size(),
+          ImmutableSet.copyOf(configurationsSet),
+          scenarios,
+          repetitions,
+          seedRepetitions);
+
+      }
       // run Forrest run!
-      final ImmutableSet<SimArgs> runners = createFactorialSetup(seeds);
       return computerType.get().compute(this, runners);
     }
 
@@ -533,6 +679,7 @@ public final class Experiment {
      */
     public Optional<ExperimentResults> perform(PrintStream out,
         String... args) {
+      LOGGER.trace("perform {}", Arrays.toString(args));
       final Optional<String> error = ExperimentCli.safeExecute(this, args);
       if (error.isPresent()) {
         out.println(error.get());
@@ -555,7 +702,7 @@ public final class Experiment {
 
     ImmutableSet<Scenario> getAllScenarios() {
       final Set<Scenario> scenarios = newLinkedHashSet(scenariosBuilder
-          .build());
+        .build());
       if (scenarioProviderBuilder.isPresent()) {
         scenarios.addAll(scenarioProviderBuilder.get().build(fileReader).get());
       }
@@ -566,29 +713,52 @@ public final class Experiment {
       final Set<Scenario> scenarios = scenariosBuilder.build();
       if (scenarioProviderBuilder.isPresent()) {
         return scenarios.size()
-            + scenarioProviderBuilder.get().build().get().size();
+          + scenarioProviderBuilder.get().build().get().size();
       }
       return scenarios.size();
     }
 
-    private ImmutableSet<SimArgs> createFactorialSetup(List<Long> seeds) {
-      final Set<Scenario> scenarios = getAllScenarios();
+    private ImmutableSet<SimArgs> createFactorialSetup(List<Long> seeds,
+        ImmutableSet<Scenario> scenarios) {
+      final ImmutableSet<MASConfiguration> conf =
+        ImmutableSet.copyOf(configurationsSet);
 
-      final ImmutableSet<MASConfiguration> conf = ImmutableSet
-          .copyOf(configurationsSet);
+      final ContiguousSet<Integer> seedReps = ContiguousSet.create(
+        Range.closedOpen(0, seedRepetitions), DiscreteDomain.integers());
+      final ImmutableSet<Long> seedSet = ImmutableSet.copyOf(seeds);
 
       checkArgument(!scenarios.isEmpty(), "At least one scenario is required.");
       checkArgument(!conf.isEmpty(), "At least one configuration is required.");
-      final ImmutableSet.Builder<SimArgs> runnerBuilder = ImmutableSet
-          .builder();
-      for (final MASConfiguration configuration : conf) {
-        for (final Scenario scenario : scenarios) {
-          for (int i = 0; i < repetitions; i++) {
-            final long seed = seeds.get(i);
-            runnerBuilder.add(SimArgs.create(scenario, configuration,
-                seed, objectiveFunction, showGui, postProc, uiCreator));
+      final ImmutableSet.Builder<SimArgs> runnerBuilder =
+        ImmutableSet.builder();
+
+      final List<Set<? extends Object>> input = new ArrayList<>();
+      for (final SimulationProperty eo : experimentOrdering) {
+        input.add(eo.select(configurationsSet, scenarios, seedSet, seedReps));
+      }
+
+      final Set<List<Object>> product = Sets.cartesianProduct(input);
+
+      for (final List<Object> args : product) {
+        Scenario s = null;
+        MASConfiguration c = null;
+        Optional<Long> seed = Optional.absent();
+        Optional<Integer> rep = Optional.absent();
+        for (final Object arg : args) {
+          if (arg instanceof Scenario) {
+            s = (Scenario) arg;
+          } else if (arg instanceof MASConfiguration) {
+            c = (MASConfiguration) arg;
+          } else if (arg instanceof Long) {
+            seed = Optional.of((Long) arg);
+          } else if (arg instanceof Integer) {
+            rep = Optional.of((Integer) arg);
           }
         }
+
+        runnerBuilder.add(SimArgs.create(verifyNotNull(s), verifyNotNull(c),
+          seed.get(), rep.get(), showGui, postProc,
+          uiCreator));
       }
       return runnerBuilder.build();
     }
@@ -600,6 +770,7 @@ public final class Experiment {
       }
       return ImmutableList.copyOf(numbers);
     }
+
   }
 
   /**
@@ -627,9 +798,9 @@ public final class Experiment {
     public abstract long getRandomSeed();
 
     /**
-     * @return the objectiveFunction
+     * @return The seed repetition number.
      */
-    public abstract ObjectiveFunction getObjectiveFunction();
+    public abstract int getRepetition();
 
     /**
      * @return the showGui
@@ -649,27 +820,83 @@ public final class Experiment {
     @Override
     public String toString() {
       return new StringBuilder()
-          .append("SimArgs{problemClass=")
-          .append(getScenario().getProblemClass().toString())
-          .append(",instancedId=")
-          .append(getScenario().getProblemInstanceId())
-          .append(",masConfig=")
-          .append(getMasConfig().getName())
-          .append(",objectiveFunction=")
-          .append(getObjectiveFunction().toString())
-          .append(",randomSeed=")
-          .append(getRandomSeed())
-          .append(",postProcessor=")
-          .append(getPostProcessor())
-          .append("}")
-          .toString();
+        .append("SimArgs{problemClass=")
+        .append(getScenario().getProblemClass().toString())
+        .append(",instancedId=")
+        .append(getScenario().getProblemInstanceId())
+        .append(",masConfig=")
+        .append(getMasConfig().getName())
+        .append(",randomSeed=")
+        .append(getRandomSeed())
+        .append(",repetition=")
+        .append(getRepetition())
+        .append(",postProcessor=")
+        .append(getPostProcessor())
+        .append("}")
+        .toString();
     }
 
     static SimArgs create(Scenario s, MASConfiguration m, long seed,
-        ObjectiveFunction obj, boolean gui, PostProcessor<?> pp,
+        int repetition, boolean gui, PostProcessor<?> pp,
         @Nullable ModelBuilder<?, ?> uic) {
-      return new AutoValue_Experiment_SimArgs(s, m, seed, obj, gui, pp,
-          Optional.<ModelBuilder<?, ?>>fromNullable(uic));
+      return new AutoValue_Experiment_SimArgs(s, m, seed, repetition, gui, pp,
+        Optional.<ModelBuilder<?, ?>>fromNullable(uic));
+    }
+
+    static Function<SimArgs, MASConfiguration> toConfig() {
+      return ToConfig.INSTANCE;
+    }
+
+    static Function<SimArgs, Scenario> toScenario() {
+      return ToScenario.INSTANCE;
+    }
+
+    static Function<SimArgs, Long> toSeed() {
+      return ToSeed.INSTANCE;
+    }
+
+    static Function<SimArgs, Integer> toRepeat() {
+      return ToRepeat.INSTANCE;
+    }
+
+    private enum ToConfig implements Function<SimArgs, MASConfiguration> {
+      INSTANCE {
+        @Nullable
+        @Override
+        public MASConfiguration apply(@Nullable SimArgs input) {
+          return verifyNotNull(input).getMasConfig();
+        }
+      }
+    }
+
+    private enum ToScenario implements Function<SimArgs, Scenario> {
+      INSTANCE {
+        @Nullable
+        @Override
+        public Scenario apply(@Nullable SimArgs input) {
+          return verifyNotNull(input).getScenario();
+        }
+      }
+    }
+
+    private enum ToSeed implements Function<SimArgs, Long> {
+      INSTANCE {
+        @Nullable
+        @Override
+        public Long apply(@Nullable SimArgs input) {
+          return verifyNotNull(input).getRandomSeed();
+        }
+      }
+    }
+
+    private enum ToRepeat implements Function<SimArgs, Integer> {
+      INSTANCE {
+        @Nullable
+        @Override
+        public Integer apply(@Nullable SimArgs input) {
+          return verifyNotNull(input).getRepetition();
+        }
+      }
     }
   }
 
@@ -679,8 +906,8 @@ public final class Experiment {
    * @author Rinde van Lon
    */
   @AutoValue
-  public abstract static class SimulationResult implements
-      Comparable<SimulationResult> {
+  public abstract static class SimulationResult
+      implements Comparable<SimulationResult> {
 
     SimulationResult() {}
 
@@ -698,11 +925,11 @@ public final class Experiment {
     public int compareTo(@Nullable SimulationResult o) {
       assert o != null;
       return ComparisonChain.start()
-          .compare(getSimArgs().getScenario().getProblemClass().getId(),
-              o.getSimArgs().getScenario().getProblemClass().getId())
-          .compare(getSimArgs().getScenario().getProblemInstanceId(),
-              o.getSimArgs().getScenario().getProblemInstanceId())
-          .result();
+        .compare(getSimArgs().getScenario().getProblemClass().getId(),
+          o.getSimArgs().getScenario().getProblemClass().getId())
+        .compare(getSimArgs().getScenario().getProblemInstanceId(),
+          o.getSimArgs().getScenario().getProblemInstanceId())
+        .result();
     }
 
     static SimulationResult create(SimArgs simArgs, Object simResult) {

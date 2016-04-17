@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import com.github.rinde.rinsim.core.model.time.RealtimeClockController.ClockMode
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
 import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 
 /**
@@ -55,8 +56,8 @@ public final class RealtimeClockLogger extends AbstractModelVoid
       @Override
       public void handleEvent(Event e) {
         log.add(LogEntry.create(clock.getCurrentTime(),
-            clock.getCurrentTime() + clock.getTickLength(),
-            clock.getClockMode(), e.getEventType()));
+          clock.getCurrentTime() + clock.getTickLength(),
+          clock.getClockMode(), e.getEventType()));
       }
     }, SWITCH_TO_REAL_TIME, SWITCH_TO_SIM_TIME, STARTED, STOPPED);
   }
@@ -66,6 +67,13 @@ public final class RealtimeClockLogger extends AbstractModelVoid
    */
   public List<LogEntry> getLog() {
     return Collections.unmodifiableList(log);
+  }
+
+  /**
+   * @return An immutable list of {@link RealtimeTickInfo} objects.
+   */
+  public ImmutableList<RealtimeTickInfo> getTickInfoList() {
+    return ((RealtimeModel) clock).getTickInfoList();
   }
 
   /**
@@ -131,7 +139,7 @@ public final class RealtimeClockLogger extends AbstractModelVoid
     static LogEntry create(long tickStart, long tickEnd, ClockMode cm,
         Enum<?> ce) {
       return new AutoValue_RealtimeClockLogger_LogEntry(
-          Range.closedOpen(tickStart, tickEnd), cm, ce);
+        Range.closedOpen(tickStart, tickEnd), cm, ce);
     }
   }
 
@@ -149,7 +157,7 @@ public final class RealtimeClockLogger extends AbstractModelVoid
     @Override
     public RealtimeClockLogger build(DependencyProvider dependencyProvider) {
       final RealtimeClockController c =
-          dependencyProvider.get(RealtimeClockController.class);
+        dependencyProvider.get(RealtimeClockController.class);
       return new RealtimeClockLogger(c);
     }
   }

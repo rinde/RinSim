@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,23 +69,23 @@ public final class SwarmDemo {
   public static void main(String[] args) {
     final String string = "AgentWise";
     final List<Point> points =
-        measureString(string, FONT_SIZE, FONT_SPACING, 0);
+      measureString(string, FONT_SIZE, FONT_SPACING, 0);
 
     final RandomGenerator rng = new MersenneTwister(RANDOM_SEED);
     final Simulator sim = Simulator.builder()
-        .addModel(RoadModelBuilders.plane()
-            .withMinPoint(MIN_POINT)
-            .withMaxPoint(MAX_POINT)
-            .withDistanceUnit(SI.METER)
-            .withSpeedUnit(NonSI.KILOMETERS_PER_HOUR)
-            .withMaxSpeed(MAX_SPEED))
-        .addModel(
-            View.builder()
-                .with(PlaneRoadModelRenderer.builder())
-                .with(VehicleRenderer.builder())
-                .with(DemoPanel.builder(string))
-                .withSpeedUp(SPEED_UP))
-        .build();
+      .addModel(RoadModelBuilders.plane()
+        .withMinPoint(MIN_POINT)
+        .withMaxPoint(MAX_POINT)
+        .withDistanceUnit(SI.METER)
+        .withSpeedUnit(NonSI.KILOMETERS_PER_HOUR)
+        .withMaxSpeed(MAX_SPEED))
+      .addModel(
+        View.builder()
+          .with(PlaneRoadModelRenderer.builder())
+          .with(VehicleRenderer.builder())
+          .with(DemoPanel.builder(string))
+          .withSpeedUp(SPEED_UP))
+      .build();
 
     for (final Point p : points) {
       sim.register(new Vehicle(p, rng));
@@ -126,7 +126,7 @@ public final class SwarmDemo {
     measureGC.setFont(newFont);
 
     final org.eclipse.swt.graphics.Point extent = measureGC
-        .textExtent(stringToDraw);
+      .textExtent(stringToDraw);
     measureGC.dispose();
 
     final Image image = new Image(display, extent.x, extent.y);
@@ -137,13 +137,13 @@ public final class SwarmDemo {
     gc.drawText(stringToDraw, 0, 0);
 
     final ImmutableList.Builder<Point> coordinateBuilder = ImmutableList
-        .builder();
+      .builder();
     for (int i = 0; i < image.getBounds().width; i++) {
       for (int j = vCorrection; j < image.getBounds().height; j++) {
         final int color = image.getImageData().getPixel(i, j);
         if (color < WHITE_THRESHOLD) {
           coordinateBuilder.add(new Point(i * spacing, (j - vCorrection)
-              * spacing));
+            * spacing));
         }
       }
     }
@@ -208,7 +208,7 @@ public final class SwarmDemo {
     private void doSetDestination(Point dest) {
       destPos = dest;
       speed = Point.distance(rm.get().getPosition(this), destPos)
-          / (LB + MUL * rng.nextDouble());
+        / (LB + MUL * rng.nextDouble());
     }
 
     /**

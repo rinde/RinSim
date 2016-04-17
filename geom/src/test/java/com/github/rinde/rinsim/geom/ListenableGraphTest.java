@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ public class ListenableGraphTest {
   public void testModifications() {
     ListenerEventHistory history = new ListenerEventHistory();
     ListenableGraph<LengthData> graph = new ListenableGraph<>(
-        new MultimapGraph<LengthData>());
+      new MultimapGraph<LengthData>());
     graph.getEventAPI().addListener(history, EventTypes.values());
     graph.getEventAPI().addListener(new GraphModificationChecker());
 
@@ -62,33 +62,33 @@ public class ListenableGraphTest {
 
     graph.addConnection(b, a, LengthData.create(2));
     assertEquals(asList(ADD_CONNECTION, ADD_CONNECTION),
-        history.getEventTypeHistory());
+      history.getEventTypeHistory());
 
     graph.addConnections(Arrays.<Connection<LengthData>>asList(
-        Connection.create(a, d, LengthData.create(10d)),
-        Connection.create(d, e, LengthData.create(7d))));
+      Connection.create(a, d, LengthData.create(10d)),
+      Connection.create(d, e, LengthData.create(7d))));
     assertEquals(
-        asList(ADD_CONNECTION, ADD_CONNECTION, ADD_CONNECTION, ADD_CONNECTION),
-        history.getEventTypeHistory());
+      asList(ADD_CONNECTION, ADD_CONNECTION, ADD_CONNECTION, ADD_CONNECTION),
+      history.getEventTypeHistory());
 
     graph.removeConnection(d, e);
     assertEquals(
-        asList(ADD_CONNECTION, ADD_CONNECTION, ADD_CONNECTION, ADD_CONNECTION,
-            REMOVE_CONNECTION),
-        history.getEventTypeHistory());
+      asList(ADD_CONNECTION, ADD_CONNECTION, ADD_CONNECTION, ADD_CONNECTION,
+        REMOVE_CONNECTION),
+      history.getEventTypeHistory());
 
     graph.setConnectionData(a, d, LengthData.create(16d));
     assertEquals(
-        asList(ADD_CONNECTION, ADD_CONNECTION, ADD_CONNECTION, ADD_CONNECTION,
-            REMOVE_CONNECTION, CHANGE_CONNECTION_DATA),
-        history.getEventTypeHistory());
+      asList(ADD_CONNECTION, ADD_CONNECTION, ADD_CONNECTION, ADD_CONNECTION,
+        REMOVE_CONNECTION, CHANGE_CONNECTION_DATA),
+      history.getEventTypeHistory());
 
     graph.removeNode(a);
     assertEquals(
-        asList(ADD_CONNECTION, ADD_CONNECTION, ADD_CONNECTION, ADD_CONNECTION,
-            REMOVE_CONNECTION, CHANGE_CONNECTION_DATA, REMOVE_CONNECTION,
-            REMOVE_CONNECTION, REMOVE_CONNECTION),
-        history.getEventTypeHistory());
+      asList(ADD_CONNECTION, ADD_CONNECTION, ADD_CONNECTION, ADD_CONNECTION,
+        REMOVE_CONNECTION, CHANGE_CONNECTION_DATA, REMOVE_CONNECTION,
+        REMOVE_CONNECTION, REMOVE_CONNECTION),
+      history.getEventTypeHistory());
 
     assertTrue(graph.isEmpty());
   }
@@ -99,9 +99,9 @@ public class ListenableGraphTest {
   @Test
   public void testMerge() {
     ListenableGraph<LengthData> graph1 = new ListenableGraph<>(
-        new MultimapGraph<LengthData>());
+      new MultimapGraph<LengthData>());
     ListenableGraph<LengthData> graph2 = new ListenableGraph<>(
-        new MultimapGraph<LengthData>());
+      new MultimapGraph<LengthData>());
 
     graph1.addConnection(a, b);
     graph1.addConnection(b, a);
@@ -115,19 +115,19 @@ public class ListenableGraphTest {
     graph1.merge(graph2);
 
     assertEquals(asList(ADD_CONNECTION, ADD_CONNECTION),
-        history.getEventTypeHistory());
+      history.getEventTypeHistory());
 
     assertEquals(2, history.getHistory().size());
     assertEquals(
-        new GraphEvent(ADD_CONNECTION, graph1, Connection.create(a, c,
-            Optional.<ConnectionData>absent())),
-        history
-            .getHistory().get(0));
+      new GraphEvent(ADD_CONNECTION, graph1, Connection.create(a, c,
+        Optional.<ConnectionData>absent())),
+      history
+        .getHistory().get(0));
     assertEquals(
-        new GraphEvent(ADD_CONNECTION, graph1, Connection.create(c, a,
-            Optional.<ConnectionData>absent())),
-        history
-            .getHistory().get(1));
+      new GraphEvent(ADD_CONNECTION, graph1, Connection.create(c, a,
+        Optional.<ConnectionData>absent())),
+      history
+        .getHistory().get(1));
   }
 
   static class GraphModificationChecker implements Listener {
@@ -138,21 +138,21 @@ public class ListenableGraphTest {
       if (e.getEventType() == ADD_CONNECTION) {
         assertTrue(ge.getGraph().hasConnection(ge.getConnection()));
         assertEquals(
-            ge.getConnection(),
-            ge.getGraph().getConnection(ge.getConnection().from(),
-                ge.getConnection().to()));
+          ge.getConnection(),
+          ge.getGraph().getConnection(ge.getConnection().from(),
+            ge.getConnection().to()));
       } else if (e.getEventType() == REMOVE_CONNECTION) {
         assertFalse(ge.getGraph().hasConnection(ge.getConnection().from(),
-            ge.getConnection().to()));
+          ge.getConnection().to()));
       } else if (e.getEventType() == CHANGE_CONNECTION_DATA) {
         assertTrue(ge.getGraph().hasConnection(ge.getConnection().from(),
-            ge.getConnection().to()));
+          ge.getConnection().to()));
         assertEquals(
-            ge.getConnection().data(),
-            ge.getGraph()
-                .getConnection(ge.getConnection().from(),
-                    ge.getConnection().to())
-                .data());
+          ge.getConnection().data(),
+          ge.getGraph()
+            .getConnection(ge.getConnection().from(),
+              ge.getConnection().to())
+            .data());
       }
 
     }

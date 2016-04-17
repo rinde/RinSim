@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -201,22 +201,22 @@ public final class TimeWindows {
       final long pickupToDeliveryTT = travelTimes.getShortestTravelTime(pickup,
         delivery);
       final long deliveryToDepotTT = travelTimes
-          .getTravelTimeToNearestDepot(delivery);
+        .getTravelTimeToNearestDepot(delivery);
 
       // PICKUP
       final long earliestPickupOpening = orderAnnounceTime;
       final long earliestPickupClosing = earliestPickupOpening;
 
       final long latestPickupClosing = endTime - deliveryToDepotTT
-          - pickupToDeliveryTT - parcelBuilder.getPickupDuration()
-          - parcelBuilder.getDeliveryDuration();
+        - pickupToDeliveryTT - parcelBuilder.getPickupDuration()
+        - parcelBuilder.getDeliveryDuration();
       final TimeWindow pickupTW = urgencyTimeWindow(earliestPickupOpening,
         earliestPickupClosing, latestPickupClosing, pickupUrgency,
         pickupTWLength);
 
       // DELIVERY
       final long earliestDeliveryOpening = pickupTW.begin() + pickupToDeliveryTT
-          + parcelBuilder.getPickupDuration();
+        + parcelBuilder.getPickupDuration();
       final long latestDeliveryOpening = endTime - deliveryToDepotTT;
 
       final long delOpen = deliveryOpening.get(rng.nextLong());
@@ -226,14 +226,14 @@ public final class TimeWindows {
       delOpening = Math.max(delOpening, earliestDeliveryOpening);
 
       final long earliestDeliveryClosing = pickupTW.end() + pickupToDeliveryTT
-          + parcelBuilder.getPickupDuration();
+        + parcelBuilder.getPickupDuration();
       final long latestDeliveryClosing = endTime - deliveryToDepotTT
-          - parcelBuilder.getDeliveryDuration();
+        - parcelBuilder.getDeliveryDuration();
 
       final double delFactor = deliveryLengthFactor.get(rng.nextLong());
       checkArgument(delFactor > 0d);
       long deliveryClosing = DoubleMath.roundToLong(pickupTW.length()
-          * delFactor,
+        * delFactor,
         RoundingMode.CEILING);
 
       if (minDeliveryLength.isPresent()) {

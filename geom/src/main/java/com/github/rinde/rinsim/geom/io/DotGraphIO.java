@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,11 +71,11 @@ public class DotGraphIO<E extends ConnectionData> extends
   static final String SPACE = " ";
 
   static final Splitter KEY_VAL_SPLITTER = Splitter.on(KEY_VAL_SEPARATOR)
-      .trimResults();
+    .trimResults();
   static final Splitter LIST_SPLITTER = Splitter.on(LIST_ITEM_SEPARATOR)
-      .trimResults();
+    .trimResults();
   static final Splitter CONN_SPLITTER = Splitter.on(CONN_SEPARATOR)
-      .trimResults();
+    .trimResults();
   static final Splitter DATA_SPLITTER = Splitter.on(DATA_START).limit(2);
 
   private final Predicate<Connection<?>> filter;
@@ -96,10 +96,10 @@ public class DotGraphIO<E extends ConnectionData> extends
     while ((line = reader.readLine()) != null) {
       if (line.contains(POS)) {
         final String nodeName = line.substring(0, line.indexOf(DATA_START))
-            .trim();
+          .trim();
         final String[] position = line.split(QUOTE)[1].split(",");
         final Point p = new Point(Double.parseDouble(position[0]),
-            Double.parseDouble(position[1]));
+          Double.parseDouble(position[1]));
         nodeMapping.put(nodeName, p);
       } else if (line.contains(CONN_SEPARATOR)) {
         // example:
@@ -114,10 +114,10 @@ public class DotGraphIO<E extends ConnectionData> extends
         final Optional<E> data;
         if (parts.size() > 1) {
           checkArgument(
-              parts.get(1).charAt(parts.get(1).length() - 1) == DATA_END,
-              "Data block of a connection must be closed by a ']'");
+            parts.get(1).charAt(parts.get(1).length() - 1) == DATA_END,
+            "Data block of a connection must be closed by a ']'");
           data = dataIO.read(parts.get(1).substring(0,
-              parts.get(1).length() - 1));
+            parts.get(1).length() - 1));
         } else {
           data = Optional.absent();
         }
@@ -141,16 +141,16 @@ public class DotGraphIO<E extends ConnectionData> extends
       final Map<Point, Integer> idMap = new HashMap<>();
       for (final Point p : graph.getNodes()) {
         string.append(NODE_PREFIX)
-            .append(nodeId)
-            .append(DATA_START)
-            .append(POS)
-            .append(QUOTE)
-            .append(p.x)
-            .append(LIST_ITEM_SEPARATOR)
-            .append(p.y)
-            .append(QUOTE)
-            .append(DATA_END)
-            .append(System.lineSeparator());
+          .append(nodeId)
+          .append(DATA_START)
+          .append(POS)
+          .append(QUOTE)
+          .append(p.x)
+          .append(LIST_ITEM_SEPARATOR)
+          .append(p.y)
+          .append(QUOTE)
+          .append(DATA_END)
+          .append(System.lineSeparator());
 
         idMap.put(p, nodeId);
         nodeId++;
@@ -158,12 +158,12 @@ public class DotGraphIO<E extends ConnectionData> extends
 
       for (final Connection<E> entry : graph.getConnections()) {
         string.append(NODE_PREFIX)
-            .append(idMap.get(entry.from()))
-            .append(SPACE)
-            .append(CONN_SEPARATOR)
-            .append(SPACE)
-            .append(NODE_PREFIX)
-            .append(idMap.get(entry.to()));
+          .append(idMap.get(entry.from()))
+          .append(SPACE)
+          .append(CONN_SEPARATOR)
+          .append(SPACE)
+          .append(NODE_PREFIX)
+          .append(idMap.get(entry.to()));
         if (entry.data().isPresent()) {
           dataIO.write(string, entry.data().get());
         }
@@ -225,7 +225,7 @@ public class DotGraphIO<E extends ConnectionData> extends
       final List<String> keyVal = KEY_VAL_SPLITTER.splitToList(part);
       final String key = keyVal.get(0).replaceAll(QUOTE, "");
       checkArgument(!map.containsKey(key),
-          "Found a duplicate key in data '%s'.", line);
+        "Found a duplicate key in data '%s'.", line);
       final String val = keyVal.get(1).replaceAll(QUOTE, "");
       map.put(key, val);
     }
@@ -244,10 +244,10 @@ public class DotGraphIO<E extends ConnectionData> extends
       public void write(StringBuilder sb, LengthData data) {
         if (data.getLength().isPresent()) {
           sb.append(DATA_START)
-              .append(DISTANCE)
-              .append(KEY_VAL_SEPARATOR)
-              .append(data.getLength().get())
-              .append(DATA_END);
+            .append(DISTANCE)
+            .append(KEY_VAL_SEPARATOR)
+            .append(data.getLength().get())
+            .append(DATA_END);
         }
       }
 
@@ -256,7 +256,7 @@ public class DotGraphIO<E extends ConnectionData> extends
         final Map<String, String> map = parseDataAsMap(data);
         if (map.containsKey(DISTANCE)) {
           final double len = Double.parseDouble(map.get(DISTANCE)
-              .replaceAll(QUOTE, ""));
+            .replaceAll(QUOTE, ""));
           return Optional.of(LengthData.create(len));
         }
         return Optional.absent();
@@ -276,18 +276,18 @@ public class DotGraphIO<E extends ConnectionData> extends
           map.put(MAX_SPEED, Double.toString(data.getMaxSpeed().get()));
         }
         for (final Entry<String, Object> entry : data.getAttributes()
-            .entrySet()) {
+          .entrySet()) {
           checkArgument(!entry.getKey().equals(DISTANCE)
-              && !entry.getKey().equals(MAX_SPEED),
-              "Attribute key: '%s' is reserved and should not be used.",
-              entry.getKey());
+            && !entry.getKey().equals(MAX_SPEED),
+            "Attribute key: '%s' is reserved and should not be used.",
+            entry.getKey());
           map.put(entry.getKey(), entry.getValue().toString());
         }
 
         if (!map.isEmpty()) {
           sb.append(DATA_START);
           Joiner.on(LIST_ITEM_SEPARATOR).withKeyValueSeparator("=")
-              .appendTo(sb, map);
+            .appendTo(sb, map);
           sb.append(DATA_END);
         }
       }
@@ -307,7 +307,7 @@ public class DotGraphIO<E extends ConnectionData> extends
         b.addAllAttributes(map);
 
         if (b.getAttributes().isEmpty() && !b.getLength().isPresent()
-            && !b.getMaxSpeed().isPresent()) {
+          && !b.getMaxSpeed().isPresent()) {
           return Optional.absent();
         }
         return Optional.of(b.build());

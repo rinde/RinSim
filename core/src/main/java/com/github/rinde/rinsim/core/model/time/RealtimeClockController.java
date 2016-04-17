@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,7 +76,7 @@ public interface RealtimeClockController extends ClockController {
    * The three different modes the clock can be in.
    * @author Rinde van Lon
    */
-  public enum ClockMode {
+  enum ClockMode {
 
     /**
      * Indicates the mode where time is synchronized to real time.
@@ -99,7 +99,7 @@ public interface RealtimeClockController extends ClockController {
    * {@link Clock.ClockEventType} for more event types.
    * @author Rinde van Lon
    */
-  public enum RtClockEventType {
+  enum RtClockEventType {
 
     /**
      * Is dispatched right after clock mode has changed,

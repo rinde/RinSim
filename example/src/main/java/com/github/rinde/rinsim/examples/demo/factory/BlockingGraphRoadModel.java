@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -111,7 +111,7 @@ public class BlockingGraphRoadModel extends GraphRoadModel {
 
     Builder() {
       setProvidingTypes(RoadModel.class, GraphRoadModel.class,
-          BlockingGraphRoadModel.class);
+        BlockingGraphRoadModel.class);
     }
 
     @Override
@@ -139,7 +139,7 @@ public class BlockingGraphRoadModel extends GraphRoadModel {
     static Builder create(Unit<Length> distanceUnit, Unit<Velocity> speedUnit,
         Supplier<Graph<?>> graphSupplier) {
       return new AutoValue_BlockingGraphRoadModel_Builder(distanceUnit,
-          speedUnit, graphSupplier);
+        speedUnit, graphSupplier);
     }
   }
 }

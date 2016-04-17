@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -113,7 +113,7 @@ public class RandomModel extends AbstractModel<RandomUser> {
       implements Serializable {
 
     static final StochasticSupplier<MersenneTwister> DEFAULT_RNG =
-        StochasticSuppliers.mersenneTwister();
+      StochasticSuppliers.mersenneTwister();
     private static final long serialVersionUID = 7985638617806912711L;
 
     Builder() {
@@ -159,7 +159,7 @@ public class RandomModel extends AbstractModel<RandomUser> {
     static Builder create(long seed,
         StochasticSupplier<? extends RandomGenerator> ss) {
       return new AutoValue_RandomModel_Builder(seed,
-          (StochasticSupplier<RandomGenerator>) ss);
+        (StochasticSupplier<RandomGenerator>) ss);
     }
   }
 
@@ -202,7 +202,7 @@ public class RandomModel extends AbstractModel<RandomUser> {
       stateCheck();
       if (!classRngMap.containsKey(clazz)) {
         final RandomGenerator rng = new UnmodifiableRandomGenerator(
-            new MersenneTwister(masterRandomGenerator.nextLong()));
+          new MersenneTwister(masterRandomGenerator.nextLong()));
         classRngMap.put(clazz, rng);
         return rng;
       }

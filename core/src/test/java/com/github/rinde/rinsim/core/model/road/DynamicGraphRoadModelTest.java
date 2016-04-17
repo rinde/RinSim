@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ public class DynamicGraphRoadModelTest {
   public void setUp() {
     graph = new ListenableGraph<>(new TableGraph<LengthData>());
     model = RoadModelBuilders.dynamicGraph(graph).build(
-        mock(DependencyProvider.class));
+      mock(DependencyProvider.class));
     SW = new Point(0, 0);
     SE = new Point(10, 0);
     NE = new Point(10, 10);
@@ -80,7 +80,7 @@ public class DynamicGraphRoadModelTest {
     // NE]
     final MoveProgress mp = model.moveTo(tru, NE, hour(38));
     assertEquals(38d, mp.distance().getValue().doubleValue(),
-        GraphRoadModel.DELTA);
+      GraphRoadModel.DELTA);
     assertEquals(NE, model.getPosition(tru));
     assertEquals(asList(NW, SW, SE, NE), mp.travelledNodes());
 
@@ -99,7 +99,7 @@ public class DynamicGraphRoadModelTest {
     final MoveProgress mp2 = model.moveTo(tru, SW, hour(10));
 
     assertEquals(10d, mp2.distance().getValue().doubleValue(),
-        GraphRoadModel.DELTA);
+      GraphRoadModel.DELTA);
     assertEquals(asList(SE, X, SW), mp2.travelledNodes());
     assertEquals(SW, model.getPosition(tru));
 
@@ -113,7 +113,7 @@ public class DynamicGraphRoadModelTest {
     final MoveProgress mp3 = model.moveTo(tru, SE, hour(18));
 
     assertEquals(18d, mp3.distance().getValue().doubleValue(),
-        GraphRoadModel.DELTA);
+      GraphRoadModel.DELTA);
     assertEquals(asList(SW, SE), mp3.travelledNodes());
     assertEquals(SE, model.getPosition(tru));
   }

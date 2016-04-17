@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,8 +67,8 @@ public class TimeLapseTest {
   @Test
   public void consume1() {
 
-    final int[] start = { 0, 10, 100, 500 };
-    final int[] end = { 100, 1000, 113, 783 };
+    final int[] start = {0, 10, 100, 500};
+    final int[] end = {100, 1000, 113, 783};
 
     for (int i = 0; i < start.length; i++) {
       final TimeLapse tl = create(start[i], end[i]);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.LengthData;
 import com.github.rinde.rinsim.geom.MultimapGraph;
 import com.github.rinde.rinsim.geom.Point;
+import com.github.rinde.rinsim.geom.PointTestUtil;
 import com.github.rinde.rinsim.geom.TableGraph;
 
 /**
@@ -45,8 +46,8 @@ public class PointsEqualityTest {
 
   @Parameters
   public static Collection<Object[]> configs() {
-    return Arrays.asList(new Object[][] { { new MultimapGraph() },
-        { new TableGraph() } });
+    return Arrays.asList(new Object[][] {{new MultimapGraph()},
+      {new TableGraph()}});
   }
 
   private final Graph<LengthData> graph;
@@ -63,23 +64,23 @@ public class PointsEqualityTest {
     assertEquals(p2, p2);
     assertEquals(p1, p2);
 
-    assertEquals(p1, Point.duplicate(p1));
-    assertEquals(p1, Point.duplicate(p2));
+    assertEquals(p1, PointTestUtil.duplicate(p1));
+    assertEquals(p1, PointTestUtil.duplicate(p2));
   }
 
   @Test
   public void midPointsEqual() {
     final GraphRoadModel.Loc p1 = GraphRoadModel.asLoc(new Point(0.2, 10000));
     final Connection<?> conn = Connection.create(
-        new Point(0.2, 10000),
-        new Point(0.2, 10000));
+      new Point(0.2, 10000),
+      new Point(0.2, 10000));
     final GraphRoadModel.Loc p2 = GraphRoadModel.newLoc(conn, 10);
 
     assertEquals(p1, p1);
     assertEquals(p2, p2);
     assertEquals(p1, p2);
-    assertEquals(p1, Point.duplicate(p1));
-    assertEquals(p1, Point.duplicate(p2));
+    assertEquals(p1, PointTestUtil.duplicate(p1));
+    assertEquals(p1, PointTestUtil.duplicate(p2));
   }
 
   @Test
@@ -91,8 +92,8 @@ public class PointsEqualityTest {
     assertEquals(p2, p2);
     assertEquals(p1, p2);
 
-    assertEquals(p1, Point.duplicate(p1));
-    assertEquals(p1, Point.duplicate(p2));
+    assertEquals(p1, PointTestUtil.duplicate(p1));
+    assertEquals(p1, PointTestUtil.duplicate(p2));
   }
 
   /**
@@ -115,11 +116,11 @@ public class PointsEqualityTest {
     // check if for other objects
     Point Aa, Bb;
     Aa = new Point(0, 0);
-    Bb = Point.duplicate(B);
+    Bb = PointTestUtil.duplicate(B);
 
     final GraphRoadModel.Loc Cc = GraphRoadModel.asLoc(new Point(13, 17));
     final GraphRoadModel.Loc Dd = GraphRoadModel.newLoc(
-        graph.getConnection(B, D), 100);
+      graph.getConnection(B, D), 100);
 
     checkAssertions(Aa, Bb, C, D);
     checkAssertions(A, B, Cc, Dd);

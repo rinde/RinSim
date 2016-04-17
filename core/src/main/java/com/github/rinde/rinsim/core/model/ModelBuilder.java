@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,7 +88,7 @@ public interface ModelBuilder<T extends Model<? extends U>, U> {
    * @param <T> The model type.
    * @param <U> The associated type.
    */
-  public abstract class AbstractModelBuilder<T extends Model<? extends U>, U>
+  abstract class AbstractModelBuilder<T extends Model<? extends U>, U>
       implements ModelBuilder<T, U> {
     private ImmutableSet<Class<?>> provTypes;
     private ImmutableSet<Class<?>> deps;
@@ -122,7 +122,7 @@ public interface ModelBuilder<T extends Model<? extends U>, U> {
      *          {@link ModelBuilder} header comment for more info.
      */
     protected final void setProvidingTypes(Iterable<? extends Class<?>> types) {
-      provTypes = ImmutableSet.copyOf(types);
+      provTypes = ImmutableSet.<Class<?>>copyOf(types);
     }
 
     /**
@@ -140,7 +140,7 @@ public interface ModelBuilder<T extends Model<? extends U>, U> {
      *          header comment for more info.
      */
     protected final void setDependencies(Iterable<? extends Class<?>> types) {
-      deps = ImmutableSet.copyOf(types);
+      deps = ImmutableSet.<Class<?>>copyOf(types);
     }
 
     @Override

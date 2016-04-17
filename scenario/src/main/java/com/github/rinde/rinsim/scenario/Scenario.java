@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,9 +44,11 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 
 /**
- * Scenario is an immutable list of events sorted by the time stamp. To obtain
- * an instance there are a number of builder methods available such as
- * {@link #builder()}.
+ * Scenario is mainly an immutable list of events sorted by the time stamp.
+ * Additionally it defines and configures models that are needed to run the
+ * scenario. A scenario should only contain information related to the problem
+ * side of a simulation. To construct custom scenario instances there are a
+ * number of builder methods available such as {@link #builder()}.
  * @author Rinde van Lon
  * @author Bartosz Michalik
  */
@@ -56,7 +58,7 @@ public abstract class Scenario {
    * The default {@link ProblemClass}.
    */
   public static final ProblemClass DEFAULT_PROBLEM_CLASS = SimpleProblemClass
-      .create("DEFAULT");
+    .create("DEFAULT");
 
   /**
    * Instantiate a scenario.
@@ -84,7 +86,7 @@ public abstract class Scenario {
 
   /**
    * @return The {@link TimeWindow} of the scenario indicates the start and end
-   *         of scenario.
+   *         of the scenario.
    */
   public abstract TimeWindow getTimeWindow();
 
@@ -117,11 +119,11 @@ public abstract class Scenario {
       ProblemClass pc,
       String id) {
     return new AutoValue_Scenario(
-        ImmutableList.<TimedEvent>copyOf(events),
-        ImmutableSet.<ModelBuilder<?, ?>>copyOf(builders),
-        tw,
-        stopCondition,
-        pc, id);
+      ImmutableList.<TimedEvent>copyOf(events),
+      ImmutableSet.<ModelBuilder<?, ?>>copyOf(builders),
+      tw,
+      stopCondition,
+      pc, id);
   }
 
   /**
@@ -307,10 +309,10 @@ public abstract class Scenario {
     @Override
     public Builder copyProperties(Scenario scenario) {
       return super.copyProperties(scenario)
-          .addEvents(scenario.getEvents())
-          .problemClass(scenario.getProblemClass())
-          .instanceId(scenario.getProblemInstanceId())
-          .addModels(scenario.getModelBuilders());
+        .addEvents(scenario.getEvents())
+        .problemClass(scenario.getProblemClass())
+        .instanceId(scenario.getProblemInstanceId())
+        .addModels(scenario.getModelBuilders());
     }
 
     /**
@@ -355,18 +357,18 @@ public abstract class Scenario {
       checkArgument(frequency >= 0, "Frequency must be >= 0.");
       checkState(!eventList.isEmpty(), "Event list is empty.");
       final FluentIterable<TimedEvent> filtered = FluentIterable
-          .from(eventList)
-          .filter(filter);
+        .from(eventList)
+        .filter(filter);
       checkArgument(
         !filtered.isEmpty(),
         "The specified filter did not match any event in the event list "
-            + "(size %s), filter: %s.",
+          + "(size %s), filter: %s.",
         eventList.size(), filter);
       final Set<TimedEvent> set = filtered.toSet();
       checkArgument(
         set.size() == 1,
         "The specified filter matches multiple non-equal events, all matches "
-            + "must be equal. Events: %s. Filter: %s.",
+          + "must be equal. Events: %s. Filter: %s.",
         set, filter);
 
       if (filtered.size() > frequency) {
@@ -377,7 +379,7 @@ public abstract class Scenario {
       } else if (filtered.size() < frequency) {
         // grow
         eventList.addAll(Collections.nCopies(frequency - filtered.size(), set
-            .iterator().next()));
+          .iterator().next()));
       }
       return self();
     }
@@ -419,7 +421,7 @@ public abstract class Scenario {
     static final TimeWindow DEFAULT_TIME_WINDOW = TimeWindow.create(0,
       8 * 60 * 60 * 1000);
     static final StopCondition DEFAULT_STOP_CONDITION = StopConditions
-        .alwaysFalse();
+      .alwaysFalse();
 
     /**
      * Defines {@link Scenario#getTimeWindow()}.

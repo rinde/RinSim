@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,8 +50,8 @@ final class PointUtil {
     final double offset2 = oth2.x * oth1.y - oth1.x * oth2.y / d2;
 
     return Optional.of(new Point(
-        (cos1 * offset2 - cos2 * offset1) / d,
-        (sin1 * offset2 - sin2 * offset1) / d));
+      (cos1 * offset2 - cos2 * offset1) / d,
+      (sin1 * offset2 - sin2 * offset1) / d));
   }
 
   static double angle(Point p1, Point p2) {
@@ -74,8 +74,8 @@ final class PointUtil {
     final Point on = PointUtil.on(from, to, distOnLine);
     final Point unit = PointUtil.unit(from, to);
     return new Point(
-        on.x + -unit.y * distFromLine,
-        on.y + unit.x * distFromLine);
+      on.x + -unit.y * distFromLine,
+      on.y + unit.x * distFromLine);
   }
 
   static Point on(Connection<?> conn, double dist) {

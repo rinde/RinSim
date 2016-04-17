@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import static com.github.rinde.rinsim.ui.renderers.PointUtil.angle;
 import static com.google.common.base.Verify.verify;
 import static com.google.common.base.Verify.verifyNotNull;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -56,8 +57,8 @@ import com.google.common.collect.Sets;
  * {@link com.github.rinde.rinsim.core.Simulator}.
  * @author Rinde van Lon
  */
-public final class AGVRenderer extends
-    AbstractTypedCanvasRenderer<MovingRoadUser> {
+public final class AGVRenderer
+    extends AbstractTypedCanvasRenderer<MovingRoadUser> {
   private static final int DEFAULT_COLOR = SWT.COLOR_BLACK;
   private final CollisionGraphRoadModel model;
   private final RenderHelper helper;
@@ -66,10 +67,10 @@ public final class AGVRenderer extends
   private int vehicleCounter;
 
   private final Iterator<Integer> colors = Iterators.cycle(SWT.COLOR_BLUE,
-      SWT.COLOR_RED, SWT.COLOR_GREEN, SWT.COLOR_CYAN, SWT.COLOR_MAGENTA,
-      SWT.COLOR_YELLOW, SWT.COLOR_DARK_BLUE, SWT.COLOR_DARK_RED,
-      SWT.COLOR_DARK_GREEN, SWT.COLOR_DARK_CYAN, SWT.COLOR_DARK_MAGENTA,
-      SWT.COLOR_DARK_YELLOW);
+    SWT.COLOR_RED, SWT.COLOR_GREEN, SWT.COLOR_CYAN, SWT.COLOR_MAGENTA,
+    SWT.COLOR_YELLOW, SWT.COLOR_DARK_BLUE, SWT.COLOR_DARK_RED,
+    SWT.COLOR_DARK_GREEN, SWT.COLOR_DARK_CYAN, SWT.COLOR_DARK_MAGENTA,
+    SWT.COLOR_DARK_YELLOW);
 
   enum VizOptions {
     COORDINATES, CREATION_NUMBER, VEHICLE_ORIGIN, USE_DIFFERENT_COLORS;
@@ -78,7 +79,8 @@ public final class AGVRenderer extends
   AGVRenderer(CollisionGraphRoadModel m, ImmutableSet<VizOptions> options) {
     model = m;
     helper = new RenderHelper();
-    vehicles = new LinkedHashMap<>();
+    vehicles = Collections
+      .synchronizedMap(new LinkedHashMap<MovingRoadUser, VehicleUI>());
     vehicleCounter = 0;
     vizOptions = options;
   }
@@ -89,19 +91,19 @@ public final class AGVRenderer extends
   @Override
   public void renderDynamic(GC gc, ViewPort vp, long time) {
     helper.adapt(gc, vp);
-    for (final VehicleUI v : vehicles.values()) {
-      v.update(gc, vp, helper);
+    synchronized (vehicles) {
+      for (final VehicleUI v : vehicles.values()) {
+        v.update(gc, vp, helper);
+      }
     }
   }
 
   @Override
   public boolean register(MovingRoadUser mru) {
-    final int color =
-        vizOptions.contains(VizOptions.USE_DIFFERENT_COLORS) ? colors
-            .next()
-            : DEFAULT_COLOR;
+    final int color = vizOptions.contains(VizOptions.USE_DIFFERENT_COLORS)
+      ? colors.next() : DEFAULT_COLOR;
     final VehicleUI v = new VehicleUI(mru, model, color, vizOptions,
-        vehicleCounter++);
+      vehicleCounter++);
 
     verify(vehicles.put(mru, v) == null);
     return true;
@@ -126,8 +128,8 @@ public final class AGVRenderer extends
    * @author Rinde van Lon
    */
   @AutoValue
-  public abstract static class Builder extends
-      AbstractModelBuilder<AGVRenderer, MovingRoadUser> {
+  public abstract static class Builder
+      extends AbstractModelBuilder<AGVRenderer, MovingRoadUser> {
 
     Builder() {
       setDependencies(CollisionGraphRoadModel.class);
@@ -183,12 +185,12 @@ public final class AGVRenderer extends
 
     static Builder create() {
       return new AutoValue_AGVRenderer_Builder(
-          Sets.immutableEnumSet(ImmutableSet.<VizOptions>of()));
+        Sets.immutableEnumSet(ImmutableSet.<VizOptions>of()));
     }
 
     static Builder create(VizOptions one, Iterable<VizOptions> more) {
       return new AutoValue_AGVRenderer_Builder(Sets.immutableEnumSet(one,
-          Iterables.toArray(more, VizOptions.class)));
+        Iterables.toArray(more, VizOptions.class)));
     }
   }
 
@@ -237,10 +239,10 @@ public final class AGVRenderer extends
 
       igc.setBackground(gc.getDevice().getSystemColor(color));
       igc.fillPolygon(new int[] {
-          frontSize, 0,
-          width - frontSize, 0,
-          width, frontSize,
-          0, frontSize
+        frontSize, 0,
+        width - frontSize, 0,
+        width, frontSize,
+        0, frontSize
       });
       igc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_GRAY));
       igc.fillRectangle(0, frontSize, width, length - frontSize);
@@ -257,11 +259,11 @@ public final class AGVRenderer extends
         igc.setFont(newFont);
 
         final org.eclipse.swt.graphics.Point finalTextSize = igc
-            .stringExtent(string);
+          .stringExtent(string);
 
         final int xOffset = (int) ((width - finalTextSize.x) / 2d);
         final int yOffset = frontSize
-            + (int) ((length - frontSize - finalTextSize.y) / 2d);
+          + (int) ((length - frontSize - finalTextSize.y) / 2d);
         igc.drawText(string, xOffset, yOffset, true);
         newFont.dispose();
       }
@@ -278,9 +280,12 @@ public final class AGVRenderer extends
     }
 
     void update(GC gc, ViewPort vp, RenderHelper helper) {
+      if (!model.containsObject(vehicle)) {
+        return;
+      }
       position = model.getPosition(vehicle);
       final Optional<? extends Connection<?>> conn = model
-          .getConnection(vehicle);
+        .getConnection(vehicle);
 
       if (!image.isPresent() || scale != vp.scale) {
         scale = vp.scale;
@@ -297,10 +302,10 @@ public final class AGVRenderer extends
       final Transform transform = new Transform(gc.getDevice());
       transform.translate(x, y);
       transform.rotate(
-          (float) (ROTATION_OFFSET_DEG + angle * ROTATION_MAX_DEG / Math.PI));
+        (float) (ROTATION_OFFSET_DEG + angle * ROTATION_MAX_DEG / Math.PI));
       transform.translate(
-          -(x + image.get().getBounds().width / 2),
-          -(y + image.get().getBounds().height / 2));
+        -(x + image.get().getBounds().width / 2),
+        -(y + image.get().getBounds().height / 2));
       gc.setTransform(transform);
       gc.drawImage(image.get(), x, y);
       gc.setTransform(null);
@@ -310,8 +315,8 @@ public final class AGVRenderer extends
         helper.setBackgroundSysCol(SWT.COLOR_YELLOW);
         helper.setForegroundSysCol(SWT.COLOR_BLACK);
         gc.drawString(String.format("%1.2f,%1.2f", position.x, position.y),
-            vp.toCoordX(position.x),
-            vp.toCoordY(position.y));
+          vp.toCoordX(position.x),
+          vp.toCoordY(position.y));
       }
     }
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,31 +59,31 @@ public class RtCentralTest {
   public void testConfig() {
     final List<TimedEvent> events = Gendreau06Parser.parse(
       new File("../scenario-util/files/test/gendreau06/req_rapide_1_240_24"))
-        .getEvents().subList(0, 20);
+      .getEvents().subList(0, 20);
 
     final Scenario s = Scenario.builder(Gendreau06Parser.parse(
       new File("../scenario-util/files/test/gendreau06/req_rapide_1_240_24")))
-        .removeModelsOfType(TimeModel.AbstractBuilder.class)
-        .addModel(TimeModel.builder()
-            .withRealTime()
-            .withStartInClockMode(ClockMode.SIMULATED))
-        .clearEvents()
-        .addEvents(events)
-        .addEvent(TimeOutEvent.create(3 * 60 * 60 * 1000))
-        .build();
+      .removeModelsOfType(TimeModel.AbstractBuilder.class)
+      .addModel(TimeModel.builder()
+        .withRealTime()
+        .withStartInClockMode(ClockMode.SIMULATED))
+      .clearEvents()
+      .addEvents(events)
+      .addEvent(TimeOutEvent.create(3 * 60 * 60 * 1000))
+      .build();
 
-    final ExperimentResults er = Experiment
-        .build(Gendreau06ObjectiveFunction.instance())
-        .addScenario(s)
-        .withThreads(1)
-        .addConfiguration(
-          RtCentral.solverConfigurationAdapt(RandomSolver.supplier(), ""))
-        .usePostProcessor(PostProcessors.statisticsPostProcessor())
-        .perform();
+    final ExperimentResults er = Experiment.builder()
+      .addScenario(s)
+      .withThreads(1)
+      .addConfiguration(
+        RtCentral.solverConfigurationAdapt(RandomSolver.supplier(), ""))
+      .usePostProcessor(PostProcessors
+        .statisticsPostProcessor(Gendreau06ObjectiveFunction.instance()))
+      .perform();
 
     final double objVal = Gendreau06ObjectiveFunction.instance()
-        .computeCost(
-          (StatisticsDTO) er.getResults().asList().get(0).getResultObject());
+      .computeCost(
+        (StatisticsDTO) er.getResults().asList().get(0).getResultObject());
     assertThat(objVal).isWithin(0.0001).of(495.4718);
   }
 
@@ -94,11 +94,11 @@ public class RtCentralTest {
   public void testVehicleConstraintCheck() {
     TestUtil.testEnum(VehicleChecker.class);
     final Simulator sim = Simulator.builder()
-        .addModel(TimeModel.builder().withRealTime())
-        .addModel(PDPRoadModel.builder(RoadModelBuilders.plane()))
-        .addModel(DefaultPDPModel.builder())
-        .addModel(RtCentral.builderAdapt(RandomSolver.supplier()))
-        .build();
+      .addModel(TimeModel.builder().withRealTime())
+      .addModel(PDPRoadModel.builder(RoadModelBuilders.plane()))
+      .addModel(DefaultPDPModel.builder())
+      .addModel(RtCentral.builderAdapt(RandomSolver.supplier()))
+      .build();
 
     sim.register(new Depot(new Point(1, 1)));
 
@@ -108,7 +108,7 @@ public class RtCentralTest {
     } catch (final IllegalArgumentException e) {
       fail = true;
       assertThat(e.getMessage())
-          .contains("requires that all registered vehicles are a subclass of");
+        .contains("requires that all registered vehicles are a subclass of");
     }
     assertThat(fail).isTrue();
 
@@ -122,4 +122,5 @@ public class RtCentralTest {
     }
     assertThat(fail).isTrue();
   }
+
 }

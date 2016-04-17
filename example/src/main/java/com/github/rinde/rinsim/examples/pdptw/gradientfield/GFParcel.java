@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ class GFParcel extends Parcel implements FieldEmitter {
       return 0f;
     }
     return getPDPModel().getParcelState(this) == ParcelState.AVAILABLE
-        ? AVAILABLE_STRENGTH
-        : 0.0f;
+      ? AVAILABLE_STRENGTH
+      : 0.0f;
   }
 }

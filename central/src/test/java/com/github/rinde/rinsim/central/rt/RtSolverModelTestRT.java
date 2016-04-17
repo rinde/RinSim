@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.github.rinde.rinsim.central.rt;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,9 +26,9 @@ import java.util.List;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import com.github.rinde.rinsim.central.RandomSolver;
 import com.github.rinde.rinsim.central.Solvers.SolveArgs;
 import com.github.rinde.rinsim.central.rt.RtSimSolver.EventType;
+import com.github.rinde.rinsim.core.model.time.TimeLapseFactory;
 import com.github.rinde.rinsim.event.ListenerEventHistory;
 import com.github.rinde.rinsim.testutil.RealtimeTests;
 import com.google.common.collect.Range;
@@ -49,25 +50,29 @@ public class RtSolverModelTestRT extends RtSolverModelTest {
       @Override
       public void setSolverProvider(RtSimSolverBuilder builder) {
         solvers.add(
-          builder.build(SleepySolver.create(500L, RandomSolver.create(123))));
+          builder.build(SleepySolver.create(500L, new NopSolver())));
       }
     });
     model.register(new RtSolverUser() {
       @Override
       public void setSolverProvider(RtSimSolverBuilder builder) {
         solvers.add(
-          builder.build(SleepySolver.create(1000L, RandomSolver.create(123))));
+          builder.build(SleepySolver.create(1000L, new NopSolver())));
       }
     });
 
     verify(clock, times(0)).switchToRealTime();
     verify(clock, times(0)).switchToSimulatedTime();
 
+    when(clock.isTicking()).thenReturn(true);
+
     final ListenerEventHistory eventHistory = new ListenerEventHistory();
     solvers.get(0).solve(SolveArgs.create());
+    verify(clock, times(1)).switchToRealTime();
     solvers.get(0).getEventAPI().addListener(eventHistory,
       EventType.NEW_SCHEDULE);
     solvers.get(1).solve(SolveArgs.create());
+    verify(clock, times(2)).switchToRealTime();
 
     assertThat(solvers.get(0).isScheduleUpdated()).isFalse();
     boolean fail = false;
@@ -75,7 +80,7 @@ public class RtSolverModelTestRT extends RtSolverModelTest {
       solvers.get(0).getCurrentSchedule();
     } catch (final IllegalStateException e) {
       assertThat(e.getMessage())
-          .isEqualTo("No schedule has been computed yet.");
+        .isEqualTo("No schedule has been computed yet.");
       fail = true;
     }
     assertThat(fail).isTrue();
@@ -85,9 +90,12 @@ public class RtSolverModelTestRT extends RtSolverModelTest {
     verify(clock, times(2)).switchToRealTime();
     verify(clock, times(0)).switchToSimulatedTime();
 
+    model.afterTick(TimeLapseFactory.ms(0, 100));
     final long start = System.nanoTime();
     while (model.manager.isComputing()) {
       verify(clock, times(0)).switchToSimulatedTime();
+      model.manager.checkExceptions();
+      model.afterTick(TimeLapseFactory.ms(100, 200));
       try {
         Thread.sleep(10);
       } catch (final InterruptedException e) {
@@ -97,13 +105,16 @@ public class RtSolverModelTestRT extends RtSolverModelTest {
     final double duration = (System.nanoTime() - start) / 1000000000d;
     assertThat(duration).isIn(Range.open(0.9, 1.1));
 
-    verify(clock, times(2)).switchToRealTime();
+    model.afterTick(TimeLapseFactory.ms(100, 200));
+    verify(clock, times(3)).switchToRealTime();
+    verify(clock, times(0)).switchToSimulatedTime();
+
+    model.afterTick(TimeLapseFactory.ms(200, 300));
+    verify(clock, times(3)).switchToRealTime();
     verify(clock, times(1)).switchToSimulatedTime();
 
     assertThat(eventHistory.getEventTypeHistory())
-        .containsExactly(EventType.NEW_SCHEDULE);
-    assertThat(eventHistory.getHistory().get(0).getIssuer())
-        .isInstanceOf(RtSimSolver.class);
+      .containsExactly(EventType.NEW_SCHEDULE);
     assertThat(solvers.get(0).isScheduleUpdated()).isTrue();
     // there was no problem to solve (i.e. no vehicles/parcels) so the provided
     // schedule is empty

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,12 +91,12 @@ public class TaxiRenderer extends AbstractCanvasRenderer {
 
           gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_DARK_BLUE));
           gc.fillRoundRectangle(x - extent.x / 2, y - extent.y / 2,
-              extent.x + 2, extent.y + 2, ROUND_RECT_ARC_HEIGHT,
-              ROUND_RECT_ARC_HEIGHT);
+            extent.x + 2, extent.y + 2, ROUND_RECT_ARC_HEIGHT,
+            ROUND_RECT_ARC_HEIGHT);
           gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_WHITE));
 
           gc.drawText(text, x - extent.x / 2 + 1, y - extent.y / 2 + 1,
-              true);
+            true);
         }
       }
     }

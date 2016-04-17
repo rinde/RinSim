@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import static com.google.common.base.Verify.verifyNotNull;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.github.rinde.rinsim.core.model.ModelBuilder;
@@ -29,6 +30,8 @@ import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.core.model.time.TimeModel.AbstractBuilder;
 import com.github.rinde.rinsim.core.model.time.TimeModel.RealtimeBuilder;
 import com.google.common.base.Function;
+import com.google.common.base.Optional;
+import com.google.common.collect.FluentIterable;
 
 /**
  * Provides utilities for converting {@link Scenario} instances.
@@ -45,44 +48,115 @@ public final class ScenarioConverters {
    * @return A scenario converter function.
    */
   public static Function<Scenario, Scenario> toRealtime() {
-    return ToRealTimeConverter.INSTANCE;
+    return TimeModelConverter.TO_RT;
   }
 
-  enum ToRealTimeConverter implements Function<Scenario, Scenario> {
-    INSTANCE {
+  /**
+   * Returns a function that converts {@link Scenario} instances to simulated
+   * time versions. If a builder for {@link TimeModel} is present in the
+   * scenario, it is replaced by a simulated time version. If no builder for
+   * {@link TimeModel} is present a simulated time builder is added.
+   * @return A scenario converter function.
+   */
+  public static Function<Scenario, Scenario> toSimulatedtime() {
+    return TimeModelConverter.TO_ST;
+  }
+
+  /**
+   * Adapts a function that converts {@link TimedEvent} instances to a function
+   * that converts entire {@link Scenario} instances.
+   * @param converter The converter to adapt.
+   * @return The adapted converter.
+   */
+  public static Function<Scenario, Scenario> eventConverter(
+      final Function<TimedEvent, TimedEvent> converter) {
+    return new Function<Scenario, Scenario>() {
+      @Nonnull
+      @Override
+      public Scenario apply(@Nullable Scenario input) {
+        final Scenario in = verifyNotNull(input);
+        return Scenario.builder(in)
+          .clearEvents()
+          .addEvents(
+            FluentIterable.from(in.getEvents()).transform(converter))
+          .build();
+      }
+    };
+  }
+
+  enum TimeModelConverter implements Function<Scenario, Scenario> {
+    TO_RT {
       @Override
       @Nullable
       public Scenario apply(@Nullable Scenario input) {
         final Scenario in = verifyNotNull(input);
-        final List<TimeModel.AbstractBuilder<?>> timeModels = new ArrayList<>();
-        for (final ModelBuilder<?, ?> mb : in.getModelBuilders()) {
-          if (mb instanceof TimeModel.AbstractBuilder) {
-            timeModels.add((AbstractBuilder<?>) mb);
-          }
-        }
+
+        final Optional<TimeModel.AbstractBuilder<?>> timeModel =
+          getTimeModel(in);
+
         RealtimeBuilder rtb = TimeModel.builder()
-            .withRealTime()
-            .withStartInClockMode(ClockMode.SIMULATED);
-        if (timeModels.size() == 1) {
+          .withRealTime()
+          .withStartInClockMode(ClockMode.SIMULATED);
+        if (timeModel.isPresent()) {
           // copy properties from existing time model
-          rtb = rtb.withTickLength(timeModels.get(0).getTickLength())
-              .withTimeUnit(timeModels.get(0).getTimeUnit());
-        } else {
-          // in this case we don't copy properties, we use the defaults
-          checkArgument(timeModels.isEmpty(),
-              "More than one time model is not supported.");
+          rtb = rtb.withTickLength(timeModel.get().getTickLength())
+            .withTimeUnit(timeModel.get().getTimeUnit());
         }
+        // else: in this case we don't copy properties, we use the defaults
         return Scenario.builder(in)
-            .removeModelsOfType(TimeModel.AbstractBuilder.class)
-            .addModel(rtb)
-            .build();
+          .removeModelsOfType(TimeModel.AbstractBuilder.class)
+          .addModel(rtb)
+          .build();
       }
 
       @Override
       public String toString() {
         return String.format("%s.toRealtime()",
-            ScenarioConverters.class.getSimpleName());
+          ScenarioConverters.class.getSimpleName());
+      }
+    },
+
+    TO_ST {
+      @Nullable
+      @Override
+      public Scenario apply(@Nullable Scenario input) {
+        final Scenario in = verifyNotNull(input);
+        final Optional<TimeModel.AbstractBuilder<?>> timeModel =
+          getTimeModel(in);
+
+        final TimeModel.Builder rtb = TimeModel.builder();
+        if (timeModel.isPresent()) {
+          rtb.withTickLength(timeModel.get().getTickLength())
+            .withTimeUnit(timeModel.get().getTimeUnit());
+        }
+
+        return Scenario.builder(in)
+          .removeModelsOfType(TimeModel.AbstractBuilder.class)
+          .addModel(rtb)
+          .build();
+      }
+
+      @Override
+      public String toString() {
+        return String.format("%s.toSimulatedtime()",
+          ScenarioConverters.class.getSimpleName());
+      }
+
+    }
+  }
+
+  static Optional<TimeModel.AbstractBuilder<?>> getTimeModel(Scenario scen) {
+    final List<TimeModel.AbstractBuilder<?>> timeModels = new ArrayList<>();
+    for (final ModelBuilder<?, ?> mb : scen.getModelBuilders()) {
+      if (mb instanceof TimeModel.AbstractBuilder) {
+        timeModels.add((AbstractBuilder<?>) mb);
       }
     }
+    if (timeModels.isEmpty()) {
+      return Optional.absent();
+    }
+    checkArgument(timeModels.size() == 1,
+      "More than one time model is not supported.");
+    return Optional.<TimeModel.AbstractBuilder<?>>of(timeModels.get(0));
   }
 }

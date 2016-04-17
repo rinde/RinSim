@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,11 +48,11 @@ public class LocationsTest {
     assertEquals(new Point(1, 1), lg.getMax());
 
     final LocationGenerator lg2 = Locations.builder()
-        .min(-6.3)
-        .max(9.3)
-        .mean(0.1)
-        .buildFixed(
-          asList(new Point(0, 0), new Point(1, 1)));
+      .min(-6.3)
+      .max(9.3)
+      .mean(0.1)
+      .buildFixed(
+        asList(new Point(0, 0), new Point(1, 1)));
 
     assertAlwaysEquals(lg2);
     assertEquals(new Point(.1, .1), lg2.getCenter());
@@ -68,7 +68,7 @@ public class LocationsTest {
   @Test(expected = IllegalArgumentException.class)
   public void testFixedFail() {
     Locations.builder().buildFixed(asList(new Point(0, 0), new Point(1, 1)))
-        .generate(0L, 3);
+      .generate(0L, 3);
   }
 
   static void assertAlwaysEquals(LocationGenerator lg) {

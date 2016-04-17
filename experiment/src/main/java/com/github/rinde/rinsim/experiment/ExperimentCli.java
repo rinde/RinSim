@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,81 +49,7 @@ public final class ExperimentCli {
 
   static final String DEFAULT_LABEL = " (default)";
   static final String S = "s";
-
-  static final ArgHandler<Builder, Integer> BATCHES_HANDLER =
-      new ArgHandler<Builder, Integer>() {
-        @Override
-        public void execute(Builder subject, Optional<Integer> value) {
-          subject.numBatches(value.get());
-        }
-      };
-
-  static final ArgHandler<Builder, String> DRY_RUN_HANDLER =
-      new ArgHandler<Experiment.Builder, String>() {
-        @Override
-        public void execute(Builder builder, Optional<String> value) {
-          if (value.isPresent()) {
-            checkArgument(
-                "v".equalsIgnoreCase(value.get())
-                    || "verbose".equalsIgnoreCase(value.get()),
-                "only accepts 'v', 'verbose' or no argument, not '%s'.",
-                value.get());
-          }
-          builder.dryRun(value.isPresent(), System.out, System.err);
-        }
-      };
-
-  static final ArgHandler<Builder, Boolean> GUI_HANDLER =
-      new ArgHandler<Experiment.Builder, Boolean>() {
-        @Override
-        public void execute(Builder builder, Optional<Boolean> value) {
-          if (value.isPresent() && value.get()) {
-            builder.showGui();
-          } else {
-            builder.showGui = false;
-          }
-        }
-      };
-
-  static final NoArgHandler<Builder> JPPF_HANDLER =
-      new NoArgHandler<Experiment.Builder>() {
-        @Override
-        public void execute(Builder builder) {
-          builder.computeDistributed();
-        }
-      };
-
-  static final NoArgHandler<Builder> LOCAL_HANDLER =
-      new NoArgHandler<Builder>() {
-        @Override
-        public void execute(Builder builder) {
-          builder.computeLocal();
-        }
-      };
-
-  static final ArgHandler<Builder, Integer> REPETITIONS_HANDLER =
-      new ArgHandler<Experiment.Builder, Integer>() {
-        @Override
-        public void execute(Builder builder, Optional<Integer> value) {
-          builder.repeat(value.get());
-        }
-      };
-
-  static final ArgHandler<Builder, Long> SEED_HANDLER =
-      new ArgHandler<Builder, Long>() {
-        @Override
-        public void execute(Builder builder, Optional<Long> value) {
-          builder.withRandomSeed(value.get());
-        }
-      };
-
-  static final ArgHandler<Builder, Integer> THREADS_HANDLER =
-      new ArgHandler<Builder, Integer>() {
-        @Override
-        public void execute(Builder builder, Optional<Integer> value) {
-          builder.withThreads(value.get());
-        }
-      };
+  static final String CONFIG_PREFIX = "c";
 
   private ExperimentCli() {}
 
@@ -149,121 +75,119 @@ public final class ExperimentCli {
 
     final Menu.Builder menuBuilder = Menu.builder();
     menuBuilder
-        .commandLineSyntax("java -jar jarname.jar <options>")
-        .header("RinSim Experiment command line interface.")
-        .footer("For more information see http://github.com/rinde/RinSim")
-        .openGroup()
-        .add(createBatchesOpt(builder), builder, BATCHES_HANDLER)
-        .add(createThreadsOpt(builder), builder, THREADS_HANDLER)
-        .openGroup()
-        .add(createIncludeOpt(cfgMap), builder, new IncludeHandler(cfgMap))
-        .add(createExcludeOpt(cfgMap), builder, new ExcludeHandler(cfgMap))
-        .openGroup()
-        .add(createLocalOpt(builder), builder, LOCAL_HANDLER)
-        .add(createJppfOpt(builder), builder, JPPF_HANDLER)
-        .closeGroup()
-        .add(createDryRunOpt(builder), builder, DRY_RUN_HANDLER)
-        .add(createRepetitionsOpt(builder), builder, REPETITIONS_HANDLER)
-        .add(createSeedOption(builder), builder, SEED_HANDLER)
-        .add(createGuiOpt(builder), builder, GUI_HANDLER)
-        .addHelpOption("h", "help", "Print this message.");
+      .commandLineSyntax("java -jar jarname.jar <options>")
+      .header("RinSim Experiment command line interface.")
+      .footer("For more information see http://github.com/rinde/RinSim")
+      .openGroup()
+      .add(createBatchesOpt(builder), builder, IntHandlers.BATCHES)
+      .add(createThreadsOpt(builder), builder, IntHandlers.THREADS)
+      .openGroup()
+      .add(createIncludeOpt(cfgMap), builder, new IncludeHandler(cfgMap))
+      .add(createExcludeOpt(cfgMap), builder, new ExcludeHandler(cfgMap))
+      .openGroup()
+      .add(createLocalOpt(builder), builder, NoArgHandlers.LOCAL)
+      .add(createJppfOpt(builder), builder, NoArgHandlers.DISTRIBUTED)
+      .closeGroup()
+      .add(createDryRunOpt(builder), builder, StringHandler.DRY_RUN)
+      .add(createRepetitionsOpt(builder), builder, IntHandlers.REPS)
+      .add(createSeedRepetitionsOpt(builder), builder, IntHandlers.SEED_REPS)
+      .add(createSeedOption(builder), builder, LongHandlers.SEED)
+      .add(createGuiOpt(builder), builder, BooleanHandler.GUI)
+      .add(createOrderingOption(builder), builder, OrderingHandler.INSTANCE)
+      .add(createWarmupOption(builder), builder, LongHandlers.WARMUP)
+      .addHelpOption("h", "help", "Print this message.");
 
     if (builder.scenarioProviderBuilder.isPresent()) {
       menuBuilder.addSubMenu(S, "scenarios.",
-          FileProviderCli
-              .createDefaultMenu(builder.scenarioProviderBuilder
-                  .get()));
+        FileProviderCli
+          .createDefaultMenu(builder.scenarioProviderBuilder
+            .get()));
     }
     return menuBuilder;
   }
 
   static OptionArg<Integer> createBatchesOpt(Builder expBuilder) {
-    return Option
-        .builder("b", ArgumentParser.INTEGER)
-        .longName("batches")
-        .description(
-            "Sets the number of batches to use in case of distributed "
-                + "computation, default: ",
-            expBuilder.numBatches,
-            ". This option can not be used together with --threads.")
-        .build();
+    return Option.builder("b", ArgumentParser.intParser())
+      .longName("batches")
+      .description(
+        "Sets the number of batches to use in case of distributed "
+          + "computation, default: ",
+        expBuilder.numBatches,
+        ". This option can not be used together with --threads.")
+      .build();
   }
 
   static Map<String, MASConfiguration> createConfigMap(
       Experiment.Builder builder) {
-    final List<MASConfiguration> configs = ImmutableList
-        .copyOf(builder.configurationsSet);
+    final List<MASConfiguration> configs =
+      ImmutableList.copyOf(builder.configurationsSet);
     final ImmutableMap.Builder<String, MASConfiguration> mapBuilder =
-        ImmutableMap
-            .builder();
+      ImmutableMap.builder();
     for (int i = 0; i < configs.size(); i++) {
-      mapBuilder.put("c" + i, configs.get(i));
+      mapBuilder.put(CONFIG_PREFIX + Integer.toString(i), configs.get(i));
     }
     return mapBuilder.build();
   }
 
   static OptionArg<String> createDryRunOpt(Builder builder) {
-    return Option.builder("dr", ArgumentParser.STRING)
-        .longName("dry-run")
-        .description(
-            "Will perform a 'dry run' of the experiment without doing any"
-                + " actual simulations. A detailed description of the "
-                + "experiment setup will be printed. If an additional "
-                + "argument 'v' or 'verbose' is supplied, more details of"
-                + " the experiment will be printed.")
-        .setOptionalArgument()
-        .build();
+    return Option.builder("dr", ArgumentParser.stringParser())
+      .longName("dry-run")
+      .description(
+        "Will perform a 'dry run' of the experiment without doing any"
+          + " actual simulations. A detailed description of the "
+          + "experiment setup will be printed. If an additional "
+          + "argument 'v' or 'verbose' is supplied, more details of"
+          + " the experiment will be printed.")
+      .setOptionalArgument()
+      .build();
   }
 
   static OptionArg<List<String>> createExcludeOpt(
       Map<String, MASConfiguration> configMap) {
-    return Option
-        .builder("e", ArgumentParser.STRING_LIST)
-        .longName("exclude")
-        .description(
-            "The following configurations can be excluded from the experiment"
-                + " setup:",
-            createConfigString(configMap),
-            "This option can not be used together with --include.")
-        .build();
+    return Option.builder("e", ArgumentParser.prefixedIntList(CONFIG_PREFIX))
+      .longName("exclude")
+      .description(
+        "The following configurations can be excluded from the experiment"
+          + " setup:",
+        createConfigString(configMap),
+        "This option can not be used together with --include.")
+      .build();
   }
 
   static OptionArg<Boolean> createGuiOpt(Builder builder) {
-    return Option
-        .builder("g", ArgumentParser.BOOLEAN)
-        .longName("show-gui")
-        .description(
-            "Starts the gui for each simulation when 'true' is supplied, hides "
-                + "it when 'false' is supplied. By default the gui is ",
-            builder.showGui ? "" : "not",
-            " shown. The gui can only be shown if the computation is performed "
-                + "locally and the number of threads is set to 1.")
-        .build();
+    return Option.builder("g", ArgumentParser.booleanParser())
+      .longName("show-gui")
+      .description(
+        "Starts the gui for each simulation when 'true' is supplied, hides "
+          + "it when 'false' is supplied. By default the gui is ",
+        builder.showGui ? "" : "not",
+        " shown. The gui can only be shown if the computation is performed "
+          + "locally and the number of threads is set to 1.")
+      .build();
   }
 
   static OptionArg<List<String>> createIncludeOpt(
       Map<String, MASConfiguration> configMap) {
-    return Option
-        .builder("i", ArgumentParser.STRING_LIST)
-        .longName("include")
-        .description(
-            "The following configurations can be included in the experiment "
-                + "setup:",
-            createConfigString(configMap),
-            "This option can not be used together with --exclude.")
-        .build();
+    return Option.builder("i", ArgumentParser.prefixedIntList(CONFIG_PREFIX))
+      .longName("include")
+      .description(
+        "The following configurations can be included in the experiment "
+          + "setup:",
+        createConfigString(configMap),
+        "This option can not be used together with --exclude.")
+      .build();
   }
 
   static String createConfigString(Map<String, MASConfiguration> configMap) {
     final StringBuilder sb = new StringBuilder(System.lineSeparator());
-    Joiner
-        .on(System.lineSeparator())
-        .withKeyValueSeparator(" = ")
-        .appendTo(sb, toStringMap(configMap))
-        .append("\nThe options should be given as a comma ',' separated list. ")
-        .append(
-            "If this option is not used all configurations are automatically "
-                + "included. ");
+    Joiner.on(System.lineSeparator())
+      .withKeyValueSeparator(" = ")
+      .appendTo(sb, toStringMap(configMap))
+      .append(
+        "\nThe options should be given as a comma ',' separated list. ")
+      .append(
+        "If this option is not used all configurations are automatically "
+          + "included. ");
     return sb.toString();
   }
 
@@ -273,55 +197,86 @@ public final class ExperimentCli {
   }
 
   static OptionNoArg createJppfOpt(Builder builder) {
-    return Option
-        .builder("j")
-        .longName("jppf")
-        .description(
-            "Compute the experiment using the JPPF framework",
-            builder.getComputer() == Computers.DISTRIBUTED ? DEFAULT_LABEL
-                : "",
-            ". This option can not be used together with the --local option.")
-        .build();
+    return Option.builder("j")
+      .longName("jppf")
+      .description(
+        "Compute the experiment using the JPPF framework",
+        builder.getComputer() == Computers.DISTRIBUTED ? DEFAULT_LABEL
+          : "",
+        ". This option can not be used together with the --local option.")
+      .build();
   }
 
   static OptionNoArg createLocalOpt(Builder builder) {
     return Option.builder("l")
-        .longName("local")
-        .description(
-            "Compute the experiment locally",
-            builder.getComputer() == Computers.LOCAL ? DEFAULT_LABEL : "",
-            ". This option can not be used together with the --jppf option.")
-        .build();
+      .longName("local")
+      .description(
+        "Compute the experiment locally",
+        builder.getComputer() == Computers.LOCAL ? DEFAULT_LABEL : "",
+        ". This option can not be used together with the --jppf option.")
+      .build();
   }
 
   static OptionArg<Integer> createRepetitionsOpt(Builder builder) {
     return Option
-        .builder("r", ArgumentParser.INTEGER)
-        .longName("repetitions")
-        .description(
-            "Sets the number of repetitions of each setting, default: ",
-            builder.repetitions)
-        .build();
+      .builder("r", ArgumentParser.intParser())
+      .longName("repetitions")
+      .description(
+        "Sets the number of repetitions of each setting, default: ",
+        builder.repetitions)
+      .build();
+  }
+
+  static OptionArg<Integer> createSeedRepetitionsOpt(Builder builder) {
+    return Option
+      .builder("sr", ArgumentParser.intParser())
+      .longName("seed-repetitions")
+      .description(
+        "Sets the number of seed repetitions of each setting, default: ",
+        builder.seedRepetitions)
+      .build();
   }
 
   static OptionArg<Long> createSeedOption(Experiment.Builder builder) {
-    return Option.builder(S, ArgumentParser.LONG)
-        .longName("seed")
-        .description(
-            "Sets the master random seed, default: ", builder.masterSeed, ".")
-        .build();
+    return Option.builder(S, ArgumentParser.longParser())
+      .longName("seed")
+      .description(
+        "Sets the master random seed, default: ", builder.masterSeed, ".")
+      .build();
   }
 
   static OptionArg<Integer> createThreadsOpt(Experiment.Builder builder) {
     return Option
-        .builder("t", ArgumentParser.INTEGER)
-        .longName("threads")
-        .description(
-            "Sets the number of threads to use in case of local computation, "
-                + "default: ",
-            builder.numThreads,
-            ". This option can not be used together with --batches.")
-        .build();
+      .builder("t", ArgumentParser.intParser())
+      .longName("threads")
+      .description(
+        "Sets the number of threads to use in case of local computation, "
+          + "default: ",
+        builder.numThreads,
+        ". This option can not be used together with --batches.")
+      .build();
+  }
+
+  static OptionArg<List<SimulationProperty>> createOrderingOption(
+      Builder builder) {
+    return Option.builder("o",
+      ArgumentParser.enumListParser("list", SimulationProperty.class))
+      .longName("ordering")
+      .description(
+        "Sets the ordering of simulations as specified by simulation "
+          + "properties, default: ",
+        Joiner.on(",").join(builder.experimentOrdering),
+        ". All options must be specified exactly once.")
+      .build();
+  }
+
+  static OptionArg<Long> createWarmupOption(Builder builder) {
+    return Option.builder("w", ArgumentParser.longParser())
+      .longName("warmup")
+      .description(
+        "Sets the warmup period (in ms) of the experiment, default: ",
+        builder.warmupPeriodMs, " ms.")
+      .build();
   }
 
   static Optional<String> execute(Experiment.Builder builder, String[] args) {
@@ -331,6 +286,99 @@ public final class ExperimentCli {
   static Optional<String> safeExecute(Experiment.Builder builder,
       String[] args) {
     return createMenu(builder).safeExecute(args);
+  }
+
+  enum StringHandler implements ArgHandler<Builder, String> {
+    DRY_RUN {
+      @Override
+      public void execute(Builder builder, Optional<String> value) {
+        if (value.isPresent()) {
+          checkArgument(
+            "v".equalsIgnoreCase(value.get())
+              || "verbose".equalsIgnoreCase(value.get()),
+            "only accepts 'v', 'verbose' or no argument, not '%s'.",
+            value.get());
+        }
+        builder.dryRun(value.isPresent(), System.out, System.err);
+      }
+    }
+  }
+
+  enum BooleanHandler implements ArgHandler<Builder, Boolean> {
+    GUI {
+      @Override
+      public void execute(Builder builder, Optional<Boolean> value) {
+        builder.showGui(value.isPresent() && value.get());
+      }
+    }
+  }
+
+  enum LongHandlers implements ArgHandler<Builder, Long> {
+    SEED {
+      @Override
+      public void execute(Builder builder, Optional<Long> value) {
+        builder.withRandomSeed(value.get());
+      }
+    },
+    WARMUP {
+      @Override
+      public void execute(Builder subject, Optional<Long> argument) {
+        subject.withWarmup(argument.get());
+      }
+    }
+  }
+
+  enum NoArgHandlers implements NoArgHandler<Builder> {
+    LOCAL {
+      @Override
+      public void execute(Builder builder) {
+        builder.computeLocal();
+      }
+    },
+    DISTRIBUTED {
+      @Override
+      public void execute(Builder builder) {
+        builder.computeDistributed();
+      }
+    }
+  }
+
+  enum IntHandlers implements ArgHandler<Builder, Integer> {
+    THREADS {
+      @Override
+      public void execute(Builder builder, Optional<Integer> value) {
+        builder.withThreads(value.get());
+      }
+    },
+    REPS {
+      @Override
+      public void execute(Builder builder, Optional<Integer> value) {
+        builder.repeat(value.get());
+      }
+    },
+    SEED_REPS {
+      @Override
+      public void execute(Builder builder, Optional<Integer> value) {
+        builder.repeatSeed(value.get());
+      }
+    },
+    BATCHES {
+      @Override
+      public void execute(Builder subject, Optional<Integer> value) {
+        subject.numBatches(value.get());
+      }
+    };
+  }
+
+  enum OrderingHandler
+    implements ArgHandler<Builder, List<SimulationProperty>> {
+    INSTANCE {
+      @Override
+      public void execute(Builder subject,
+          Optional<List<SimulationProperty>> argument) {
+        subject.withOrdering(argument.get());
+      }
+    }
   }
 
   enum ConfigToName implements Function<MASConfiguration, String> {
@@ -351,9 +399,9 @@ public final class ExperimentCli {
     @Override
     void checkNumArgs(List<String> args) {
       checkArgument(
-          args.size() < configMap.size(),
-          "Too many configurations, at most %s configurations can be excluded.",
-          configMap.size() - 1);
+        args.size() < configMap.size(),
+        "Too many configurations, at most %s configurations can be excluded.",
+        configMap.size() - 1);
 
     }
 
@@ -371,9 +419,9 @@ public final class ExperimentCli {
     @Override
     void checkNumArgs(List<String> args) {
       checkArgument(
-          args.size() <= configMap.size(),
-          "Too many configurations, at most %s configurations can be included.",
-          configMap.size());
+        args.size() <= configMap.size(),
+        "Too many configurations, at most %s configurations can be included.",
+        configMap.size());
     }
 
     @Override
@@ -398,8 +446,8 @@ public final class ExperimentCli {
       checkNumArgs(args);
       for (final String k : args) {
         checkArgument(configMap.containsKey(k),
-            "The key '%s' is not valid. Valid keys: %s.", k,
-            configMap.keySet());
+          "The key '%s' is not valid. Valid keys: %s.", k,
+          configMap.keySet());
         selectedConfigs.add(configMap.get(k));
       }
       doExecute(builder, selectedConfigs);

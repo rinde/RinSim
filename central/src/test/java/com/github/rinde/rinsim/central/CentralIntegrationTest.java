@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import org.junit.runners.Parameterized.Parameters;
 
 import com.github.rinde.rinsim.central.arrays.RandomMVArraysSolver;
 import com.github.rinde.rinsim.experiment.Experiment;
-import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06ObjectiveFunction;
 import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Parser;
 import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Scenario;
 
@@ -56,7 +55,7 @@ public class CentralIntegrationTest {
   @Parameters
   public static Collection<Object[]> configs() {
     return Arrays.asList(new Object[][] {//
-        {false, true}, {true, true}, {true, false}, {false, false}});
+      {false, true}, {true, true}, {true, false}, {false, false}});
   }
 
   /**
@@ -65,7 +64,7 @@ public class CentralIntegrationTest {
   @Before
   public void setUp() {
     final Gendreau06Parser parser = Gendreau06Parser.parser().addFile(
-        ScenarioPaths.GENDREAU);
+      ScenarioPaths.GENDREAU);
     if (allowDiversion) {
       parser.allowDiversion();
     }
@@ -82,13 +81,12 @@ public class CentralIntegrationTest {
    */
   @Test
   public void test() {
-    Experiment
-        .build(Gendreau06ObjectiveFunction.instance())
-        .addScenario(scenario)
-        .addConfiguration(
-            Central.solverConfiguration(RandomMVArraysSolver.solverSupplier()))
-        .repeat((!offline && allowDiversion) ? 2 : 1)
-        .perform();
+    Experiment.builder()
+      .addScenario(scenario)
+      .addConfiguration(
+        Central.solverConfiguration(RandomMVArraysSolver.solverSupplier()))
+      .repeat(!offline && allowDiversion ? 2 : 1)
+      .perform();
   }
 
   /**
@@ -97,13 +95,12 @@ public class CentralIntegrationTest {
    */
   @Test
   public void testRandomSolver() {
-    Experiment
-        .build(Gendreau06ObjectiveFunction.instance())
-        .addScenario(scenario)
-        .addConfiguration(
-            Central.solverConfiguration(SolverValidator.wrap(RandomSolver
-                .supplier())))
-        .repeat(3)
-        .perform();
+    Experiment.builder()
+      .addScenario(scenario)
+      .addConfiguration(
+        Central.solverConfiguration(SolverValidator.wrap(RandomSolver
+          .supplier())))
+      .repeat(3)
+      .perform();
   }
 }

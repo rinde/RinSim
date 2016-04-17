@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.github.rinde</groupId>
 		<artifactId>rinsim-main</artifactId>
-		<version>4.0.0</version>
+		<version>4.1.0</version>
 		<relativePath>..</relativePath>
 	</parent>
 
@@ -25,8 +25,43 @@
 		<sonar.language>java</sonar.language>
 	</properties>
 
+	<profiles>
+		<profile>
+			<!-- on mac we need a special argument -->
+			<id>swt.cocoa-macosx-x86_64</id>
+			<activation>
+				<os>
+					<family>mac</family>
+				</os>
+			</activation>
+			<properties>
+				<!-- adds the required argument for SWT applications of systems running 
+					OS X -->
+				<test.arg>-XstartOnFirstThread</test.arg>
+			</properties>
+		</profile>
+	</profiles>
+
 	<build>
 		<plugins>
+			<plugin>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<argLine>${test.arg}</argLine>
+					<excludedGroups>${test.excludedGroups}</excludedGroups>
+				</configuration>
+				<executions>
+					<execution>
+						<id>default-test</id>
+						<phase>test</phase>
+
+						<goals>
+							<goal>test</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
 			<plugin>
 				<groupId>com.googlecode.japi-checker</groupId>
 				<artifactId>japi-checker-maven-plugin</artifactId>

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,14 +97,14 @@ public final class SolverModel extends AbstractModel<SolverUser> {
     @Override
     public SimSolverBuilder setVehicles(
         Iterable<? extends Vehicle> vehicles) {
-      vehiclesList = ImmutableList.copyOf(vehicles);
+      vehiclesList = ImmutableList.<Vehicle>copyOf(vehicles);
       return this;
     }
 
     @Override
     public SimSolver build(Solver s) {
       return new SimSolver(Optional.of(s), roadModel, pdpModel, clock,
-          vehiclesList);
+        vehiclesList);
     }
   }
 

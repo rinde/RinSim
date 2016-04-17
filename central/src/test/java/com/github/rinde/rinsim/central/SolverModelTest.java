@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,10 +55,10 @@ public class SolverModelTest {
   @Before
   public void setUp() {
     sim = Simulator.builder()
-        .addModel(DefaultPDPModel.builder())
-        .addModel(PDPRoadModel.builder(RoadModelBuilders.plane()))
-        .addModel(SolverModel.builder())
-        .build();
+      .addModel(DefaultPDPModel.builder())
+      .addModel(PDPRoadModel.builder(RoadModelBuilders.plane()))
+      .addModel(SolverModel.builder())
+      .build();
   }
 
   /**
@@ -86,7 +86,7 @@ public class SolverModelTest {
     for (int i = 0; i < 10; i++) {
       sim.register(Parcel.builder(new Point(i / 2d, 5 + i / 2),
         new Point(10 - i / 3, i / 2))
-          .build());
+        .build());
     }
 
     sim.start();
@@ -105,24 +105,24 @@ public class SolverModelTest {
 
     Agent() {
       super(VehicleDTO.builder()
-          .startPosition(new Point(1, 1))
-          .availabilityTimeWindow(TimeWindow.create(0, 1 * 60 * 60 * 1000))
-          .build(), true);
+        .startPosition(new Point(1, 1))
+        .availabilityTimeWindow(TimeWindow.create(0, 1 * 60 * 60 * 1000))
+        .build(), true);
       solver = Optional.absent();
     }
 
     @Override
     public void setSolverProvider(SimSolverBuilder provider) {
       solver = Optional.of(provider.setVehicle(this)
-          .build(new RandomSolver(new MersenneTwister(123))));
+        .build(new RandomSolver(new MersenneTwister(123))));
     }
 
     @Override
     protected void preTick(TimeLapse time) {
       if (getRoute().isEmpty()
-          && !getRoadModel().getObjectsOfType(Parcel.class).isEmpty()) {
+        && !getRoadModel().getObjectsOfType(Parcel.class).isEmpty()) {
         setRoute(solver.get().solve(SolveArgs.create()
-            .useAllParcels()).get(0));
+          .useAllParcels()).get(0));
       }
     }
   }

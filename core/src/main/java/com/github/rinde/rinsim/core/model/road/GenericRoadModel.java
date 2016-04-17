@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ public abstract class GenericRoadModel extends AbstractModel<RoadUser>
    * The logger of the model.
    */
   protected static final Logger LOGGER = LoggerFactory
-      .getLogger(GenericRoadModel.class);
+    .getLogger(GenericRoadModel.class);
 
   /**
    * The types of events this model can dispatch.
@@ -94,9 +94,9 @@ public abstract class GenericRoadModel extends AbstractModel<RoadUser>
   protected void setSelf(GenericRoadModel rm) {
     LOGGER.info("setSelf {}", rm);
     checkState(
-        !initialized,
-        "This road model is already initialized, it can only be decorated "
-            + "before objects are registered.");
+      !initialized,
+      "This road model is already initialized, it can only be decorated "
+        + "before objects are registered.");
     self = rm;
   }
 

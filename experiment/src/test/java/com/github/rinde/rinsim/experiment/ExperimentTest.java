@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,37 +15,29 @@
  */
 package com.github.rinde.rinsim.experiment;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
-import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
 
-import com.github.rinde.rinsim.core.Simulator;
-import com.github.rinde.rinsim.core.SimulatorAPI;
+import com.github.rinde.rinsim.core.model.CountingModelBuilder;
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.Model.AbstractModelVoid;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
-import com.github.rinde.rinsim.core.model.pdp.RandomVehicle;
-import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
-import com.github.rinde.rinsim.experiment.Experiment.SimArgs;
+import com.github.rinde.rinsim.experiment.Experiment.SimulationResult;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
-import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
 import com.github.rinde.rinsim.pdptw.common.ScenarioTestUtil;
-import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
 import com.github.rinde.rinsim.pdptw.common.StatsTracker;
-import com.github.rinde.rinsim.pdptw.common.TestObjectiveFunction;
 import com.github.rinde.rinsim.scenario.Scenario;
-import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.testutil.TestUtil;
 import com.google.auto.value.AutoValue;
-import com.google.common.collect.ImmutableList;
 
 /**
  * @author Rinde van Lon
@@ -53,41 +45,27 @@ import com.google.common.collect.ImmutableList;
  */
 public class ExperimentTest {
 
-  public static StatisticsDTO singleRun(Scenario scenario,
-      MASConfiguration c, long seed, ObjectiveFunction objFunc,
-      boolean showGui) {
-    return (StatisticsDTO) Experiment
-        .singleRun(scenario, c, seed, objFunc, showGui,
-            PostProcessors.statisticsPostProcessor(), null)
-        .getResultObject();
-  }
-
-  public static Simulator init(Scenario scenario,
-      MASConfiguration config, long seed, boolean showGui) {
-    return Experiment.init(scenario, config, seed, showGui, null);
-  }
-
   @Test
   public void testCustomPostProcessor() {
     TestUtil.testEnum(Experiment.Computers.class);
 
     final Scenario scenario = ScenarioTestUtil.createRandomScenario(123L,
-        StatsTracker.builder());
-    final Experiment.Builder builder = Experiment
-        .build(TestObjectiveFunction.INSTANCE)
-        .addScenario(scenario)
-        .addConfiguration(testConfig("test"))
-        .usePostProcessor(new TestPostProcessor())
-        .withRandomSeed(123);
+      StatsTracker.builder());
+    final Experiment.Builder builder = Experiment.builder()
+      .addScenario(scenario)
+      .addConfiguration(ExperimentTestUtil.testConfig("test"))
+      .usePostProcessor(ExperimentTestUtil.testPostProcessor())
+      .addResultListener(new CommandLineProgress(System.out))
+      .withRandomSeed(123);
 
     final ExperimentResults er = builder.perform();
     assertEquals(123, er.getMasterSeed());
     assertEquals(123,
-        er.getResults().asList().get(0).getSimArgs().getRandomSeed());
+      er.getResults().asList().get(0).getSimArgs().getRandomSeed());
 
     @SuppressWarnings("unchecked")
     final List<Point> positions =
-        (List<Point>) er.getResults().asList().get(0).getResultObject();
+      (List<Point>) er.getResults().asList().get(0).getResultObject();
     assertEquals(10, positions.size());
   }
 
@@ -97,19 +75,19 @@ public class ExperimentTest {
   @Test
   public void testDefaultPostProcessor() {
     final Scenario scenario = ScenarioTestUtil.createRandomScenario(123L,
-        StatsTracker.builder());
+      StatsTracker.builder());
     final Experiment.Builder builder = Experiment
-        .build(TestObjectiveFunction.INSTANCE)
-        .addScenario(scenario)
-        .addConfiguration(testConfig("test"))
-        .withRandomSeed(123);
+      .builder()
+      .addScenario(scenario)
+      .addConfiguration(ExperimentTestUtil.testConfig("test"))
+      .withRandomSeed(123);
 
     final ExperimentResults er = builder.perform();
 
     assertThat(er.getResults().asList().get(0).getResultObject())
-        .isInstanceOf(String.class);
+      .isInstanceOf(String.class);
     assertThat(er.getResults().asList().get(0).getResultObject())
-        .isEqualTo("simulation duration: 10801000");
+      .isEqualTo("simulation duration: 10801000");
   }
 
   /**
@@ -118,14 +96,13 @@ public class ExperimentTest {
   @Test
   public void testDefaultPostProcessorFailure() {
     final Scenario scenario = ScenarioTestUtil.createRandomScenario(123L,
-        StatsTracker.builder(), FailureModel.builder());
-    final Experiment.Builder builder = Experiment
-        .build(TestObjectiveFunction.INSTANCE)
-        .addScenario(scenario)
-        .addConfiguration(testConfig("test"))
-        .withThreads(1)
-        .repeat(3)
-        .withRandomSeed(123);
+      StatsTracker.builder(), FailureModel.builder());
+    final Experiment.Builder builder = Experiment.builder()
+      .addScenario(scenario)
+      .addConfiguration(ExperimentTestUtil.testConfig("test"))
+      .withThreads(1)
+      .repeat(3)
+      .withRandomSeed(123);
 
     boolean fail = false;
     try {
@@ -140,53 +117,156 @@ public class ExperimentTest {
   @Test
   public void testRetryPostProcessor() {
     final Scenario scenario = ScenarioTestUtil.createRandomScenario(123L,
-        StatsTracker.builder());
-    final Experiment.Builder builder = Experiment
-        .build(TestObjectiveFunction.INSTANCE)
-        .addScenario(scenario)
-        .addConfiguration(testConfig("test"))
-        .withThreads(1)
-        .usePostProcessor(new RetryPostProcessor())
-        .repeat(3)
-        .withRandomSeed(123);
+      StatsTracker.builder());
+    final Experiment.Builder builder = Experiment.builder()
+      .addScenario(scenario)
+      .addConfiguration(ExperimentTestUtil.testConfig("test"))
+      .withThreads(1)
+      .usePostProcessor(ExperimentTestUtil.retryOncePostProcessor())
+      .repeat(3)
+      .withRandomSeed(123);
 
     builder.perform();
   }
 
-  static class TestPostProcessor implements
-      PostProcessor<ImmutableList<Point>>, Serializable {
-    private static final long serialVersionUID = -2166760289557525263L;
+  /**
+   * Tests that that seed repetitions are correctly executed.
+   */
+  @Test
+  public void testSeedRepetitions() {
+    final Scenario s0 = ScenarioTestUtil.createRandomScenario(123L);
+    final Scenario s1 = ScenarioTestUtil.createRandomScenario(456L);
+    final MASConfiguration c0 = ExperimentTestUtil.testConfig("c0");
+    final Experiment.Builder builder = Experiment.builder()
+      .addScenario(s0)
+      .addScenario(s1)
+      .addConfiguration(c0)
+      .repeat(2)
+      .withThreads(1)
+      .repeatSeed(3)
+      .withRandomSeed(123);
 
-    @Override
-    public ImmutableList<Point> collectResults(Simulator sim, SimArgs args) {
-      final RoadModel rm = sim.getModelProvider().getModel(RoadModel.class);
-      return ImmutableList.copyOf(rm.getObjectPositions());
-    }
+    final ExperimentResults er = builder.perform();
+    final List<SimulationResult> results = new ArrayList<>(er.getResults());
 
-    @Override
-    public FailureStrategy handleFailure(Exception e, Simulator sim,
-        SimArgs args) {
-      return FailureStrategy.ABORT_EXPERIMENT_RUN;
-    }
+    assertThat(results).hasSize(12);
+    assertSimRes(results.get(0), s0, c0, 0);
+    assertSimRes(results.get(1), s0, c0, 1);
+    assertSimRes(results.get(2), s0, c0, 2);
+    assertSeedEquality(results.subList(0, 3));
+    assertSimRes(results.get(3), s0, c0, 0);
+    assertSimRes(results.get(4), s0, c0, 1);
+    assertSimRes(results.get(5), s0, c0, 2);
+    assertSeedEquality(results.subList(3, 6));
+    assertSimRes(results.get(6), s1, c0, 0);
+    assertSimRes(results.get(7), s1, c0, 1);
+    assertSimRes(results.get(8), s1, c0, 2);
+    assertSeedEquality(results.subList(6, 9));
+    assertSimRes(results.get(9), s1, c0, 0);
+    assertSimRes(results.get(10), s1, c0, 1);
+    assertSimRes(results.get(11), s1, c0, 2);
+    assertSeedEquality(results.subList(9, 12));
   }
 
-  static class RetryPostProcessor implements PostProcessor<Object> {
+  @Test
+  public void testOrdering() {
+    final Scenario s0 = ScenarioTestUtil.createRandomScenario(123L);
+    final Scenario s1 = ScenarioTestUtil.createRandomScenario(456L);
+    final MASConfiguration c0 = ExperimentTestUtil.testConfig("c0");
+    final MASConfiguration c1 = ExperimentTestUtil.testConfig("c1");
+    final Experiment.Builder builder = Experiment.builder()
+      .addScenario(s0)
+      .addScenario(s1)
+      .addConfiguration(c0)
+      .addConfiguration(c1)
+      .repeat(2)
+      .withThreads(1)
+      .repeatSeed(2)
+      .withOrdering(
+        SimulationProperty.SEED_REPS,
+        SimulationProperty.REPS,
+        SimulationProperty.SCENARIO,
+        SimulationProperty.CONFIG)
+      .withRandomSeed(123);
 
-    boolean firstTime = true;
+    final ExperimentResults er = builder.perform();
+    final List<SimulationResult> results = new ArrayList<>(er.getResults());
 
-    @Override
-    public Object collectResults(Simulator sim, SimArgs args) {
-      if (firstTime) {
-        firstTime = false;
-        throw new IllegalStateException("YOLO");
-      }
-      return new Object();
+    assertThat(results).hasSize(16);
+    assertSimRes(results.get(0), s0, c0, 0);
+    assertSimRes(results.get(1), s0, c1, 0);
+    assertSimRes(results.get(2), s1, c0, 0);
+    assertSimRes(results.get(3), s1, c1, 0);
+    assertSeedEquality(results.subList(0, 4));
+    assertSimRes(results.get(4), s0, c0, 0);
+    assertSimRes(results.get(5), s0, c1, 0);
+    assertSimRes(results.get(6), s1, c0, 0);
+    assertSimRes(results.get(7), s1, c1, 0);
+    assertSeedEquality(results.subList(4, 8));
+    assertSimRes(results.get(8), s0, c0, 1);
+    assertSimRes(results.get(9), s0, c1, 1);
+    assertSimRes(results.get(10), s1, c0, 1);
+    assertSimRes(results.get(11), s1, c1, 1);
+    assertSeedEquality(results.subList(8, 12));
+    assertSimRes(results.get(12), s0, c0, 1);
+    assertSimRes(results.get(13), s0, c1, 1);
+    assertSimRes(results.get(14), s1, c0, 1);
+    assertSimRes(results.get(15), s1, c1, 1);
+    assertSeedEquality(results.subList(12, 16));
+  }
+
+  /**
+   * Tests correct functioning of warmup.
+   */
+  @Test
+  public void testWarmup() {
+    final CountingModelBuilder cmb = new CountingModelBuilder();
+
+    final Scenario scenario = ScenarioTestUtil.createRandomScenario(123L,
+      StatsTracker.builder(), cmb);
+
+    final Experiment.Builder builder = Experiment.builder()
+      .addScenario(scenario)
+      .addConfiguration(ExperimentTestUtil.testConfig("test"))
+      .usePostProcessor(ExperimentTestUtil.testPostProcessor())
+      .withWarmup(100L)
+      .withRandomSeed(123);
+
+    assertThat(builder.warmupPeriodMs).isEqualTo(100L);
+
+    assertThat(cmb.getCount()).isEqualTo(0);
+    builder.perform();
+    // it should be called once for the warmup and once for the actual run
+    assertThat(cmb.getCount()).isEqualTo(2);
+
+    // this should disable the warmup
+    builder.withWarmup(0);
+    assertThat(builder.warmupPeriodMs).isEqualTo(0);
+    builder.perform();
+    assertThat(cmb.getCount()).isEqualTo(3);
+
+    boolean fail = false;
+    try {
+      builder.withWarmup(-1);
+    } catch (final IllegalArgumentException e) {
+      fail = true;
+      assertThat(e.getMessage()).contains("Warmup period must be positive");
     }
+    assertThat(fail).isTrue();
+  }
 
-    @Override
-    public FailureStrategy handleFailure(Exception e, Simulator sim,
-        SimArgs args) {
-      return FailureStrategy.RETRY;
+  static void assertSimRes(SimulationResult sr, Scenario s, MASConfiguration c,
+      int r) {
+    assertThat(sr.getSimArgs().getScenario()).isEqualTo(s);
+    assertThat(sr.getSimArgs().getMasConfig()).isEqualTo(c);
+    assertThat(sr.getSimArgs().getRepetition()).isEqualTo(r);
+  }
+
+  static void assertSeedEquality(List<SimulationResult> results) {
+    checkArgument(!results.isEmpty());
+    final long seed = results.get(0).getSimArgs().getRandomSeed();
+    for (final SimulationResult sr : results) {
+      assertThat(sr.getSimArgs().getRandomSeed()).isEqualTo(seed);
     }
   }
 
@@ -198,14 +278,12 @@ public class ExperimentTest {
     public void tick(TimeLapse timeLapse) {
       if (timeLapse.getStartTime() == 5000) {
         throw new IllegalStateException(
-            "Hello! Yes? This is the FailureModel speaking.");
+          "Hello! Yes? This is the FailureModel speaking.");
       }
     }
 
     @Override
-    public void afterTick(TimeLapse timeLapse) {
-
-    }
+    public void afterTick(TimeLapse timeLapse) {}
 
     static ModelBuilder<?, ?> builder() {
       return new AutoValue_ExperimentTest_FailureModel_FailureModelBuilder();
@@ -221,21 +299,5 @@ public class ExperimentTest {
       }
     }
 
-  }
-
-  public static MASConfiguration testConfig(String name) {
-    return MASConfiguration.pdptwBuilder()
-        .setName(name)
-        .addEventHandler(AddVehicleEvent.class, VehicleHandler.INSTANCE)
-        .build();
-  }
-
-  enum VehicleHandler implements TimedEventHandler<AddVehicleEvent> {
-    INSTANCE {
-      @Override
-      public void handleTimedEvent(AddVehicleEvent event, SimulatorAPI sim) {
-        sim.register(new RandomVehicle(event.getVehicleDTO()));
-      }
-    }
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,12 +31,12 @@ public class ScenarioTest {
   @Test
   public void test() throws IOException {
     final FabriRechtScenario scen = FabriRechtParser
-        .parse("files/test/fabri-recht/lc101_coord.csv",
-          "files/test/fabri-recht/lc101.csv");
+      .parse("files/test/fabri-recht/lc101_coord.csv",
+        "files/test/fabri-recht/lc101.csv");
 
     final String json = FabriRechtParser.toJson(scen);
     FabriRechtParser.toJson(scen, new BufferedWriter(new FileWriter(
-        "files/test/fabri-recht/lc101.scenario")));
+      "files/test/fabri-recht/lc101.scenario")));
 
     final FabriRechtScenario scen2 = FabriRechtParser.fromJson(json);
     assertEquals(scen, scen2);

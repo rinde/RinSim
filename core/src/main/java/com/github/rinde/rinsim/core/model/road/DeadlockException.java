@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,8 +33,8 @@ public final class DeadlockException extends IllegalArgumentException {
 
   DeadlockException(Connection<?> conn) {
     super(
-        "There is a vehicle driving in the opposite direction on the target "
-            + "connection.");
+      "There is a vehicle driving in the opposite direction on the target "
+        + "connection.");
     connection = conn;
   }
 

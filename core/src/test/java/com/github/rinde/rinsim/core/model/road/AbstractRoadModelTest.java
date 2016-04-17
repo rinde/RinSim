@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,7 @@ import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.model.time.TimeLapseFactory;
 import com.github.rinde.rinsim.event.ListenerEventHistory;
 import com.github.rinde.rinsim.geom.Point;
+import com.github.rinde.rinsim.geom.PointTestUtil;
 import com.github.rinde.rinsim.util.TrivialRoadUser;
 import com.google.common.base.Predicate;
 import com.google.common.collect.HashBasedTable;
@@ -163,7 +164,7 @@ public abstract class AbstractRoadModelTest<T extends GenericRoadModel> {
     assertNull(model.getDestination(new TestRoadUser()));
     final List<Point> path = model.getShortestPathTo(SW, NW);
     model.followPath(testRoadUser, newLinkedList(path),
-        TimeLapseFactory.create(0, 1));
+      TimeLapseFactory.create(0, 1));
     assertEquals(NW, model.getDestination(testRoadUser));
 
     model.moveTo(testRoadUser, NE, TimeLapseFactory.create(0, 1));
@@ -197,7 +198,7 @@ public abstract class AbstractRoadModelTest<T extends GenericRoadModel> {
     final TestRoadUser testRoadUser = new TestRoadUser();
     model.addObjectAt(testRoadUser, SW);
     model.followPath(testRoadUser, new LinkedList<Point>(Arrays.asList(SW)),
-        emptyTimeLapse);
+      emptyTimeLapse);
   }
 
   @Test
@@ -235,7 +236,7 @@ public abstract class AbstractRoadModelTest<T extends GenericRoadModel> {
     final Map<RoadUser, Point> mapCopy = model.getObjectsAndPositions();
     final Set<RoadUser> setCopy = model.getObjects();
     final Set<TestRoadUser> subsetCopy = model
-        .getObjectsOfType(TestRoadUser.class);
+      .getObjectsOfType(TestRoadUser.class);
     final Collection<Point> posCopy = model.getObjectPositions();
 
     assertEquals(3, model.getObjectsAndPositions().size());
@@ -266,9 +267,9 @@ public abstract class AbstractRoadModelTest<T extends GenericRoadModel> {
     model.addObjectAt(agent4, NE);
     model.addObjectAt(agent5, SE);
     assertTrue(Sets.difference(asSet(agent1),
-        model.getObjectsAt(agent1, TestRoadUser.class)).isEmpty());
+      model.getObjectsAt(agent1, TestRoadUser.class)).isEmpty());
     assertTrue(Sets.difference(asSet(agent2, agent4),
-        model.getObjectsAt(agent2, TestRoadUser.class)).isEmpty());
+      model.getObjectsAt(agent2, TestRoadUser.class)).isEmpty());
     assertTrue(model.getObjectsAt(agent2, SpeedyRoadUser.class).isEmpty());
   }
 
@@ -296,7 +297,7 @@ public abstract class AbstractRoadModelTest<T extends GenericRoadModel> {
 
     model.followPath(ru, asPath(SE), hour(1));
     final Point p = model.getPosition(ru);
-    assertTrue(model.containsObjectAt(ru, Point.duplicate(p)));
+    assertTrue(model.containsObjectAt(ru, PointTestUtil.duplicate(p)));
   }
 
   @Test
@@ -306,7 +307,7 @@ public abstract class AbstractRoadModelTest<T extends GenericRoadModel> {
     model.addObjectAt(ru, SW);
 
     model.followPath(ru, newLinkedList(asList(SE)),
-        TimeLapseFactory.create(0, 36000000 - 1));
+      TimeLapseFactory.create(0, 36000000 - 1));
   }
 
   @Test
@@ -376,13 +377,13 @@ public abstract class AbstractRoadModelTest<T extends GenericRoadModel> {
     assertTrue(model.equalPosition(agent1, agent2));
   }
 
-  @SuppressWarnings({ "unused", "null" })
+  @SuppressWarnings({"unused", "null"})
   @Test(expected = IllegalArgumentException.class)
   public void pathProgressConstructorFail1() {
     MoveProgress.create(meter(-1), durationSecond(1), new ArrayList<Point>());
   }
 
-  @SuppressWarnings({ "unused", "null" })
+  @SuppressWarnings({"unused", "null"})
   @Test(expected = IllegalArgumentException.class)
   public void pathProgressConstructorFail2() {
     MoveProgress.create(meter(1), durationSecond(-1), new ArrayList<Point>());
@@ -414,7 +415,7 @@ public abstract class AbstractRoadModelTest<T extends GenericRoadModel> {
     model.getEventAPI().addListener(list, RoadEventType.MOVE);
     assertTrue(list.getHistory().isEmpty());
     model.followPath(user, newLinkedList(asList(SW, SE, NE, NW)),
-        TimeLapseFactory.create(0, 10));
+      TimeLapseFactory.create(0, 10));
 
     assertEquals(1, list.getHistory().size());
 
@@ -443,7 +444,7 @@ public abstract class AbstractRoadModelTest<T extends GenericRoadModel> {
 
     // checking whether the returned objects are in insertion order
     final List<RoadUser> modelObjects = new ArrayList<RoadUser>(
-        model.getObjects());
+      model.getObjects());
     assertEquals(objects.size(), modelObjects.size());
     for (int i = 0; i < modelObjects.size(); i++) {
       assertSame(modelObjects.get(i), objects.get(i));
@@ -458,7 +459,7 @@ public abstract class AbstractRoadModelTest<T extends GenericRoadModel> {
     // check to see if the objects are still in insertion order, even after
     // removals
     final List<RoadUser> modelObjects2 = new ArrayList<RoadUser>(
-        model.getObjects());
+      model.getObjects());
     assertEquals(objects.size(), modelObjects2.size());
     for (int i = 0; i < modelObjects2.size(); i++) {
       assertSame(modelObjects2.get(i), objects.get(i));
@@ -466,12 +467,12 @@ public abstract class AbstractRoadModelTest<T extends GenericRoadModel> {
 
     // make sure that the order is preserved, even when using a predicate
     final List<RoadUser> modelObjects3 = new ArrayList<RoadUser>(
-        model.getObjects(new Predicate<RoadUser>() {
-          @Override
-          public boolean apply(RoadUser input) {
-            return true;
-          }
-        }));
+      model.getObjects(new Predicate<RoadUser>() {
+        @Override
+        public boolean apply(RoadUser input) {
+          return true;
+        }
+      }));
     assertEquals(objects.size(), modelObjects3.size());
     for (int i = 0; i < modelObjects3.size(); i++) {
       assertSame(modelObjects3.get(i), objects.get(i));
@@ -480,8 +481,8 @@ public abstract class AbstractRoadModelTest<T extends GenericRoadModel> {
     // make sure that the order of the objects is preserved, even in this
     // RoadUser, Point map
     final List<Entry<RoadUser, Point>> modelObjects4 =
-        new ArrayList<Entry<RoadUser, Point>>(
-            model.getObjectsAndPositions().entrySet());
+      new ArrayList<Entry<RoadUser, Point>>(
+        model.getObjectsAndPositions().entrySet());
     assertEquals(objects.size(), modelObjects4.size());
     for (int i = 0; i < modelObjects4.size(); i++) {
       assertSame(modelObjects4.get(i).getKey(), objects.get(i));
@@ -489,7 +490,7 @@ public abstract class AbstractRoadModelTest<T extends GenericRoadModel> {
 
     // make sure that the order is preserved, even when using a type
     final List<RoadUser> modelObjects5 = new ArrayList<RoadUser>(
-        model.getObjectsOfType(TestRoadUser2.class));
+      model.getObjectsOfType(TestRoadUser2.class));
     assertEquals(46, modelObjects5.size());
     int j = 0;
     for (int i = 0; i < modelObjects5.size(); i++) {

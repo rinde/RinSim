@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ public class RandomVehicle extends Vehicle implements RandomUser {
     if (target.isPresent()) {
       if (pm.get().containerContains(this, target.get())) {
         if (rm.get().getPosition(this)
-            .equals(target.get().getDeliveryLocation())) {
+          .equals(target.get().getDeliveryLocation())) {
           pm.get().deliver(this, target.get(), time);
         } else {
           rm.get().moveTo(this, target.get().getDeliveryLocation(), time);
@@ -86,7 +86,7 @@ public class RandomVehicle extends Vehicle implements RandomUser {
 
   Optional<Parcel> findTarget() {
     final Collection<Parcel> available = pm.get().getParcels(
-        ParcelState.AVAILABLE);
+      ParcelState.AVAILABLE);
     final ImmutableSet<Parcel> contents = pm.get().getContents(this);
     if (available.isEmpty() && contents.isEmpty()) {
       return Optional.absent();
@@ -99,10 +99,10 @@ public class RandomVehicle extends Vehicle implements RandomUser {
     }
     if (pickup) {
       return Optional.of(newArrayList(available).get(
-          rng.get().nextInt(available.size())));
+        rng.get().nextInt(available.size())));
     }
     return Optional.of(contents.asList().get(
-        rng.get().nextInt(contents.size())));
+      rng.get().nextInt(contents.size())));
   }
 
   @Override

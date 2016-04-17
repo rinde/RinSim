@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,15 +66,15 @@ class LoadRequirement implements Predicate<Scenario> {
   public boolean apply(@Nullable Scenario scenario) {
     assert scenario != null;
     final List<Double> loads = newArrayList(relative ? Metrics
-        .measureRelativeLoad(scenario) : Metrics.measureLoad(scenario));
+      .measureRelativeLoad(scenario) : Metrics.measureLoad(scenario));
     final int toAdd = desiredLoadList.size() - loads.size();
     for (int j = 0; j < toAdd; j++) {
       loads.add(0d);
     }
 
     final double[] deviations = abs(subtract(
-        Doubles.toArray(desiredLoadList),
-        Doubles.toArray(loads)));
+      Doubles.toArray(desiredLoadList),
+      Doubles.toArray(loads)));
     final double mean = StatUtils.mean(deviations);
     final double max = Doubles.max(deviations);
     return max <= maxMax && mean <= maxMean;

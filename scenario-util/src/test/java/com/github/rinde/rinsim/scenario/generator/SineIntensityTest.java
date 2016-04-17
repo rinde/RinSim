@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,8 +48,8 @@ public class SineIntensityTest {
     // integral (0)..(1) max(((1 sin( (2pi x 1) - (.5pi))) + .1),0)
     // = 0.369903
     SineIntensity sine = (SineIntensity) IntensityFunctions.sineIntensity()
-        .height(.1)
-        .build();
+      .height(.1)
+      .build();
     assertEquals(.369903, sine.area(), 0.000001);
     assertEquals(
       .369903,
@@ -68,7 +68,7 @@ public class SineIntensityTest {
     // integral (0)..(1) max(((1 sin( (2pi x 1) - (.5pi))) + -.1),0)
     // = 0.269903
     sine = (SineIntensity) IntensityFunctions.sineIntensity().height(-.1)
-        .build();
+      .build();
     assertEquals(.269903, sine.area(), 0.000001);
     assertEquals(
       .269903,
@@ -78,10 +78,10 @@ public class SineIntensityTest {
     // integral (0)..(3600) max(((5 sin( (2pi x 1/3600) - (.5pi))) + 10),0)
     // = 36000
     sine = (SineIntensity) IntensityFunctions.sineIntensity()
-        .amplitude(5d)
-        .period(3600d)
-        .height(10)
-        .build();
+      .amplitude(5d)
+      .period(3600d)
+      .height(10)
+      .build();
     assertEquals(36000, sine.area(), 0.00001);
     assertEquals(
       36000,
@@ -92,10 +92,10 @@ public class SineIntensityTest {
     // integral (1.84)..(8.15) ((5 sin( (2pi x .1) - (.5pi))) + 2)
     // = 27.2065
     sine = (SineIntensity) IntensityFunctions.sineIntensity()
-        .amplitude(5d)
-        .frequency(1d / 10d)
-        .height(2)
-        .build();
+      .amplitude(5d)
+      .frequency(1d / 10d)
+      .height(2)
+      .build();
     assertEquals(27.2065, sine.area(), 0.0001);
     assertEquals(
       27.2065,
@@ -116,27 +116,27 @@ public class SineIntensityTest {
     for (final double p : periods) {
       for (final double h : heights) {
         final SineIntensity si20 = (SineIntensity) IntensityFunctions
-            .sineIntensity()
-            .period(p)
-            .height(h)
-            .area(20)
-            .build();
+          .sineIntensity()
+          .period(p)
+          .height(h)
+          .area(20)
+          .build();
         assertEquals(si20.area(), 20d, 0.000000001);
 
         final SineIntensity si200 = (SineIntensity) IntensityFunctions
-            .sineIntensity()
-            .period(p)
-            .height(h)
-            .area(200)
-            .build();
+          .sineIntensity()
+          .period(p)
+          .height(h)
+          .area(200)
+          .build();
         assertEquals(si200.area(), 200d, 0.000000001);
 
         final SineIntensity si2000 = (SineIntensity) IntensityFunctions
-            .sineIntensity()
-            .period(p)
-            .height(h)
-            .area(2000)
-            .build();
+          .sineIntensity()
+          .period(p)
+          .height(h)
+          .area(2000)
+          .build();
         assertEquals(si2000.area(), 2000d, 0.000000001);
 
         // test that sine functions with larger areas have same shape (except
@@ -155,26 +155,26 @@ public class SineIntensityTest {
   @Test
   public void testPhaseShift() {
     SineIntensity si = (SineIntensity) IntensityFunctions.sineIntensity()
-        .phaseShift(0).build();
+      .phaseShift(0).build();
     nonZeroCheck(Range.closed(0d, 1d), si, Range.open(0d, .5));
 
     si = (SineIntensity) IntensityFunctions.sineIntensity().phaseShift(.5)
-        .build();
+      .build();
     nonZeroCheck(Range.closed(0d, 1d), si, Range.open(.25, .75));
     // check default
     assertEquals(IntensityFunctions.sineIntensity().build(), si);
 
     si = (SineIntensity) IntensityFunctions.sineIntensity().phaseShift(1)
-        .build();
+      .build();
     nonZeroCheck(Range.closed(0d, 1d), si, Range.open(.5, 1d));
 
     si = (SineIntensity) IntensityFunctions.sineIntensity().phaseShift(1.5)
-        .build();
+      .build();
     nonZeroCheck(Range.closed(0d, 1d), si, Range.closedOpen(0d, .25),
       Range.openClosed(.75, 1d));
 
     si = (SineIntensity) IntensityFunctions.sineIntensity().phaseShift(2)
-        .build();
+      .build();
     nonZeroCheck(Range.closed(0d, 1d), si, Range.open(0d, .5));
   }
 
@@ -193,7 +193,7 @@ public class SineIntensityTest {
       IntensityFunction intFunc, Range<Double>... nonZeroRanges) {
     final RangeSet<Double> nonZeroRangeSet = asSet(nonZeroRanges);
     for (double d = globalRange.lowerEndpoint(); d <= globalRange
-        .upperEndpoint(); d = Math.round((d + .01) * 100d) / 100d) {
+      .upperEndpoint(); d = Math.round((d + .01) * 100d) / 100d) {
       if (nonZeroRangeSet.contains(d)) {
         assertTrue(intFunc.apply(d) > 0);
       } else {

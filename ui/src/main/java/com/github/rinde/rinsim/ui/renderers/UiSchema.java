@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -110,7 +110,7 @@ public class UiSchema {
 
   void checkInitialized() {
     checkState(colorRegistry != null,
-        "UiSchema needs to be initialized before it can be used");
+      "UiSchema needs to be initialized before it can be used");
   }
 
   /**
@@ -176,7 +176,7 @@ public class UiSchema {
 
     for (final Entry<String, String> e : imgCache.entrySet()) {
       imageRegistry.put(e.getKey(), new Image(d, getClass()
-          .getResourceAsStream(e.getValue())));
+        .getResourceAsStream(e.getValue())));
     }
   }
 }

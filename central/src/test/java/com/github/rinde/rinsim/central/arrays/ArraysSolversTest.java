@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,8 +70,8 @@ public class ArraysSolversTest {
     final Measure<Double, Velocity> speed1 = Measure.valueOf(40d,
       KILOMETERS_PER_HOUR);
     final int[][] matrix1 = ArraysSolvers
-        .toTravelTimeMatrix(asList(p0, p1, p2, p3), KILOMETER, speed1, MINUTE,
-          RoundingMode.CEILING);
+      .toTravelTimeMatrix(asList(p0, p1, p2, p3), KILOMETER, speed1, MINUTE,
+        RoundingMode.CEILING);
     assertArrayEquals(new int[] {0, 15, 22, 15}, matrix1[0]);
     assertArrayEquals(new int[] {15, 0, 15, 22}, matrix1[1]);
     assertArrayEquals(new int[] {22, 15, 0, 15}, matrix1[2]);
@@ -135,43 +135,43 @@ public class ArraysSolversTest {
   public void testToInventoriesArrayWithDuplicatePositions() {
 
     final Simulator sim = Simulator.builder()
-        .addModel(
-          DefaultPDPModel.builder()
-              .withTimeWindowPolicy(TimeWindowPolicies.LIBERAL))
-        .addModel(
-          PDPRoadModel.builder(RoadModelBuilders.plane())
-              .withAllowVehicleDiversion(false))
-        .build();
+      .addModel(
+        DefaultPDPModel.builder()
+          .withTimeWindowPolicy(TimeWindowPolicies.LIBERAL))
+      .addModel(
+        PDPRoadModel.builder(RoadModelBuilders.plane())
+          .withAllowVehicleDiversion(false))
+      .build();
 
     final RouteFollowingVehicle rfv = new RouteFollowingVehicle(VehicleDTO
-        .builder()
-        .startPosition(new Point(1, 1))
-        .speed(50d)
-        .capacity(10)
-        .availabilityTimeWindow(TimeWindow.create(0, 1000000))
-        .build(),
-        false);
+      .builder()
+      .startPosition(new Point(1, 1))
+      .speed(50d)
+      .capacity(10)
+      .availabilityTimeWindow(TimeWindow.create(0, 1000000))
+      .build(),
+      false);
     final Depot depot = new Depot(new Point(5, 5));
 
     final Parcel dp1 =
       Parcel.builder(new Point(2, 2), new Point(3, 3))
-          .pickupTimeWindow(TimeWindow.create(0, 1000))
-          .deliveryTimeWindow(TimeWindow.create(0, 1000))
-          .neededCapacity(0)
-          .orderAnnounceTime(0L)
-          .pickupDuration(5L)
-          .deliveryDuration(5L)
-          .build();
+        .pickupTimeWindow(TimeWindow.create(0, 1000))
+        .deliveryTimeWindow(TimeWindow.create(0, 1000))
+        .neededCapacity(0)
+        .orderAnnounceTime(0L)
+        .pickupDuration(5L)
+        .deliveryDuration(5L)
+        .build();
 
     final Parcel dp2 =
       Parcel.builder(new Point(2, 2), new Point(3, 3))
-          .pickupTimeWindow(TimeWindow.create(0, 1000))
-          .deliveryTimeWindow(TimeWindow.create(0, 1000))
-          .neededCapacity(0)
-          .orderAnnounceTime(0L)
-          .pickupDuration(5L)
-          .deliveryDuration(5L)
-          .build();
+        .pickupTimeWindow(TimeWindow.create(0, 1000))
+        .deliveryTimeWindow(TimeWindow.create(0, 1000))
+        .neededCapacity(0)
+        .orderAnnounceTime(0L)
+        .pickupDuration(5L)
+        .deliveryDuration(5L)
+        .build();
 
     sim.register(depot);
     sim.register(rfv);
@@ -185,13 +185,13 @@ public class ArraysSolversTest {
     }
 
     final SimulationConverter simConv = Solvers.converterBuilder().with(sim)
-        .build();
+      .build();
     final StateContext sc = simConv.convert(SolveArgs.create()
-        .noCurrentRoutes().useAllParcels());
+      .noCurrentRoutes().useAllParcels());
 
     final ArraysObject singleVehicleArrays = ArraysSolvers
-        .toSingleVehicleArrays(sc.state,
-          SI.MILLI(SI.SECOND));
+      .toSingleVehicleArrays(sc.state,
+        SI.MILLI(SI.SECOND));
 
     final int[][] inventories = ArraysSolvers.toInventoriesArray(sc.state,
       singleVehicleArrays);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,10 @@ class Box extends Parcel {
 
   Box(Point o, Point d, long duration, BoxHandle bh) {
     super(
-        Parcel.builder(o, d)
-            .serviceDuration(duration)
-            .neededCapacity(1d)
-            .buildDTO());
+      Parcel.builder(o, d)
+        .serviceDuration(duration)
+        .neededCapacity(1d)
+        .buildDTO());
     boxHandle = bh;
   }
 

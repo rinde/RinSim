@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,22 +61,22 @@ public class DotGraphIOTest {
   private Graph<MultiAttributeData> simpleMAGraph;
 
   private static final ImmutableList<String> LEGACY_FORMAT = ImmutableList.of(
-      "digraph mapgraph {",
-      "n0[p=\"3296724.2131123254,2.5725043247255992E7\"]",
-      "n1[p=\"3296796.1359189367,2.572491905319646E7\"]",
-      "n2[p=\"3296880.4785663,2.5724779870530557E7\"]",
-      "n3[p=\"3296883.3554785643,2.5724671468889512E7\"]",
-      "n19663[p=\"3296782.7337179,2.5724994399343655E7\"]",
-      "n16767[p=\"3296661.5525598335,2.5725117255271256E7\"]",
-      "n0 -> n1[d=\"1.4\", s=\"50000.0\"]",
-      "n0 -> n19663[d=\"0.8\"]",
-      "n0 -> n16767[d=\"1.0\", s=\"50000.0\"]",
-      "n1 -> n0[d=\"1.4\", s=\"50000.0\"]",
-      "n1 -> n2[d=\"1.6\", s=\"50000.0\"]",
-      "n2 -> n1[d=\"1.6\", s=\"50000.0\"]",
-      "n2 -> n3[d=\"1.1\", s=\"50000.0\"]",
-      "n3 -> n2[d=\"1.1\", s=\"50000.0\"]",
-      "}");
+    "digraph mapgraph {",
+    "n0[p=\"3296724.2131123254,2.5725043247255992E7\"]",
+    "n1[p=\"3296796.1359189367,2.572491905319646E7\"]",
+    "n2[p=\"3296880.4785663,2.5724779870530557E7\"]",
+    "n3[p=\"3296883.3554785643,2.5724671468889512E7\"]",
+    "n19663[p=\"3296782.7337179,2.5724994399343655E7\"]",
+    "n16767[p=\"3296661.5525598335,2.5725117255271256E7\"]",
+    "n0 -> n1[d=\"1.4\", s=\"50000.0\"]",
+    "n0 -> n19663[d=\"0.8\"]",
+    "n0 -> n16767[d=\"1.0\", s=\"50000.0\"]",
+    "n1 -> n0[d=\"1.4\", s=\"50000.0\"]",
+    "n1 -> n2[d=\"1.6\", s=\"50000.0\"]",
+    "n2 -> n1[d=\"1.6\", s=\"50000.0\"]",
+    "n2 -> n3[d=\"1.1\", s=\"50000.0\"]",
+    "n3 -> n2[d=\"1.1\", s=\"50000.0\"]",
+    "}");
 
   /**
    * Sets up two maps.
@@ -94,26 +94,26 @@ public class DotGraphIOTest {
 
     simpleMAGraph = new TableGraph<>();
     simpleMAGraph.addConnection(a, b,
-        MultiAttributeData.builder()
-            .setLength(0)
-            .build());
+      MultiAttributeData.builder()
+        .setLength(0)
+        .build());
     simpleMAGraph.addConnection(b, c,
-        MultiAttributeData.builder()
-            .setMaxSpeed(10d)
-            .build());
+      MultiAttributeData.builder()
+        .setMaxSpeed(10d)
+        .build());
     simpleMAGraph.addConnection(c, d,
-        MultiAttributeData.builder()
-            .addAttribute("key", "specialValue")
-            .build());
+      MultiAttributeData.builder()
+        .addAttribute("key", "specialValue")
+        .build());
 
     simpleMAGraph.addConnection(a, d);
 
     simpleMAGraph.addConnection(a, c,
-        MultiAttributeData.builder()
-            .setLength(10d)
-            .setMaxSpeed(100d)
-            .addAttribute("hello", "world")
-            .build());
+      MultiAttributeData.builder()
+        .setLength(10d)
+        .setMaxSpeed(100d)
+        .addAttribute("hello", "world")
+        .build());
     TestUtil.testEnum(LengthDataIO.class);
     TestUtil.testEnum(MultiAttributeDataIO.class);
     TestUtil.testEnum(SimpleFilters.class);
@@ -153,9 +153,9 @@ public class DotGraphIOTest {
     DotGraphIO<MultiAttributeData> io = DotGraphIO.getMultiAttributeGraphIO();
     Graph<MultiAttributeData> g = new TableGraph<>();
     g.addConnection(Connection.create(new Point(0, 0), new Point(1, 1),
-        MultiAttributeData.builder()
-            .addAttribute("d", "invalid")
-            .build()));
+      MultiAttributeData.builder()
+        .addAttribute("d", "invalid")
+        .build()));
 
     exception.expect(IllegalArgumentException.class);
     exception.expectMessage(CoreMatchers.startsWith("Attribute key"));
@@ -170,9 +170,9 @@ public class DotGraphIOTest {
   @Test
   public void testSelfCycleFilter() throws IOException {
     StringReader sr = new StringReader(
-        "n0[p=\"5,5\"]\nn1[p=\"4,4\"]\nn0 -> n0\nn0 -> n1");
+      "n0[p=\"5,5\"]\nn1[p=\"4,4\"]\nn0 -> n0\nn0 -> n1");
     Graph<?> g = DotGraphIO.getLengthGraphIO(Filters.selfCycleFilter())
-        .read(sr);
+      .read(sr);
     assertEquals(1, g.getConnections().size());
   }
 
@@ -184,10 +184,10 @@ public class DotGraphIOTest {
   @Test
   public void testLegacy() throws IOException {
     Graph<LengthData> ldGraph = DotGraphIO.getLengthGraphIO().read(
-        new StringReader(Joiner.on("\n").join(LEGACY_FORMAT)));
+      new StringReader(Joiner.on("\n").join(LEGACY_FORMAT)));
 
     Graph<MultiAttributeData> maGraph = DotGraphIO.getMultiAttributeGraphIO()
-        .read(new StringReader(Joiner.on("\n").join(LEGACY_FORMAT)));
+      .read(new StringReader(Joiner.on("\n").join(LEGACY_FORMAT)));
 
     testLegacyFormat(ldGraph);
     testLegacyFormat(maGraph);
@@ -199,8 +199,8 @@ public class DotGraphIOTest {
         assertFalse(conn.data().get().getMaxSpeed().isPresent());
       } else {
         assertEquals(50000d, conn.data().get().getMaxSpeed().get()
-            .doubleValue(),
-            0);
+          .doubleValue(),
+          0);
       }
     }
   }
@@ -232,21 +232,21 @@ public class DotGraphIOTest {
     assertTrue(graph.hasConnection(n3, n2));
 
     assertEquals(1.4, graph.getConnection(n0, n1).data().get().getLength()
-        .get().doubleValue(), 0);
+      .get().doubleValue(), 0);
     assertEquals(.8, graph.getConnection(n0, n19663).data().get().getLength()
-        .get().doubleValue(), 0);
+      .get().doubleValue(), 0);
     assertEquals(1.0, graph.getConnection(n0, n16767).data().get().getLength()
-        .get().doubleValue(), 0);
+      .get().doubleValue(), 0);
     assertEquals(1.4, graph.getConnection(n1, n0).data().get().getLength()
-        .get().doubleValue(), 0);
+      .get().doubleValue(), 0);
     assertEquals(1.6, graph.getConnection(n1, n2).data().get().getLength()
-        .get().doubleValue(), 0);
+      .get().doubleValue(), 0);
     assertEquals(1.6, graph.getConnection(n2, n1).data().get().getLength()
-        .get().doubleValue(), 0);
+      .get().doubleValue(), 0);
     assertEquals(1.1, graph.getConnection(n2, n3).data().get().getLength()
-        .get().doubleValue(), 0);
+      .get().doubleValue(), 0);
     assertEquals(1.1, graph.getConnection(n3, n2).data().get().getLength()
-        .get().doubleValue(), 0);
+      .get().doubleValue(), 0);
   }
 
   /**
@@ -258,7 +258,7 @@ public class DotGraphIOTest {
     StringWriter sw = new StringWriter();
     DotGraphIO.getLengthGraphIO().write(simpleLDGraph, sw);
     Graph<LengthData> g = DotGraphIO.getLengthGraphIO().read(
-        new StringReader(sw.toString()));
+      new StringReader(sw.toString()));
     assertEquals(simpleLDGraph, g);
   }
 
@@ -271,7 +271,7 @@ public class DotGraphIOTest {
     StringWriter sw = new StringWriter();
     DotGraphIO.getMultiAttributeGraphIO().write(simpleMAGraph, sw);
     Graph<MultiAttributeData> g = DotGraphIO.getMultiAttributeGraphIO().read(
-        new StringReader(sw.toString()));
+      new StringReader(sw.toString()));
     assertEquals(simpleMAGraph, g);
   }
 }

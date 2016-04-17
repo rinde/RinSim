@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,20 +65,20 @@ public final class StatsStopConditions {
       @Override
       public boolean evaluate(TypeProvider provider) {
         final StatisticsDTO stats = provider.get(StatisticsProvider.class)
-            .getStatistics();
+          .getStatistics();
 
         return stats.totalVehicles == stats.vehiclesAtDepot
-            && stats.movedVehicles > 0
-            && stats.totalParcels == stats.totalDeliveries;
+          && stats.movedVehicles > 0
+          && stats.totalParcels == stats.totalDeliveries;
       }
     },
     ANY_TARDINESS {
       @Override
       public boolean evaluate(TypeProvider provider) {
         final StatisticsDTO stats = provider.get(StatisticsProvider.class)
-            .getStatistics();
+          .getStatistics();
         return stats.pickupTardiness > 0
-            || stats.deliveryTardiness > 0;
+          || stats.deliveryTardiness > 0;
       }
     };
 

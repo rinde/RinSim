@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,10 +30,6 @@ public class CliException extends RuntimeException {
   private final Optional<Option> menuOption;
   private final CauseType causeType;
 
-  CliException(String msg, CauseType cause) {
-    this(msg, null, cause, null);
-  }
-
   CliException(String msg, CauseType type, @Nullable Option opt) {
     this(msg, null, type, opt);
   }
@@ -52,7 +48,7 @@ public class CliException extends RuntimeException {
    */
   public Optional<Option> getMenuOption() {
     checkState(menuOption.isPresent(), "'%s' has no reference to an option.",
-        toString());
+      toString());
     return menuOption;
   }
 
@@ -60,15 +56,23 @@ public class CliException extends RuntimeException {
       String format, Object... args) {
     if (!notSelected) {
       throw new CliException(String.format(format, args),
-          CauseType.ALREADY_SELECTED, opt);
+        CauseType.ALREADY_SELECTED, opt);
     }
   }
 
-  static void checkCommand(boolean recognized, String format,
+  static void checkCommand(boolean recognized, String format, Object... args) {
+    check(recognized, CauseType.UNRECOGNIZED_COMMAND, null, format, args);
+  }
+
+  static void checkArgFormat(boolean correct, Option opt, String format,
       Object... args) {
-    if (!recognized) {
-      throw new CliException(String.format(format, args),
-          CauseType.UNRECOGNIZED_COMMAND);
+    check(correct, CauseType.INVALID_ARG_FORMAT, opt, format, args);
+  }
+
+  static void check(boolean condition, CauseType cause, @Nullable Option opt,
+      String format, Object... args) {
+    if (!condition) {
+      throw new CliException(String.format(format, args), cause, opt);
     }
   }
 

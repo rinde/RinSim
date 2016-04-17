@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ public class CollisionGraphRoadModelPDPIntegrationTest {
   @Before
   public void setUp() {
     final ListenableGraph<LengthData> graph = new ListenableGraph<>(
-        new TableGraph<LengthData>());
+      new TableGraph<LengthData>());
     NW = new Point(0, 0);
     NE = new Point(10, 0);
     SE = new Point(10, 10);
@@ -69,17 +69,17 @@ public class CollisionGraphRoadModelPDPIntegrationTest {
     assertEquals(8, graph.getNumberOfConnections());
     assertEquals(4, graph.getNumberOfNodes());
     simulator = Simulator.builder()
-        .setTickLength(1)
-        .setTimeUnit(SI.SECOND)
-        .addModel(
-            RoadModelBuilders.dynamicGraph(graph)
-                .withCollisionAvoidance()
-                .withVehicleLength(1d)
-                .withDistanceUnit(SI.METER)
-                .withMinDistance(0)
-                .withSpeedUnit(SI.METERS_PER_SECOND))
-        .addModel(DefaultPDPModel.builder())
-        .build();
+      .setTickLength(1)
+      .setTimeUnit(SI.SECOND)
+      .addModel(
+        RoadModelBuilders.dynamicGraph(graph)
+          .withCollisionAvoidance()
+          .withVehicleLength(1d)
+          .withDistanceUnit(SI.METER)
+          .withMinDistance(0)
+          .withSpeedUnit(SI.METERS_PER_SECOND))
+      .addModel(DefaultPDPModel.builder())
+      .build();
 
     rm = simulator.getModelProvider().getModel(CollisionGraphRoadModel.class);
     pm = simulator.getModelProvider().getModel(DefaultPDPModel.class);
@@ -93,9 +93,9 @@ public class CollisionGraphRoadModelPDPIntegrationTest {
   public void testMoveAndPickup() {
     final Parcel parcel1 = Parcel.builder(NW, NE).build();
     final TestAgent agent1 = new TestAgent(VehicleDTO.builder()
-        .startPosition(NE)
-        .speed(1d)
-        .build());
+      .startPosition(NE)
+      .speed(1d)
+      .build());
 
     simulator.register(parcel1);
     simulator.register(agent1);
@@ -132,7 +132,7 @@ public class CollisionGraphRoadModelPDPIntegrationTest {
     @Override
     protected void tickImpl(TimeLapse time) {
       final Parcel p = getPDPModel().getParcels(ParcelState.values())
-          .iterator().next();
+        .iterator().next();
 
       getRoadModel().moveTo(this, p, time);
 

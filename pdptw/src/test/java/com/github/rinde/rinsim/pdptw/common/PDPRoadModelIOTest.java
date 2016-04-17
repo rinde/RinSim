@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,12 +35,12 @@ public class PDPRoadModelIOTest {
   @Test
   public void testIO() {
     final Scenario.Builder sb = Scenario
-        .builder(Scenario.DEFAULT_PROBLEM_CLASS)
-        .addModel(PDPRoadModel.builder(
-            RoadModelBuilders.plane()
-                .withSpeedUnit(NonSI.MILES_PER_HOUR)
-                .withMaxSpeed(7))
-            .withAllowVehicleDiversion(true));
+      .builder(Scenario.DEFAULT_PROBLEM_CLASS)
+      .addModel(PDPRoadModel.builder(
+        RoadModelBuilders.plane()
+          .withSpeedUnit(NonSI.MILES_PER_HOUR)
+          .withMaxSpeed(7))
+        .withAllowVehicleDiversion(true));
 
     final Scenario s = sb.problemClass(TestProblemClass.TEST).build();
     ScenarioTestUtil.assertScenarioIO(s);

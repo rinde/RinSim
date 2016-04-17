@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,7 +73,7 @@ public final class TaxiExample {
 
   private static final String MAP_FILE = "/data/maps/leuven-simple.dot";
   private static final Map<String, Graph<MultiAttributeData>> GRAPH_CACHE =
-      newHashMap();
+    newHashMap();
 
   private static final long TEST_STOP_TIME = 20 * 60 * 1000;
   private static final int TEST_SPEED_UP = 64;
@@ -87,10 +87,10 @@ public final class TaxiExample {
    */
   public static void main(@Nullable String[] args) {
     final long endTime = args != null && args.length >= 1 ? Long
-        .parseLong(args[0]) : Long.MAX_VALUE;
+      .parseLong(args[0]) : Long.MAX_VALUE;
 
     final String graphFile = args != null && args.length >= 2 ? args[1]
-        : MAP_FILE;
+      : MAP_FILE;
     run(false, endTime, graphFile, null /* new Display() */, null, null);
   }
 
@@ -120,30 +120,30 @@ public final class TaxiExample {
 
     // use map of leuven
     final Simulator simulator = Simulator.builder()
-        .addModel(RoadModelBuilders.staticGraph(loadGraph(graphFile)))
-        .addModel(DefaultPDPModel.builder())
-        .addModel(view)
-        .build();
+      .addModel(RoadModelBuilders.staticGraph(loadGraph(graphFile)))
+      .addModel(DefaultPDPModel.builder())
+      .addModel(view)
+      .build();
     final RandomGenerator rng = simulator.getRandomGenerator();
 
     final RoadModel roadModel = simulator.getModelProvider().getModel(
-        RoadModel.class);
+      RoadModel.class);
     // add depots, taxis and parcels to simulator
     for (int i = 0; i < NUM_DEPOTS; i++) {
       simulator.register(new TaxiBase(roadModel.getRandomPosition(rng),
-          DEPOT_CAPACITY));
+        DEPOT_CAPACITY));
     }
     for (int i = 0; i < NUM_TAXIS; i++) {
       simulator.register(new Taxi(roadModel.getRandomPosition(rng),
-          TAXI_CAPACITY));
+        TAXI_CAPACITY));
     }
     for (int i = 0; i < NUM_CUSTOMERS; i++) {
       simulator.register(new Customer(
-          Parcel.builder(roadModel.getRandomPosition(rng),
-              roadModel.getRandomPosition(rng))
-              .serviceDuration(SERVICE_DURATION)
-              .neededCapacity(1 + rng.nextInt(MAX_CAPACITY))
-              .buildDTO()));
+        Parcel.builder(roadModel.getRandomPosition(rng),
+          roadModel.getRandomPosition(rng))
+          .serviceDuration(SERVICE_DURATION)
+          .neededCapacity(1 + rng.nextInt(MAX_CAPACITY))
+          .buildDTO()));
     }
 
     simulator.addTickListener(new TickListener() {
@@ -153,12 +153,12 @@ public final class TaxiExample {
           simulator.stop();
         } else if (rng.nextDouble() < NEW_CUSTOMER_PROB) {
           simulator.register(new Customer(
-              Parcel
-                  .builder(roadModel.getRandomPosition(rng),
-                      roadModel.getRandomPosition(rng))
-                  .serviceDuration(SERVICE_DURATION)
-                  .neededCapacity(1 + rng.nextInt(MAX_CAPACITY))
-                  .buildDTO()));
+            Parcel
+              .builder(roadModel.getRandomPosition(rng),
+                roadModel.getRandomPosition(rng))
+              .serviceDuration(SERVICE_DURATION)
+              .neededCapacity(1 + rng.nextInt(MAX_CAPACITY))
+              .buildDTO()));
         }
       }
 
@@ -177,31 +177,31 @@ public final class TaxiExample {
       @Nullable Listener list) {
 
     View.Builder view = View.builder()
-        .with(GraphRoadModelRenderer.builder())
-        .with(RoadUserRenderer.builder()
-            .withImageAssociation(
-                TaxiBase.class, "/graphics/perspective/tall-building-64.png")
-            .withImageAssociation(
-                Taxi.class, "/graphics/flat/taxi-32.png")
-            .withImageAssociation(
-                Customer.class, "/graphics/flat/person-red-32.png"))
-        .with(TaxiRenderer.builder(Language.ENGLISH))
-        .withTitleAppendix("Taxi Demo");
+      .with(GraphRoadModelRenderer.builder())
+      .with(RoadUserRenderer.builder()
+        .withImageAssociation(
+          TaxiBase.class, "/graphics/perspective/tall-building-64.png")
+        .withImageAssociation(
+          Taxi.class, "/graphics/flat/taxi-32.png")
+        .withImageAssociation(
+          Customer.class, "/graphics/flat/person-red-32.png"))
+      .with(TaxiRenderer.builder(Language.ENGLISH))
+      .withTitleAppendix("Taxi Demo");
 
     if (testing) {
       view = view.withAutoClose()
-          .withAutoPlay()
-          .withSimulatorEndTime(TEST_STOP_TIME)
-          .withSpeedUp(TEST_SPEED_UP);
+        .withAutoPlay()
+        .withSimulatorEndTime(TEST_STOP_TIME)
+        .withSpeedUp(TEST_SPEED_UP);
     } else if (m != null && list != null && display != null) {
       view = view.withMonitor(m)
-          .withSpeedUp(SPEED_UP)
-          .withResolution(m.getClientArea().width, m.getClientArea().height)
-          .withDisplay(display)
-          .withCallback(list)
-          .withAsync()
-          .withAutoPlay()
-          .withAutoClose();
+        .withSpeedUp(SPEED_UP)
+        .withResolution(m.getClientArea().width, m.getClientArea().height)
+        .withDisplay(display)
+        .withCallback(list)
+        .withAsync()
+        .withAutoPlay()
+        .withAutoClose();
     }
     return view;
   }
@@ -213,10 +213,10 @@ public final class TaxiExample {
         return GRAPH_CACHE.get(name);
       }
       final Graph<MultiAttributeData> g = DotGraphIO
-          .getMultiAttributeGraphIO(
-              Filters.selfCycleFilter())
-          .read(
-              TaxiExample.class.getResourceAsStream(name));
+        .getMultiAttributeGraphIO(
+          Filters.selfCycleFilter())
+        .read(
+          TaxiExample.class.getResourceAsStream(name));
 
       GRAPH_CACHE.put(name, g);
       return g;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -170,40 +170,42 @@ public final class DefaultPDPModel extends PDPModel {
     synchronized (this) {
       /* 1 */checkVehicleInRoadModel(vehicle);
       /* 2 */checkArgument(roadModel.containsObject(parcel),
-          "parcel does not exist in RoadModel");
+        "parcel does not exist in RoadModel");
       final ParcelState ps = parcelState.getKeys(parcel);
       /* 3 */checkArgument(
-          ps == ParcelState.AVAILABLE || ps == ParcelState.ANNOUNCED,
-          "Parcel must be registered and must be either ANNOUNCED or AVAILABE, "
-              + "it is: %s. Parcel: %s.",
-          ps, parcel);
+        ps == ParcelState.AVAILABLE || ps == ParcelState.ANNOUNCED,
+        "Parcel must be registered and must be either ANNOUNCED or AVAILABE, "
+          + "it is: %s. Parcel: %s.",
+        ps, parcel);
       /* 4 */checkArgument(vehicleState.get(vehicle) == VehicleState.IDLE,
-          "vehicle must be registered and must be available");
+        "vehicle must be registered and must be available");
       /* 5 */checkArgument(roadModel.equalPosition(vehicle, parcel),
-          "vehicle must be at the same location as the parcel it wishes to "
-              + "pickup");
+        "vehicle must be at the same location as the parcel it wishes to "
+          + "pickup");
       final double newSize = containerContentsSize.get(vehicle)
-          + parcel.getNeededCapacity();
+        + parcel.getNeededCapacity();
       /* 6 */checkArgument(
-          newSize <= containerCapacities.get(vehicle),
-          "parcel does not fit in vehicle. Parcel size: %s, current contents "
-              + "size: %s, capacity: %s.",
-          parcel.getNeededCapacity(), containerContentsSize.get(vehicle),
-          containerCapacities.get(vehicle));
+        newSize <= containerCapacities.get(vehicle),
+        "parcel does not fit in vehicle. Parcel size: %s, current contents "
+          + "size: %s, capacity: %s.",
+        parcel.getNeededCapacity(), containerContentsSize.get(vehicle),
+        containerCapacities.get(vehicle));
 
       checkArgument(
-          timeWindowPolicy.canPickup(parcel.getPickupTimeWindow(),
-              time.getTime(), parcel.getPickupDuration()),
-          "parcel pickup is not allowed according to the time window policy: "
-              + "%s, current time: %s, time window %s.",
-          timeWindowPolicy, time.getTime(), parcel.getPickupTimeWindow());
+        timeWindowPolicy.canPickup(parcel.getPickupTimeWindow(),
+          time.getTime(), parcel.getPickupDuration()),
+        "parcel pickup is not allowed according to the time window policy: "
+          + "%s, current time: %s, time window %s.",
+        timeWindowPolicy, time.getTime(), parcel.getPickupTimeWindow());
 
       checkArgument(parcel.canBePickedUp(vehicle, time.getTime()),
-          "the parcel does not allow pickup now");
+        "the parcel does not allow pickup now");
 
       eventDispatcher
-          .dispatchEvent(new PDPModelEvent(PDPModelEventType.START_PICKUP,
-              self, time.getTime(), parcel, vehicle));
+        .dispatchEvent(new PDPModelEvent(PDPModelEventType.START_PICKUP,
+          self, time.getTime(), parcel, vehicle));
+
+      LOGGER.debug("{} {} starts picking up {}", time, vehicle, parcel);
 
       // remove the parcel such that no other attempts to pickup can be made
       roadModel.removeObject(parcel);
@@ -215,7 +217,7 @@ public final class DefaultPDPModel extends PDPModel {
         parcelState.put(ParcelState.PICKING_UP, parcel);
 
         pendingVehicleActions.put(vehicle, new PickupAction(this, vehicle,
-            parcel, parcel.getPickupDuration() - time.getTimeLeft()));
+          parcel, parcel.getPickupDuration() - time.getTimeLeft()));
         time.consumeAll();
       } else {
         time.consume(parcel.getPickupDuration());
@@ -231,7 +233,7 @@ public final class DefaultPDPModel extends PDPModel {
    */
   protected void checkVehicleInRoadModel(Vehicle vehicle) {
     checkArgument(roadModel.containsObject(vehicle),
-        "vehicle does not exist in RoadModel");
+      "vehicle does not exist in RoadModel");
   }
 
   /**
@@ -246,23 +248,23 @@ public final class DefaultPDPModel extends PDPModel {
     synchronized (this) {
       containerContents.put(vehicle, parcel);
       containerContentsSize.put(vehicle, containerContentsSize.get(vehicle)
-          + parcel.getNeededCapacity());
+        + parcel.getNeededCapacity());
 
       parcelState.put(ParcelState.IN_CARGO, parcel);
       LOGGER.info("{} end pickup of {} by {}", time, parcel, vehicle);
       eventDispatcher.dispatchEvent(new PDPModelEvent(
-          PDPModelEventType.END_PICKUP, self, time, parcel, vehicle));
+        PDPModelEventType.END_PICKUP, self, time, parcel, vehicle));
     }
   }
 
   void checkVehicleIdle(Vehicle vehicle) {
     checkArgument(vehicleState.get(vehicle).equals(VehicleState.IDLE),
-        "Vehicle must be idle but is: %s ", vehicleState.get(vehicle));
+      "Vehicle must be idle but is: %s ", vehicleState.get(vehicle));
   }
 
   void checkVehicleDoesNotContainParcel(Vehicle vehicle, Parcel parcel) {
     checkArgument(containerContents.get(vehicle).contains(parcel),
-        "vehicle does not contain parcel");
+      "vehicle does not contain parcel");
   }
 
   @Override
@@ -272,28 +274,30 @@ public final class DefaultPDPModel extends PDPModel {
       /* 2 */checkVehicleIdle(vehicle);
       /* 3 */checkVehicleDoesNotContainParcel(vehicle, parcel);
       /* 4 */checkArgument(
-          parcel.getDeliveryLocation().equals(roadModel.getPosition(vehicle)),
-          "parcel must be delivered at its destination, vehicle should move "
-              + "there first");
+        parcel.getDeliveryLocation().equals(roadModel.getPosition(vehicle)),
+        "parcel must be delivered at its destination, vehicle should move "
+          + "there first");
 
       checkArgument(
-          timeWindowPolicy.canDeliver(parcel.getDeliveryTimeWindow(),
-              time.getTime(), parcel.getDeliveryDuration()),
-          "parcel delivery is not allowed at this time (%s) according to the "
-              + "time window policy: %s",
-          time.getTime(), timeWindowPolicy);
+        timeWindowPolicy.canDeliver(parcel.getDeliveryTimeWindow(),
+          time.getTime(), parcel.getDeliveryDuration()),
+        "parcel delivery is not allowed at this time (%s) according to the "
+          + "time window policy: %s",
+        time.getTime(), timeWindowPolicy);
 
       checkArgument(parcel.canBeDelivered(vehicle, time.getTime()),
-          "the parcel does not allow a delivery now");
+        "the parcel does not allow a delivery now");
 
       eventDispatcher.dispatchEvent(new PDPModelEvent(
-          PDPModelEventType.START_DELIVERY, self, time.getTime(), parcel,
-          vehicle));
+        PDPModelEventType.START_DELIVERY, self, time.getTime(), parcel,
+        vehicle));
+
+      LOGGER.debug("{} {} starts delivering {}", time, vehicle, parcel);
       if (time.getTimeLeft() < parcel.getDeliveryDuration()) {
         vehicleState.put(vehicle, VehicleState.DELIVERING);
         parcelState.put(ParcelState.DELIVERING, parcel);
         pendingVehicleActions.put(vehicle, new DeliverAction(this, vehicle,
-            parcel, parcel.getDeliveryDuration() - time.getTimeLeft()));
+          parcel, parcel.getDeliveryDuration() - time.getTimeLeft()));
         time.consumeAll();
       } else {
         time.consume(parcel.getDeliveryDuration());
@@ -314,12 +318,12 @@ public final class DefaultPDPModel extends PDPModel {
     synchronized (this) {
       containerContents.remove(vehicle, parcel);
       containerContentsSize.put(vehicle, containerContentsSize.get(vehicle)
-          - parcel.getNeededCapacity());
+        - parcel.getNeededCapacity());
 
       parcelState.put(ParcelState.DELIVERED, parcel);
       LOGGER.info("{} end delivery of {} by {}", time, parcel, vehicle);
       eventDispatcher.dispatchEvent(new PDPModelEvent(
-          PDPModelEventType.END_DELIVERY, self, time, parcel, vehicle));
+        PDPModelEventType.END_DELIVERY, self, time, parcel, vehicle));
     }
   }
 
@@ -331,13 +335,13 @@ public final class DefaultPDPModel extends PDPModel {
       /* 3 */checkVehicleDoesNotContainParcel(vehicle, parcel);
 
       eventDispatcher.dispatchEvent(new PDPModelEvent(
-          PDPModelEventType.START_DELIVERY, self, time.getTime(), parcel,
-          vehicle));
+        PDPModelEventType.START_DELIVERY, self, time.getTime(), parcel,
+        vehicle));
       if (time.getTimeLeft() < parcel.getDeliveryDuration()) {
         vehicleState.put(vehicle, VehicleState.DELIVERING);
         parcelState.put(ParcelState.DELIVERING, parcel);
         pendingVehicleActions.put(vehicle, new DropAction(this, vehicle,
-            parcel, parcel.getDeliveryDuration() - time.getTimeLeft()));
+          parcel, parcel.getDeliveryDuration() - time.getTimeLeft()));
         time.consumeAll();
       } else {
         time.consume(parcel.getDeliveryDuration());
@@ -358,12 +362,12 @@ public final class DefaultPDPModel extends PDPModel {
     synchronized (this) {
       containerContents.remove(vehicle, parcel);
       containerContentsSize.put(vehicle, containerContentsSize.get(vehicle)
-          - parcel.getNeededCapacity());
+        - parcel.getNeededCapacity());
       roadModel.addObjectAtSamePosition(parcel, vehicle);
       parcelState.put(ParcelState.AVAILABLE, parcel);
       LOGGER.info("{} dropped {} by {}", time, parcel, vehicle);
       eventDispatcher.dispatchEvent(new PDPModelEvent(
-          PDPModelEventType.PARCEL_AVAILABLE, self, time, parcel, null));
+        PDPModelEventType.PARCEL_AVAILABLE, self, time, parcel, null));
     }
   }
 
@@ -371,23 +375,23 @@ public final class DefaultPDPModel extends PDPModel {
   public void addParcelIn(Container container, Parcel parcel) {
     synchronized (this) {
       /* 1 */checkArgument(!roadModel.containsObject(parcel),
-          "this parcel is already added to the roadmodel");
+        "this parcel is already added to the roadmodel");
       /* 2 */checkArgument(
-          parcelState.getKeys(parcel) == ParcelState.AVAILABLE,
-          "parcel must be registered and in AVAILABLE state, current state: %s",
-          parcelState.getKeys(parcel));
+        parcelState.getKeys(parcel) == ParcelState.AVAILABLE,
+        "parcel must be registered and in AVAILABLE state, current state: %s",
+        parcelState.getKeys(parcel));
       /* 3 */checkArgument(containerCapacities.containsKey(container),
-          "the parcel container is not registered");
+        "the parcel container is not registered");
       /* 4 */checkArgument(roadModel.containsObject(container),
-          "the parcel container is not on the roadmodel");
+        "the parcel container is not on the roadmodel");
       final double newSize = containerContentsSize.get(container)
-          + parcel.getNeededCapacity();
+        + parcel.getNeededCapacity();
       /* 5 */checkArgument(
-          newSize <= containerCapacities.get(container),
-          "parcel does not fit in container. Capacity is %s, current content "
-              + "size is %s, new parcel size is %s",
-          containerCapacities.get(container),
-          containerContentsSize.get(container), parcel.getNeededCapacity());
+        newSize <= containerCapacities.get(container),
+        "parcel does not fit in container. Capacity is %s, current content "
+          + "size is %s, new parcel size is %s",
+        containerCapacities.get(container),
+        containerContentsSize.get(container), parcel.getNeededCapacity());
 
       containerContents.put(container, parcel);
       containerContentsSize.put(container, newSize);
@@ -427,7 +431,7 @@ public final class DefaultPDPModel extends PDPModel {
   public VehicleState getVehicleState(Vehicle vehicle) {
     synchronized (this) {
       checkArgument(vehicleState.containsKey(vehicle),
-          "vehicle must be registered");
+        "vehicle must be registered");
       return vehicleState.get(vehicle);
     }
   }
@@ -439,52 +443,56 @@ public final class DefaultPDPModel extends PDPModel {
     synchronized (this) {
       final VehicleState state = vehicleState.get(vehicle);
       checkArgument(
-          state == VehicleState.DELIVERING || state == VehicleState.PICKING_UP,
-          "the vehicle must be in either DELIVERING or PICKING_UP state, "
-              + "but it is %s.",
-          state);
+        state == VehicleState.DELIVERING || state == VehicleState.PICKING_UP,
+        "the vehicle must be in either DELIVERING or PICKING_UP state, "
+          + "but it is %s.",
+        state);
       return (PDPModel.VehicleParcelActionInfo) pendingVehicleActions
-          .get(vehicle);
+        .get(vehicle);
     }
   }
 
   @Override
   protected boolean doRegister(PDPObject element) {
-    synchronized (this) {
-      LOGGER.info("{} register {}", currentTime, element);
-      if (element.getType() == PDPType.PARCEL) {
-        checkArgument(!parcelState.containsValue(element));
-        final Parcel p = (Parcel) element;
-        final ParcelState state = currentTime < p.getPickupTimeWindow().begin()
-            ? ParcelState.ANNOUNCED
-            : ParcelState.AVAILABLE;
+    LOGGER.info("{} register {}", currentTime, element);
+    if (element.getType() == PDPType.PARCEL) {
+      checkArgument(!parcelState.containsValue(element));
+      final Parcel p = (Parcel) element;
+      final ParcelState state = currentTime < p.getPickupTimeWindow().begin()
+        ? ParcelState.ANNOUNCED
+        : ParcelState.AVAILABLE;
+      synchronized (this) {
         parcelState.put(state, (Parcel) element);
+      }
+      eventDispatcher.dispatchEvent(new PDPModelEvent(
+        PDPModelEventType.NEW_PARCEL, self, currentTime, p, null));
+      // if the parcel is immediately available, we send this event as well
+      if (state == ParcelState.AVAILABLE) {
         eventDispatcher.dispatchEvent(new PDPModelEvent(
-            PDPModelEventType.NEW_PARCEL, self, currentTime, p, null));
-        // if the parcel is immediately available, we send this event as
-        // well
-        if (state == ParcelState.AVAILABLE) {
-          eventDispatcher.dispatchEvent(new PDPModelEvent(
-              PDPModelEventType.PARCEL_AVAILABLE, self, currentTime, p, null));
-        }
-      } else {
-        // it is a vehicle or a depot
-        final Container container = (Container) element;
+          PDPModelEventType.PARCEL_AVAILABLE, self, currentTime, p, null));
+      }
+    } else {
+      // it is a vehicle or a depot
+      final Container container = (Container) element;
+      synchronized (this) {
         checkArgument(!containerCapacities.containsKey(container));
         containerCapacities.put(container, container.getCapacity());
         containerContentsSize.put(container, 0d);
-
         if (element.getType() == PDPType.VEHICLE) {
           final Vehicle v = (Vehicle) element;
           vehicleState.put(v, VehicleState.IDLE);
-          eventDispatcher.dispatchEvent(new PDPModelEvent(
-              PDPModelEventType.NEW_VEHICLE, self, currentTime, null, v));
         }
       }
-      element.initPDPObject(self);
 
-      return true;
+      if (element.getType() == PDPType.VEHICLE) {
+        eventDispatcher.dispatchEvent(new PDPModelEvent(
+          PDPModelEventType.NEW_VEHICLE, self, currentTime, null,
+          (Vehicle) element));
+      }
     }
+    element.initPDPObject(self);
+
+    return true;
   }
 
   @Override
@@ -551,7 +559,7 @@ public final class DefaultPDPModel extends PDPModel {
       for (final Parcel p : newAvailables) {
         parcelState.put(ParcelState.AVAILABLE, p);
         eventDispatcher.dispatchEvent(new PDPModelEvent(
-            PDPModelEventType.PARCEL_AVAILABLE, self, currentTime, p, null));
+          PDPModelEventType.PARCEL_AVAILABLE, self, currentTime, p, null));
       }
     }
   }

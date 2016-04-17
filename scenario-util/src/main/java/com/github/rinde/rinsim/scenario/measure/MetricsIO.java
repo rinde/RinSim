@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,7 +84,7 @@ public final class MetricsIO {
     int i = 0;
     for (; i < list.size(); i++) {
       sb.append(i).append(SPACE).append(list.get(i))
-          .append(System.lineSeparator());
+        .append(System.lineSeparator());
     }
     sb.append(i).append(SPACE).append(0).append(System.lineSeparator());
     try {
@@ -118,10 +118,10 @@ public final class MetricsIO {
       Files.createParentDirs(f);
       Files.write(
         new StringBuilder()
-            .append(length)
-            .append(System.lineSeparator())
-            .append(Joiner.on(System.lineSeparator()).join(times))
-            .append(System.lineSeparator()),
+          .append(length)
+          .append(System.lineSeparator())
+          .append(Joiner.on(System.lineSeparator()).join(times))
+          .append(System.lineSeparator()),
         f,
         Charsets.UTF_8);
     } catch (final IOException e) {

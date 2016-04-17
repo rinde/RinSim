@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,9 +68,9 @@ public final class CommRenderer extends AbstractTypedCanvasRenderer<CommUser> {
     unreliableColor = b.unreliableColor();
     helper = new RenderHelper();
     uiObjects = Collections
-        .synchronizedMap(new LinkedHashMap<CommUser, DeviceUI>());
+      .synchronizedMap(new LinkedHashMap<CommUser, DeviceUI>());
     for (final Entry<CommUser, CommDevice> entry : model.getUsersAndDevices()
-        .entrySet()) {
+      .entrySet()) {
       addUIObject(entry.getKey(), entry.getValue());
     }
 
@@ -86,7 +86,7 @@ public final class CommRenderer extends AbstractTypedCanvasRenderer<CommUser> {
         }
       }
     }, CommModel.EventTypes.ADD_COMM_USER,
-        CommModel.EventTypes.REMOVE_COMM_USER);
+      CommModel.EventTypes.REMOVE_COMM_USER);
   }
 
   void addUIObject(CommUser u, CommDevice d) {
@@ -114,8 +114,8 @@ public final class CommRenderer extends AbstractTypedCanvasRenderer<CommUser> {
   @Override
   public boolean register(CommUser element) {
     uiObjects
-        .put(element,
-            new DeviceUI(element, model.getUsersAndDevices().get(element)));
+      .put(element,
+        new DeviceUI(element, model.getUsersAndDevices().get(element)));
     return true;
   }
 
@@ -148,9 +148,9 @@ public final class CommRenderer extends AbstractTypedCanvasRenderer<CommUser> {
         return;
       }
       if (!color.isPresent()
-          && viewOptions.contains(ViewOptions.RELIABILITY_COLOR)) {
+        && viewOptions.contains(ViewOptions.RELIABILITY_COLOR)) {
         final RGB rgb = ColorUtil.interpolate(unreliableColor, reliableColor,
-            device.getReliability());
+          device.getReliability());
         color = Optional.of(new Color(gc.getDevice(), rgb));
       }
 
@@ -172,13 +172,13 @@ public final class CommRenderer extends AbstractTypedCanvasRenderer<CommUser> {
 
       if (viewOptions.contains(ViewOptions.MSG_COUNT)) {
         sb.append(device.getReceivedCount())
-            .append('(')
-            .append(device.getUnreadCount())
-            .append(')');
+          .append('(')
+          .append(device.getUnreadCount())
+          .append(')');
       }
       if (viewOptions.contains(ViewOptions.RELIABILITY_PERC)) {
         sb.append(" rel:")
-            .append(String.format("%.2f", device.getReliability()));
+          .append(String.format("%.2f", device.getReliability()));
       }
       if (sb.length() > 0) {
         helper.drawString(sb.toString(), user.getPosition().get(), true);
@@ -259,12 +259,12 @@ public final class CommRenderer extends AbstractTypedCanvasRenderer<CommUser> {
     @CheckReturnValue
     public Builder withReliabilityColors(RGB unreliable, RGB reliable) {
       return create(
-          copy(reliable),
-          copy(unreliable),
-          ImmutableSet.<ViewOptions>builder()
-              .addAll(viewOptions())
-              .add(ViewOptions.RELIABILITY_COLOR)
-              .build());
+        copy(reliable),
+        copy(unreliable),
+        ImmutableSet.<ViewOptions>builder()
+          .addAll(viewOptions())
+          .add(ViewOptions.RELIABILITY_COLOR)
+          .build());
     }
 
     @Override
@@ -286,10 +286,10 @@ public final class CommRenderer extends AbstractTypedCanvasRenderer<CommUser> {
 
     static Builder create(Builder b, ViewOptions opt) {
       return create(b.reliableColor(), b.unreliableColor(),
-          ImmutableSet.<ViewOptions>builder()
-              .addAll(b.viewOptions())
-              .add(opt)
-              .build());
+        ImmutableSet.<ViewOptions>builder()
+          .addAll(b.viewOptions())
+          .add(opt)
+          .build());
     }
 
     static Builder create(RGB rel, RGB unrel, ImmutableSet<ViewOptions> opts) {
@@ -298,7 +298,7 @@ public final class CommRenderer extends AbstractTypedCanvasRenderer<CommUser> {
 
     static Builder create() {
       return create(defaultReliableColor(), defaultUnreliableColor(),
-          ImmutableSet.<ViewOptions>of());
+        ImmutableSet.<ViewOptions>of());
     }
   }
 }

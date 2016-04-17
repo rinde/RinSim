@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,8 +32,8 @@ public abstract class ContainerImpl extends PDPObjectImpl implements Container {
    */
   protected final void setCapacity(double pCapacity) {
     checkState(!isRegistered(),
-        "capacity must be set before object is registered, it can not be "
-            + "changed afterwards.");
+      "capacity must be set before object is registered, it can not be "
+        + "changed afterwards.");
     capacity = pCapacity;
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,44 +40,44 @@ public final class PanelTest {
   public void panelTest() {
 
     final Simulator sim = Simulator
-        .builder()
-        .addModel(RoadModelBuilders.plane()
-            .withMinPoint(new Point(0, 0))
-            .withMaxPoint(new Point(10, 10))
-            .withMaxSpeed(10d))
-        .addModel(
-            View
-                .builder()
-                .with(PlaneRoadModelRenderer.builder())
-                .with(RoadUserRenderer.builder())
-                .with(
-                    TestPanelRenderer.builder("LEFT")
-                        .withPosition(SWT.LEFT)
-                        .withSize(200))
-                .with(
-                    TestPanelRenderer.builder("RIHGT BOEEE YEAH")
-                        .withPosition(SWT.RIGHT)
-                        .withSize(300))
-                .with(
-                    TestPanelRenderer.builder("RIHGT BOEEE YEAH")
-                        .withPosition(SWT.TOP)
-                        .withSize(100))
-                .with(
-                    TestPanelRenderer.builder("TOP2")
-                        .withPosition(SWT.TOP)
-                        .withSize(100))
-                .with(
-                    TestPanelRenderer.builder("LEFT2")
-                        .withPosition(SWT.LEFT)
-                        .withSize(100))
-                .with(
-                    TestPanelRenderer.builder("LEFT3")
-                        .withPosition(SWT.LEFT)
-                        .withSize(150))
-                .withAutoPlay()
-                .withAutoClose()
-                .withSimulatorEndTime(10000))
-        .build();
+      .builder()
+      .addModel(RoadModelBuilders.plane()
+        .withMinPoint(new Point(0, 0))
+        .withMaxPoint(new Point(10, 10))
+        .withMaxSpeed(10d))
+      .addModel(
+        View
+          .builder()
+          .with(PlaneRoadModelRenderer.builder())
+          .with(RoadUserRenderer.builder())
+          .with(
+            TestPanelRenderer.builder("LEFT")
+              .withPosition(SWT.LEFT)
+              .withSize(200))
+          .with(
+            TestPanelRenderer.builder("RIHGT BOEEE YEAH")
+              .withPosition(SWT.RIGHT)
+              .withSize(300))
+          .with(
+            TestPanelRenderer.builder("RIHGT BOEEE YEAH")
+              .withPosition(SWT.TOP)
+              .withSize(100))
+          .with(
+            TestPanelRenderer.builder("TOP2")
+              .withPosition(SWT.TOP)
+              .withSize(100))
+          .with(
+            TestPanelRenderer.builder("LEFT2")
+              .withPosition(SWT.LEFT)
+              .withSize(100))
+          .with(
+            TestPanelRenderer.builder("LEFT3")
+              .withPosition(SWT.LEFT)
+              .withSize(150))
+          .withAutoPlay()
+          .withAutoClose()
+          .withSimulatorEndTime(10000))
+      .build();
 
     sim.start();
   }

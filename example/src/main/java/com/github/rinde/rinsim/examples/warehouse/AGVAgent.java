@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ class AGVAgent implements TickListener, MovingRoadUser {
   void nextDestination() {
     destination = Optional.of(roadModel.get().getRandomPosition(rng));
     path = new LinkedList<>(roadModel.get().getShortestPathTo(this,
-        destination.get()));
+      destination.get()));
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ public class Gendreau06ParserTest {
     scenarios.addAll(parser().addFile(new File(FILE_PATH)).parse());
     scenarios.addAll(parser().addFile(FILE_PATH).parse());
     scenarios.addAll(
-        parser().addFile(new FileInputStream(FILE_PATH), FILE_NAME).parse());
+      parser().addFile(new FileInputStream(FILE_PATH), FILE_NAME).parse());
     scenarios.addAll(parser().addDirectory(new File(FILE_DIR)).parse());
     scenarios.addAll(parser().addDirectory(FILE_DIR).parse());
 
@@ -84,7 +84,7 @@ public class Gendreau06ParserTest {
   @Test
   public void customNumVehiclesTest() {
     final Gendreau06Scenario scen = Gendreau06Parser.parser().addFile(FILE_PATH)
-        .setNumVehicles(5).parse().get(0);
+      .setNumVehicles(5).parse().get(0);
     containsVehicles(scen, 5);
     containsTimeOut(scen, 240);
     assertTrue(isOnline(scen));
@@ -98,8 +98,8 @@ public class Gendreau06ParserTest {
   @Test
   public void offlineTest() {
     final Gendreau06Scenario scen = Gendreau06Parser.parser()
-        .addFile("files/test/gendreau06/req_rapide_1_240_24")
-        .offline().parse().get(0);
+      .addFile("files/test/gendreau06/req_rapide_1_240_24")
+      .offline().parse().get(0);
     containsVehicles(scen, 10);
     containsTimeOut(scen, 240);
     assertFalse(isOnline(scen));
@@ -114,7 +114,7 @@ public class Gendreau06ParserTest {
   @Test
   public void allowDiversionTest() {
     final Gendreau06Scenario scen = parser().allowDiversion().addFile(FILE_PATH)
-        .parse().get(0);
+      .parse().get(0);
     containsVehicles(scen, 10);
     containsTimeOut(scen, 240);
     assertTrue(isOnline(scen));
@@ -129,7 +129,7 @@ public class Gendreau06ParserTest {
   @Test
   public void setTickSizeTest() {
     final Gendreau06Scenario scen = parser().setTickSize(101).addFile(FILE_PATH)
-        .parse().get(0);
+      .parse().get(0);
     containsVehicles(scen, 10);
     containsTimeOut(scen, 240);
     assertTrue(isOnline(scen));
@@ -143,17 +143,17 @@ public class Gendreau06ParserTest {
   @Test
   public void filterTest() {
     assertTrue(parser().filter(GendreauProblemClass.LONG_LOW_FREQ)
-        .addFile(FILE_PATH).parse().isEmpty());
+      .addFile(FILE_PATH).parse().isEmpty());
 
     assertEquals(1, parser().filter(GendreauProblemClass.SHORT_LOW_FREQ)
-        .addFile(FILE_PATH).parse().size());
+      .addFile(FILE_PATH).parse().size());
 
     assertEquals(1, parser().filter(GendreauProblemClass.LONG_LOW_FREQ,
-        GendreauProblemClass.SHORT_LOW_FREQ)
-        .addFile(FILE_PATH).parse().size());
+      GendreauProblemClass.SHORT_LOW_FREQ)
+      .addFile(FILE_PATH).parse().size());
 
     assertEquals(1, parser().filter(GendreauProblemClass.values())
-        .addFile(FILE_PATH).parse().size());
+      .addFile(FILE_PATH).parse().size());
   }
 
   /**
@@ -162,7 +162,7 @@ public class Gendreau06ParserTest {
   @Test(expected = IllegalArgumentException.class)
   public void parseWrongFileName() {
     Gendreau06Parser
-        .parse(new File("pointer/to/non-existing/file/req_rapide_1_240_24"));
+      .parse(new File("pointer/to/non-existing/file/req_rapide_1_240_24"));
   }
 
   /**
@@ -245,7 +245,7 @@ public class Gendreau06ParserTest {
   static void assertContainsTimeModel(Gendreau06Scenario scen, long tickSize,
       Unit<Duration> timeUnit) {
     TimeModel.Builder tb = getModelBuilderOfType(scen.getModelBuilders(),
-        TimeModel.Builder.class);
+      TimeModel.Builder.class);
     assertThat(tb.getTickLength()).isEqualTo(tickSize);
     assertThat(tb.getTimeUnit()).isEqualTo(timeUnit);
   }
@@ -263,7 +263,7 @@ public class Gendreau06ParserTest {
 
   static boolean isDiversionAllowed(Gendreau06Scenario scen) {
     PDPRoadModel.Builder rb = getModelBuilderOfType(scen.getModelBuilders(),
-        PDPRoadModel.Builder.class);
+      PDPRoadModel.Builder.class);
     return rb.getAllowVehicleDiversion();
   }
 }

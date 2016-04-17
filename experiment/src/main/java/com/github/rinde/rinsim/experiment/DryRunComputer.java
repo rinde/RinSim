@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,10 +42,9 @@ class DryRunComputer implements Computer {
   @Override
   public ExperimentResults compute(Builder builder, Set<SimArgs> inputs) {
 
-    printStream
-        .println(
-            "===================== RinSim Experiment start dry run ====="
-                + "================");
+    printStream.println(
+      "===================== RinSim Experiment start dry run =================="
+        + "===");
 
     if (originalComputer == Computers.LOCAL) {
       printStream.println("Using local computation.");
@@ -60,31 +59,32 @@ class DryRunComputer implements Computer {
     printStream.println();
     printStream.println("Factorial experiment setup:");
     printStream.println();
-    printStream
-        .println("     # configurations = " + builder.configurationsSet.size());
-    printStream
-        .println("          # scenarios = "
-            + builder.getNumScenarios());
+    printStream.println("     # configurations = "
+      + builder.configurationsSet.size());
+    printStream.println("          # scenarios = "
+      + builder.getNumScenarios());
     printStream.println("        # repetitions = " + builder.repetitions);
+    printStream.println("   # seed repetitions = " + builder.seedRepetitions);
     printStream.println("------------------------------------ x");
     printStream.println("  total # simulations = " + inputs.size());
     printStream.println();
-
+    printStream.println("experiment ordering = " + builder.experimentOrdering);
+    printStream
+      .println("experiment warmup period = " + builder.warmupPeriodMs + " ms");
+    printStream.println();
     if (verbose) {
-      printStream
-          .println(
-              "scenario-class,scenario-problem-class,scenario-instance-id,"
-                  + "config,seed,obj-func,gui,post-processor,ui-creator");
+      printStream.println(
+        "scenario-class,scenario-problem-class,scenario-instance-id,"
+          + "config,seed,obj-func,gui,post-processor,ui-creator");
       for (final SimArgs args : inputs) {
         printStream.println(args);
       }
     }
-    printStream
-        .println(
-            "===================== RinSim Experiment finished dry run ======="
-                + "==============");
+    printStream.println(
+      "===================== RinSim Experiment finished dry run ==============="
+        + "======");
     return ExperimentResults.create(builder,
-        ImmutableSet.<Experiment.SimulationResult>of());
+      ImmutableSet.<Experiment.SimulationResult>of());
   }
 
 }

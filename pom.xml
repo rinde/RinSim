@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.rinde</groupId>
 	<artifactId>rinsim-main</artifactId>
-	<version>4.0.0</version>
+	<version>4.1.0</version>
 	<packaging>pom</packaging>
 
 	<name>RinSim</name>
@@ -69,8 +69,8 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<sonar.language>java</sonar.language>
 		<test.excludedGroups />
-		<skip.test.categories/>
-		<reference.version>4.0.0</reference.version>
+		<skip.test.categories />
+		<reference.version>4.1.0-SNAPSHOT</reference.version>
 	</properties>
 
 	<distributionManagement>
@@ -87,7 +87,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-surefire-plugin</artifactId>
-					<version>2.18.1</version>
+					<version>2.19</version>
 					<configuration>
 						<argLine>${argLine}</argLine>
 						<excludedGroups>${test.excludedGroups}</excludedGroups>
@@ -141,7 +141,7 @@
 										<groupId>org.apache.maven.plugins</groupId>
 										<artifactId>maven-checkstyle-plugin</artifactId>
 										<versionRange>
-											[2.15,)
+											[2.17,)
 										</versionRange>
 										<goals>
 											<goal>check</goal>
@@ -275,11 +275,8 @@
 				</configuration>
 			</plugin>
 
-			<plugin>
-				<groupId>org.bsc.maven</groupId>
-				<artifactId>maven-processor-plugin</artifactId>
-				<version>3.1.0-beta1</version>
-			</plugin>
+			<!-- <plugin> <groupId>org.bsc.maven</groupId> <artifactId>maven-processor-plugin</artifactId> 
+				<version>3.1.0-beta1</version> </plugin> -->
 
 			<!-- license -->
 			<plugin>
@@ -290,7 +287,7 @@
 					<header>LICENSE_HEADER</header>
 					<properties>
 						<owner>Rinde van Lon, iMinds-DistriNet, KU Leuven</owner>
-						<year>2015</year>
+						<year>2016</year>
 					</properties>
 					<mapping>
 						<java>SLASHSTAR_STYLE</java>
@@ -298,6 +295,8 @@
 					<excludes>
 						<exclude>src/test/resources/**</exclude>
 						<exclude>src/main/resources/**</exclude>
+						<exclude>.apt_generated/**</exclude>
+						<exclude>target/generated-sources/**</exclude>
 					</excludes>
 					<includes>
 						<include>**/*.java</include>
@@ -318,18 +317,19 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
-				<version>2.15</version>
+				<version>2.17</version>
 				<dependencies>
 					<dependency>
 						<groupId>com.puppycrawl.tools</groupId>
 						<artifactId>checkstyle</artifactId>
-						<version>6.8.1</version>
+						<version>6.13</version>
 					</dependency>
 				</dependencies>
 				<configuration>
 					<consoleOutput>true</consoleOutput>
 					<configLocation>checkstyle.xml</configLocation>
 					<failOnViolation>true</failOnViolation>
+					<excludes>**/AutoValue_*</excludes>
 				</configuration>
 				<executions>
 					<execution>
@@ -346,7 +346,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
-				<version>2.2.1</version>
+				<version>2.4</version>
 				<executions>
 					<execution>
 						<id>attach-sources</id>
@@ -361,7 +361,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.9.1</version>
+				<version>2.10.3</version>
 				<executions>
 					<execution>
 						<goals>
@@ -375,20 +375,42 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
-				<version>2.5</version>
+				<version>2.6</version>
 				<executions>
 					<execution>
+						<phase>package</phase>
 						<goals>
 							<goal>test-jar</goal>
 						</goals>
 						<configuration>
 							<excludes>
-								<excludes>logback-test.xml</excludes>
+								<excludes>**/logback-test.xml</excludes>
 							</excludes>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
+			
+			<!-- creates a test-jar which can then be reused in other projects' tests -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.6</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <excludes>
+                                <excludes>**/logback-test.xml</excludes>
+                                <excludes>**/logback.xml</excludes>
+                            </excludes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -402,6 +424,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
+				<!-- newer versions seem to crash on travis -->
 				<version>3.1</version>
 				<configuration>
 					<source>1.7</source>
@@ -413,15 +436,19 @@
 					<dependency>
 						<groupId>org.codehaus.plexus</groupId>
 						<artifactId>plexus-compiler-javac-errorprone</artifactId>
+						<!-- newer versions seem to crash on travis -->
 						<version>2.5</version>
 					</dependency>
+					 <dependency>
+						<groupId>com.google.errorprone</groupId>
+						<artifactId>error_prone_core</artifactId>
+						<!-- versions higher than 2.0.5 require JDK 8 which we 
+						     do not want to force upon our users (yet) -->
+						<version>2.0.5</version>
+					</dependency> 
 				</dependencies>
 			</plugin>
 
-			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.3</version>
-			</plugin>
 		</plugins>
 		<defaultGoal>package</defaultGoal>
 	</build>
@@ -479,7 +506,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-gpg-plugin</artifactId>
-						<version>1.5</version>
+						<version>1.6</version>
 						<executions>
 							<execution>
 								<id>sign-artifacts</id>
@@ -508,11 +535,6 @@
 			<artifactId>hamcrest-junit</artifactId>
 			<version>2.0.0.0</version>
 		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-simple</artifactId>
-			<scope>provided</scope>
-		</dependency>
 	</dependencies>
 
 	<dependencyManagement>
@@ -520,34 +542,33 @@
 			<dependency>
 				<groupId>com.google.truth</groupId>
 				<artifactId>truth</artifactId>
-				<version>0.27</version>
+				<version>0.28</version>
 				<scope>test</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.google.guava</groupId>
 				<artifactId>guava</artifactId>
-				<version>[18.0,19.0)</version>
+				<version>19.0</version>
 			</dependency>
 			<dependency>
 				<groupId>org.slf4j</groupId>
 				<artifactId>slf4j-api</artifactId>
-				<version>1.7.7</version>
-			</dependency>
-			<dependency>
-				<groupId>org.slf4j</groupId>
-				<artifactId>slf4j-simple</artifactId>
-				<version>1.7.7</version>
-				<scope>provided</scope>
+				<version>1.7.13</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-lang3</artifactId>
-				<version>3.3.2</version>
+				<version>3.4</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-math3</artifactId>
-				<version>3.3</version>
+				<version>3.5</version>
+			</dependency>
+			<dependency>
+				<groupId>commons-io</groupId>
+				<artifactId>commons-io</artifactId>
+				<version>2.4</version>
 			</dependency>
 			<dependency>
 				<groupId>joda-time</groupId>
@@ -683,6 +704,12 @@
 				<artifactId>rinsim-test-util</artifactId>
 				<version>${project.version}</version>
 				<type>test-jar</type>
+			</dependency>
+			<dependency>
+				<groupId>ch.qos.logback</groupId>
+				<artifactId>logback-classic</artifactId>
+				<version>1.1.3</version>
+				<scope>provided</scope>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

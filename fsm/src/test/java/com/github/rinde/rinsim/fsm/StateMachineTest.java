@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,7 +71,7 @@ public class StateMachineTest {
    */
   @Parameters
   public static Collection<Object[]> data() {
-    return Arrays.asList(new Object[][] { { true }, { false } });
+    return Arrays.asList(new Object[][] {{true}, {false}});
   }
 
   /**
@@ -85,20 +85,20 @@ public class StateMachineTest {
     specialState = new SpecialState();
 
     final StateMachineBuilder<Events, Context> smb = StateMachine
-        .create(stopState)
-        .addTransition(startState, Events.STOP, stopState)
-        .addTransition(startState, Events.SPEZIAL, specialState)
-        .addTransition(specialState, Events.START, startState)
-        .addTransition(specialState, Events.STOP, specialState)
-        .addTransition(stopState, Events.START, startState)
-        .addTransition(stopState, Events.STOP, stopState)
-        .addTransition(startState, Events.PAUSE, pauseState)
-        .addTransition(pauseState, Events.STOP, stopState)
-        .addTransition(pauseState, Events.START, startState)
-        .addTransition(startState, Events.RECURSIVE, startState)
-        .addTransition(pauseState, Events.RECURSIVE, pauseState)
-        .addTransition(stopState, Events.RECURSIVE, stopState)
-        .addTransition(specialState, Events.RECURSIVE, specialState);
+      .create(stopState)
+      .addTransition(startState, Events.STOP, stopState)
+      .addTransition(startState, Events.SPEZIAL, specialState)
+      .addTransition(specialState, Events.START, startState)
+      .addTransition(specialState, Events.STOP, specialState)
+      .addTransition(stopState, Events.START, startState)
+      .addTransition(stopState, Events.STOP, stopState)
+      .addTransition(startState, Events.PAUSE, pauseState)
+      .addTransition(pauseState, Events.STOP, stopState)
+      .addTransition(pauseState, Events.START, startState)
+      .addTransition(startState, Events.RECURSIVE, startState)
+      .addTransition(pauseState, Events.RECURSIVE, pauseState)
+      .addTransition(stopState, Events.RECURSIVE, stopState)
+      .addTransition(specialState, Events.RECURSIVE, specialState);
 
     if (explicitRecursiveTransitions) {
       smb.explicitRecursiveTransitions();
@@ -107,7 +107,7 @@ public class StateMachineTest {
     fsm = smb.build();
 
     assertTrue(fsm
-        .stateIsOneOf(startState, specialState, stopState, pauseState));
+      .stateIsOneOf(startState, specialState, stopState, pauseState));
     assertFalse(fsm.stateIsOneOf(startState, specialState));
 
     StateMachines.toDot(fsm);
@@ -123,9 +123,9 @@ public class StateMachineTest {
     final StateB b = new StateB();
     final StateC c = new StateC();
     final StateMachineBuilder<Events, Context> smb = StateMachine.create(a)
-        .addTransition(a, Events.START, b)
-        .addTransition(b, Events.START, c)
-        .addTransition(c, Events.START, a);
+      .addTransition(a, Events.START, b)
+      .addTransition(b, Events.START, c)
+      .addTransition(c, Events.START, a);
 
     if (explicitRecursiveTransitions) {
       smb.explicitRecursiveTransitions();
@@ -149,12 +149,12 @@ public class StateMachineTest {
   /**
    * Tests transitions.
    */
-  @SuppressWarnings({ "rawtypes", "unchecked" })
+  @SuppressWarnings({"rawtypes", "unchecked"})
   @Test
   public void testTransition() {
     final ListenerEventHistory history = new ListenerEventHistory();
     fsm.getEventAPI()
-        .addListener(history, StateMachine.StateMachineEvent.values());
+      .addListener(history, StateMachine.StateMachineEvent.values());
 
     // start in STOPPED state
     assertEquals(stopState, fsm.getCurrentState());
@@ -172,17 +172,17 @@ public class StateMachineTest {
     assertEquals(startState, fsm.getCurrentState());
     assertEquals(2, history.getHistory().size());
     assertTrue(((StateTransitionEvent) history.getHistory().get(0))
-        .equalTo(startState, Events.SPEZIAL, specialState));
+      .equalTo(startState, Events.SPEZIAL, specialState));
     assertTrue(((StateTransitionEvent) history.getHistory().get(1))
-        .equalTo(specialState, Events.START, startState));
+      .equalTo(specialState, Events.START, startState));
 
     // testing the equalTo method
     assertFalse(((StateTransitionEvent) history.getHistory().get(1))
-        .equalTo(startState, Events.START, startState));
+      .equalTo(startState, Events.START, startState));
     assertFalse(((StateTransitionEvent) history.getHistory().get(1))
-        .equalTo(specialState, Events.PAUSE, startState));
+      .equalTo(specialState, Events.PAUSE, startState));
     assertFalse(((StateTransitionEvent) history.getHistory().get(1))
-        .equalTo(specialState, Events.START, specialState));
+      .equalTo(specialState, Events.START, specialState));
 
     // go to SPECIAL
     fsm.handle(Events.SPEZIAL, CONTEXT);
@@ -202,7 +202,7 @@ public class StateMachineTest {
   public void testRecursiveTransitions() {
     final ListenerEventHistory history = new ListenerEventHistory();
     fsm.getEventAPI()
-        .addListener(history, StateMachine.StateMachineEvent.values());
+      .addListener(history, StateMachine.StateMachineEvent.values());
 
     // stopped recursive
     assertEquals(stopState, fsm.getCurrentState());
@@ -220,9 +220,9 @@ public class StateMachineTest {
       assertEquals(1, stopState.onExitHistory().size());
       assertEquals(1, history.getHistory().size());
       assertEquals(
-          new StateTransitionEvent<>(fsm, stopState,
-              Events.RECURSIVE, stopState),
-          history.getHistory().get(0));
+        new StateTransitionEvent<>(fsm, stopState,
+          Events.RECURSIVE, stopState),
+        history.getHistory().get(0));
     } else {
       assertTrue(stopState.onEntryHistory().isEmpty());
       assertTrue(stopState.onExitHistory().isEmpty());
@@ -252,14 +252,14 @@ public class StateMachineTest {
     final Object event2 = new Object();
 
     final StateMachine<Object, Object> sm = StateMachine.create(state1)/* */
-        .addTransition(state1, event1, state2)/* */
-        .addTransition(state2, event2, state1)/* */
-        .build();
+      .addTransition(state1, event1, state2)/* */
+      .addTransition(state2, event2, state1)/* */
+      .build();
 
     assertTrue(sm.isSupported(event1));
     assertTrue(sm.isSupported("event1"));
     assertTrue(sm.isSupported(new StringBuilder("event").append(1)
-        .toString()));
+      .toString()));
 
     assertFalse(sm.isSupported(event2));
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,14 @@
 package com.github.rinde.rinsim.experiment;
 
 /**
- *
+ * Exception that is thrown when an experiment run has been aborted.
  * @author Rinde van Lon
  */
 public class AbortExperimentException extends RuntimeException {
 
-  public AbortExperimentException(String message, Throwable cause) {
+  private static final long serialVersionUID = 7129907239020058583L;
+
+  AbortExperimentException(String message, Throwable cause) {
     super(message, cause);
   }
-
 }

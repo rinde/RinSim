@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,41 +18,48 @@ package com.github.rinde.rinsim.central.rt;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
+import java.io.Serializable;
+import java.lang.Thread.UncaughtExceptionHandler;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+
+import javax.annotation.CheckReturnValue;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.rinde.rinsim.central.Solver;
-import com.github.rinde.rinsim.central.Solvers;
-import com.github.rinde.rinsim.central.Solvers.SimulationConverter;
-import com.github.rinde.rinsim.central.Solvers.SolveArgs;
-import com.github.rinde.rinsim.central.Solvers.StateContext;
-import com.github.rinde.rinsim.central.rt.RtSolverModel.RtSimSolverSchedulerImpl.EventType;
+import com.github.rinde.rinsim.central.rt.RtSimSolverSchedulerBridge.EventType;
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.PDPModelEventType;
-import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.time.Clock.ClockEventType;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController.ClockMode;
-import com.github.rinde.rinsim.core.model.time.RealtimeClockController.RtClockEventType;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.Event;
-import com.github.rinde.rinsim.event.EventAPI;
-import com.github.rinde.rinsim.event.EventDispatcher;
 import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.LinkedHashMultiset;
+import com.google.common.collect.Multiset;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
+
+import net.openhft.affinity.AffinityStrategies;
+import net.openhft.affinity.AffinityThreadFactory;
 
 /**
  * {@link RtSolverModel} allows other models and objects added to the simulator
@@ -66,7 +73,7 @@ import com.google.common.util.concurrent.MoreExecutors;
  * mode only one {@link RtSimSolver} can be created and it can only be obtained
  * by another model (by declaring a dependency). In multi mode there are no
  * limits on the number of {@link RtSimSolver}s that can be created and
- * implementations of {@link RtSolverUser} can created {@link RtSimSolver}s as
+ * implementations of {@link RtSolverUser} can create {@link RtSimSolver}s as
  * well. By default the model will use a mode depending on the method through
  * which its <i>first</i> builder is requested. If the first request comes from
  * another model (by declaring a dependency), the model will start in single
@@ -84,42 +91,58 @@ import com.google.common.util.concurrent.MoreExecutors;
  * </ul>
  * @author Rinde van Lon
  */
-public final class RtSolverModel extends AbstractModel<RtSolverUser>
-    implements TickListener, Listener {
-  private static final int NUM_THREADS_IN_SINGLE_MODE = 2;
+public final class RtSolverModel
+    extends AbstractModel<RtSolverUser>
+    implements TickListener {
+
+  /**
+   * Default number of threads in 'single mode'.
+   */
+  public static final int DEFAULT_NUM_THREADS_IN_SINGLE_MODE = 2;
+
+  static final Logger LOGGER = LoggerFactory.getLogger(RtSolverModel.class);
+
   final RealtimeClockController clock;
   final PDPRoadModel roadModel;
   final PDPModel pdpModel;
   final SimSolversManager manager;
+  final int threadPoolSize;
+  final boolean threadGroupingEnabled;
   Optional<ListeningExecutorService> executor;
   Mode mode;
-  long timeToCheckIfComputing;
+  boolean prevComputing;
+
+  final List<Event> receivedEvents;
 
   enum Mode {
     MULTI_MODE, SINGLE_MODE, UNKNOWN;
   }
 
   RtSolverModel(RealtimeClockController c, PDPRoadModel rm, PDPModel pm,
-      Mode m) {
+      Mode m, int threads, boolean threadGrouping) {
     clock = c;
     roadModel = rm;
     pdpModel = pm;
     manager = new SimSolversManager();
     executor = Optional.absent();
     mode = m;
+    threadGroupingEnabled = threadGrouping;
+    threadPoolSize = threads;
 
-    clock.getEventAPI().addListener(this, RtClockEventType.values());
+    receivedEvents = Collections.synchronizedList(new ArrayList<Event>());
+
     clock.getEventAPI().addListener(new Listener() {
       @Override
-      public void handleEvent(Event e) {
-        if (executor.isPresent()) {
-          executor.get().shutdown();
-        }
+      public void handleEvent(Event event) {
+        manager.checkExceptions();
+        shutdown();
       }
     }, ClockEventType.STOPPED);
     pdpModel.getEventAPI().addListener(new Listener() {
       @Override
       public void handleEvent(Event e) {
+        manager.checkExceptions();
+        LOGGER.debug("new parcel -> switch to real time");
         clock.switchToRealTime();
       }
     }, PDPModelEventType.NEW_PARCEL);
@@ -144,49 +167,115 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
 
   @Override
   public <U> U get(Class<U> clazz) {
-    checkArgument(clazz == RtSimSolverBuilder.class,
-      "%s only provides %s, not %s.", getClass().getSimpleName(),
-      RtSimSolverBuilder.class.getSimpleName(), clazz);
-    if (mode == Mode.UNKNOWN) {
-      mode = Mode.SINGLE_MODE;
-      initExecutor();
+    if (clazz == RtSolverModelAPI.class) {
+      return clazz.cast(new RtSolverModelAPI());
+    } else if (clazz == RtSimSolverBuilder.class) {
+      if (mode == Mode.UNKNOWN) {
+        mode = Mode.SINGLE_MODE;
+        initExecutor();
+      }
+      return clazz.cast(new RtSimSolverBuilderImpl());
     }
-    return clazz.cast(new RtSimSolverBuilderImpl());
+    throw new IllegalArgumentException(
+      getClass().getSimpleName() + " does not provide " + clazz);
   }
 
   @Override
-  public void tick(TimeLapse timeLapse) {}
+  public void tick(TimeLapse timeLapse) {
+    manager.checkExceptions();
+  }
 
   @Override
   public void afterTick(TimeLapse timeLapse) {
-    if (timeLapse.getStartTime() == timeToCheckIfComputing
-        && !manager.isComputing()
-        && clock.isTicking()) {
-      clock.switchToSimulatedTime();
-    }
-  }
+    manager.checkExceptions();
 
-  @Override
-  public void handleEvent(Event e) {
-    if (e.getEventType() == RtClockEventType.SWITCH_TO_REAL_TIME) {
-      // when a switch to RT has been made, we should check the next tick if it
-      // is still needed.
-      timeToCheckIfComputing = clock.getCurrentTime() + clock.getTickLength();
+    // check computing
+    // synchronized (manager.computingSimSolvers) {
+    // final List<RtSimSolverSchedulerBridge> toRemove = new ArrayList<>();
+    // for (final RtSimSolverSchedulerBridge solv : manager.computingSimSolvers)
+    // {
+    // if (!solv.rtSimSolver.isComputing()) {
+    // toRemove.add(solv);
+    // }
+    // }
+    // manager.computingSimSolvers.removeAll(toRemove);
+    // }
+
+    final boolean wasComputing = manager.isComputing();
+    synchronized (receivedEvents) {
+      for (final Event e : receivedEvents) {
+        manager.doHandleEvent(e);
+      }
+      receivedEvents.clear();
+    }
+
+    final boolean isComputing = manager.isComputing() || wasComputing;
+    if (!isComputing && clock.isTicking()
+      && clock.getClockMode() == ClockMode.REAL_TIME) {
+      if (prevComputing) {
+        LOGGER.trace(
+          "we have stopped computing, if this stays the same we will attempt "
+            + "to switch to sim time on next tick");
+        prevComputing = false;
+      } else {
+        LOGGER.debug(
+          "not computing for two ticks -> request to switch to sim time");
+        clock.switchToSimulatedTime();
+      }
+    } else if (isComputing) {
+      prevComputing = true;
     }
   }
 
   void initExecutor() {
     if (!executor.isPresent() && mode != Mode.UNKNOWN) {
-      if (mode == Mode.SINGLE_MODE) {
-        executor = Optional.of(
-          MoreExecutors.listeningDecorator(
-            Executors.newFixedThreadPool(NUM_THREADS_IN_SINGLE_MODE)));
+
+      final ThreadFactory factory;
+      final String newName = String.format("%s-%s",
+        Thread.currentThread().getName(), getClass().getSimpleName());
+      if (threadGroupingEnabled) {
+        factory = new AffinityGroupThreadFactory(newName, manager);
       } else {
-        // multi mode
-        executor = Optional.of(
-          MoreExecutors.listeningDecorator(
-            Executors.newFixedThreadPool(
-              Runtime.getRuntime().availableProcessors())));
+        factory = new AffinityThreadFactory(newName, AffinityStrategies.ANY);
+      }
+
+      final int threads;
+      if (threadPoolSize == 0) {
+        if (mode == Mode.SINGLE_MODE) {
+          threads = DEFAULT_NUM_THREADS_IN_SINGLE_MODE;
+        } else {
+          threads = Runtime.getRuntime().availableProcessors();
+        }
+      } else {
+        threads = threadPoolSize;
+      }
+      LOGGER.trace("Create executor with {} threads and factory {}.", threads,
+        factory);
+      executor = Optional.of(MoreExecutors.listeningDecorator(
+        Executors.newFixedThreadPool(threads, factory)));
+    }
+  }
+
+  void shutdown() {
+    if (executor.isPresent()) {
+      manager.stop();
+      LOGGER.info("Shutting down executor..");
+      executor.get().shutdownNow();
+      try {
+        final boolean success =
+          executor.get().awaitTermination(2, TimeUnit.SECONDS);
+
+        if (success) {
+          LOGGER.info("Executor shutdown.");
+        } else {
+          LOGGER.warn("Shutting down executor timed out.");
+        }
+      } catch (final InterruptedException e) {
+        if (executor.get().isShutdown()) {
+          LOGGER.info("Interrupt, but executor shutdown.");
+        } else {
+          LOGGER.warn("Executor shutdown interrupted..");
+        }
       }
     }
   }
@@ -195,8 +284,9 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
    * Constructs a {@link Builder} instance for {@link RtSolverModel}.
    * @return A new instance.
    */
+  @CheckReturnValue
   public static Builder builder() {
-    return Builder.create(Mode.UNKNOWN);
+    return Builder.create(Mode.UNKNOWN, 0, false);
   }
 
   /**
@@ -205,23 +295,31 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
    */
   @AutoValue
   public abstract static class Builder
-      extends AbstractModelBuilder<RtSolverModel, RtSolverUser> {
+      extends AbstractModelBuilder<RtSolverModel, RtSolverUser>
+      implements Serializable {
+
+    private static final long serialVersionUID = 961117045872153221L;
 
     Builder() {
       setDependencies(RealtimeClockController.class, PDPRoadModel.class,
         PDPModel.class);
-      setProvidingTypes(RtSimSolverBuilder.class);
+      setProvidingTypes(RtSimSolverBuilder.class, RtSolverModelAPI.class);
     }
 
     abstract Mode getMode();
+
+    abstract int getThreadPoolSize();
+
+    abstract boolean getThreadGrouping();
 
     /**
      * The initial mode of the produced {@link RtSolverModel} will be 'single'.
      * See {@link RtSolverModel} for more information.
      * @return This, as per the builder pattern.
      */
+    @CheckReturnValue
     public Builder withSingleMode() {
-      return create(Mode.SINGLE_MODE);
+      return create(Mode.SINGLE_MODE, getThreadPoolSize(), getThreadGrouping());
     }
 
     /**
@@ -229,35 +327,106 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
      * See {@link RtSolverModel} for more information.
      * @return This, as per the builder pattern.
      */
+    @CheckReturnValue
     public Builder withMultiMode() {
-      return create(Mode.MULTI_MODE);
+      return create(Mode.MULTI_MODE, getThreadPoolSize(), getThreadGrouping());
+    }
+
+    /**
+     * Sets the threadpool size. In 'single mode' the default threadpool size is
+     * determined by {@link #DEFAULT_NUM_THREADS_IN_SINGLE_MODE}. In 'multi
+     * mode' the threadpool size is determined by
+     * {@link Runtime#availableProcessors()}.
+     * @param threads The number of threads, must be positive.
+     * @return This, as per the builder pattern.
+     */
+    @CheckReturnValue
+    public Builder withThreadPoolSize(int threads) {
+      checkArgument(threads > 0);
+      return create(getMode(), threads, getThreadGrouping());
+    }
+
+    /**
+     * Sets the thread grouping property. If thread grouping is enabled all
+     * threads spawned by this model will be locked to the same CPU, if it is
+     * disabled each thread will be locked to unique CPU (on a best effort
+     * basis).
+     * @param grouping Indicates whether grouping should be enabled. Default
+     *          value is <code>false</code>.
+     * @return This, as per the builder pattern.
+     */
+    @CheckReturnValue
+    public Builder withThreadGrouping(boolean grouping) {
+      return create(getMode(), getThreadPoolSize(), grouping);
     }
 
     @Override
     public RtSolverModel build(DependencyProvider dependencyProvider) {
       final RealtimeClockController c = dependencyProvider
-          .get(RealtimeClockController.class);
+        .get(RealtimeClockController.class);
       final PDPRoadModel rm = dependencyProvider.get(PDPRoadModel.class);
       final PDPModel pm = dependencyProvider.get(PDPModel.class);
-      return new RtSolverModel(c, rm, pm, getMode());
+      return new RtSolverModel(c, rm, pm, getMode(), getThreadPoolSize(),
+        getThreadGrouping());
     }
 
-    static Builder create(Mode m) {
-      return new AutoValue_RtSolverModel_Builder(m);
+    static Builder create(Mode m, int t, boolean g) {
+      return new AutoValue_RtSolverModel_Builder(m, t, g);
     }
   }
 
-  class SimSolversManager implements Listener {
-    final Set<RtSimSolverSchedulerImpl> simSolvers;
-    final Set<RtSimSolverSchedulerImpl> computingSimSolvers;
+  public final class RtSolverModelAPI {
+
+    RtSolverModelAPI() {}
+
+    public boolean isComputing() {
+      return manager.isComputing();
+    }
+
+    public ImmutableSet<RealtimeSolver> getComputingSolvers() {
+      final ImmutableSet.Builder<RealtimeSolver> solvers =
+        ImmutableSet.builder();
+      for (final RtSimSolverSchedulerBridge s : manager.simSolvers) {
+        if (s.solver.isComputing()
+          || manager.computingSimSolvers.contains(s)) {
+          solvers.add(s.solver);
+        }
+      }
+      return solvers.build();
+    }
+  }
+
+  class SimSolversManager implements Listener, UncaughtExceptionHandler {
+    final Set<RtSimSolverSchedulerBridge> simSolvers;
+    final Multiset<RtSimSolverSchedulerBridge> computingSimSolvers;
+    final List<Throwable> exceptions;
 
     SimSolversManager() {
       simSolvers = new LinkedHashSet<>();
-      computingSimSolvers = Collections.synchronizedSet(
-        new LinkedHashSet<RtSimSolverSchedulerImpl>());
+
+      computingSimSolvers = LinkedHashMultiset.create();
+      // Collections
+      // .synchronizedSet(new LinkedHashSet<RtSimSolverSchedulerBridge>());
+      exceptions = Collections.synchronizedList(new ArrayList<Throwable>());
     }
 
-    void register(RtSimSolverSchedulerImpl s) {
+    void checkExceptions() {
+      if (!exceptions.isEmpty()) {
+        LOGGER.error("Found " + exceptions.size() + " exception(s). First:",
+          exceptions.get(0));
+
+        shutdown();
+        if (exceptions.get(0) instanceof RuntimeException) {
+          throw (RuntimeException) exceptions.get(0);
+        } else if (exceptions.get(0) instanceof Error) {
+          throw (Error) exceptions.get(0);
+        }
+        throw new IllegalStateException(exceptions.get(0));
+      }
+    }
+
+    void register(RtSimSolverSchedulerBridge s) {
+      LOGGER.trace("New solver registered: {}.", s.solver);
       simSolvers.add(s);
       s.getEventAPI().addListener(this,
         EventType.START_COMPUTING,
@@ -266,25 +435,76 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
 
     boolean isComputing() {
       synchronized (computingSimSolvers) {
+        // for (final RtSimSolverSchedulerBridge solv : simSolvers) {
+        // if (solv.rtSimSolver.isComputing()) {
+        // return true;
+        // }
+        // }
+        // return false;
         return !computingSimSolvers.isEmpty();
+      }
+    }
+
+    // stops all computing solvers
+    void stop() {
+      synchronized (computingSimSolvers) {
+        LOGGER.info("Number of running solvers: {}.",
+          computingSimSolvers.size());
+        for (final RtSimSolverSchedulerBridge solv : simSolvers) {
+          if (solv.rtSimSolver.isComputing()) {
+            LOGGER.info(" > stop {}", solv.rtSimSolver.getSolver());
+            solv.rtSimSolver.cancel();
+          }
+        }
+      }
+    }
+
+    void doHandleEvent(Event e) {
+      synchronized (computingSimSolvers) {
+        final boolean isComputingBefore = isComputing();
+        LOGGER.trace("receive: {}, computing: {}, clock is ticking: {}, {}", e,
+          isComputingBefore, clock.isTicking(), computingSimSolvers);
+        if (e.getEventType() == EventType.START_COMPUTING) {
+          if (!isComputingBefore) {
+            LOGGER.debug("start computing -> switch to real time");
+            clock.switchToRealTime();
+          }
+          computingSimSolvers.add((RtSimSolverSchedulerBridge) e.getIssuer());
+        } else if (e.getEventType() == EventType.DONE_COMPUTING) {
+          // done computing
+
+          checkState(computingSimSolvers.remove(e.getIssuer()));
+
+          // if (!isComputing()) {
+          // stop();
+          // }
+
+        } else {
+          throw new IllegalArgumentException("Unexpected event: " + e);
+        }
       }
     }
 
     @Override
     public void handleEvent(Event e) {
-      synchronized (computingSimSolvers) {
-        if (e.getEventType() == EventType.START_COMPUTING) {
-          clock.switchToRealTime();
-          computingSimSolvers.add((RtSimSolverSchedulerImpl) e.getIssuer());
-        } else {
-          // done computing
-          checkState(computingSimSolvers.remove(e.getIssuer()),
-            "Internal error", computingSimSolvers, e.getIssuer());
-          if (!isComputing()) {
-            clock.switchToSimulatedTime();
-          }
-        }
+      receivedEvents.add(e);
+    }
+
+    void addException(Throwable t) {
+      LOGGER.warn("exception occured: {}: {}", t.getClass().getName(),
+        t.getMessage());
+
+      if (t instanceof InterruptedException) {
+        return;
       }
+      LOGGER.error("", t);
+      exceptions.add(t);
+    }
+
+    @Override
+    public void uncaughtException(@SuppressWarnings("null") Thread t,
+        @SuppressWarnings("null") Throwable e) {
+      addException(e);
     }
   }
 
@@ -297,8 +517,9 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
 
     @Override
     public RtSimSolverBuilder setVehicles(Set<? extends Vehicle> vehicles) {
-      checkArgument(!vehicles.isEmpty());
-      associatedVehicles = ImmutableSet.copyOf(vehicles);
+      checkArgument(!vehicles.isEmpty(),
+        "At least one vehicle must be defined.");
+      associatedVehicles = ImmutableSet.<Vehicle>copyOf(vehicles);
       return this;
     }
 
@@ -310,130 +531,15 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
           RtSimSolverBuilder.class.getSimpleName(),
           RtSimSolver.class.getSimpleName());
       }
-      final RtSimSolverSchedulerImpl s =
-        new RtSimSolverSchedulerImpl(clock, solver, roadModel, pdpModel,
-            associatedVehicles, executor.get());
-      manager.register(s);
+      final RtSimSolverSchedulerBridge s =
+        new RtSimSolverSchedulerBridge(clock, solver, roadModel, pdpModel,
+          associatedVehicles, executor.get(), manager);
       return s.rtSimSolver;
     }
 
     @Override
     public RtSimSolver build(Solver solver) {
       return build(new SolverToRealtimeAdapter(solver));
-    }
-  }
-
-  static class RtSimSolverSchedulerImpl {
-    final EventDispatcher simSolverEventDispatcher;
-    final EventDispatcher eventDispatcher;
-    final SimulationConverter converter;
-    final RealtimeSolver solver;
-    final RealtimeClockController clock;
-    final ListeningExecutorService executor;
-    final RtSimSolver rtSimSolver;
-    final Scheduler scheduler;
-    final RtSimSolverSchedulerImpl reference;
-    Optional<ImmutableList<ImmutableList<Parcel>>> currentSchedule;
-    boolean isUpdated;
-
-    RtSimSolverSchedulerImpl(RealtimeClockController c, RealtimeSolver s,
-        PDPRoadModel rm, PDPModel pm, Set<Vehicle> vehicles,
-        ListeningExecutorService ex) {
-      solver = s;
-      clock = c;
-      converter = Solvers.converterBuilder()
-          .with(clock)
-          .with(rm)
-          .with(pm)
-          .with(vehicles)
-          .build();
-      currentSchedule = Optional.absent();
-      isUpdated = false;
-
-      reference = this;
-      eventDispatcher = new EventDispatcher(EventType.values());
-      simSolverEventDispatcher =
-        new EventDispatcher(RtSimSolver.EventType.values());
-      executor = ex;
-      rtSimSolver = new InternalRtSimSolver();
-      scheduler = new InternalScheduler();
-      solver.init(scheduler);
-    }
-
-    public EventAPI getEventAPI() {
-      return eventDispatcher.getPublicEventAPI();
-    }
-
-    enum EventType {
-      START_COMPUTING, DONE_COMPUTING;
-    }
-
-    class InternalRtSimSolver extends RtSimSolver {
-
-      InternalRtSimSolver() {}
-
-      @Override
-      public void solve(SolveArgs args) {
-        checkState(clock.getClockMode() == ClockMode.REAL_TIME,
-          "Clock must be in real-time mode before calling this method.");
-        eventDispatcher.dispatchEvent(new Event(
-            RtSimSolverSchedulerImpl.EventType.START_COMPUTING, reference));
-        final StateContext sc = converter.convert(args);
-        executor.submit(new Runnable() {
-          @Override
-          public void run() {
-            solver.receiveSnapshot(sc.state);
-          }
-        });
-      }
-
-      @Override
-      public boolean isScheduleUpdated() {
-        return isUpdated;
-      }
-
-      @Override
-      public ImmutableList<ImmutableList<Parcel>> getCurrentSchedule() {
-        checkState(currentSchedule.isPresent(),
-          "No schedule has been computed yet.");
-        isUpdated = false;
-        return currentSchedule.get();
-      }
-
-      @Override
-      public EventAPI getEventAPI() {
-        return simSolverEventDispatcher;
-      }
-    }
-
-    class InternalScheduler extends Scheduler {
-      InternalScheduler() {}
-
-      @Override
-      public void updateSchedule(ImmutableList<ImmutableList<Parcel>> routes) {
-        currentSchedule = Optional.of(routes);
-        isUpdated = true;
-        simSolverEventDispatcher.dispatchEvent(
-          new Event(RtSimSolver.EventType.NEW_SCHEDULE, rtSimSolver));
-      }
-
-      @Override
-      public ImmutableList<ImmutableList<Parcel>> getCurrentSchedule() {
-        checkState(currentSchedule.isPresent(),
-          "No schedule has been set, use updateSchedule(..).");
-        return currentSchedule.get();
-      }
-
-      @Override
-      public void doneForNow() {
-        eventDispatcher.dispatchEvent(
-          new Event(EventType.DONE_COMPUTING, reference));
-      }
-
-      @Override
-      public ListeningExecutorService getSharedExecutor() {
-        return executor;
-      }
     }
   }
 }

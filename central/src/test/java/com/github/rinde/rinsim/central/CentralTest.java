@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,6 @@ import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.pdptw.common.PDPTWTestUtil;
 import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle;
-import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06ObjectiveFunction;
 import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Parser;
 import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Scenario;
 import com.github.rinde.rinsim.testutil.TestUtil;
@@ -79,15 +78,15 @@ public class CentralTest {
   @Before
   public void setUp() {
     sim = Simulator.builder()
-        .addModel(
-          PDPRoadModel.builder(
-            RoadModelBuilders.plane()
-                .withMaxSpeed(300d))
-              .withAllowVehicleDiversion(false))
-        .addModel(
-          DefaultPDPModel.builder()
-              .withTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED))
-        .build();
+      .addModel(
+        PDPRoadModel.builder(
+          RoadModelBuilders.plane()
+            .withMaxSpeed(300d))
+          .withAllowVehicleDiversion(false))
+      .addModel(
+        DefaultPDPModel.builder()
+          .withTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED))
+      .build();
 
     rm = sim.getModelProvider().getModel(PDPRoadModel.class);
     pm = sim.getModelProvider().getModel(PDPModel.class);
@@ -116,16 +115,15 @@ public class CentralTest {
       @Override
       public Solver get(long seed) {
         return SolverValidator.wrap(new MultiVehicleSolverAdapter(
-            ArraysSolverValidator.wrap(new RandomMVArraysSolver(
-                new MersenneTwister(seed))),
-            SI.MILLI(SI.SECOND)));
+          ArraysSolverValidator.wrap(new RandomMVArraysSolver(
+            new MersenneTwister(seed))),
+          SI.MILLI(SI.SECOND)));
       }
     };
-    final Experiment.Builder builder = Experiment
-        .build(Gendreau06ObjectiveFunction.instance())
-        .addScenario(scenario)
-        .addConfiguration(Central.solverConfiguration(s))
-        .withRandomSeed(123);
+    final Experiment.Builder builder = Experiment.builder()
+      .addScenario(scenario)
+      .addConfiguration(Central.solverConfiguration(s))
+      .withRandomSeed(123);
 
     final ExperimentResults res1 = builder.perform();
     final ExperimentResults res2 = builder.perform();
@@ -142,7 +140,7 @@ public class CentralTest {
     final SimulationConverter s = Solvers.converterBuilder().with(sim).build();
 
     StateContext res = s.convert(SolveArgs.create().useAllParcels()
-        .noCurrentRoutes());
+      .noCurrentRoutes());
     assertEquals(2, res.state.getVehicles().size());
     assertTrue(res.state.getVehicles().get(0).getContents().isEmpty());
     assertFalse(res.state.getVehicles().get(0).getDestination().isPresent());
@@ -184,26 +182,26 @@ public class CentralTest {
 
   static Parcel createParcel(Point origin, Point dest) {
     return new Parcel(
-        Parcel.builder(origin, dest)
-            .pickupTimeWindow(TimeWindow.create(380001, 380002))
-            .deliveryTimeWindow(TimeWindow.create(0, 1000))
-            .neededCapacity(0)
-            .orderAnnounceTime(0L)
-            .pickupDuration(3000L)
-            .deliveryDuration(3000L)
-            .buildDTO());
+      Parcel.builder(origin, dest)
+        .pickupTimeWindow(TimeWindow.create(380001, 380002))
+        .deliveryTimeWindow(TimeWindow.create(0, 1000))
+        .neededCapacity(0)
+        .orderAnnounceTime(0L)
+        .pickupDuration(3000L)
+        .deliveryDuration(3000L)
+        .buildDTO());
   }
 
   static class TestVehicle extends RouteFollowingVehicle {
 
     TestVehicle(Point start) {
       super(VehicleDTO.builder()
-          .startPosition(start)
-          .speed(30d)
-          .capacity(1)
-          .availabilityTimeWindow(TimeWindow.create(0, 1000))
-          .build(),
-          false);
+        .startPosition(start)
+        .speed(30d)
+        .capacity(1)
+        .availabilityTimeWindow(TimeWindow.create(0, 1000))
+        .build(),
+        false);
     }
 
     public State<StateEvent, RouteFollowingVehicle> getState() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,9 +64,9 @@ public final class FabriRechtParser {
     final List<TimedEvent> events = newArrayList();
 
     final BufferedReader coordinateFileReader = new BufferedReader(
-        new FileReader(coordinateFile));
+      new FileReader(coordinateFile));
     final BufferedReader ordersFileReader = new BufferedReader(new FileReader(
-        ordersFile));
+      ordersFile));
 
     final List<Point> coordinates = newArrayList();
     String line;
@@ -81,7 +81,7 @@ public final class FabriRechtParser {
         coordinateFileReader.close();
         ordersFileReader.close();
         throw new IllegalArgumentException(
-            "The coordinate file seems to be in an unrecognized format.");
+          "The coordinate file seems to be in an unrecognized format.");
       }
       final int x = Integer.parseInt(parts[1]);
       final int y = Integer.parseInt(parts[2]);
@@ -91,9 +91,10 @@ public final class FabriRechtParser {
       maxX = Math.max(x, maxX);
       maxY = Math.max(y, maxY);
 
-      coordinates.add(new Point(x, y));
+      final Point pos = new Point(x, y);
+      coordinates.add(pos);
       if (Integer.parseInt(parts[0]) == 0) {
-        events.add(AddDepotEvent.create(0, new Point(x, y)));
+        events.add(AddDepotEvent.create(0, pos));
       }
       coordinateCounter++;
     }
@@ -117,11 +118,11 @@ public final class FabriRechtParser {
 
     events.add(TimeOutEvent.create(endTime));
     final VehicleDTO defaultVehicle = VehicleDTO.builder()
-        .startPosition(coordinates.get(0))
-        .speed(1d)
-        .capacity(capacity)
-        .availabilityTimeWindow(timeWindow)
-        .build();
+      .startPosition(coordinates.get(0))
+      .speed(1d)
+      .capacity(capacity)
+      .availabilityTimeWindow(timeWindow)
+      .build();
 
     // Nr. des Pickup-Orts; Nr. des Delivery-Orts; untere Zeitfenstergrenze
     // Pickup; obere Zeitfenstergrenze Pickup; untere Zeitfenstergrenze
@@ -132,23 +133,23 @@ public final class FabriRechtParser {
         Iterators.forArray(line.split(LINE_SEPARATOR));
 
       final Parcel.Builder b = Parcel
-          .builder(coordinates.get(Integer.parseInt(it.next())),
-            coordinates.get(Integer.parseInt(it.next())))
-          .pickupTimeWindow(
-            TimeWindow.create(Long.parseLong(it.next()),
-              Long.parseLong(it.next())))
-          .deliveryTimeWindow(
-            TimeWindow.create(Long.parseLong(it.next()),
-              Long.parseLong(it.next())));
+        .builder(coordinates.get(Integer.parseInt(it.next())),
+          coordinates.get(Integer.parseInt(it.next())))
+        .pickupTimeWindow(
+          TimeWindow.create(Long.parseLong(it.next()),
+            Long.parseLong(it.next())))
+        .deliveryTimeWindow(
+          TimeWindow.create(Long.parseLong(it.next()),
+            Long.parseLong(it.next())));
 
       // we ignore the capacity
       it.next();
       final int neededCapacity = 1;
       final ParcelDTO o = b.neededCapacity(neededCapacity)
-          .orderAnnounceTime(Long.parseLong(it.next()))
-          .pickupDuration(Long.parseLong(it.next()))
-          .deliveryDuration(Long.parseLong(it.next()))
-          .buildDTO();
+        .orderAnnounceTime(Long.parseLong(it.next()))
+        .pickupDuration(Long.parseLong(it.next()))
+        .deliveryDuration(Long.parseLong(it.next()))
+        .buildDTO();
 
       events.add(AddParcelEvent.create(o));
     }
@@ -204,9 +205,9 @@ public final class FabriRechtParser {
     for (int i = 0; i < numVehicles; i++) {
       events.add(AddVehicleEvent.create(0,
         VehicleDTO.builder()
-            .use(scen.getDefaultVehicle())
-            .capacity(vehicleCapacity)
-            .build()));
+          .use(scen.getDefaultVehicle())
+          .capacity(vehicleCapacity)
+          .build()));
     }
     events.addAll(scen.getEvents());
     return FabriRechtScenario.create(events, scen.getMin(), scen.getMax(),

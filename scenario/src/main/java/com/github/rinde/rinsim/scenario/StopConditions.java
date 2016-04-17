@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ public final class StopConditions {
   /**
    * Returns a {@link StopCondition} that will stop the simulation at the first
    * possible moment after <code>endTime</code>. The simulation time after
-   * stopping is <code>endTime+1</code>.
+   * stopping is <code>endTime+1 tick</code>.
    * @param endTime The end time.
    * @return A {@link StopCondition}.
    */
@@ -76,11 +76,11 @@ public final class StopConditions {
   public static StopCondition and(StopCondition condition1,
       StopCondition condition2, StopCondition... more) {
     return And.create(
-        ImmutableSet.<StopCondition>builder()
-            .add(condition1)
-            .add(condition2)
-            .addAll(asList(more))
-            .build());
+      ImmutableSet.<StopCondition>builder()
+        .add(condition1)
+        .add(condition2)
+        .addAll(asList(more))
+        .build());
   }
 
   /**
@@ -96,11 +96,11 @@ public final class StopConditions {
   public static StopCondition or(StopCondition condition1,
       StopCondition condition2, StopCondition... more) {
     return Or.create(
-        ImmutableSet.<StopCondition>builder()
-            .add(condition1)
-            .add(condition2)
-            .addAll(asList(more))
-            .build());
+      ImmutableSet.<StopCondition>builder()
+        .add(condition1)
+        .add(condition2)
+        .addAll(asList(more))
+        .build());
   }
 
   /**
@@ -190,7 +190,7 @@ public final class StopConditions {
 
     static LimitedTime create(long endTime) {
       return new AutoValue_StopConditions_LimitedTime(
-          ImmutableSet.<Class<?>>of(Clock.class), endTime);
+        ImmutableSet.<Class<?>>of(Clock.class), endTime);
     }
   }
 

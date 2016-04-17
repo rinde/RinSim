@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,8 +70,8 @@ public final class CommDeviceBuilder {
    */
   public CommDevice build() {
     checkState(!used,
-        "Only one communication device can be created per user, user: %s.",
-        user);
+      "Only one communication device can be created per user, user: %s.",
+      user);
     used = true;
     return new CommDevice(this);
   }

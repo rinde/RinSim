@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -153,7 +153,7 @@ public class LinkedHashBiMap<K, V> extends ForwardingBiMap<K, V> {
     @Deprecated
     public Set<Map.Entry<V, K>> entrySet() {
       throw new UnsupportedOperationException(
-          "Use inverse().entrySet() instead.");
+        "Use inverse().entrySet() instead.");
     }
 
     // modifications

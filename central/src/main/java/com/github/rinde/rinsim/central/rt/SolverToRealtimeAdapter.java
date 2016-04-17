@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,19 @@ package com.github.rinde.rinsim.central.rt;
 
 import static com.google.common.base.Preconditions.checkState;
 
-import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 
 import javax.annotation.Nullable;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.github.rinde.rinsim.central.GlobalStateObject;
 import com.github.rinde.rinsim.central.Solver;
+import com.github.rinde.rinsim.central.Solvers;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
+import com.github.rinde.rinsim.util.StochasticSupplier;
+import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.FutureCallback;
@@ -34,15 +39,23 @@ import com.google.common.util.concurrent.ListenableFuture;
 /**
  * Adapter of {@link Solver} to {@link RealtimeSolver}. This real-time solver
  * behaves as follows, upon receiving a new snapshot
- * {@link RealtimeSolver#receiveSnapshot(GlobalStateObject)} the underlying
+ * {@link RealtimeSolver#problemChanged(GlobalStateObject)} the underlying
  * {@link Solver} is called to solve the problem. Any ongoing computation of a
  * previous snapshot is cancelled. When the solver completes its computation,
- * {@link Scheduler#updateSchedule(ImmutableList)} is called to provide the
- * updated schedule. The scheduler is also notified that no computations are
- * currently taking place by calling {@link Scheduler#doneForNow()}.
+ * {@link Scheduler#updateSchedule(GlobalStateObject,ImmutableList)} is called
+ * to provide the updated schedule. The scheduler is also notified that no
+ * computations are currently taking place by calling
+ * {@link Scheduler#doneForNow()}.
+ * <p>
+ * TODO talk about interrupt in solver
+ *
  * @author Rinde van Lon
  */
 public final class SolverToRealtimeAdapter implements RealtimeSolver {
+  static final Logger LOGGER =
+    LoggerFactory.getLogger(SolverToRealtimeAdapter.class);
+  private static final String R_BRACE = ")";
+
   Optional<Scheduler> scheduler;
   Optional<ListenableFuture<ImmutableList<ImmutableList<Parcel>>>> currentFuture;
   private final Solver solver;
@@ -59,40 +72,61 @@ public final class SolverToRealtimeAdapter implements RealtimeSolver {
   }
 
   @Override
-  public void receiveSnapshot(GlobalStateObject snapshot) {
+  public void problemChanged(final GlobalStateObject snapshot) {
     checkState(scheduler.isPresent(), "Not yet initialized.");
-    if (currentFuture.isPresent() && !currentFuture.get().isDone()) {
-      currentFuture.get().cancel(true);
-    }
+    cancel();
     currentFuture = Optional.of(
       scheduler.get().getSharedExecutor().submit(
-        new SolverComputer(solver, snapshot)));
+        Solvers.createSolverCallable(solver, snapshot)));
+
     Futures.addCallback(currentFuture.get(),
       new FutureCallback<ImmutableList<ImmutableList<Parcel>>>() {
         @Override
         public void onSuccess(
             @Nullable ImmutableList<ImmutableList<Parcel>> result) {
+          LOGGER.trace("onSuccess: " + result);
           if (result == null) {
-            throw new IllegalArgumentException(
-                "Solver.solve(..) must return a non-null result.");
+            scheduler.get().reportException(
+              new IllegalArgumentException("Solver.solve(..) must return a "
+                + "non-null result. Solver: " + solver));
+          } else {
+            scheduler.get().updateSchedule(snapshot, result);
+            scheduler.get().doneForNow();
           }
-          scheduler.get().updateSchedule(result);
-          scheduler.get().doneForNow();
         }
 
         @Override
         public void onFailure(Throwable t) {
           if (t instanceof CancellationException) {
+            LOGGER.trace("Solver execution got cancelled");
             return;
           }
-          if (t instanceof RuntimeException) {
-            throw (RuntimeException) t;
-          } else if (t instanceof Error) {
-            throw (Error) t;
-          }
-          throw new IllegalStateException(t);
+          scheduler.get().reportException(t);
         }
       });
+  }
+
+  @Override
+  public void cancel() {
+    if (isComputing()) {
+      LOGGER.trace("attempt to cancel running Solver..");
+      currentFuture.get().cancel(true);
+      scheduler.get().doneForNow();
+    }
+  }
+
+  @Override
+  public boolean isComputing() {
+    return currentFuture.isPresent() && !currentFuture.get().isDone();
+  }
+
+  @Override
+  public void receiveSnapshot(GlobalStateObject snapshot) {}
+
+  @Override
+  public String toString() {
+    return Joiner.on("").join(getClass().getSimpleName(), "(",
+      solver.toString(), R_BRACE);
   }
 
   /**
@@ -106,19 +140,28 @@ public final class SolverToRealtimeAdapter implements RealtimeSolver {
     return new SolverToRealtimeAdapter(solver);
   }
 
-  static class SolverComputer
-      implements Callable<ImmutableList<ImmutableList<Parcel>>> {
-    final Solver solver;
-    final GlobalStateObject snapshot;
+  public static StochasticSupplier<RealtimeSolver> create(
+      StochasticSupplier<? extends Solver> solver) {
+    return new Sup(solver);
+  }
 
-    SolverComputer(Solver sol, GlobalStateObject snap) {
-      solver = sol;
-      snapshot = snap;
+  static class Sup implements StochasticSupplier<RealtimeSolver> {
+    StochasticSupplier<? extends Solver> solver;
+
+    Sup(StochasticSupplier<? extends Solver> s) {
+      solver = s;
     }
 
     @Override
-    public ImmutableList<ImmutableList<Parcel>> call() throws Exception {
-      return solver.solve(snapshot);
+    public RealtimeSolver get(long seed) {
+      return new SolverToRealtimeAdapter(solver.get(seed));
+    }
+
+    @Override
+    public String toString() {
+      return Joiner.on("").join(SolverToRealtimeAdapter.class.getSimpleName(),
+        ".create(", solver, R_BRACE);
     }
   }
+
 }

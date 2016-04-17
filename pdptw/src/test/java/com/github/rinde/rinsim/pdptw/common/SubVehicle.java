@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ class SubVehicle extends RouteFollowingVehicle {
 
     // reuse super implementation
     final StateMachine<StateEvent, RouteFollowingVehicle> fsm =
-        super.createStateMachine();
+      super.createStateMachine();
 
     // get ref to existing state
     final Wait wait = fsm.getStateOfType(Wait.class);
@@ -44,10 +44,10 @@ class SubVehicle extends RouteFollowingVehicle {
 
     // add two new transitions
     return StateMachine.create(wait)
-        .addTransition(wait, ExtraEvent.TEST_EVENT, extra)
-        .addTransition(extra, DefaultEvent.DONE, wait)
-        .addTransitionsFrom(fsm)
-        .build();
+      .addTransition(wait, ExtraEvent.TEST_EVENT, extra)
+      .addTransition(extra, DefaultEvent.DONE, wait)
+      .addTransitionsFrom(fsm)
+      .build();
   }
 
   enum ExtraEvent implements StateEvent {

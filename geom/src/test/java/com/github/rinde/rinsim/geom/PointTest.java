@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,9 +50,10 @@ public class PointTest {
   @Test
   public void pointFuncs() {
     assertEquals(new Point(0, 0),
-        Point.diff(new Point(10, 0), new Point(10, 0)));
+      Point.diff(new Point(10, 0), new Point(10, 0)));
     assertEquals(new Point(234, 333.3),
-        Point.duplicate(Point.parsePoint(new Point(234, 333.3).toString())));
+      PointTestUtil
+        .duplicate(Point.parsePoint(new Point(234, 333.3).toString())));
     assertFalse(new Point(0, 0).equals(null));
     assertFalse(new Point(0, 0).equals(new Point(0, 1)));
     assertFalse(new Point(0, 0).equals(new Point(1, 0)));

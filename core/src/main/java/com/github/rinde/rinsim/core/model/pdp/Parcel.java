@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@ package com.github.rinde.rinsim.core.model.pdp;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import javax.annotation.Nullable;
+
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.util.TimeWindow;
@@ -28,6 +30,7 @@ import com.github.rinde.rinsim.util.TimeWindow;
 public class Parcel extends PDPObjectImpl implements IParcel {
 
   private final ParcelDTO dto;
+  private final String string;
 
   /**
    * Create a new parcel.
@@ -35,8 +38,17 @@ public class Parcel extends PDPObjectImpl implements IParcel {
    *          of a parcel.
    */
   public Parcel(ParcelDTO parcelDto) {
+    this(parcelDto, null);
+  }
+
+  public Parcel(ParcelDTO parcelDto, @Nullable String toString) {
     dto = parcelDto;
     setStartPosition(dto.getPickupLocation());
+    if (toString == null) {
+      string = "[Parcel-" + Integer.toHexString(hashCode()) + "]";
+    } else {
+      string = toString;
+    }
   }
 
   @Override
@@ -120,7 +132,7 @@ public class Parcel extends PDPObjectImpl implements IParcel {
 
   @Override
   public String toString() {
-    return "[Parcel-" + Integer.toHexString(hashCode()) + "]";
+    return string;
   }
 
   /**
@@ -132,6 +144,14 @@ public class Parcel extends PDPObjectImpl implements IParcel {
    */
   public static Parcel.Builder builder(Point from, Point to) {
     return new Parcel.Builder(from, to);
+  }
+
+  public static Parcel.Builder builder(ParcelDTO dto) {
+    return new Parcel.Builder(dto);
+  }
+
+  public static Parcel.Builder builder(Parcel parcel) {
+    return builder(parcel.getDto());
   }
 
   /**
@@ -157,6 +177,8 @@ public class Parcel extends PDPObjectImpl implements IParcel {
     long orderAnnounceTime;
     long pickupDuration;
     long deliveryDuration;
+    @Nullable
+    String toString;
 
     Builder(Point from, Point to) {
       pickupLocation = from;
@@ -167,6 +189,19 @@ public class Parcel extends PDPObjectImpl implements IParcel {
       orderAnnounceTime = 0L;
       pickupDuration = 0L;
       deliveryDuration = 0L;
+      toString = null;
+    }
+
+    Builder(ParcelDTO dto) {
+      pickupLocation = dto.getPickupLocation();
+      deliveryLocation = dto.getDeliveryLocation();
+      pickupTimeWindow = dto.getPickupTimeWindow();
+      deliveryTimeWindow = dto.getDeliveryTimeWindow();
+      neededCapacity = dto.getNeededCapacity();
+      orderAnnounceTime = dto.getOrderAnnounceTime();
+      pickupDuration = dto.getPickupDuration();
+      deliveryDuration = dto.getDeliveryDuration();
+      toString = null;
     }
 
     /**
@@ -174,18 +209,18 @@ public class Parcel extends PDPObjectImpl implements IParcel {
      */
     public ParcelDTO buildDTO() {
       checkArgument(orderAnnounceTime <= pickupTimeWindow.begin(),
-          "Order arrival time may not be after the pickup TW has already "
-              + "opened.");
+        "Order arrival time may not be after the pickup TW has already "
+          + "opened.");
       return new AutoValue_ParcelDTO(pickupLocation, deliveryLocation,
-          pickupTimeWindow, deliveryTimeWindow, neededCapacity,
-          orderAnnounceTime, pickupDuration, deliveryDuration);
+        pickupTimeWindow, deliveryTimeWindow, neededCapacity,
+        orderAnnounceTime, pickupDuration, deliveryDuration);
     }
 
     /**
      * @return A new parcel object.
      */
     public Parcel build() {
-      return new Parcel(buildDTO());
+      return new Parcel(buildDTO(), toString);
     }
 
     /**
@@ -221,7 +256,8 @@ public class Parcel extends PDPObjectImpl implements IParcel {
     }
 
     /**
-     * Sets the capacity that is needed for this parcel.
+     * Sets the capacity that is needed for this parcel. Default value:
+     * <code>0</code>.
      * @param capacity The capacity to set.
      * @return This, as per the builder pattern.
      */
@@ -232,7 +268,7 @@ public class Parcel extends PDPObjectImpl implements IParcel {
     }
 
     /**
-     * Sets the order announce time.
+     * Sets the order announce time. Default value: <code>0</code>.
      * @param time The announce time.
      * @return This, as per the builder pattern.
      */
@@ -243,7 +279,7 @@ public class Parcel extends PDPObjectImpl implements IParcel {
 
     /**
      * Sets the duration of both the pickup and delivery process, must be
-     * <code>&gt;= 0</code>.
+     * <code>&gt;= 0</code>. Default value: <code>0</code>.
      * @param duration The duration of the service process.
      * @return This, as per the builder pattern.
      */
@@ -252,26 +288,38 @@ public class Parcel extends PDPObjectImpl implements IParcel {
     }
 
     /**
-     * Sets the duration of the pickup, must be <code>&gt;=0</code>.
+     * Sets the duration of the pickup, must be <code>&gt;=0</code>. Default
+     * value: <code>0</code>.
      * @param duration The duration of the pickup.
      * @return This, as per the builder pattern.
      */
     public Builder pickupDuration(long duration) {
       checkArgument(duration >= 0,
-          "Pickup duration needs to be strictly positive.");
+        "Pickup duration needs to be strictly positive.");
       pickupDuration = duration;
       return this;
     }
 
     /**
-     * Sets the duration of the delivery, must be <code>&gt;=0</code>.
+     * Sets the duration of the delivery, must be <code>&gt;=0</code>. Default
+     * value: <code>0</code>.
      * @param duration The duration of the delivery.
      * @return This, as per the builder pattern.
      */
     public Builder deliveryDuration(long duration) {
       checkArgument(duration >= 0,
-          "Delivery duration needs to be strictly positive.");
+        "Delivery duration needs to be strictly positive.");
       deliveryDuration = duration;
+      return this;
+    }
+
+    /**
+     * Overrides {@link Parcel#toString()} with the specified string.
+     * @param string The string to use.
+     * @return This, as per the builder pattern.
+     */
+    public Builder toString(String string) {
+      toString = string;
       return this;
     }
 

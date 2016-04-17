@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,34 +70,34 @@ public final class SimpleExample {
     // (indicating its boundaries), and the drivers are rendered as red
     // dots.
     View.Builder viewBuilder = View.builder()
-        .with(PlaneRoadModelRenderer.builder())
-        .with(RoadUserRenderer.builder());
+      .with(PlaneRoadModelRenderer.builder())
+      .with(RoadUserRenderer.builder());
 
     if (testing) {
       viewBuilder = viewBuilder
-          .withSpeedUp(TEST_SPEEDUP)
-          .withAutoClose()
-          .withAutoPlay()
-          .withSimulatorEndTime(TEST_STOP_TIME);
+        .withSpeedUp(TEST_SPEEDUP)
+        .withAutoClose()
+        .withAutoPlay()
+        .withSimulatorEndTime(TEST_STOP_TIME);
     }
 
     // initialize a new Simulator instance
     final Simulator sim = Simulator.builder()
-        // set the length of a simulation 'tick'
-        .setTickLength(TICK_LENGTH)
-        // set the random seed we use in this 'experiment'
-        .setRandomSeed(RANDOM_SEED)
-        // add a PlaneRoadModel, a model which facilitates the moving of
-        // RoadUsers on a plane. The plane is bounded by two corner points:
-        // (0,0) and (10,10)
-        .addModel(
-            RoadModelBuilders.plane()
-                .withMinPoint(MIN_POINT)
-                .withMaxPoint(MAX_POINT)
-                .withMaxSpeed(VEHICLE_SPEED_KMH))
-        // in case a GUI is not desired simply don't add it.
-        .addModel(viewBuilder)
-        .build();
+      // set the length of a simulation 'tick'
+      .setTickLength(TICK_LENGTH)
+      // set the random seed we use in this 'experiment'
+      .setRandomSeed(RANDOM_SEED)
+      // add a PlaneRoadModel, a model which facilitates the moving of
+      // RoadUsers on a plane. The plane is bounded by two corner points:
+      // (0,0) and (10,10)
+      .addModel(
+        RoadModelBuilders.plane()
+          .withMinPoint(MIN_POINT)
+          .withMaxPoint(MAX_POINT)
+          .withMaxSpeed(VEHICLE_SPEED_KMH))
+      // in case a GUI is not desired simply don't add it.
+      .addModel(viewBuilder)
+      .build();
 
     // add a number of drivers on the road
     for (int i = 0; i < NUM_VEHICLES; i++) {

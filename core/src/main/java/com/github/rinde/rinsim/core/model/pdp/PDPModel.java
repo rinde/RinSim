@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ public abstract class PDPModel extends AbstractModel<PDPObject>
    * The logger of the model.
    */
   protected static final Logger LOGGER = LoggerFactory
-      .getLogger(PDPModel.class);
+    .getLogger(PDPModel.class);
 
   /**
    * Reference to the outermost decorator of this {@link PDPModel} instance.
@@ -57,7 +57,7 @@ public abstract class PDPModel extends AbstractModel<PDPObject>
   protected void setSelf(PDPModel pm) {
     LOGGER.info("setSelf {}", pm);
     checkState(!initialized,
-        "This PDPModel is already initialized, it is too late to decorate it.");
+      "This PDPModel is already initialized, it is too late to decorate it.");
     self = pm;
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,6 +70,18 @@ public final class StochasticSuppliers {
   }
 
   /**
+   * Creates a {@link StochasticSupplier} that will always throw an
+   * {@link IllegalArgumentException} with the specified <code>errorMsg</code>.
+   * This can be useful when a default 'empty' supplier is needed.
+   * @param errorMsg The error message of the exception.
+   * @param <T> The type this supplier generates.
+   * @return A supplier that always throws an exception.
+   */
+  public static <T> StochasticSupplier<T> empty(String errorMsg) {
+    return new EmptySupplier<>(errorMsg);
+  }
+
+  /**
    * Decorates the specified {@link StochasticSupplier} such that when it
    * produces values which are not allowed by the specified predicate an
    * {@link IllegalArgumentException} is thrown.
@@ -127,7 +139,7 @@ public final class StochasticSuppliers {
   public static StochasticSupplier<Double> uniformDouble(double lower,
       double upper) {
     return new DoubleDistributionSS(new UniformRealDistribution(
-        new MersenneTwister(), lower, upper));
+      new MersenneTwister(), lower, upper));
   }
 
   /**
@@ -139,7 +151,7 @@ public final class StochasticSuppliers {
    */
   public static StochasticSupplier<Integer> uniformInt(int lower, int upper) {
     return new IntegerDistributionSS(new UniformIntegerDistribution(
-        new MersenneTwister(), lower, upper));
+      new MersenneTwister(), lower, upper));
   }
 
   /**
@@ -336,9 +348,9 @@ public final class StochasticSuppliers {
      */
     public Builder scaleMean() {
       checkArgument(!Double.isInfinite(lowerBound),
-          "A lower bound must be set in order to scale the mean.");
+        "A lower bound must be set in order to scale the mean.");
       checkArgument(Double.isInfinite(upperBound),
-          "Scaling the mean with an upper bound is currently not supported.");
+        "Scaling the mean with an upper bound is currently not supported.");
       checkArgument(OutOfBoundStrategy.REDRAW == outOfBoundStrategy);
 
       double stepSize = 1;
@@ -367,8 +379,8 @@ public final class StochasticSuppliers {
         }
         iterations++;
         checkState(iterations < MAX_ITERATIONS,
-            "Could not converge. Target mean: %s, effective mean: %s.", mean,
-            effectiveMean);
+          "Could not converge. Target mean: %s, effective mean: %s.", mean,
+          effectiveMean);
       } while (Math.abs(effectiveMean - mean) > SMALLEST_DOUBLE);
       mean = curMean;
       return this;
@@ -397,7 +409,7 @@ public final class StochasticSuppliers {
       final RealDistribution distribution = new NormalDistribution(mean, std);
       if (Doubles.isFinite(lowerBound) || Doubles.isFinite(upperBound)) {
         return new BoundedDoubleDistSS(distribution, upperBound,
-            lowerBound, outOfBoundStrategy);
+          lowerBound, outOfBoundStrategy);
       }
       return new DoubleDistributionSS(distribution);
     }
@@ -422,9 +434,9 @@ public final class StochasticSuppliers {
 
     void integerChecks() {
       checkArgument(Double.isInfinite(lowerBound)
-          || DoubleMath.isMathematicalInteger(lowerBound));
+        || DoubleMath.isMathematicalInteger(lowerBound));
       checkArgument(Double.isInfinite(upperBound)
-          || DoubleMath.isMathematicalInteger(upperBound));
+        || DoubleMath.isMathematicalInteger(upperBound));
     }
   }
 
@@ -522,7 +534,7 @@ public final class StochasticSuppliers {
     BoundedDoubleDistSS(RealDistribution rd, double upper,
         double lower, OutOfBoundStrategy strategy) {
       checkArgument(strategy == OutOfBoundStrategy.REDRAW
-          || strategy == OutOfBoundStrategy.ROUND);
+        || strategy == OutOfBoundStrategy.ROUND);
       distribution = rd;
       lowerBound = lower;
       upperBound = upper;
@@ -584,8 +596,8 @@ public final class StochasticSuppliers {
     }
   }
 
-  private static final class ConstantSupplier<T> extends
-      AbstractStochasticSupplier<T> {
+  private static final class ConstantSupplier<T>
+      extends AbstractStochasticSupplier<T> {
     private static final long serialVersionUID = -5017806121674846656L;
     private final T value;
 
@@ -602,8 +614,30 @@ public final class StochasticSuppliers {
     @Override
     public String toString() {
       return String.format("%s.constant(%s)",
-          StochasticSuppliers.class.getSimpleName(),
-          value);
+        StochasticSuppliers.class.getSimpleName(),
+        value);
+    }
+  }
+
+  private static final class EmptySupplier<T>
+      extends AbstractStochasticSupplier<T> {
+    private static final long serialVersionUID = 1993638453016457007L;
+    private final String message;
+
+    EmptySupplier(String msg) {
+      message = msg;
+    }
+
+    @Override
+    @Nonnull
+    public T get(long seed) {
+      throw new IllegalArgumentException(message);
+    }
+
+    @Override
+    public String toString() {
+      return String.format("%s.empty()",
+        StochasticSuppliers.class.getSimpleName());
     }
   }
 
@@ -635,7 +669,7 @@ public final class StochasticSuppliers {
     public T get(long seed) {
       final T value = supplier.get(seed);
       checkArgument(predicate.apply(value),
-          "The supplier generated an invalid value: %s.", value);
+        "The supplier generated an invalid value: %s.", value);
       return value;
     }
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,7 +96,7 @@ public final class CommModel extends AbstractModel<CommUser>
     defaultMaxRange = b.defaultMaxRange();
     usersHasChanged = false;
     usersDevices = Maps.synchronizedBiMap(
-        LinkedHashBiMap.<CommUser, CommDevice>create());
+      LinkedHashBiMap.<CommUser, CommDevice>create());
     unregisteredUsersDevices = LinkedHashBiMap.<CommUser, CommDevice>create();
     usersDevicesSnapshot = ImmutableBiMap.of();
     eventDispatcher = new EventDispatcher(EventTypes.values());
@@ -121,13 +121,13 @@ public final class CommModel extends AbstractModel<CommUser>
       addDevice(dev, commUser);
     } else {
       final CommDeviceBuilder builder = CommDevice.builder(this, commUser)
-          .setReliability(defaultReliability);
+        .setReliability(defaultReliability);
       commUser.setCommDevice(builder);
       checkState(
-          builder.isUsed(),
-          "%s is not implemented correctly, a CommDevice must be constructed in"
-              + " setCommDevice()",
-          commUser);
+        builder.isUsed(),
+        "%s is not implemented correctly, a CommDevice must be constructed in"
+          + " setCommDevice()",
+        commUser);
     }
     return true;
   }
@@ -135,7 +135,7 @@ public final class CommModel extends AbstractModel<CommUser>
   @Override
   public boolean unregister(CommUser commUser) {
     checkArgument(contains(commUser), "CommModel does not contain %s.",
-        commUser);
+      commUser);
 
     final CommDevice unregDevice = usersDevices.remove(commUser);
     unregDevice.unregister();
@@ -143,7 +143,7 @@ public final class CommModel extends AbstractModel<CommUser>
     usersHasChanged = true;
     if (eventDispatcher.hasListenerFor(EventTypes.REMOVE_COMM_USER)) {
       eventDispatcher.dispatchEvent(new CommModelEvent(
-          EventTypes.REMOVE_COMM_USER, this, unregDevice, commUser));
+        EventTypes.REMOVE_COMM_USER, this, unregDevice, commUser));
     }
     return true;
   }
@@ -227,7 +227,7 @@ public final class CommModel extends AbstractModel<CommUser>
       double sendReliability) {
 
     if (msg.predicate().apply(to)
-        && hasSucces(sendReliability, recipient.getReliability())) {
+      && hasSucces(sendReliability, recipient.getReliability())) {
       recipient.receive(msg);
     }
   }
@@ -237,7 +237,7 @@ public final class CommModel extends AbstractModel<CommUser>
     usersHasChanged = true;
     if (eventDispatcher.hasListenerFor(EventTypes.ADD_COMM_USER)) {
       eventDispatcher.dispatchEvent(new CommModelEvent(
-          EventTypes.ADD_COMM_USER, this, device, user));
+        EventTypes.ADD_COMM_USER, this, device, user));
     }
   }
 
@@ -246,7 +246,7 @@ public final class CommModel extends AbstractModel<CommUser>
       return true;
     }
     return randomGenerator.nextDouble() < senderReliability
-        * receiverReliability;
+      * receiverReliability;
   }
 
   /**
@@ -258,7 +258,7 @@ public final class CommModel extends AbstractModel<CommUser>
 
   static void checkReliability(double reliability) {
     checkArgument(reliability >= 0d && reliability <= 1d,
-        "Reliability must be 0 <= r <= 1, found %s.", reliability);
+      "Reliability must be 0 <= r <= 1, found %s.", reliability);
   }
 
   static void checkMaxRange(double maxRange) {
@@ -283,7 +283,7 @@ public final class CommModel extends AbstractModel<CommUser>
 
     static Builder create() {
       return new AutoValue_CommModel_Builder(DEFAULT_RELIABILITY,
-          Optional.<Double>absent());
+        Optional.<Double>absent());
     }
 
     abstract double defaultReliability();
@@ -317,13 +317,13 @@ public final class CommModel extends AbstractModel<CommUser>
     public Builder withDefaultDeviceMaxRange(double maxRange) {
       checkMaxRange(maxRange);
       return new AutoValue_CommModel_Builder(defaultReliability(),
-          Optional.of(maxRange));
+        Optional.of(maxRange));
     }
 
     @Override
     public CommModel build(DependencyProvider dependencyProvider) {
       return new CommModel(
-          dependencyProvider.get(RandomProvider.class).newInstance(), this);
+        dependencyProvider.get(RandomProvider.class).newInstance(), this);
     }
   }
 

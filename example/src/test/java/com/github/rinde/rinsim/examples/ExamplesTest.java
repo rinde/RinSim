@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import org.junit.experimental.categories.Category;
 import com.github.rinde.rinsim.examples.comm.CommExample;
 import com.github.rinde.rinsim.examples.core.SimpleExample;
 import com.github.rinde.rinsim.examples.core.taxi.TaxiExample;
+import com.github.rinde.rinsim.examples.experiment.ExperimentExample;
 import com.github.rinde.rinsim.examples.pdptw.gradientfield.GradientFieldExample;
 import com.github.rinde.rinsim.examples.warehouse.WarehouseExample;
 import com.github.rinde.rinsim.testutil.GuiTests;
@@ -76,7 +77,7 @@ public class ExamplesTest {
       // simulation
       assertTrue(cur.toString(), cur instanceof IllegalStateException);
       assertThat(cur.getMessage()).containsMatch(
-          "The simulation did not result in a valid result");
+        "The simulation did not result in a valid result");
     }
   }
 
@@ -86,5 +87,13 @@ public class ExamplesTest {
   @Test
   public void warehouseExample() {
     WarehouseExample.run(true);
+  }
+
+  /**
+   * Runs the experiment example.
+   */
+  @Test
+  public void experimentExample() {
+    ExperimentExample.main(new String[] {"speedup", "64"});
   }
 }

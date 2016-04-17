@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
+ * Copyright (C) 2011-2016 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,30 +45,30 @@ public class RealtimeTestHelper {
       Iterable<? extends TimedEvent> events) {
 
     final Scenario scenario = Scenario.builder()
-        .addEvent(AddDepotEvent.create(-1, new Point(5, 5)))
-        .addEvent(AddVehicleEvent.create(-1, VehicleDTO.builder().build()))
-        .addEvent(AddVehicleEvent.create(-1, VehicleDTO.builder().build()))
-        .addEvents(events)
-        .build();
+      .addEvent(AddDepotEvent.create(-1, new Point(5, 5)))
+      .addEvent(AddVehicleEvent.create(-1, VehicleDTO.builder().build()))
+      .addEvent(AddVehicleEvent.create(-1, VehicleDTO.builder().build()))
+      .addEvents(events)
+      .build();
 
     final ScenarioController.Builder sb = ScenarioController.builder(scenario)
-        .withEventHandler(AddParcelEvent.class, AddParcelEvent.defaultHandler())
-        .withEventHandler(AddVehicleEvent.class, vehicleHandler)
-        .withEventHandler(AddDepotEvent.class, AddDepotEvent.defaultHandler())
-        .withEventHandler(TimeOutEvent.class, TimeOutEvent.ignoreHandler())
-        .withOrStopCondition(StatsStopConditions.vehiclesDoneAndBackAtDepot())
-        .withOrStopCondition(StatsStopConditions.timeOutEvent());
+      .withEventHandler(AddParcelEvent.class, AddParcelEvent.defaultHandler())
+      .withEventHandler(AddVehicleEvent.class, vehicleHandler)
+      .withEventHandler(AddDepotEvent.class, AddDepotEvent.defaultHandler())
+      .withEventHandler(TimeOutEvent.class, TimeOutEvent.ignoreHandler())
+      .withOrStopCondition(StatsStopConditions.vehiclesDoneAndBackAtDepot())
+      .withOrStopCondition(StatsStopConditions.timeOutEvent());
 
     return Simulator.builder()
-        .addModel(PDPRoadModel.builder(RoadModelBuilders.plane())
-            .withAllowVehicleDiversion(true))
-        .addModel(DefaultPDPModel.builder())
-        .addModel(TimeModel.builder()
-            .withRealTime()
-            .withStartInClockMode(ClockMode.SIMULATED)
-            .withTickLength(100))
-        .addModel(sb)
-        .addModel(StatsTracker.builder());
+      .addModel(PDPRoadModel.builder(RoadModelBuilders.plane())
+        .withAllowVehicleDiversion(true))
+      .addModel(DefaultPDPModel.builder())
+      .addModel(TimeModel.builder()
+        .withRealTime()
+        .withStartInClockMode(ClockMode.SIMULATED)
+        .withTickLength(100))
+      .addModel(sb)
+      .addModel(StatsTracker.builder());
   }
 
 }
