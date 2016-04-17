@@ -1,5 +1,10 @@
 # Release notes
 
+## v4.1.0
+ * Further refactored Experiment
+ * Real-time clock system is stable now, including RtCentral and RtSolverModel.
+ * Fixed bug related to Experiment and UI. Now using SWT 4.5.2.
+
 ## v4.0.0
  * Many classes have been refactored, including the builder system in core.
  * Experiment is more flexible using PostProcessors.
