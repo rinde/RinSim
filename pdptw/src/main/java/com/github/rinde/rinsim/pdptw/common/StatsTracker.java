@@ -328,10 +328,10 @@ public final class StatsTracker extends AbstractModelVoid implements
     public StatsTracker build(DependencyProvider dependencyProvider) {
       final ScenarioController ctrl = dependencyProvider
         .get(ScenarioController.class);
-      final Clock clock = dependencyProvider.get(Clock.class);
+      final Clock clck = dependencyProvider.get(Clock.class);
       final RoadModel rm = dependencyProvider.get(RoadModel.class);
       final PDPModel pm = dependencyProvider.get(PDPModel.class);
-      return new StatsTracker(ctrl, clock, rm, pm);
+      return new StatsTracker(ctrl, clck, rm, pm);
     }
   }
 }

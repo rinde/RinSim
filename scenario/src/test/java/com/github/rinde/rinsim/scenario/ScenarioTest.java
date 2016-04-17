@@ -126,8 +126,8 @@ public class ScenarioTest {
     assertThat(scenario.getStopCondition()).isEqualTo(
       StopConditions.alwaysTrue());
     assertEquals(1, scenario.getModelBuilders().size());
-    assertTrue(scenario.getModelBuilders().iterator().next()
-      .getAssociatedType() == RoadUser.class);
+    assertThat(scenario.getModelBuilders().iterator().next()
+      .getAssociatedType()).isSameAs(RoadUser.class);
 
     final Scenario.Builder builder = Scenario
       .builder(Scenario.DEFAULT_PROBLEM_CLASS)

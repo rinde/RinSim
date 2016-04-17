@@ -803,11 +803,6 @@ public final class Experiment {
     public abstract int getRepetition();
 
     /**
-     * @return the objectiveFunction
-     */
-    // public abstract ObjectiveFunction getObjectiveFunction();
-
-    /**
      * @return the showGui
      */
     public abstract boolean isShowGui();

@@ -296,48 +296,6 @@ public class RouteFollowingVehicle extends Vehicle {
     }
   }
 
-  // public void setRouteSafe(Iterable<Parcel> r) {
-  // final List<Parcel> routeList = newArrayList(r);
-  // final Multiset<Parcel> routeSet = LinkedHashMultiset.create(r);
-  //
-  // // removals
-  // for (final Parcel p : routeSet.elementSet()) {
-  // final ParcelState state = getPDPModel().getParcelState(p);
-  // if (state.isDelivered()) {
-  // // remove all occurrences
-  // routeList.removeAll(Collections.singleton(p));
-  // } else if (state.isPickedUp()) {
-  // // in this case the parcel is either: IN_CARGO or DELIVERING
-  // if (!getPDPModel().getContents(this).contains(p)) {
-  // // if we don't carry the parcel it must have been picked up by someone
-  // // else, remove it from our route
-  // routeList.removeAll(Collections.singleton(p));
-  // } else if (routeSet.count(p) == 2) {
-  // // in this case it is in cargo and it occurs twice in our route
-  // // (which is one too many), therefore first occurrence is removed
-  // routeList.remove(p);
-  // }
-  // } else if (state == ParcelState.PICKING_UP && !isPickingUp(p)) {
-  // // in this case the parcel is being picked up by another vehicle
-  // routeList.removeAll(Collections.singleton(p));
-  // // } else {
-  // // // in this case the parcel has not been picked up, it should occur
-  // // twice
-  // // checkArgument(routeSet.count(p) == 2, "Specified route is incomplete,
-  // // "
-  // // + "%s with state %s occurs only %s time(s), it should occur twice. ",
-  // // p, state, routeSet.count(p));
-  // }
-  // }
-  //
-  // // additions
-  // // loop through cargo, add all parcels that are not in the list
-  // final Set<Parcel> contents = getPDPModel().getContents(this);
-  // routeList.addAll(Sets.difference(contents, routeSet.elementSet()));
-  //
-  // setRoute(routeList);
-  // }
-
   boolean isPickingUp(Parcel p) {
     return getPDPModel().getVehicleState(this) == VehicleState.PICKING_UP
       && getPDPModel().getVehicleActionInfo(this).getParcel().equals(p);
@@ -557,6 +515,9 @@ public class RouteFollowingVehicle extends Vehicle {
     return RouteAdjusters.DELAY_ADJUSTER;
   }
 
+  /**
+   * @return A no-operation {@link RouteAdjuster}.
+   */
   public static RouteAdjuster nopAdjuster() {
     return RouteAdjusters.NOP;
   }
