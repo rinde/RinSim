@@ -75,8 +75,8 @@ public final class ExperimentTestUtil {
       MASConfiguration c, long seed, ObjectiveFunction objFunc,
       boolean showGui) {
     return (StatisticsDTO) Experiment
-      .singleRun(scenario, c, seed, objFunc, showGui,
-        PostProcessors.statisticsPostProcessor(), null)
+      .singleRun(scenario, c, seed, showGui,
+        PostProcessors.statisticsPostProcessor(objFunc), null)
       .getResultObject();
   }
 

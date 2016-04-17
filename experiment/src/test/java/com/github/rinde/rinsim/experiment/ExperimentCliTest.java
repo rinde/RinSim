@@ -27,7 +27,6 @@ import com.github.rinde.rinsim.cli.CliException.CauseType;
 import com.github.rinde.rinsim.cli.Menu;
 import com.github.rinde.rinsim.experiment.Experiment.Builder;
 import com.github.rinde.rinsim.pdptw.common.ScenarioTestUtil;
-import com.github.rinde.rinsim.pdptw.common.TestObjectiveFunction;
 import com.github.rinde.rinsim.scenario.ScenarioIO;
 import com.github.rinde.rinsim.testutil.TestUtil;
 
@@ -57,8 +56,7 @@ public class ExperimentCliTest {
     configA = ExperimentTestUtil.testConfig("A");
     configB = ExperimentTestUtil.testConfig("B");
     configC = ExperimentTestUtil.testConfig("C");
-    builder = Experiment
-      .build(TestObjectiveFunction.INSTANCE)
+    builder = Experiment.builder()
       .addScenario(ScenarioTestUtil.createRandomScenario(1655L))
       .addConfiguration(configA)
       .addConfiguration(configB)

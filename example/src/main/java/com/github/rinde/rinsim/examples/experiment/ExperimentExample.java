@@ -15,6 +15,12 @@
  */
 package com.github.rinde.rinsim.examples.experiment;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
@@ -35,7 +41,6 @@ import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.StopConditions;
 import com.github.rinde.rinsim.scenario.TimeOutEvent;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
-import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06ObjectiveFunction;
 import com.github.rinde.rinsim.ui.View;
 import com.github.rinde.rinsim.ui.renderers.PDPModelRenderer;
 import com.github.rinde.rinsim.ui.renderers.PlaneRoadModelRenderer;
@@ -92,13 +97,25 @@ public final class ExperimentExample {
    * @param args The arguments supplied to the application.
    */
   public static void main(String[] args) {
+    int uiSpeedUp = 1;
+    final int index = Arrays.binarySearch(args, "speedup");
+
+    String[] arguments = args;
+    if (index >= 0) {
+      checkArgument(arguments.length > index + 1,
+        "speedup option requires an integer indicating the speedup.");
+      uiSpeedUp = Integer.parseInt(arguments[index + 1]);
+      checkArgument(uiSpeedUp > 0, "speedup must be a positive integer.");
+      final List<String> list = new ArrayList<>(Arrays.asList(arguments));
+      list.remove(index + 1);
+      list.remove(index);
+      arguments = list.toArray(new String[] {});
+    }
+
     final Optional<ExperimentResults> results;
 
-    // Starts the experiment builder. The experiment requires an objective
-    // function. Here we use the objective function for a PDPTW as defined in a
-    // paper by Gendreau et al (2006). A custom objective function can be
-    // defined by implementing the ObjectiveFunction interface.
-    results = Experiment.build(Gendreau06ObjectiveFunction.instance())
+    // Starts the experiment builder.
+    results = Experiment.builder()
 
       // Adds a configuration to the experiment. A configuration configures an
       // algorithm that is supposed to handle or 'solve' a problem specified by
@@ -153,12 +170,14 @@ public final class ExperimentExample {
         .withResolution((int) RESOLUTION.x, (int) RESOLUTION.y)
         .withAutoPlay()
         .withAutoClose()
+        // For testing we allow to change the speed up via the args.
+        .withSpeedUp(uiSpeedUp)
         .withTitleAppendix("Experiments example"))
 
       // Starts the experiment, but first reads the command-line arguments
       // that are specified for this application. By supplying the '-h' option
       // you can see an overview of the supported options.
-      .perform(System.out, args);
+      .perform(System.out, arguments);
 
     if (results.isPresent()) {
 

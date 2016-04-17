@@ -74,10 +74,10 @@ public class SolverSimTest {
         SI.MILLI(SI.SECOND));
       final Gendreau06ObjectiveFunction obj = Gendreau06ObjectiveFunction
         .instance();
-      final ExperimentResults results = Experiment.build(obj)
+      final ExperimentResults results = Experiment.builder()
         .addConfiguration(Central.solverConfiguration(dsc))
         .addScenario(scenario)
-        .usePostProcessor(PostProcessors.statisticsPostProcessor())
+        .usePostProcessor(PostProcessors.statisticsPostProcessor(obj))
         .perform();
       assertEquals(1, results.getResults().size());
       assertEquals(1, dsc.arraysSolver.getInputs().size());
@@ -129,9 +129,12 @@ public class SolverSimTest {
 
     final Gendreau06ObjectiveFunction obj = Gendreau06ObjectiveFunction
       .instance();
-    Experiment.build(obj).withThreads(1)
+    Experiment.builder()
+      .withThreads(1)
       .addConfiguration(Central.solverConfiguration(dsc))
-      .addScenario(scenario).repeat(10).perform();
+      .addScenario(scenario)
+      .repeat(10)
+      .perform();
 
     final MVASDebugger arraysSolver = dsc.arraysSolver;
     final SolverDebugger solver = dsc.solver;
@@ -157,7 +160,7 @@ public class SolverSimTest {
       final double arrTravelTime = computeTravelTime(sols, arrInput)
         / MS_TO_MIN;
 
-      final ExtendedStats stats = (ExtendedStats) Solvers.computeStats(
+      final ExtendedStats stats = Solvers.computeStats(
         solverInput, solverOutput);
 
       // check arrival times

@@ -43,9 +43,7 @@ import com.github.rinde.rinsim.pdptw.common.ScenarioTestUtil;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
 import com.github.rinde.rinsim.pdptw.common.StatsStopConditions;
 import com.github.rinde.rinsim.pdptw.common.StatsTracker;
-import com.github.rinde.rinsim.pdptw.common.TestObjectiveFunction;
 import com.github.rinde.rinsim.scenario.Scenario;
-import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06ObjectiveFunction;
 import com.github.rinde.rinsim.scenario.generator.ScenarioGenerator;
 import com.google.common.collect.ImmutableList;
 
@@ -89,8 +87,7 @@ public class JppfTest {
     final List<Integer> ints = asList(1, 2, 5, 10);
     final List<ExperimentResults> allResults = newArrayList();
 
-    final Experiment.Builder experimentBuilder = Experiment
-      .build(TestObjectiveFunction.INSTANCE)
+    final Experiment.Builder experimentBuilder = Experiment.builder()
       .computeDistributed()
       .addScenario(scenario)
       .withRandomSeed(123)
@@ -114,8 +111,7 @@ public class JppfTest {
   @SuppressWarnings("unchecked")
   @Test
   public void determinismLocalVsJppf() {
-    final Experiment.Builder experimentBuilder = Experiment
-      .build(TestObjectiveFunction.INSTANCE)
+    final Experiment.Builder experimentBuilder = Experiment.builder()
       .computeDistributed()
       .addScenario(scenario)
       .withRandomSeed(123)
@@ -155,8 +151,7 @@ public class JppfTest {
       .setStopCondition(StatsStopConditions.timeOutEvent())
       .build().generate(rng, "hoi");
 
-    final Experiment.Builder experimentBuilder = Experiment
-      .build(Gendreau06ObjectiveFunction.instance())
+    final Experiment.Builder experimentBuilder = Experiment.builder()
       .computeDistributed()
       .addScenario(generatedScenario)
       .withRandomSeed(123)
@@ -177,7 +172,7 @@ public class JppfTest {
    */
   @Test(expected = IllegalArgumentException.class)
   public void testFaultyPostProcessor() {
-    Experiment.build(Gendreau06ObjectiveFunction.instance())
+    Experiment.builder()
       .computeDistributed()
       .addScenario(scenario)
       .withRandomSeed(123)
@@ -190,8 +185,7 @@ public class JppfTest {
 
   @Test
   public void testRetryPostProcessor() {
-    final Experiment.Builder builder = Experiment
-      .build(TestObjectiveFunction.INSTANCE)
+    final Experiment.Builder builder = Experiment.builder()
       .addScenario(scenario)
       .computeDistributed()
       .addConfiguration(ExperimentTestUtil.testConfig("test"))
@@ -205,21 +199,6 @@ public class JppfTest {
       assertThat(er.getResults().asList().get(0).getResultObject())
         .isEqualTo("SUCCESS");
     }
-  }
-
-  /**
-   * Tests whether a not serializable objective function generates an exception.
-   */
-  @Test(expected = IllegalArgumentException.class)
-  public void testNotSerializableObjFunc() {
-    Experiment
-      .build(new NotSerializableObjFunc())
-      .computeDistributed()
-      .addScenario(scenario)
-      .withRandomSeed(123)
-      .repeat(1)
-      .addConfiguration(ExperimentTestUtil.testConfig("A"))
-      .perform();
   }
 
   static class TestFaultyPostProcessor implements

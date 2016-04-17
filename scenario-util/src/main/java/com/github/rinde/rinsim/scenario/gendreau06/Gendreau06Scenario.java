@@ -103,9 +103,6 @@ public abstract class Gendreau06Scenario extends Scenario {
   @Override
   public abstract GendreauProblemClass getProblemClass();
 
-  // @Override
-  // public abstract ImmutableSet<ModelBuilder<?, ?>> getModelBuilders();
-
   @Override
   public TimeWindow getTimeWindow() {
     return TimeWindow.always();

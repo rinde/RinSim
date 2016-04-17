@@ -26,7 +26,6 @@ import org.junit.runners.Parameterized.Parameters;
 
 import com.github.rinde.rinsim.central.arrays.RandomMVArraysSolver;
 import com.github.rinde.rinsim.experiment.Experiment;
-import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06ObjectiveFunction;
 import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Parser;
 import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Scenario;
 
@@ -82,12 +81,11 @@ public class CentralIntegrationTest {
    */
   @Test
   public void test() {
-    Experiment
-      .build(Gendreau06ObjectiveFunction.instance())
+    Experiment.builder()
       .addScenario(scenario)
       .addConfiguration(
         Central.solverConfiguration(RandomMVArraysSolver.solverSupplier()))
-      .repeat((!offline && allowDiversion) ? 2 : 1)
+      .repeat(!offline && allowDiversion ? 2 : 1)
       .perform();
   }
 
@@ -97,8 +95,7 @@ public class CentralIntegrationTest {
    */
   @Test
   public void testRandomSolver() {
-    Experiment
-      .build(Gendreau06ObjectiveFunction.instance())
+    Experiment.builder()
       .addScenario(scenario)
       .addConfiguration(
         Central.solverConfiguration(SolverValidator.wrap(RandomSolver

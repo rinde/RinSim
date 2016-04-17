@@ -131,13 +131,11 @@ public final class Experiment {
   private Experiment() {}
 
   /**
-   * Create an experiment with the specified {@link ObjectiveFunction}.
-   * @param objectiveFunction The objective function which is used to evaluate
-   *          all simulation runs.
-   * @return An {@link Builder} instance as per the builder pattern.
+   * Start building a new experiment.
+   * @return A new {@link Builder} instance.
    */
-  public static Builder build(ObjectiveFunction objectiveFunction) {
-    return new Builder(objectiveFunction);
+  public static Builder builder() {
+    return new Builder();
   }
 
   /**
@@ -145,19 +143,17 @@ public final class Experiment {
    * @param scenario The scenario to run on.
    * @param configuration The configuration to use.
    * @param seed The seed of the run.
-   * @param objFunc The {@link ObjectiveFunction} to use.
    * @param showGui If <code>true</code> enables the gui.
    * @param postProcessor The post processor to use for this run.
    * @param uic The UICreator to use.
    * @return The {@link SimulationResult} generated in the run.
    */
   public static SimulationResult singleRun(Scenario scenario,
-      MASConfiguration configuration, long seed, ObjectiveFunction objFunc,
-      boolean showGui, PostProcessor<?> postProcessor,
-      @Nullable ModelBuilder<?, ?> uic) {
+      MASConfiguration configuration, long seed, boolean showGui,
+      PostProcessor<?> postProcessor, @Nullable ModelBuilder<?, ?> uic) {
 
     final ExperimentRunner er = new ExperimentRunner(SimArgs.create(scenario,
-      configuration, seed, 0, objFunc, showGui, postProcessor, uic));
+      configuration, seed, 0, showGui, postProcessor, uic));
     final SimulationResult res = er.call();
     checkState(res != null);
     return res;
@@ -252,7 +248,6 @@ public final class Experiment {
         SimulationProperty.REPS,
         SimulationProperty.SEED_REPS);
 
-    final ObjectiveFunction objectiveFunction;
     final Set<MASConfiguration> configurationsSet;
     final ImmutableSet.Builder<Scenario> scenariosBuilder;
     Optional<FileProvider.Builder> scenarioProviderBuilder;
@@ -273,8 +268,7 @@ public final class Experiment {
 
     private Supplier<Computer> computerType;
 
-    Builder(ObjectiveFunction objFunc) {
-      objectiveFunction = objFunc;
+    Builder() {
       configurationsSet = newLinkedHashSet();
       scenariosBuilder = ImmutableSet.builder();
       scenarioProviderBuilder = Optional.absent();
@@ -769,7 +763,7 @@ public final class Experiment {
         }
 
         runnerBuilder.add(SimArgs.create(verifyNotNull(s), verifyNotNull(c),
-          seed.get(), rep.get(), objectiveFunction, showGui, postProc,
+          seed.get(), rep.get(), showGui, postProc,
           uiCreator));
       }
       return runnerBuilder.build();
@@ -817,7 +811,7 @@ public final class Experiment {
     /**
      * @return the objectiveFunction
      */
-    public abstract ObjectiveFunction getObjectiveFunction();
+    // public abstract ObjectiveFunction getObjectiveFunction();
 
     /**
      * @return the showGui
@@ -843,8 +837,6 @@ public final class Experiment {
         .append(getScenario().getProblemInstanceId())
         .append(",masConfig=")
         .append(getMasConfig().getName())
-        .append(",objectiveFunction=")
-        .append(getObjectiveFunction().toString())
         .append(",randomSeed=")
         .append(getRandomSeed())
         .append(",repetition=")
@@ -856,10 +848,10 @@ public final class Experiment {
     }
 
     static SimArgs create(Scenario s, MASConfiguration m, long seed,
-        int repetition, ObjectiveFunction obj, boolean gui, PostProcessor<?> pp,
+        int repetition, boolean gui, PostProcessor<?> pp,
         @Nullable ModelBuilder<?, ?> uic) {
-      return new AutoValue_Experiment_SimArgs(s, m, seed, repetition, obj, gui,
-        pp, Optional.<ModelBuilder<?, ?>>fromNullable(uic));
+      return new AutoValue_Experiment_SimArgs(s, m, seed, repetition, gui, pp,
+        Optional.<ModelBuilder<?, ?>>fromNullable(uic));
     }
 
     static Function<SimArgs, MASConfiguration> toConfig() {

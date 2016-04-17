@@ -72,13 +72,13 @@ public class RtCentralTest {
       .addEvent(TimeOutEvent.create(3 * 60 * 60 * 1000))
       .build();
 
-    final ExperimentResults er = Experiment
-      .build(Gendreau06ObjectiveFunction.instance())
+    final ExperimentResults er = Experiment.builder()
       .addScenario(s)
       .withThreads(1)
       .addConfiguration(
         RtCentral.solverConfigurationAdapt(RandomSolver.supplier(), ""))
-      .usePostProcessor(PostProcessors.statisticsPostProcessor())
+      .usePostProcessor(PostProcessors
+        .statisticsPostProcessor(Gendreau06ObjectiveFunction.instance()))
       .perform();
 
     final double objVal = Gendreau06ObjectiveFunction.instance()

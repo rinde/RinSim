@@ -119,14 +119,10 @@ final class JppfComputer implements Computer {
             .getConfigurationId());
           final ScenarioProvider scenario = scenarioMap.getValue(t
             .getScenarioId());
-          final ObjectiveFunction objFunc = objFuncMap.getValue(t
-            .getObjectiveFunctionId());
           job.getDataProvider().setParameter(t.getPostProcessorId(),
             ppMap.getValue(t.getPostProcessorId()));
           job.getDataProvider().setParameter(t.getConfigurationId(), config);
           job.getDataProvider().setParameter(t.getScenarioId(), scenario);
-          job.getDataProvider().setParameter(t.getObjectiveFunctionId(),
-            objFunc);
 
           job.add(t);
         } catch (final JPPFException e) {
@@ -170,13 +166,11 @@ final class JppfComputer implements Computer {
         new ScenarioProvider(ScenarioIO.write(args.getScenario()),
           args.getScenario().getClass()));
       scenariosMap.put(scenId, args.getScenario());
-      final String objFuncId = objFuncMap.storeAndGenerateId(
-        args.getObjectiveFunction());
 
       final String postProcId =
         ppMap.storeAndGenerateId(args.getPostProcessor());
       tasks.add(new SimulationTask(args.getRandomSeed(), args.getRepetition(),
-        scenId, configId, objFuncId, postProcId));
+        scenId, configId, postProcId));
     }
   }
 
@@ -192,13 +186,11 @@ final class JppfComputer implements Computer {
 
     final DataProvider dp = jobMap.get(simTask).getDataProvider();
     final MASConfiguration conf = dp.getParameter(simTask.getConfigurationId());
-    final ObjectiveFunction obj =
-      dp.getParameter(simTask.getObjectiveFunctionId());
     final PostProcessor<?> pp = dp.getParameter(simTask.getPostProcessorId());
 
     final SimArgs args =
       SimArgs.create(scen, conf, simTask.getSeed(), simTask.getRepetition(),
-        obj, false, pp, null);
+        false, pp, null);
     return SimulationResult.create(args, result);
   }
 
@@ -357,23 +349,21 @@ final class JppfComputer implements Computer {
     private final int repetition;
     private final String scenarioId;
     private final String configurationId;
-    private final String objectiveFunctionId;
     private final String postProcessorId;
     private final String id;
     private final int hashCode;
 
     SimulationTask(long randomSeed, int repetitionNumber, String scenId,
-        String configId, String objFuncId, String postProcId) {
+        String configId, String postProcId) {
       seed = randomSeed;
       repetition = repetitionNumber;
       scenarioId = scenId;
       configurationId = configId;
-      objectiveFunctionId = objFuncId;
       postProcessorId = postProcId;
-      id = Joiner.on("-").join(seed, scenarioId, configurationId,
-        objectiveFunctionId, postProcessorId);
-      hashCode = Objects.hashCode(seed, scenarioId, configurationId,
-        objectiveFunctionId, postProcessorId);
+      id =
+        Joiner.on("-").join(seed, scenarioId, configurationId, postProcessorId);
+      hashCode =
+        Objects.hashCode(seed, scenarioId, configurationId, postProcessorId);
     }
 
     @Override
@@ -389,14 +379,12 @@ final class JppfComputer implements Computer {
         scenarioId);
       final MASConfiguration configuration = getDataProvider().getParameter(
         configurationId);
-      final ObjectiveFunction objectiveFunction = getDataProvider()
-        .getParameter(objectiveFunctionId);
       final PostProcessor<?> postProcessor = getDataProvider().getParameter(
         postProcessorId);
 
       final Scenario s = scenario.get();
       final SimArgs simArgs = SimArgs.create(s, configuration, seed, repetition,
-        objectiveFunction, false, postProcessor, null);
+        false, postProcessor, null);
 
       Object simResult;
       do {
@@ -424,10 +412,6 @@ final class JppfComputer implements Computer {
 
     String getConfigurationId() {
       return configurationId;
-    }
-
-    String getObjectiveFunctionId() {
-      return objectiveFunctionId;
     }
 
     String getPostProcessorId() {
@@ -459,7 +443,6 @@ final class JppfComputer implements Computer {
       return Objects.equal(t.seed, seed)
         && Objects.equal(t.scenarioId, scenarioId)
         && Objects.equal(t.configurationId, configurationId)
-        && Objects.equal(t.objectiveFunctionId, objectiveFunctionId)
         && Objects.equal(t.postProcessorId, postProcessorId);
     }
 
@@ -469,7 +452,6 @@ final class JppfComputer implements Computer {
       return ComparisonChain.start()
         .compare(scenarioId, o.scenarioId)
         .compare(configurationId, o.configurationId)
-        .compare(objectiveFunctionId, o.objectiveFunctionId)
         .compare(postProcessorId, o.postProcessorId,
           Ordering.natural().nullsLast())
         .compare(seed, o.seed)

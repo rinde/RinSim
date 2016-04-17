@@ -35,7 +35,6 @@ import com.github.rinde.rinsim.experiment.Experiment.SimulationResult;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.ScenarioTestUtil;
 import com.github.rinde.rinsim.pdptw.common.StatsTracker;
-import com.github.rinde.rinsim.pdptw.common.TestObjectiveFunction;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.testutil.TestUtil;
 import com.google.auto.value.AutoValue;
@@ -52,8 +51,7 @@ public class ExperimentTest {
 
     final Scenario scenario = ScenarioTestUtil.createRandomScenario(123L,
       StatsTracker.builder());
-    final Experiment.Builder builder = Experiment
-      .build(TestObjectiveFunction.INSTANCE)
+    final Experiment.Builder builder = Experiment.builder()
       .addScenario(scenario)
       .addConfiguration(ExperimentTestUtil.testConfig("test"))
       .usePostProcessor(ExperimentTestUtil.testPostProcessor())
@@ -79,7 +77,7 @@ public class ExperimentTest {
     final Scenario scenario = ScenarioTestUtil.createRandomScenario(123L,
       StatsTracker.builder());
     final Experiment.Builder builder = Experiment
-      .build(TestObjectiveFunction.INSTANCE)
+      .builder()
       .addScenario(scenario)
       .addConfiguration(ExperimentTestUtil.testConfig("test"))
       .withRandomSeed(123);
@@ -99,8 +97,7 @@ public class ExperimentTest {
   public void testDefaultPostProcessorFailure() {
     final Scenario scenario = ScenarioTestUtil.createRandomScenario(123L,
       StatsTracker.builder(), FailureModel.builder());
-    final Experiment.Builder builder = Experiment
-      .build(TestObjectiveFunction.INSTANCE)
+    final Experiment.Builder builder = Experiment.builder()
       .addScenario(scenario)
       .addConfiguration(ExperimentTestUtil.testConfig("test"))
       .withThreads(1)
@@ -121,8 +118,7 @@ public class ExperimentTest {
   public void testRetryPostProcessor() {
     final Scenario scenario = ScenarioTestUtil.createRandomScenario(123L,
       StatsTracker.builder());
-    final Experiment.Builder builder = Experiment
-      .build(TestObjectiveFunction.INSTANCE)
+    final Experiment.Builder builder = Experiment.builder()
       .addScenario(scenario)
       .addConfiguration(ExperimentTestUtil.testConfig("test"))
       .withThreads(1)
@@ -141,8 +137,7 @@ public class ExperimentTest {
     final Scenario s0 = ScenarioTestUtil.createRandomScenario(123L);
     final Scenario s1 = ScenarioTestUtil.createRandomScenario(456L);
     final MASConfiguration c0 = ExperimentTestUtil.testConfig("c0");
-    final Experiment.Builder builder = Experiment
-      .build(TestObjectiveFunction.INSTANCE)
+    final Experiment.Builder builder = Experiment.builder()
       .addScenario(s0)
       .addScenario(s1)
       .addConfiguration(c0)
@@ -179,8 +174,7 @@ public class ExperimentTest {
     final Scenario s1 = ScenarioTestUtil.createRandomScenario(456L);
     final MASConfiguration c0 = ExperimentTestUtil.testConfig("c0");
     final MASConfiguration c1 = ExperimentTestUtil.testConfig("c1");
-    final Experiment.Builder builder = Experiment
-      .build(TestObjectiveFunction.INSTANCE)
+    final Experiment.Builder builder = Experiment.builder()
       .addScenario(s0)
       .addScenario(s1)
       .addConfiguration(c0)
@@ -231,8 +225,7 @@ public class ExperimentTest {
     final Scenario scenario = ScenarioTestUtil.createRandomScenario(123L,
       StatsTracker.builder(), cmb);
 
-    final Experiment.Builder builder = Experiment
-      .build(TestObjectiveFunction.INSTANCE)
+    final Experiment.Builder builder = Experiment.builder()
       .addScenario(scenario)
       .addConfiguration(ExperimentTestUtil.testConfig("test"))
       .usePostProcessor(ExperimentTestUtil.testPostProcessor())

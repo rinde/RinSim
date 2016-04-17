@@ -23,7 +23,6 @@ import com.github.rinde.rinsim.pdptw.common.AddParcelEvent;
 import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
 import com.github.rinde.rinsim.pdptw.common.RouteRenderer;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
-import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06ObjectiveFunction;
 import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Parser;
 import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Scenario;
 import com.github.rinde.rinsim.ui.View;
@@ -88,10 +87,7 @@ public final class GradientFieldExample {
       .allowDiversion()
       .parse().get(0);
 
-    final Gendreau06ObjectiveFunction objFunc = Gendreau06ObjectiveFunction
-      .instance();
-    Experiment
-      .build(objFunc)
+    Experiment.builder()
       .withRandomSeed(RANDOM_SEED)
       .withThreads(1)
       .addConfiguration(MASConfiguration.pdptwBuilder()

@@ -143,12 +143,12 @@ public class SolverDelayTest {
 
   static StatisticsDTO simulate(Scenario scenario) {
     final ExperimentResults results =
-      Experiment.build(OBJ_FUNC)
+      Experiment.builder()
         .addScenario(scenario)
         .addConfiguration(Central.solverConfiguration(
           StochasticSuppliers.constant(TestSolvers.lazyInsertion())))
         .withThreads(1)
-        .usePostProcessor(PostProcessors.statisticsPostProcessor())
+        .usePostProcessor(PostProcessors.statisticsPostProcessor(OBJ_FUNC))
         .showGui(View.builder()
           .withAutoPlay()
           // .withAutoClose()

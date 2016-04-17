@@ -52,7 +52,6 @@ import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.pdptw.common.PDPTWTestUtil;
 import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle;
-import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06ObjectiveFunction;
 import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Parser;
 import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Scenario;
 import com.github.rinde.rinsim.testutil.TestUtil;
@@ -121,8 +120,7 @@ public class CentralTest {
           SI.MILLI(SI.SECOND)));
       }
     };
-    final Experiment.Builder builder = Experiment
-      .build(Gendreau06ObjectiveFunction.instance())
+    final Experiment.Builder builder = Experiment.builder()
       .addScenario(scenario)
       .addConfiguration(Central.solverConfiguration(s))
       .withRandomSeed(123);

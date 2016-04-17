@@ -22,7 +22,6 @@ import java.util.List;
 
 import com.github.rinde.rinsim.experiment.Experiment.Builder;
 import com.github.rinde.rinsim.experiment.Experiment.SimulationResult;
-import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableSet;
@@ -34,11 +33,6 @@ import com.google.common.collect.ImmutableSet;
  */
 @AutoValue
 public abstract class ExperimentResults {
-
-  /**
-   * @return The {@link ObjectiveFunction} that was used for this experiment.
-   */
-  public abstract ObjectiveFunction getObjectiveFunction();
 
   /**
    * @return The configurations that were used in this experiment.
@@ -86,7 +80,6 @@ public abstract class ExperimentResults {
   static ExperimentResults create(Builder exp,
       ImmutableSet<SimulationResult> res) {
     return new AutoValue_ExperimentResults(
-      exp.objectiveFunction,
       ImmutableSet.copyOf(exp.configurationsSet),
       exp.scenariosBuilder.build(),
       exp.showGui,
