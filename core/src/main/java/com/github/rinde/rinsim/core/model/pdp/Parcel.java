@@ -42,7 +42,7 @@ public class Parcel extends PDPObjectImpl implements IParcel {
     this(parcelDto, null);
   }
 
-  Parcel(ParcelDTO parcelDto, @Nullable String toString) {
+  public Parcel(ParcelDTO parcelDto, @Nullable String toString) {
     dto = parcelDto;
     setStartPosition(dto.getPickupLocation());
     if (toString == null) {
