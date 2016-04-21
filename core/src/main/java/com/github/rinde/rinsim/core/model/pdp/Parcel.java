@@ -24,7 +24,8 @@ import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.util.TimeWindow;
 
 /**
- * The parcel class represents goods that can be transported.
+ * The parcel class represents goods that can be transported. Construct
+ * instances via {@link #builder(Point, Point)}.
  * @author Rinde van Lon
  */
 public class Parcel extends PDPObjectImpl implements IParcel {
@@ -41,7 +42,7 @@ public class Parcel extends PDPObjectImpl implements IParcel {
     this(parcelDto, null);
   }
 
-  public Parcel(ParcelDTO parcelDto, @Nullable String toString) {
+  Parcel(ParcelDTO parcelDto, @Nullable String toString) {
     dto = parcelDto;
     setStartPosition(dto.getPickupLocation());
     if (toString == null) {
