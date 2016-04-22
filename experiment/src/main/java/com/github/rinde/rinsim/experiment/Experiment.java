@@ -41,7 +41,6 @@ import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.experiment.LocalComputer.ExperimentRunner;
 import com.github.rinde.rinsim.experiment.PostProcessor.FailureStrategy;
 import com.github.rinde.rinsim.io.FileProvider;
-import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
 import com.github.rinde.rinsim.pdptw.common.StatisticsProvider;
 import com.github.rinde.rinsim.pdptw.common.StatsTracker;
 import com.github.rinde.rinsim.scenario.Scenario;
@@ -567,9 +566,8 @@ public final class Experiment {
      * <code>localhost</code>. For changing the JPPF settings, please consult
      * the <a href="http://www.jppf.org/doc/">JPPF documentation</a>.
      * <p>
-     * <b>Requirements:</b> {@link ObjectiveFunction}, {@link MASConfiguration}
-     * and {@link PostProcessor} (if used) must implement
-     * {@link java.io.Serializable}.
+     * <b>Requirements:</b> {@link MASConfiguration} and {@link PostProcessor}
+     * (if used) must implement {@link java.io.Serializable}.
      * <p>
      * <b>Incompatible settings</b><br>
      * The following settings will be ignored when computing is done in a

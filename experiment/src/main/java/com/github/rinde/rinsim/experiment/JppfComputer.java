@@ -372,8 +372,8 @@ final class JppfComputer implements Computer {
       final DataProvider dataProvider = getDataProvider();
       checkNotNull(
         dataProvider,
-        "Probable problem: your MASConfiguration/ObjectiveFunction/"
-          + "PostProcessor is not fully serializable.");
+        "Probable problem: your MASConfiguration/PostProcessor may not be "
+          + "fully serializable.");
 
       final Supplier<Scenario> scenario = getDataProvider().getParameter(
         scenarioId);
