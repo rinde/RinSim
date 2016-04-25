@@ -50,10 +50,9 @@ import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.testutil.TestUtil;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-
-import autovalue.shaded.com.google.common.common.base.Optional;
 
 /**
  * Test for {@link RtSolverModel}.

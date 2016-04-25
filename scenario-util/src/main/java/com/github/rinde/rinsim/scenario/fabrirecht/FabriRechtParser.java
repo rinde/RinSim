@@ -40,8 +40,7 @@ import com.github.rinde.rinsim.scenario.TimeOutEvent;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.scenario.TimedEvent.TimeComparator;
 import com.github.rinde.rinsim.util.TimeWindow;
-
-import autovalue.shaded.com.google.common.common.collect.Iterators;
+import com.google.common.collect.Iterators;
 
 /**
  * Parser for {@link FabriRechtScenario}s.
