@@ -180,8 +180,6 @@ final class LocalComputer implements Computer {
           new ExperimentRunner(res.getSimArgs());
         Futures.addCallback(executor.submit(newRunner), this);
       } else {
-        // FIXME this should be changed into a more decent progress indicator
-        System.out.print(".");
         results.add(result);
       }
     }

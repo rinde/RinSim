@@ -18,6 +18,7 @@ package com.github.rinde.rinsim.experiment;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Verify.verifyNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newLinkedHashMap;
 
@@ -217,8 +218,8 @@ final class JppfComputer implements Computer {
 
     @Override
     public void resultsReceived(@Nullable TaskResultEvent event) {
-      assert event != null;
-      for (final Task<?> t : event.getTasks()) {
+      final TaskResultEvent ev = verifyNotNull(event);
+      for (final Task<?> t : ev.getTasks()) {
         final SimulationTask simTask = (SimulationTask) t;
         try {
           final SimulationResult res = processResult(simTask, scenariosMap,
@@ -232,7 +233,7 @@ final class JppfComputer implements Computer {
           exception = Optional.of(iae);
         }
       }
-      receivedNumResults += event.getTasks().size();
+      receivedNumResults += ev.getTasks().size();
     }
 
     void awaitResults() {

@@ -313,8 +313,9 @@ public final class StatsTracker extends AbstractModelVoid implements
    * @author Rinde van Lon
    */
   @AutoValue
-  public abstract static class Builder extends
-      AbstractModelBuilder<StatsTracker, Object> {
+  public abstract static class Builder
+      extends AbstractModelBuilder<StatsTracker, Object> {
+    private static final long serialVersionUID = -4339759920383479477L;
 
     Builder() {
       setDependencies(ScenarioController.class,
@@ -326,8 +327,8 @@ public final class StatsTracker extends AbstractModelVoid implements
 
     @Override
     public StatsTracker build(DependencyProvider dependencyProvider) {
-      final ScenarioController ctrl = dependencyProvider
-        .get(ScenarioController.class);
+      final ScenarioController ctrl =
+        dependencyProvider.get(ScenarioController.class);
       final Clock clck = dependencyProvider.get(Clock.class);
       final RoadModel rm = dependencyProvider.get(RoadModel.class);
       final PDPModel pm = dependencyProvider.get(PDPModel.class);

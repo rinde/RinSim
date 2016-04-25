@@ -618,8 +618,7 @@ public final class Experiment {
 
     /**
      * Adds the specified {@link ResultListener} to the experiment. This
-     * listener will be called each time a simulation is done. <b>Currently only
-     * works for distributed computation</b>.
+     * listener will be called each time a simulation is done.
      * @param listener The listener to add.
      * @return This, as per the builder pattern.
      */

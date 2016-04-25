@@ -15,6 +15,8 @@
  */
 package com.github.rinde.rinsim.core.model;
 
+import java.io.Serializable;
+
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
 
@@ -89,7 +91,8 @@ public interface ModelBuilder<T extends Model<? extends U>, U> {
    * @param <U> The associated type.
    */
   abstract class AbstractModelBuilder<T extends Model<? extends U>, U>
-      implements ModelBuilder<T, U> {
+      implements ModelBuilder<T, U>, Serializable {
+    private static final long serialVersionUID = -1110189591056185881L;
     private ImmutableSet<Class<?>> provTypes;
     private ImmutableSet<Class<?>> deps;
     private final Class<T> modelType;
@@ -99,12 +102,16 @@ public interface ModelBuilder<T extends Model<? extends U>, U> {
      * Construct a new instance.
      *
      */
-    @SuppressWarnings({"unchecked", "serial"})
+    @SuppressWarnings("unchecked")
     protected AbstractModelBuilder() {
       provTypes = ImmutableSet.of();
       deps = ImmutableSet.of();
-      modelType = (Class<T>) new TypeToken<T>(getClass()) {}.getRawType();
-      associatedType = (Class<U>) new TypeToken<U>(getClass()) {}.getRawType();
+      modelType = (Class<T>) new TypeToken<T>(getClass()) {
+        private static final long serialVersionUID = -7292931677375164212L;
+      }.getRawType();
+      associatedType = (Class<U>) new TypeToken<U>(getClass()) {
+        private static final long serialVersionUID = 5451272042925600897L;
+      }.getRawType();
     }
 
     /**
