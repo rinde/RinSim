@@ -70,7 +70,6 @@
 		<sonar.language>java</sonar.language>
 		<test.excludedGroups />
 		<skip.test.categories />
-		<reference.version>4.1.0</reference.version>
 	</properties>
 
 	<distributionManagement>
@@ -191,31 +190,6 @@
 							</pluginExecutions>
 						</lifecycleMappingMetadata>
 					</configuration>
-				</plugin>
-
-				<plugin>
-					<groupId>com.googlecode.japi-checker</groupId>
-					<artifactId>japi-checker-maven-plugin</artifactId>
-					<version>0.1.4</version>
-					<configuration>
-						<reference>
-							<groupId>com.github.rinde</groupId>
-							<artifactId>${project.artifactId}</artifactId>
-							<version>${reference.version}</version>
-						</reference>
-						<rules>
-							<rule>com.googlecode.japi.checker.rules.AllRules</rule>
-						</rules>
-					</configuration>
-					<executions>
-						<execution>
-							<id>check-bc</id>
-							<phase>verify</phase>
-							<goals>
-								<goal>check</goal>
-							</goals>
-						</execution>
-					</executions>
 				</plugin>
 			</plugins>
 		</pluginManagement>
