@@ -48,6 +48,64 @@ public class PointTest {
   }
 
   @Test
+  public void testAdd() {
+    Point p1 = new Point(1, 2);
+    Point p2 = new Point(3, 4);
+
+    Point result = Point.add(p1, p2);
+
+    assertEquals(new Point(4, 6), result);
+  }
+
+  @Test
+  public void testDifference() {
+    Point p1 = new Point(4, 3);
+    Point p2 = new Point(1, 2);
+
+    Point result = Point.diff(p1, p2);
+
+    assertEquals(new Point(3, 1), result);
+  }
+
+  @Test
+  public void testDifferenceNegative() {
+    Point p1 = new Point(1, 2);
+    Point p2 = new Point(4, 3);
+
+    Point result = Point.diff(p1, p2);
+
+    assertEquals(new Point(-3, -1), result);
+  }
+
+  @Test
+  public void testMultiply() {
+    Point p1 = new Point(1, 2);
+
+    Point result = Point.multiply(p1, 3);
+
+    assertEquals(new Point(3, 6), result);
+  }
+
+  @Test
+  public void testDivide() {
+    Point p1 = new Point(1, 2);
+
+    Point result = Point.divide(p1, 4);
+
+    assertEquals(new Point(0.25, 0.5), result);
+  }
+
+  @Test
+  public void testDivideByZero() {
+    Point p1 = new Point(0, 2);
+
+    Point result = Point.divide(p1, 0);
+
+    assertTrue(Double.isNaN(result.x));
+    assertTrue(Double.isInfinite(result.y));
+  }
+
+  @Test
   public void pointFuncs() {
     assertEquals(new Point(0, 0),
       Point.diff(new Point(10, 0), new Point(10, 0)));
