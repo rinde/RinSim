@@ -72,6 +72,16 @@ public class Point implements Serializable {
   }
 
   /**
+   * Computes the sum between two points: <code>p1 + p2</code>.
+   * @param p1 A point.
+   * @param p2 Another point.
+   * @return The sum as a point object.
+   */
+  public static Point add(Point p1, Point p2) {
+    return new Point(p1.x + p2.x, p1.y + p2.y);
+  }
+
+  /**
    * Computes the difference between two points: <code>p1 - p2</code>.
    * @param p1 A point.
    * @param p2 Another point.
@@ -79,6 +89,16 @@ public class Point implements Serializable {
    */
   public static Point diff(Point p1, Point p2) {
     return new Point(p1.x - p2.x, p1.y - p2.y);
+  }
+
+  /**
+   * Multiplies the point, the result is returned as a new point.
+   * @param p The point to multiply.
+   * @param d The multiplicand.
+   * @return A new point containing the result.
+   */
+  public static Point multiply(Point p, double d) {
+    return new Point(p.x * d, p.y * d);
   }
 
   /**
