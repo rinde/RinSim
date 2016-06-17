@@ -102,13 +102,17 @@ public class GlobalStateObjectBuilder {
   }
 
   public GlobalStateObject build() {
-    return SolverValidator.validateInputs(GlobalStateObject.create(
+    return SolverValidator.validateInputs(buildUnsafe());
+  }
+
+  public GlobalStateObject buildUnsafe() {
+    return GlobalStateObject.create(
       ImmutableSet.copyOf(availableParcels),
       ImmutableList.copyOf(vehicles),
       time,
       timeUnit,
       speedUnit,
-      distUnit));
+      distUnit);
   }
 
   public static GlobalStateObjectBuilder globalBuilder() {
