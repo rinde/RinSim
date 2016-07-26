@@ -1,5 +1,9 @@
 # Release notes
 
+## v4.1.1
+ * Improved JPPF integration
+ * Added point methods by [Jens Claes](https://github.com/caske33), see [this commit](https://github.com/rinde/RinSim/commit/74b623ded305b3f82e63a77dfe4e5a1a4acaa210). 
+
 ## v4.1.0
  * Further refactored Experiment
  * Real-time clock system is stable now, including RtCentral and RtSolverModel.

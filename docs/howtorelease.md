@@ -12,7 +12,6 @@
         mvn versions:set -DnewVersion=X.Y.Z
         ```
    * verify and update release notes
-   * verify backwards compatibility version is correct
    * update version number in README (remove -SNAPSHOT)
  1. commit
  1. switch to master and merge
