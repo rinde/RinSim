@@ -56,7 +56,6 @@ git commit -am 'prepare release vX.Y.Z'
         ```
         mvn versions:set -DnewVersion=X.Y.Z-SNAPSHOT
         ```
-   1. update backwards compatibility version (if needed)
    1. update version in README (add -SNAPSHOT)
  1. commit
  1. make the code [citable](https://guides.github.com/activities/citable-code/)
