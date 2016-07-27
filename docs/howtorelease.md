@@ -13,7 +13,10 @@
         ```
    * verify and update release notes
    * update version number in README (remove -SNAPSHOT)
- 1. commit
+ 1. commit 
+ ```
+git commit -am 'prepare release vX.Y.Z'
+ ```
  1. switch to master and merge
    1. 
         ```
@@ -36,7 +39,7 @@
         ```
         -Dgpg.executable=gpg2
         ```
-   1. Wait for success confirmation by email ("Nexus: Promotion Completed").
+   1. Wait until build is successful (or check that it is available on Maven Central, there is a delay of approximately 2 hours before it appears on [search.maven.org](https://search.maven.org)).
  1. 
       ```
       git push
