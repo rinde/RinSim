@@ -299,7 +299,7 @@ public class RtSolverModelTest {
   @Test
   public void testConcurrentSolvers() {
     final RtSimSolverBuilder b = model.get(RtSimSolverBuilder.class);
-    final RtSimSolver simSolver = b.build(SolverToRealtimeAdapter
+    final RtSimSolver simSolver = b.build(RtStAdapters
       .create(SleepySolver.create(1000, new NopSolver())));
     final Parcel p = Parcel.builder(new Point(0, 0), new Point(1, 1))
       .build();

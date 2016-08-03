@@ -58,7 +58,7 @@ public final class SolverToRealtimeAdapter implements RealtimeSolver {
 
   Optional<Scheduler> scheduler;
   Optional<ListenableFuture<ImmutableList<ImmutableList<Parcel>>>> currentFuture;
-  private final Solver solver;
+  final Solver solver;
 
   SolverToRealtimeAdapter(Solver s) {
     solver = s;
@@ -127,22 +127,6 @@ public final class SolverToRealtimeAdapter implements RealtimeSolver {
   public String toString() {
     return Joiner.on("").join(getClass().getSimpleName(), "(",
       solver.toString(), R_BRACE);
-  }
-
-  /**
-   * Constructs an adapter of {@link Solver} to {@link RealtimeSolver}. The
-   * resulting solver behaves as is documented in
-   * {@link SolverToRealtimeAdapter}.
-   * @param solver The solver to adapt.
-   * @return The adapted solver.
-   */
-  public static RealtimeSolver create(Solver solver) {
-    return new SolverToRealtimeAdapter(solver);
-  }
-
-  public static StochasticSupplier<RealtimeSolver> create(
-      StochasticSupplier<? extends Solver> solver) {
-    return new Sup(solver);
   }
 
   static class Sup implements StochasticSupplier<RealtimeSolver> {

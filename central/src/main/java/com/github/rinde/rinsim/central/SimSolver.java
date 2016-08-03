@@ -77,7 +77,6 @@ public final class SimSolver implements SimulationConverter {
   public ImmutableList<ImmutableList<Parcel>> solve(GlobalStateObject state) {
     try {
       return solver.get().solve(state);
-      // return Solvers.convertRoutes(state, solver.get().solve(state.state));
     } catch (final InterruptedException e) {
       throw new IllegalStateException(
         "The solver is interrupted, can't continue.", e);
