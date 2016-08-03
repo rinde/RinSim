@@ -17,7 +17,6 @@ package com.github.rinde.rinsim.central;
 
 import java.io.Serializable;
 import java.util.Iterator;
-import java.util.Queue;
 import java.util.Set;
 
 import com.github.rinde.rinsim.central.Solvers.SolveArgs;
@@ -195,7 +194,7 @@ public final class Central {
           currentRouteBuilder.add(l);
         }
 
-        final Iterator<Queue<Parcel>> routes = solverAdapter
+        final Iterator<ImmutableList<Parcel>> routes = solverAdapter
           .solve(
             SolveArgs.create()
               .useAllParcels()

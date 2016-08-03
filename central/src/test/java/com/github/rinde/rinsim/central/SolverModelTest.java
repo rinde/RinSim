@@ -16,8 +16,10 @@
 package com.github.rinde.rinsim.central;
 
 import static com.google.common.truth.Truth.assertThat;
+import static java.util.Arrays.asList;
 
 import java.util.Collection;
+import java.util.LinkedHashSet;
 
 import org.apache.commons.math3.random.MersenneTwister;
 import org.junit.Before;
@@ -113,8 +115,9 @@ public class SolverModelTest {
 
     @Override
     public void setSolverProvider(SimSolverBuilder provider) {
-      solver = Optional.of(provider.setVehicle(this)
-        .build(new RandomSolver(new MersenneTwister(123))));
+      solver =
+        Optional.of(provider.setVehicles(new LinkedHashSet<>(asList(this)))
+          .build(new RandomSolver(new MersenneTwister(123))));
     }
 
     @Override

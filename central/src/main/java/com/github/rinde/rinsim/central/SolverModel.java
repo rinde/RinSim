@@ -18,6 +18,7 @@ package com.github.rinde.rinsim.central;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import java.io.Serializable;
+import java.util.Set;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
@@ -89,14 +90,8 @@ public final class SolverModel extends AbstractModel<SolverUser> {
     }
 
     @Override
-    public SimSolverBuilder setVehicle(Vehicle v) {
-      vehiclesList = ImmutableList.of(v);
-      return this;
-    }
-
-    @Override
     public SimSolverBuilder setVehicles(
-        Iterable<? extends Vehicle> vehicles) {
+        Set<? extends Vehicle> vehicles) {
       vehiclesList = ImmutableList.<Vehicle>copyOf(vehicles);
       return this;
     }

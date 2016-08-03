@@ -141,7 +141,7 @@ class RtSimSolverSchedulerBridge {
 
     @Override
     public void solve(SolveArgs args) {
-      solve(converter.convert(args).state);
+      solve(converter.convert(args));
     }
 
     RealtimeSolver getSolver() {
@@ -197,7 +197,7 @@ class RtSimSolverSchedulerBridge {
     @Override
     public void sendSnapshot(SolveArgs args) {
       realtimeCheck();
-      final GlobalStateObject state = converter.convert(args).state;
+      final GlobalStateObject state = converter.convert(args);
       final ListenableFuture<?> fut = executor.submit(new Runnable() {
         @Override
         public void run() {
@@ -213,7 +213,7 @@ class RtSimSolverSchedulerBridge {
 
     @Override
     public GlobalStateObject getCurrentState(SolveArgs args) {
-      return converter.convert(args).state;
+      return converter.convert(args);
     }
 
     @Override
