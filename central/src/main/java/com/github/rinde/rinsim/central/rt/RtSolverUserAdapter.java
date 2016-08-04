@@ -100,6 +100,10 @@ final class RtSolverUserAdapter implements SolverUser {
         RtSimSolver.EventType.NEW_SCHEDULE,
         Optional.of(currentSchedule),
         Optional.of(currentState)));
+      eventDispatcher.dispatchEvent(new SolverEvent(
+        RtSimSolver.EventType.DONE,
+        Optional.of(currentSchedule),
+        Optional.of(currentState)));
     }
 
     @Override
