@@ -105,6 +105,8 @@ public abstract class GlobalStateObject {
   @AutoValue
   public abstract static class VehicleStateObject {
 
+    VehicleStateObject() {}
+
     /**
      * @return The {@link VehicleDTO}.
      */

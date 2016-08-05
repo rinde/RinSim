@@ -15,7 +15,6 @@
  */
 package com.github.rinde.rinsim.central;
 
-import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -111,8 +110,7 @@ public final class Central {
 
   @AutoValue
   abstract static class Builder
-      extends AbstractModelBuilder<CentralModel, Parcel>
-      implements Serializable {
+      extends AbstractModelBuilder<CentralModel, Parcel> {
 
     private static final long serialVersionUID = 1168431215289110828L;
 
@@ -148,15 +146,13 @@ public final class Central {
     private boolean hasChanged;
     private final PDPRoadModel roadModel;
     private final SimSolver solverAdapter;
-    private final Clock clock;
 
     CentralModel(Clock c, PDPRoadModel rm, PDPModel pm, Solver solver) {
-      clock = c;
       roadModel = rm;
       solverAdapter = Solvers.solverBuilder(solver)
         .with(rm)
         .with(pm)
-        .with(clock)
+        .with(c)
         .build();
     }
 

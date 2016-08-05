@@ -15,9 +15,12 @@
  */
 package com.github.rinde.rinsim.central.rt;
 
+import com.github.rinde.rinsim.central.GlobalStateObject;
 import com.github.rinde.rinsim.central.Solver;
 import com.github.rinde.rinsim.central.SolverUser;
 import com.github.rinde.rinsim.util.StochasticSupplier;
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 
 /**
  *
@@ -28,23 +31,67 @@ public final class RtStAdapters {
   private RtStAdapters() {}
 
   /**
-   * Constructs an adapter of {@link Solver} to {@link RealtimeSolver}. The
-   * resulting solver behaves as is documented in
-   * {@link SolverToRealtimeAdapter}.
+   * Adapts {@link Solver} to {@link RealtimeSolver}. This real-time solver
+   * behaves as follows, upon receiving a new snapshot
+   * {@link RealtimeSolver#problemChanged(GlobalStateObject)} the underlying
+   * {@link Solver} is called to solve the problem. Any ongoing computation of a
+   * previous snapshot is cancelled. When the solver completes its computation,
+   * {@link Scheduler#updateSchedule(GlobalStateObject,ImmutableList)} is called
+   * to provide the updated schedule. The scheduler is also notified that no
+   * computations are currently taking place by calling
+   * {@link Scheduler#doneForNow()}.
+   * <p>
+   * TODO talk about interrupt in solver
+   *
    * @param solver The solver to adapt.
    * @return The adapted solver.
    */
-  public static RealtimeSolver create(Solver solver) {
+  public static RealtimeSolver toRealtime(Solver solver) {
     return new SolverToRealtimeAdapter(solver);
   }
 
-  public static StochasticSupplier<RealtimeSolver> create(
+  /**
+   * Adapts {@link Solver} to {@link RealtimeSolver}. This real-time solver
+   * behaves as follows, upon receiving a new snapshot
+   * {@link RealtimeSolver#problemChanged(GlobalStateObject)} the underlying
+   * {@link Solver} is called to solve the problem. Any ongoing computation of a
+   * previous snapshot is cancelled. When the solver completes its computation,
+   * {@link Scheduler#updateSchedule(GlobalStateObject,ImmutableList)} is called
+   * to provide the updated schedule. The scheduler is also notified that no
+   * computations are currently taking place by calling
+   * {@link Scheduler#doneForNow()}.
+   * <p>
+   * TODO talk about interrupt in solver
+   *
+   * @param solver The solver supplier to adapt.
+   * @return The adapted solver supplier.
+   */
+  public static StochasticSupplier<RealtimeSolver> toRealtime(
       StochasticSupplier<? extends Solver> solver) {
-    return new SolverToRealtimeAdapter.Sup(solver);
+    return new Sup(solver);
   }
 
   public static SolverUser toSimTime(RtSolverUser solverUser) {
     return new RtSolverUserAdapter(solverUser);
+  }
+
+  static class Sup implements StochasticSupplier<RealtimeSolver> {
+    StochasticSupplier<? extends Solver> solver;
+
+    Sup(StochasticSupplier<? extends Solver> s) {
+      solver = s;
+    }
+
+    @Override
+    public RealtimeSolver get(long seed) {
+      return new SolverToRealtimeAdapter(solver.get(seed));
+    }
+
+    @Override
+    public String toString() {
+      return Joiner.on("").join(RtStAdapters.class.getSimpleName(),
+        ".toRealtime(", solver, ")");
+    }
   }
 
 }

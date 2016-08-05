@@ -51,7 +51,7 @@ public abstract class RtSimSolverBuilder {
   /**
    * Construct a new {@link RtSimSolver} based on the specified {@link Solver}.
    * The specified {@link Solver} is converted to a {@link RealtimeSolver} using
-   * {@link SolverToRealtimeAdapter}.
+   * {@link RtStAdapters#toRealtime(Solver)}.
    * @param solver The solver to use internally in the {@link RtSimSolver}.
    * @return A new {@link RtSimSolver} instance.
    */
