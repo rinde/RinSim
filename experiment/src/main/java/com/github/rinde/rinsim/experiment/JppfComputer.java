@@ -19,12 +19,12 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Verify.verifyNotNull;
-import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Maps.newLinkedHashMap;
 
 import java.io.Serializable;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -45,7 +45,6 @@ import com.github.rinde.rinsim.experiment.Experiment.Builder;
 import com.github.rinde.rinsim.experiment.Experiment.SimArgs;
 import com.github.rinde.rinsim.experiment.Experiment.SimulationResult;
 import com.github.rinde.rinsim.experiment.PostProcessor.FailureStrategy;
-import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.ScenarioIO;
 import com.google.common.base.Joiner;
@@ -66,7 +65,7 @@ final class JppfComputer implements Computer {
 
   JppfComputer() {}
 
-  static JPPFClient getJPPFClient() {
+  static JPPFClient getJppfClient() {
     if (!client.isPresent()) {
       client = Optional.of(new JPPFClient());
     }
@@ -79,20 +78,17 @@ final class JppfComputer implements Computer {
       MASConfiguration.class);
     final IdMap<ScenarioProvider> scenarioMap = new IdMap<>("s",
       ScenarioProvider.class);
-    final IdMap<ObjectiveFunction> objFuncMap = new IdMap<>("o",
-      ObjectiveFunction.class);
 
     final List<ResultListener> listeners =
-      newArrayList(builder.resultListeners);
+      new ArrayList<>(builder.resultListeners);
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     final IdMap<PostProcessor<?>> ppMap = new IdMap("p", PostProcessor.class);
-    final Map<String, Scenario> scenariosMap = newLinkedHashMap();
+    final Map<String, Scenario> scenariosMap = new LinkedHashMap<>();
 
     // create tasks
-    final List<SimulationTask> tasks = newArrayList();
-    constructTasks(inputs, tasks, configMap, scenarioMap, objFuncMap, ppMap,
-      scenariosMap);
+    final List<SimulationTask> tasks = new ArrayList<>();
+    constructTasks(inputs, tasks, configMap, scenarioMap, ppMap, scenariosMap);
 
     // this sorts tasks using this chain: scenario, configuration, objective
     // function, postprocessor, seed
@@ -104,10 +100,10 @@ final class JppfComputer implements Computer {
       / (double) numBatches,
       RoundingMode.CEILING);
 
-    final Map<Task<?>, JPPFJob> taskJobMap = newLinkedHashMap();
+    final Map<Task<?>, JPPFJob> taskJobMap = new LinkedHashMap<>();
     final ResultsCollector res = new ResultsCollector(tasks.size(),
       scenariosMap, taskJobMap, listeners);
-    final List<JPPFJob> jobs = newArrayList();
+    final List<JPPFJob> jobs = new ArrayList<>();
 
     for (int i = 0; i < numBatches; i++) {
       final JPPFJob job = new JPPFJob(new MemoryMapDataProvider(), res);
@@ -133,10 +129,10 @@ final class JppfComputer implements Computer {
       }
     }
 
-    checkState(!getJPPFClient().isClosed());
+    checkState(!getJppfClient().isClosed());
     try {
       for (final JPPFJob job : jobs) {
-        getJPPFClient().submitJob(job);
+        getJppfClient().submitJob(job);
       }
     } catch (final Exception e) {
       throw new IllegalStateException(e);
@@ -156,7 +152,6 @@ final class JppfComputer implements Computer {
       List<SimulationTask> tasks,
       IdMap<MASConfiguration> configMap,
       IdMap<ScenarioProvider> scenarioMap,
-      IdMap<ObjectiveFunction> objFuncMap,
       IdMap<PostProcessor<?>> ppMap,
       Map<String, Scenario> scenariosMap) {
 
@@ -314,7 +309,6 @@ final class JppfComputer implements Computer {
     ScenarioProvider(String serialScen, Class<?> clz) {
       serializedScenario = serialScen;
       scenarioClass = clz;
-      localCache = null;
     }
 
     @SuppressWarnings("null")
@@ -449,13 +443,13 @@ final class JppfComputer implements Computer {
 
     @Override
     public int compareTo(@Nullable SimulationTask o) {
-      assert o != null;
+      final SimulationTask other = verifyNotNull(o);
       return ComparisonChain.start()
-        .compare(scenarioId, o.scenarioId)
-        .compare(configurationId, o.configurationId)
-        .compare(postProcessorId, o.postProcessorId,
+        .compare(scenarioId, other.scenarioId)
+        .compare(configurationId, other.configurationId)
+        .compare(postProcessorId, other.postProcessorId,
           Ordering.natural().nullsLast())
-        .compare(seed, o.seed)
+        .compare(seed, other.seed)
         .result();
     }
   }
