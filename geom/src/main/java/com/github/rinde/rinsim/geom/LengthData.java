@@ -32,9 +32,6 @@ public abstract class LengthData implements ConnectionData {
 
   LengthData() {}
 
-  @Override
-  public abstract Optional<Double> getLength();
-
   /**
    * Create a new {@link LengthData} instance using the specified length.
    * @param length The length of the connection.

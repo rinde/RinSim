@@ -17,6 +17,7 @@ package com.github.rinde.rinsim.geom;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Verify.verifyNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.reverse;
 
@@ -395,8 +396,7 @@ public final class Graphs {
 
     @Override
     public int compareTo(@Nullable ObjectWithDistance<T> o) {
-      assert o != null;
-      return Double.compare(dist, o.dist);
+      return Double.compare(dist, verifyNotNull(o).dist);
     }
 
     @Override
@@ -456,12 +456,22 @@ public final class Graphs {
     }
 
     @Override
-    public void merge(Graph<E> other) {
+    public void addConnection(Point from, Point to, @Nullable E connData) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void addConnection(Connection<E> connection) {
       throw new UnsupportedOperationException();
     }
 
     @Override
     public void addConnections(Iterable<? extends Connection<E>> connections) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void merge(Graph<E> other) {
       throw new UnsupportedOperationException();
     }
 
@@ -472,16 +482,6 @@ public final class Graphs {
 
     @Override
     public void removeConnection(Point from, Point to) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void addConnection(Point from, Point to, @Nullable E connData) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void addConnection(Connection<E> connection) {
       throw new UnsupportedOperationException();
     }
 
