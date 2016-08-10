@@ -15,7 +15,6 @@
  */
 package com.github.rinde.rinsim.geom;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Verify.verifyNotNull;
 
 import java.io.Serializable;
@@ -209,7 +208,7 @@ public class Point implements Serializable {
       @Override
       @Nonnull
       public Double apply(@Nullable Point input) {
-        return checkNotNull(input).x;
+        return verifyNotNull(input).x;
       }
     },
     /**
@@ -219,7 +218,7 @@ public class Point implements Serializable {
       @Override
       @Nonnull
       public Double apply(@Nullable Point input) {
-        return checkNotNull(input).y;
+        return verifyNotNull(input).y;
       }
     };
   }
