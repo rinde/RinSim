@@ -495,6 +495,12 @@ public final class Solvers {
       return this;
     }
 
+    /**
+     * Indicates that the supplied routes should be fixed. Unassigned parcels
+     * will be assigned to the first vehicle, incorrect parcel occurrences in
+     * routes are corrected.
+     * @return This, as per the builder pattern.
+     */
     public SolveArgs fixRoutes() {
       fixRoutes = true;
       return this;
