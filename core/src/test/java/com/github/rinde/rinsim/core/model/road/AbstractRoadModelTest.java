@@ -16,6 +16,7 @@
 package com.github.rinde.rinsim.core.model.road;
 
 import static com.google.common.collect.Lists.newLinkedList;
+import static com.google.common.truth.Truth.assertThat;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -204,6 +205,20 @@ public abstract class AbstractRoadModelTest<T extends GenericRoadModel> {
   @Test
   public void getSupportedType() {
     assertEquals(RoadUser.class, model.getSupportedType());
+  }
+
+  @Test
+  public void testMoveToDistance() {
+    final TestRoadUser testRoadUser = new TestRoadUser();
+    model.addObjectAt(testRoadUser, SW);
+
+    final Point start = model.getPosition(testRoadUser);
+    final MoveProgress mp = model.moveTo(testRoadUser, NW, timeLength(3));
+    final Point end = model.getPosition(testRoadUser);
+
+    final double lineDist = Point.distance(start, end);
+    assertThat(lineDist).isWithin(EPSILON)
+      .of(mp.distance().doubleValue(model.getDistanceUnit()));
   }
 
   @Test
