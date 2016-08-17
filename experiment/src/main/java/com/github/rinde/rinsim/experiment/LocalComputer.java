@@ -119,6 +119,7 @@ final class LocalComputer implements Computer {
   static void checkForError(ListeningExecutorService executor,
       ResultCollector collector) {
     if (collector.hasError()) {
+      LOGGER.info("Found error, shutting down. {}", collector.throwable);
       executor.shutdown();
       if (collector.throwable instanceof RuntimeException) {
         throw (RuntimeException) collector.throwable;
