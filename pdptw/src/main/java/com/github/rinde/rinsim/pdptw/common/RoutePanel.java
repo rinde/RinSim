@@ -62,6 +62,9 @@ public class RoutePanel extends AbstractModel<RouteFollowingVehicle>
     final TableColumn tc2 = new TableColumn(table, 0);
     tc2.setText("Route length");
     tc2.setWidth(COLUMN_WIDTH_PX);
+    final TableColumn tc3 = new TableColumn(table, 0);
+    tc3.setText("Route");
+    tc3.setWidth(COLUMN_WIDTH_PX);
     table.setHeaderVisible(true);
 
     for (final RouteFollowingVehicle v : list) {
@@ -98,6 +101,7 @@ public class RoutePanel extends AbstractModel<RouteFollowingVehicle>
     for (int i = 0; i < table.getItemCount(); i++) {
       final RouteFollowingVehicle v = list.get(i);
       table.getItem(i).setText(1, Integer.toString(v.getRoute().size()));
+      table.getItem(i).setText(2, v.getRoute().toString());
     }
     table.getParent().redraw();
     table.getParent().layout();
@@ -106,7 +110,8 @@ public class RoutePanel extends AbstractModel<RouteFollowingVehicle>
   void createItem(RouteFollowingVehicle v) {
     final TableItem item = new TableItem(table, SWT.NONE);
     item.setText(
-      new String[] {v.toString(), Integer.toString(v.getRoute().size())});
+      new String[] {v.toString(), Integer.toString(v.getRoute().size()),
+        v.getRoute().toString()});
   }
 
   @Override
