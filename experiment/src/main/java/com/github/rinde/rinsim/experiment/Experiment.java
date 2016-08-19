@@ -462,7 +462,7 @@ public final class Experiment {
      * @param scenarios The scenarios to add.
      * @return This, as per the builder pattern.
      */
-    public Builder addScenarios(List<? extends Scenario> scenarios) {
+    public Builder addScenarios(Iterable<? extends Scenario> scenarios) {
       scenariosBuilder.addAll(scenarios);
       return this;
     }
