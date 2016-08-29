@@ -105,6 +105,7 @@ import com.google.common.collect.Sets;
  */
 public final class Experiment {
   static final Logger LOGGER = LoggerFactory.getLogger(Experiment.class);
+  static final String DASH = "-";
 
   enum Computers implements Supplier<Computer> {
     LOCAL {
@@ -830,6 +831,20 @@ public final class Experiment {
         .append(",postProcessor=")
         .append(getPostProcessor())
         .append("}")
+        .toString();
+    }
+
+    public String toShortString() {
+      return new StringBuilder(getScenario().getProblemClass().getId())
+        .append(DASH)
+        .append(getScenario().getProblemInstanceId())
+        .append(DASH)
+        .append(getMasConfig().getName())
+        .append("-s")
+        .append(getRandomSeed())
+        .append(DASH)
+        .append("r")
+        .append(getRepetition())
         .toString();
     }
 
