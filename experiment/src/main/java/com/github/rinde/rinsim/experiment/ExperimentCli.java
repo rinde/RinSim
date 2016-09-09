@@ -117,6 +117,16 @@ public final class ExperimentCli {
       .build();
   }
 
+  static OptionArg<Integer> createCompositeSizeOpt(Builder expBuilder) {
+    return Option.builder("cs", ArgumentParser.intParser())
+      .longName("composite-size")
+      .description(
+        "Sets the composite task size to use in case of distributed computation"
+          + ", default: ",
+        expBuilder.compositeTaskSize)
+      .build();
+  }
+
   static Map<String, MASConfiguration> createConfigMap(
       Experiment.Builder builder) {
     final List<MASConfiguration> configs =

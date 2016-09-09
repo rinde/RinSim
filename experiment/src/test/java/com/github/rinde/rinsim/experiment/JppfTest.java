@@ -201,6 +201,21 @@ public class JppfTest {
     }
   }
 
+  @Test
+  public void composite() {
+    final Experiment.Builder builder = Experiment.builder()
+      .addScenario(scenario)
+      .computeDistributed()
+      .setCompositeTaskSize(2)
+      .addConfiguration(ExperimentTestUtil.testConfig("test"))
+      .usePostProcessor(ExperimentTestUtil.testPostProcessor())
+      .repeat(3)
+      .withRandomSeed(123);
+
+    final ExperimentResults er = builder.perform();
+    assertThat(er.getResults()).hasSize(3);
+  }
+
   static class TestFaultyPostProcessor implements
       PostProcessor<NotSerializable>, Serializable {
     private static final long serialVersionUID = -2166760289557525263L;

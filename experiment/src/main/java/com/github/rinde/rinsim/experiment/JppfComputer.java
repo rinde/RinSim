@@ -54,6 +54,7 @@ import com.google.common.base.Supplier;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.HashBiMap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Ordering;
 import com.google.common.math.DoubleMath;
@@ -105,13 +106,21 @@ final class JppfComputer implements Computer {
       scenariosMap, taskJobMap, listeners);
     final List<JPPFJob> jobs = new ArrayList<>();
 
+    final int compositeTaskSize = builder.compositeTaskSize;
     for (int i = 0; i < numBatches; i++) {
       final JPPFJob job = new JPPFJob(new MemoryMapDataProvider(), res);
       job.setName(Joiner.on("").join(JOB_NAME, " ", i + 1, "/", numBatches));
       jobs.add(job);
-      for (final SimulationTask t : tasks.subList(i * batchSize, (i + 1)
-        * batchSize)) {
-        try {
+
+      final List<SimulationTask> batch =
+        tasks.subList(i * batchSize, (i + 1) * batchSize);
+
+      for (int j = 0; j < batch.size(); j += compositeTaskSize) {
+
+        final List<SimulationTask> compositeTasks =
+          batch.subList(j, Math.min(batch.size(), j + compositeTaskSize));
+
+        for (final SimulationTask t : compositeTasks) {
           final MASConfiguration config = configMap.getValue(t
             .getConfigurationId());
           final ScenarioProvider scenario = scenarioMap.getValue(t
@@ -121,11 +130,21 @@ final class JppfComputer implements Computer {
           job.getDataProvider().setParameter(t.getConfigurationId(), config);
           job.getDataProvider().setParameter(t.getScenarioId(), scenario);
 
-          job.add(t);
+          taskJobMap.put(t, job);
+        }
+
+        try {
+          if (compositeTasks.size() > 1) {
+            final CompositeTask composite = new CompositeTask(compositeTasks);
+            job.add(composite);
+          } else {
+            for (final SimulationTask st : compositeTasks) {
+              job.add(st);
+            }
+          }
         } catch (final JPPFException e) {
           throw new IllegalStateException(e);
         }
-        taskJobMap.put(t, job);
       }
     }
 
@@ -215,20 +234,22 @@ final class JppfComputer implements Computer {
     public void resultsReceived(@Nullable TaskResultEvent event) {
       final TaskResultEvent ev = verifyNotNull(event);
       for (final Task<?> t : ev.getTasks()) {
-        final SimulationTask simTask = (SimulationTask) t;
+        final List<SimulationTask> simTasks = ((RinSimTask) t).getTasks();
         try {
-          final SimulationResult res = processResult(simTask, scenariosMap,
-            taskJobMap);
+          for (final SimulationTask simTask : simTasks) {
+            final SimulationResult res = processResult(simTask, scenariosMap,
+              taskJobMap);
 
-          results.add(res);
-          for (final ResultListener l : listeners) {
-            l.receive(res);
+            results.add(res);
+            for (final ResultListener l : listeners) {
+              l.receive(res);
+            }
           }
         } catch (final IllegalArgumentException iae) {
           exception = Optional.of(iae);
         }
+        receivedNumResults += simTasks.size();
       }
-      receivedNumResults += ev.getTasks().size();
     }
 
     void awaitResults() {
@@ -336,8 +357,42 @@ final class JppfComputer implements Computer {
     }
   }
 
+  interface RinSimTask extends Task<Object> {
+    ImmutableList<SimulationTask> getTasks();
+  }
+
+  static final class CompositeTask extends AbstractTask<Object>
+      implements RinSimTask {
+    private static final long serialVersionUID = 6456630263901275865L;
+    final ImmutableList<SimulationTask> taskList;
+
+    CompositeTask(Iterable<SimulationTask> tasks) {
+      taskList = ImmutableList.copyOf(tasks);
+    }
+
+    @Override
+    public ImmutableList<SimulationTask> getTasks() {
+      return taskList;
+    }
+
+    @Override
+    public void run() {
+      for (final RinSimTask task : taskList) {
+        task.run();
+      }
+      setResult("COMPOSITE: ALL GOOD");
+    }
+
+    @Override
+    public void setDataProvider(@Nullable DataProvider dp) {
+      for (final SimulationTask st : taskList) {
+        st.setDataProvider(dp);
+      }
+    }
+  }
+
   static final class SimulationTask extends AbstractTask<Object>
-      implements Comparable<SimulationTask> {
+      implements Comparable<SimulationTask>, RinSimTask {
     private static final long serialVersionUID = 5298683984670600238L;
 
     private final long seed;
@@ -362,6 +417,11 @@ final class JppfComputer implements Computer {
     }
 
     @Override
+    public ImmutableList<SimulationTask> getTasks() {
+      return ImmutableList.of(this);
+    }
+
+    @Override
     public void run() {
       // gather data from provider
       final DataProvider dataProvider = getDataProvider();
@@ -378,8 +438,9 @@ final class JppfComputer implements Computer {
         postProcessorId);
 
       final Scenario s = scenario.get();
-      final SimArgs simArgs = SimArgs.create(s, configuration, seed, repetition,
-        false, postProcessor, null);
+      final SimArgs simArgs =
+        SimArgs.create(s, configuration, seed, repetition,
+          false, postProcessor, null);
 
       Object simResult;
       do {
