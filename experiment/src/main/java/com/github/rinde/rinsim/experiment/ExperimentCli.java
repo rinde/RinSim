@@ -95,6 +95,7 @@ public final class ExperimentCli {
       .add(createGuiOpt(builder), builder, BooleanHandler.GUI)
       .add(createOrderingOption(builder), builder, OrderingHandler.INSTANCE)
       .add(createWarmupOption(builder), builder, LongHandlers.WARMUP)
+      .add(createCompositeSizeOpt(builder), builder, IntHandlers.COMPOSITE_SIZE)
       .addHelpOption("h", "help", "Print this message.");
 
     if (builder.scenarioProviderBuilder.isPresent()) {
@@ -376,6 +377,12 @@ public final class ExperimentCli {
       @Override
       public void execute(Builder subject, Optional<Integer> value) {
         subject.numBatches(value.get());
+      }
+    },
+    COMPOSITE_SIZE {
+      @Override
+      public void execute(Builder subject, Optional<Integer> value) {
+        subject.setCompositeTaskSize(value.get());
       }
     };
   }
