@@ -431,13 +431,14 @@ public final class ScenarioGenerator {
         .iterator();
 
       long travelTime = 0L;
-      final Point prev = path.next();
+      Point prev = path.next();
       while (path.hasNext()) {
         final Point cur = path.next();
         final Measure<Double, Length> distance = Measure.valueOf(
           Point.distance(prev, cur), roadModel.getDistanceUnit());
         travelTime += RoadModels.computeTravelTime(vehicleSpeed, distance,
           timeUnit);
+        prev = cur;
       }
       return travelTime;
     }
