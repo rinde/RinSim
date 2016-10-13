@@ -22,6 +22,7 @@ import static com.google.common.collect.Sets.newHashSet;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -48,6 +49,7 @@ import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
+import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -257,6 +259,10 @@ public final class Solvers {
   public static Callable<ImmutableList<ImmutableList<Parcel>>> createSolverCallable(
       Solver solver, GlobalStateObject state) {
     return new SolverCallable(solver, state);
+  }
+
+  public static MeasureableSolver timeMeasurementDecorator(Solver s) {
+    return new TimeMeasurementSolverDecorator(s);
   }
 
   static GlobalStateObject convert(
@@ -696,6 +702,50 @@ public final class Solvers {
     }
   }
 
+  @AutoValue
+  public abstract static class SolverTimeMeasurement {
+    public abstract GlobalStateObject input();
+
+    public abstract long durationNs();
+
+    public static SolverTimeMeasurement create(GlobalStateObject state,
+        long dur) {
+      return new AutoValue_Solvers_SolverTimeMeasurement(state, dur);
+    }
+  }
+
+  public interface MeasureableSolver extends Solver {
+    List<SolverTimeMeasurement> getTimeMeasurements();
+  }
+
+  public static class TimeMeasurementSolverDecorator
+      implements MeasureableSolver {
+    private final Solver delegate;
+    private final List<SolverTimeMeasurement> measurements;
+
+    TimeMeasurementSolverDecorator(Solver deleg) {
+      delegate = deleg;
+      measurements = new ArrayList<>();
+    }
+
+    @Override
+    public List<SolverTimeMeasurement> getTimeMeasurements() {
+      return Collections.unmodifiableList(measurements);
+    }
+
+    @Override
+    public ImmutableList<ImmutableList<Parcel>> solve(GlobalStateObject state)
+        throws InterruptedException {
+
+      final long start = System.nanoTime();
+      final ImmutableList<ImmutableList<Parcel>> result = delegate.solve(state);
+      final long duration = System.nanoTime() - start;
+
+      measurements.add(SolverTimeMeasurement.create(state, duration));
+      return result;
+    }
+  }
+
   static class SolverCallable
       implements Callable<ImmutableList<ImmutableList<Parcel>>> {
     final Solver solver;
@@ -711,4 +761,5 @@ public final class Solvers {
       return solver.solve(snapshot);
     }
   }
+
 }
