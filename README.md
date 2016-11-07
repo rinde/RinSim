@@ -5,7 +5,7 @@ RinSim is an extensible logistics simulator with support for (de)centralized alg
 [![Javadocs](https://javadoc.io/badge/com.github.rinde/rinsim-core.svg?color=red)](https://javadoc.io/doc/com.github.rinde/rinsim-core)
 [![Build Status](https://travis-ci.org/rinde/RinSim.svg?branch=master)](https://travis-ci.org/rinde/RinSim) 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.rinde/rinsim-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.rinde/rinsim-core)
-[![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.58794.svg)](http://dx.doi.org/10.5281/zenodo.58794)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.165133.svg)](https://doi.org/10.5281/zenodo.165133)
 
 <!-- ![PDPModel](docs/topbar.png) -->
 ![Taxi Demo](docs/taxi-demo.gif)
