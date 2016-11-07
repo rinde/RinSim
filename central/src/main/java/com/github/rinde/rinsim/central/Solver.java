@@ -34,6 +34,7 @@ public interface Solver {
    * @param state The state of the world, or problem instance.
    * @return A list of routes, one for every vehicle in the
    *         {@link GlobalStateObject}.
+   * @throws InterruptedException When the computation is interrupted.
    */
   ImmutableList<ImmutableList<Parcel>> solve(GlobalStateObject state)
       throws InterruptedException;

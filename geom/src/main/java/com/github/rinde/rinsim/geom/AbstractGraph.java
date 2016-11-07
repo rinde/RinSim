@@ -64,6 +64,11 @@ public abstract class AbstractGraph<E extends ConnectionData> implements
   }
 
   @Override
+  public void addConnection(Point from, Point to, E connData) {
+    addConnection(from, to, Optional.of(connData));
+  }
+
+  @Override
   public void addConnections(Iterable<? extends Connection<E>> connections) {
     for (final Connection<E> connection : connections) {
       addConnection(connection);
@@ -73,11 +78,6 @@ public abstract class AbstractGraph<E extends ConnectionData> implements
   @Override
   public void merge(Graph<E> other) {
     addConnections(other.getConnections());
-  }
-
-  @Override
-  public void addConnection(Point from, Point to, E connData) {
-    addConnection(from, to, Optional.of(connData));
   }
 
   /**

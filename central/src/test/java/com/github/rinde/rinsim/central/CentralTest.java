@@ -33,7 +33,6 @@ import org.junit.Test;
 import com.github.rinde.rinsim.central.Central.VehicleCreator;
 import com.github.rinde.rinsim.central.Solvers.SimulationConverter;
 import com.github.rinde.rinsim.central.Solvers.SolveArgs;
-import com.github.rinde.rinsim.central.Solvers.StateContext;
 import com.github.rinde.rinsim.central.arrays.ArraysSolverValidator;
 import com.github.rinde.rinsim.central.arrays.MultiVehicleSolverAdapter;
 import com.github.rinde.rinsim.central.arrays.RandomMVArraysSolver;
@@ -139,12 +138,14 @@ public class CentralTest {
 
     final SimulationConverter s = Solvers.converterBuilder().with(sim).build();
 
-    StateContext res = s.convert(SolveArgs.create().useAllParcels()
-      .noCurrentRoutes());
-    assertEquals(2, res.state.getVehicles().size());
-    assertTrue(res.state.getVehicles().get(0).getContents().isEmpty());
-    assertFalse(res.state.getVehicles().get(0).getDestination().isPresent());
-    assertEquals(3, res.state.getAvailableParcels().size());
+    GlobalStateObject state = s.convert(
+      SolveArgs.create()
+        .useAllParcels()
+        .noCurrentRoutes());
+    assertEquals(2, state.getVehicles().size());
+    assertTrue(state.getVehicles().get(0).getContents().isEmpty());
+    assertFalse(state.getVehicles().get(0).getDestination().isPresent());
+    assertEquals(3, state.getAvailableParcels().size());
     assertEquals(v1.getWaitState(), v1.getState());
 
     // start moving: goto
@@ -155,28 +156,28 @@ public class CentralTest {
 
     while (v1.getState() == v1.getGotoState()) {
       assertFalse(new Point(0, 1).equals(rm.getPosition(v1)));
-      res = s.convert(SolveArgs.create().useAllParcels().noCurrentRoutes());
-      assertEquals(2, res.state.getVehicles().size());
-      assertTrue(res.state.getVehicles().get(0).getContents().isEmpty());
-      assertEquals(p1, res.state.getVehicles().get(0).getDestination().get());
-      assertEquals(3, res.state.getAvailableParcels().size());
+      state = s.convert(SolveArgs.create().useAllParcels().noCurrentRoutes());
+      assertEquals(2, state.getVehicles().size());
+      assertTrue(state.getVehicles().get(0).getContents().isEmpty());
+      assertEquals(p1, state.getVehicles().get(0).getDestination().get());
+      assertEquals(3, state.getAvailableParcels().size());
       assertEquals(v1.getGotoState(), v1.getState());
       sim.tick();
     }
     // arrived at parcel1: waitForService
     assertEquals(new Point(3, 0), rm.getPosition(v1));
     assertEquals(v1.getWaitForServiceState(), v1.getState());
-    res = s.convert(SolveArgs.create().useAllParcels().noCurrentRoutes());
-    assertEquals(2, res.state.getVehicles().size());
-    assertTrue(res.state.getVehicles().get(0).getContents().isEmpty());
-    assertEquals(p1, res.state.getVehicles().get(0).getDestination().get());
-    assertEquals(3, res.state.getAvailableParcels().size());
+    state = s.convert(SolveArgs.create().useAllParcels().noCurrentRoutes());
+    assertEquals(2, state.getVehicles().size());
+    assertTrue(state.getVehicles().get(0).getContents().isEmpty());
+    assertEquals(p1, state.getVehicles().get(0).getDestination().get());
+    assertEquals(3, state.getAvailableParcels().size());
 
     // start servicing: service
     sim.tick();
     assertEquals(v1.getServiceState(), v1.getState());
-    res = s.convert(SolveArgs.create().useAllParcels().noCurrentRoutes());
-    assertSame(p1, res.state.getVehicles().get(0).getDestination().get());
+    state = s.convert(SolveArgs.create().useAllParcels().noCurrentRoutes());
+    assertSame(p1, state.getVehicles().get(0).getDestination().get());
     assertEquals(v1.getServiceState(), v1.getState());
   }
 

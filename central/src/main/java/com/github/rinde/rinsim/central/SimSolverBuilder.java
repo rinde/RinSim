@@ -15,6 +15,8 @@
  */
 package com.github.rinde.rinsim.central;
 
+import java.util.Set;
+
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 
 /**
@@ -27,19 +29,12 @@ public abstract class SimSolverBuilder {
   SimSolverBuilder() {}
 
   /**
-   * Sets the vehicles to use to the specified vehicle and no other.
-   * @param v The only vehicle to use in the solver.
-   * @return This, as per the builder pattern.
-   */
-  public abstract SimSolverBuilder setVehicle(Vehicle v);
-
-  /**
    * Sets the vehicles to use to the specified vehicles and no other.
    * @param vehicles The vehicles to use in the solver.
    * @return This, as per the builder pattern.
    */
   public abstract SimSolverBuilder setVehicles(
-      Iterable<? extends Vehicle> vehicles);
+      Set<? extends Vehicle> vehicles);
 
   /**
    * Construct a new {@link SimSolver} instance.

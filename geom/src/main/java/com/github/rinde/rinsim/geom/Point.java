@@ -15,7 +15,7 @@
  */
 package com.github.rinde.rinsim.geom;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Verify.verifyNotNull;
 
 import java.io.Serializable;
 import java.util.Comparator;
@@ -167,7 +167,7 @@ public class Point implements Serializable {
     X {
       @Override
       public int compare(@Nullable Point o1, @Nullable Point o2) {
-        return Double.compare(checkNotNull(o1).x, checkNotNull(o2).x);
+        return Double.compare(verifyNotNull(o1).x, verifyNotNull(o2).x);
       }
     },
     /**
@@ -177,7 +177,7 @@ public class Point implements Serializable {
     Y {
       @Override
       public int compare(@Nullable Point o1, @Nullable Point o2) {
-        return Double.compare(checkNotNull(o1).y, checkNotNull(o2).y);
+        return Double.compare(verifyNotNull(o1).y, verifyNotNull(o2).y);
       }
     },
     /**
@@ -188,8 +188,8 @@ public class Point implements Serializable {
       @Override
       public int compare(@Nullable Point o1, @Nullable Point o2) {
         return ComparisonChain.start()
-          .compare(checkNotNull(o1).x, checkNotNull(o2).x)
-          .compare(checkNotNull(o1).y, checkNotNull(o2).y)
+          .compare(verifyNotNull(o1).x, verifyNotNull(o2).x)
+          .compare(verifyNotNull(o1).y, verifyNotNull(o2).y)
           .result();
       }
     };
@@ -208,7 +208,7 @@ public class Point implements Serializable {
       @Override
       @Nonnull
       public Double apply(@Nullable Point input) {
-        return checkNotNull(input).x;
+        return verifyNotNull(input).x;
       }
     },
     /**
@@ -218,7 +218,7 @@ public class Point implements Serializable {
       @Override
       @Nonnull
       public Double apply(@Nullable Point input) {
-        return checkNotNull(input).y;
+        return verifyNotNull(input).y;
       }
     };
   }

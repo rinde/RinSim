@@ -18,7 +18,6 @@ package com.github.rinde.rinsim.core.model.time;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -208,8 +207,7 @@ public abstract class TimeModel extends AbstractModel<TickListener>
    *          builder.
    */
   public abstract static class AbstractBuilder<T>
-      extends AbstractModelBuilder<TimeModel, TickListener>
-      implements Serializable {
+      extends AbstractModelBuilder<TimeModel, TickListener> {
 
     /**
      * The default time step: <code>1000</code>.

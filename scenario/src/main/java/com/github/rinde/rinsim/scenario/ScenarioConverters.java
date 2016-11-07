@@ -41,6 +41,27 @@ public final class ScenarioConverters {
   private ScenarioConverters() {}
 
   /**
+   * Returns a function that converts {@link Scenario} instances by removing any
+   * existing {@link TimeModel} instances and replaces it with the specified
+   * instance.
+   * @param timeModel The time model to use.
+   * @return A new converter function.
+   */
+  public static Function<Scenario, Scenario> useTimeModel(
+      final TimeModel.AbstractBuilder<?> timeModel) {
+    return new Function<Scenario, Scenario>() {
+      @Override
+      @Nullable
+      public Scenario apply(@Nullable Scenario input) {
+        return Scenario.builder(verifyNotNull(input))
+          .removeModelsOfType(TimeModel.AbstractBuilder.class)
+          .addModel(timeModel)
+          .build();
+      }
+    };
+  }
+
+  /**
    * Returns a function that converts {@link Scenario} instances to real-time
    * versions. If a builder for {@link TimeModel} is present in the scenario, it
    * is replaced by a real-time version. If no builder for {@link TimeModel} is

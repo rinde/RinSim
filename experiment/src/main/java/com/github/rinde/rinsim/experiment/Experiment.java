@@ -105,6 +105,7 @@ import com.google.common.collect.Sets;
  */
 public final class Experiment {
   static final Logger LOGGER = LoggerFactory.getLogger(Experiment.class);
+  static final String DASH = "-";
 
   enum Computers implements Supplier<Computer> {
     LOCAL {
@@ -257,6 +258,7 @@ public final class Experiment {
     long masterSeed;
     int numThreads;
     int numBatches;
+    int compositeTaskSize;
     long warmupPeriodMs;
 
     private Supplier<Computer> computerType;
@@ -273,6 +275,7 @@ public final class Experiment {
       masterSeed = 0L;
       numThreads = Runtime.getRuntime().availableProcessors();
       numBatches = 1;
+      compositeTaskSize = 1;
       computerType = Computers.LOCAL;
       postProc = PostProcessors.defaultPostProcessor();
       experimentOrdering = DEFAULT_EXPERIMENT_ORDERING;
@@ -462,7 +465,7 @@ public final class Experiment {
      * @param scenarios The scenarios to add.
      * @return This, as per the builder pattern.
      */
-    public Builder addScenarios(List<? extends Scenario> scenarios) {
+    public Builder addScenarios(Iterable<? extends Scenario> scenarios) {
       scenariosBuilder.addAll(scenarios);
       return this;
     }
@@ -548,7 +551,8 @@ public final class Experiment {
 
     /**
      * Sets the number of batches that should be used when using the
-     * {@link #computeDistributed()} setting.
+     * {@link #computeDistributed()} setting. This method only has an effect in
+     * case the computations are distributed, see {@link #computeDistributed()}.
      * @param num The number of batches to use.
      * @return This, as per the builder pattern.
      */
@@ -556,6 +560,21 @@ public final class Experiment {
       checkArgument(num > 0,
         "The number of batches must be strictly positive, was %s.", num);
       numBatches = num;
+      return this;
+    }
+
+    /**
+     * Sets the number of simulations that should be bundles into one task. All
+     * simulations that are bundled are executed sequentially. Default is
+     * <code>1</code>. This method only has an effect in case the computations
+     * are distributed, see {@link #computeDistributed()}.
+     * @param size The composite task size to use.
+     * @return This, as per the builder pattern.
+     */
+    public Builder setCompositeTaskSize(int size) {
+      checkArgument(size > 0,
+        "The composite task size must be strictly positive, was %s.", size);
+      compositeTaskSize = size;
       return this;
     }
 
@@ -830,6 +849,23 @@ public final class Experiment {
         .append(",postProcessor=")
         .append(getPostProcessor())
         .append("}")
+        .toString();
+    }
+
+    /**
+     * @return A very compact string representation.
+     */
+    public String toShortString() {
+      return new StringBuilder(getScenario().getProblemClass().getId())
+        .append(DASH)
+        .append(getScenario().getProblemInstanceId())
+        .append(DASH)
+        .append(getMasConfig().getName())
+        .append("-s")
+        .append(getRandomSeed())
+        .append(DASH)
+        .append("r")
+        .append(getRepetition())
         .toString();
     }
 

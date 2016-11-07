@@ -128,6 +128,21 @@ public final class ScenarioIO {
   }
 
   /**
+   * Reads {@link Scenario}s from disk.
+   * @param files The files to read from.
+   * @return A list of {@link Scenario} instances.
+   * @throws IOException When reading fails.
+   */
+  public static ImmutableList<Scenario> read(Iterable<Path> files)
+      throws IOException {
+    final ImmutableList.Builder<Scenario> builder = ImmutableList.builder();
+    for (final Path path : files) {
+      builder.add(read(path));
+    }
+    return builder.build();
+  }
+
+  /**
    * Reads a scenario from disk.
    * @param file The file to read from.
    * @param type The type of scenario to read.

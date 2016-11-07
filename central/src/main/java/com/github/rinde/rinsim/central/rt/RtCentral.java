@@ -92,8 +92,8 @@ public final class RtCentral {
    * Constructs a {@link Builder} for creating a real-time central model. The
    * real-time central model is a model that takes control of all vehicles in a
    * simulation and uses a {@link RealtimeSolver} to compute routes for all
-   * vehicles. The supplied {@link Solver} is wrapped by a
-   * {@link SolverToRealtimeAdapter}.
+   * vehicles. The supplied {@link Solver} is adapted using
+   * {@link RtStAdapters#toRealtime(StochasticSupplier)}.
    * @param solverSupplier A {@link StochasticSupplier} that creates the
    *          {@link Solver} that will be used for controlling all vehicles.
    * @return A new {@link Builder} instance.
@@ -127,7 +127,7 @@ public final class RtCentral {
    * Constructs a new {@link MASConfiguration} that uses a {@link Solver}
    * created by the specified <code>solverSupplier</code> to control all
    * vehicles. The {@link Solver} is converted to a {@link RealtimeSolver} using
-   * {@link SolverToRealtimeAdapter}.
+   * {@link RtStAdapters#toRealtime(StochasticSupplier)}.
    * @param solverSupplier A {@link StochasticSupplier} that should create
    *          instances of {@link Solver}.
    * @param nameSuffix The suffix to the name of the {@link MASConfiguration}.

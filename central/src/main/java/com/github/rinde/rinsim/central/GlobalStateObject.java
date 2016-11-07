@@ -99,11 +99,32 @@ public abstract class GlobalStateObject {
   }
 
   /**
+   * Constructs a new {@link GlobalStateObject} using the routes specified.
+   * @param routes The routes to use, this will replace any existing routes in
+   *          the vehicles. Exactly one route must be specified for each
+   *          vehicle.
+   * @return A newly constructed {@link GlobalStateObject} that only differs
+   *         from the current object in the vehicles' routes.
+   */
+  public GlobalStateObject withRoutes(
+      ImmutableList<ImmutableList<Parcel>> routes) {
+    checkArgument(routes.size() == getVehicles().size());
+    final ImmutableList.Builder<VehicleStateObject> b = ImmutableList.builder();
+    for (int i = 0; i < getVehicles().size(); i++) {
+      b.add(getVehicles().get(i).withRoute(routes.get(i)));
+    }
+    return create(getAvailableParcels(), b.build(), getTime(), getTimeUnit(),
+      getSpeedUnit(), getDistUnit());
+  }
+
+  /**
    * Immutable state object of a vehicle.
    * @author Rinde van Lon
    */
   @AutoValue
   public abstract static class VehicleStateObject {
+
+    VehicleStateObject() {}
 
     /**
      * @return The {@link VehicleDTO}.
@@ -172,6 +193,11 @@ public abstract class GlobalStateObject {
         remainingServiceTime,
         Optional.fromNullable(destination),
         Optional.fromNullable((ImmutableList<Parcel>) route));
+    }
+
+    VehicleStateObject withRoute(ImmutableList<Parcel> route) {
+      return create(getDto(), getLocation(), getContents(),
+        getRemainingServiceTime(), getDestination().orNull(), route);
     }
 
     @Override

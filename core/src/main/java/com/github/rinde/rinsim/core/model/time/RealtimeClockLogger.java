@@ -145,8 +145,7 @@ public final class RealtimeClockLogger extends AbstractModelVoid
 
   @AutoValue
   static class Builder
-      extends AbstractModelBuilder<RealtimeClockLogger, Void>
-      implements Serializable {
+      extends AbstractModelBuilder<RealtimeClockLogger, Void> {
 
     private static final long serialVersionUID = -1003703925029199193L;
 

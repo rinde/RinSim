@@ -31,16 +31,21 @@ public final class Gendreau06ObjectiveFunction
     implements ObjectiveFunction, Serializable {
   private static final long serialVersionUID = 6069190376442772396L;
   private static final Gendreau06ObjectiveFunction INSTANCE =
-    new Gendreau06ObjectiveFunction(30d);
+    new Gendreau06ObjectiveFunction(30d, 1d, 1d, 1d);
   private static final double MS_TO_MINUTES = 60000d;
   private static final double H_TO_MINUTES = 60d;
-  private static final double ALPHA = 1d;
-  private static final double BETA = 1d;
 
   private final double vehicleSpeed;
+  private final double ttFactor;
+  private final double tdFactor;
+  private final double otFactor;
 
-  private Gendreau06ObjectiveFunction(double speed) {
+  private Gendreau06ObjectiveFunction(double speed, double tt, double td,
+      double ot) {
     vehicleSpeed = speed;
+    ttFactor = tt;
+    tdFactor = td;
+    otFactor = ot;
   }
 
   /**
@@ -81,7 +86,9 @@ public final class Gendreau06ObjectiveFunction
     final double totalTravelTime = travelTime(stats);
     final double sumTardiness = tardiness(stats);
     final double overTime = overTime(stats);
-    return totalTravelTime + ALPHA * sumTardiness + BETA * overTime;
+    return ttFactor * totalTravelTime
+      + tdFactor * sumTardiness
+      + otFactor * overTime;
   }
 
   @Override
@@ -141,6 +148,12 @@ public final class Gendreau06ObjectiveFunction
   }
 
   public static Gendreau06ObjectiveFunction instance(double vehicleSpeedKmh) {
-    return new Gendreau06ObjectiveFunction(vehicleSpeedKmh);
+    return new Gendreau06ObjectiveFunction(vehicleSpeedKmh, 1d, 1d, 1d);
+  }
+
+  public static Gendreau06ObjectiveFunction instance(double vehicleSpeedKmh,
+      double ttFactor, double tdFactor, double otFactor) {
+    return new Gendreau06ObjectiveFunction(vehicleSpeedKmh, ttFactor, tdFactor,
+      otFactor);
   }
 }

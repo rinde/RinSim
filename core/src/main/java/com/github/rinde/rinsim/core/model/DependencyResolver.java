@@ -34,6 +34,9 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.github.rinde.rinsim.util.LinkedHashBiMap;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableSet;
@@ -42,6 +45,8 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
 class DependencyResolver extends DependencyProvider {
+  private static final Logger LOGGER =
+    LoggerFactory.getLogger(DependencyResolver.class);
   final Map<Class<?>, Dependency> providerMap;
   final Multimap<Dependency, Class<?>> dependencyMap;
   final BiMap<Class<?>, Dependency> modelTypeMap;
@@ -108,6 +113,16 @@ class DependencyResolver extends DependencyProvider {
     addDefaultModels();
     final Multimap<Dependency, Dependency> dependencyGraph =
       constructDependencyGraph();
+
+    if (LOGGER.isTraceEnabled()) {
+      for (final Dependency dep : dependencyGraph.keySet()) {
+        final StringBuilder sb = new StringBuilder();
+        for (final Dependency d : dependencyGraph.get(dep)) {
+          sb.append(d.modelBuilder).append(" ");
+        }
+        LOGGER.trace("{} requires: {}.", dep.modelBuilder.toString(), sb);
+      }
+    }
 
     while (!dependencyGraph.isEmpty()) {
       final List<Dependency> toRemove = new ArrayList<>();

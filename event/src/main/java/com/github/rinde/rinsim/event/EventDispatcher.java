@@ -41,19 +41,19 @@ public final class EventDispatcher implements EventAPI {
   /**
    * A map of event types to registered {@link Listener}s.
    */
-  protected final SetMultimap<Enum<?>, Listener> listeners;
+  final SetMultimap<Enum<?>, Listener> listeners;
 
   /**
    * The set of event types that this event dispatcher supports.
    */
-  protected final ImmutableSet<Enum<?>> supportedTypes;
+  final ImmutableSet<Enum<?>> supportedTypes;
 
   /**
    * The 'public' api of this dispatcher. Public in this context means API that
    * is intended for <i>users</i> of the dispatcher, that is, classes that want
    * to be notified of events.
    */
-  protected final PublicEventAPI publicAPI;
+  final PublicEventAPI publicAPI;
 
   private final AtomicInteger dispatching;
   private final SetMultimap<Enum<?>, Listener> toRemove;

@@ -21,7 +21,6 @@ import static com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState.PICKIN
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Queue;
 import java.util.Set;
 
 import javax.measure.Measure;
@@ -29,13 +28,13 @@ import javax.measure.quantity.Duration;
 
 import com.github.rinde.rinsim.central.Solvers.SimulationConverter;
 import com.github.rinde.rinsim.central.Solvers.SolveArgs;
-import com.github.rinde.rinsim.central.Solvers.StateContext;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.time.Clock;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -64,20 +63,20 @@ public final class SimSolver implements SimulationConverter {
    * @param args {@link SolveArgs} specifying what information to include.
    * @return A list containing routes for each vehicle known to this solver.
    */
-  public List<Queue<Parcel>> solve(SolveArgs args) {
+  public ImmutableList<ImmutableList<Parcel>> solve(SolveArgs args) {
     return solve(convert(args));
   }
 
   /**
    * Calls the {@link Solver} to solve the problem as defined by the current
    * simulation state.
-   * @param state The {@link StateContext} that specifies the current simulation
-   *          state.
+   * @param state The {@link GlobalStateObject} that specifies the current
+   *          simulation state.
    * @return A list of routes, one for each vehicle.
    */
-  public List<Queue<Parcel>> solve(StateContext state) {
+  public ImmutableList<ImmutableList<Parcel>> solve(GlobalStateObject state) {
     try {
-      return Solvers.convertRoutes(state, solver.get().solve(state.state));
+      return solver.get().solve(state);
     } catch (final InterruptedException e) {
       throw new IllegalStateException(
         "The solver is interrupted, can't continue.", e);
@@ -85,7 +84,7 @@ public final class SimSolver implements SimulationConverter {
   }
 
   @Override
-  public StateContext convert(SolveArgs args) {
+  public GlobalStateObject convert(SolveArgs args) {
     final Collection<Vehicle> vs = vehicles.isEmpty() ? roadModel
       .getObjectsOfType(Vehicle.class) : vehicles;
     final Set<Parcel> ps = args.parcels.isPresent()

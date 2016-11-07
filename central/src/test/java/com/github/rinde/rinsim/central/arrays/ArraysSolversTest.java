@@ -36,10 +36,10 @@ import javax.measure.unit.SI;
 
 import org.junit.Test;
 
+import com.github.rinde.rinsim.central.GlobalStateObject;
 import com.github.rinde.rinsim.central.Solvers;
 import com.github.rinde.rinsim.central.Solvers.SimulationConverter;
 import com.github.rinde.rinsim.central.Solvers.SolveArgs;
-import com.github.rinde.rinsim.central.Solvers.StateContext;
 import com.github.rinde.rinsim.central.arrays.ArraysSolvers.ArraysObject;
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
@@ -186,14 +186,14 @@ public class ArraysSolversTest {
 
     final SimulationConverter simConv = Solvers.converterBuilder().with(sim)
       .build();
-    final StateContext sc = simConv.convert(SolveArgs.create()
+    final GlobalStateObject state = simConv.convert(SolveArgs.create()
       .noCurrentRoutes().useAllParcels());
 
     final ArraysObject singleVehicleArrays = ArraysSolvers
-      .toSingleVehicleArrays(sc.state,
+      .toSingleVehicleArrays(state,
         SI.MILLI(SI.SECOND));
 
-    final int[][] inventories = ArraysSolvers.toInventoriesArray(sc.state,
+    final int[][] inventories = ArraysSolvers.toInventoriesArray(state,
       singleVehicleArrays);
 
     assertArrayEquals(new int[][] {{0, 1}, {0, 2}}, inventories);

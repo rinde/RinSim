@@ -28,7 +28,6 @@ import com.github.rinde.rinsim.central.GlobalStateObject;
 import com.github.rinde.rinsim.central.Solver;
 import com.github.rinde.rinsim.central.Solvers;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
-import com.github.rinde.rinsim.util.StochasticSupplier;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -36,29 +35,14 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
-/**
- * Adapter of {@link Solver} to {@link RealtimeSolver}. This real-time solver
- * behaves as follows, upon receiving a new snapshot
- * {@link RealtimeSolver#problemChanged(GlobalStateObject)} the underlying
- * {@link Solver} is called to solve the problem. Any ongoing computation of a
- * previous snapshot is cancelled. When the solver completes its computation,
- * {@link Scheduler#updateSchedule(GlobalStateObject,ImmutableList)} is called
- * to provide the updated schedule. The scheduler is also notified that no
- * computations are currently taking place by calling
- * {@link Scheduler#doneForNow()}.
- * <p>
- * TODO talk about interrupt in solver
- *
- * @author Rinde van Lon
- */
-public final class SolverToRealtimeAdapter implements RealtimeSolver {
+final class SolverToRealtimeAdapter implements RealtimeSolver {
   static final Logger LOGGER =
     LoggerFactory.getLogger(SolverToRealtimeAdapter.class);
   private static final String R_BRACE = ")";
 
   Optional<Scheduler> scheduler;
   Optional<ListenableFuture<ImmutableList<ImmutableList<Parcel>>>> currentFuture;
-  private final Solver solver;
+  final Solver solver;
 
   SolverToRealtimeAdapter(Solver s) {
     solver = s;
@@ -128,40 +112,4 @@ public final class SolverToRealtimeAdapter implements RealtimeSolver {
     return Joiner.on("").join(getClass().getSimpleName(), "(",
       solver.toString(), R_BRACE);
   }
-
-  /**
-   * Constructs an adapter of {@link Solver} to {@link RealtimeSolver}. The
-   * resulting solver behaves as is documented in
-   * {@link SolverToRealtimeAdapter}.
-   * @param solver The solver to adapt.
-   * @return The adapted solver.
-   */
-  public static RealtimeSolver create(Solver solver) {
-    return new SolverToRealtimeAdapter(solver);
-  }
-
-  public static StochasticSupplier<RealtimeSolver> create(
-      StochasticSupplier<? extends Solver> solver) {
-    return new Sup(solver);
-  }
-
-  static class Sup implements StochasticSupplier<RealtimeSolver> {
-    StochasticSupplier<? extends Solver> solver;
-
-    Sup(StochasticSupplier<? extends Solver> s) {
-      solver = s;
-    }
-
-    @Override
-    public RealtimeSolver get(long seed) {
-      return new SolverToRealtimeAdapter(solver.get(seed));
-    }
-
-    @Override
-    public String toString() {
-      return Joiner.on("").join(SolverToRealtimeAdapter.class.getSimpleName(),
-        ".create(", solver, R_BRACE);
-    }
-  }
-
 }

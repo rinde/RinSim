@@ -17,15 +17,14 @@ package com.github.rinde.rinsim.central;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Sets.newHashSet;
 
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -44,13 +43,13 @@ import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.VehicleParcelActionInfo;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
-import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.road.RoadModels;
 import com.github.rinde.rinsim.core.model.time.Clock;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
+import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -262,19 +261,11 @@ public final class Solvers {
     return new SolverCallable(solver, state);
   }
 
-  // converts the routes received from Solver.solve(..) into a format which is
-  // expected by the simulator
-  static ImmutableList<Queue<Parcel>> convertRoutes(StateContext cont,
-      List<? extends List<Parcel>> routes) {
-    final ImmutableList.Builder<Queue<Parcel>> routesBuilder = ImmutableList
-      .builder();
-    for (final List<Parcel> route : routes) {
-      routesBuilder.add(newLinkedList(route));
-    }
-    return routesBuilder.build();
+  public static MeasureableSolver timeMeasurementDecorator(Solver s) {
+    return new TimeMeasurementSolverDecorator(s);
   }
 
-  static StateContext convert(
+  static GlobalStateObject convert(
       PDPRoadModel rm,
       PDPModel pm,
       Collection<Vehicle> vehicles,
@@ -333,7 +324,7 @@ public final class Solvers {
     if (fixRoutes) {
       gso = fixRoutes(gso);
     }
-    return new StateContext(gso, vehicleMap);
+    return gso;
   }
 
   static GlobalStateObject fixRoutes(GlobalStateObject state) {
@@ -422,17 +413,17 @@ public final class Solvers {
   }
 
   /**
-   * Converter that converts simulations into {@link StateContext} instances
-   * which are needed to call {@link Solver#solve(GlobalStateObject)}.
+   * Converter that converts simulations into {@link GlobalStateObject}
+   * instances which are needed to call {@link Solver#solve(GlobalStateObject)}.
    * @author Rinde van Lon
    */
   public interface SimulationConverter {
     /**
-     * Converts the simulation into a {@link StateContext} object.
+     * Converts the simulation into a {@link GlobalStateObject} object.
      * @param args {@link SolveArgs}.
-     * @return {@link StateContext}.
+     * @return {@link GlobalStateObject}.
      */
-    StateContext convert(SolveArgs args);
+    GlobalStateObject convert(SolveArgs args);
   }
 
   /**
@@ -510,6 +501,12 @@ public final class Solvers {
       return this;
     }
 
+    /**
+     * Indicates that the supplied routes should be fixed. Unassigned parcels
+     * will be assigned to the first vehicle, incorrect parcel occurrences in
+     * routes are corrected.
+     * @return This, as per the builder pattern.
+     */
     public SolveArgs fixRoutes() {
       fixRoutes = true;
       return this;
@@ -682,30 +679,6 @@ public final class Solvers {
   }
 
   /**
-   * Value object containing representing the state of a simulation. It contains
-   * a {@link GlobalStateObject} (the actual state) and two maps with references
-   * to the original vehicles and parcels. Using these maps the state object can
-   * be translated back to the original simulation objects.
-   * @author Rinde van Lon
-   */
-  public static class StateContext {
-    /**
-     * A reference to the {@link GlobalStateObject}.
-     */
-    public final GlobalStateObject state;
-    /**
-     * A mapping of {@link VehicleDTO} to {@link Vehicle}.
-     */
-    public final ImmutableMap<VehicleStateObject, Vehicle> vehicleMap;
-
-    StateContext(GlobalStateObject stateObj,
-        ImmutableMap<VehicleStateObject, Vehicle> vehicleMapping) {
-      state = stateObj;
-      vehicleMap = vehicleMapping;
-    }
-  }
-
-  /**
    *
    *
    * @author Rinde van Lon
@@ -729,6 +702,50 @@ public final class Solvers {
     }
   }
 
+  @AutoValue
+  public abstract static class SolverTimeMeasurement {
+    public abstract GlobalStateObject input();
+
+    public abstract long durationNs();
+
+    public static SolverTimeMeasurement create(GlobalStateObject state,
+        long dur) {
+      return new AutoValue_Solvers_SolverTimeMeasurement(state, dur);
+    }
+  }
+
+  public interface MeasureableSolver extends Solver {
+    List<SolverTimeMeasurement> getTimeMeasurements();
+  }
+
+  public static class TimeMeasurementSolverDecorator
+      implements MeasureableSolver {
+    private final Solver delegate;
+    private final List<SolverTimeMeasurement> measurements;
+
+    TimeMeasurementSolverDecorator(Solver deleg) {
+      delegate = deleg;
+      measurements = new ArrayList<>();
+    }
+
+    @Override
+    public List<SolverTimeMeasurement> getTimeMeasurements() {
+      return Collections.unmodifiableList(measurements);
+    }
+
+    @Override
+    public ImmutableList<ImmutableList<Parcel>> solve(GlobalStateObject state)
+        throws InterruptedException {
+
+      final long start = System.nanoTime();
+      final ImmutableList<ImmutableList<Parcel>> result = delegate.solve(state);
+      final long duration = System.nanoTime() - start;
+
+      measurements.add(SolverTimeMeasurement.create(state, duration));
+      return result;
+    }
+  }
+
   static class SolverCallable
       implements Callable<ImmutableList<ImmutableList<Parcel>>> {
     final Solver solver;
@@ -744,4 +761,5 @@ public final class Solvers {
       return solver.solve(snapshot);
     }
   }
+
 }

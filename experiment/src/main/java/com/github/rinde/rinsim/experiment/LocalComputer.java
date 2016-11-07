@@ -119,11 +119,12 @@ final class LocalComputer implements Computer {
   static void checkForError(ListeningExecutorService executor,
       ResultCollector collector) {
     if (collector.hasError()) {
+      LOGGER.info("Found error, shutting down. {}", collector.getFirstError());
       executor.shutdown();
-      if (collector.throwable instanceof RuntimeException) {
-        throw (RuntimeException) collector.throwable;
+      if (collector.getFirstError() instanceof RuntimeException) {
+        throw (RuntimeException) collector.getFirstError();
       }
-      throw new IllegalStateException(collector.throwable);
+      throw new IllegalStateException(collector.getFirstError());
     }
   }
 
@@ -143,23 +144,27 @@ final class LocalComputer implements Computer {
     final List<SimulationResult> results;
     final List<ResultListener> resultListeners;
 
-    @Nullable
-    volatile Throwable throwable;
+    volatile List<Throwable> throwables;
 
     ResultCollector(ListeningExecutorService ex, List<SimulationResult> res,
         List<ResultListener> listeners) {
       executor = ex;
       results = res;
       resultListeners = listeners;
+      throwables = new ArrayList<>();
     }
 
     public boolean hasError() {
-      return throwable != null;
+      return !throwables.isEmpty();
+    }
+
+    public Throwable getFirstError() {
+      return throwables.get(0);
     }
 
     @Override
     public void onFailure(Throwable t) {
-      throwable = t;
+      throwables.add(t);
       executor.shutdownNow();
     }
 

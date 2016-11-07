@@ -1,5 +1,11 @@
 # Release notes
 
+## v4.2.0
+ * Created adapters to allow RealtimeSolver instances to run in simulated time.
+ * Created MeasureableSolver and MeasureableRealtimeSolver interfaces that allows for measuring solver computation times.
+ * Experiment now has an option to create composite tasks for use in distributed setting, this can improve throughput (by reducing number of messages sent) when runtime of a single simulation is relatively short while the total number of simulations is long.
+ * Added convenience methods and bugfixes.
+
 ## v4.1.1
  * Improved JPPF integration
  * Added point methods by [Jens Claes](https://github.com/caske33), see [this commit](https://github.com/rinde/RinSim/commit/74b623ded305b3f82e63a77dfe4e5a1a4acaa210). 

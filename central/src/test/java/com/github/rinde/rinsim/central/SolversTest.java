@@ -15,7 +15,6 @@
  */
 package com.github.rinde.rinsim.central;
 
-import static com.github.rinde.rinsim.central.Solvers.convertRoutes;
 import static com.github.rinde.rinsim.core.model.time.TimeLapseFactory.create;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
@@ -42,7 +41,6 @@ import org.junit.Test;
 import com.github.rinde.rinsim.central.GlobalStateObject.VehicleStateObject;
 import com.github.rinde.rinsim.central.Solvers.SimulationConverter;
 import com.github.rinde.rinsim.central.Solvers.SolveArgs;
-import com.github.rinde.rinsim.central.Solvers.StateContext;
 import com.github.rinde.rinsim.central.arrays.MultiVehicleSolverAdapter;
 import com.github.rinde.rinsim.central.arrays.RandomMVArraysSolver;
 import com.github.rinde.rinsim.core.TestModelProvider;
@@ -71,7 +69,6 @@ import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
 import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06ObjectiveFunction;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -141,37 +138,34 @@ public class SolversTest {
       .with(clock)
       .build();
 
-    final StateContext sc = handle.convert(SolveArgs.create().useAllParcels()
+    final GlobalStateObject state = handle.convert(SolveArgs.create()
+      .useAllParcels()
       .noCurrentRoutes());
 
-    assertEquals(1, sc.vehicleMap.size());
-    assertEquals(v1.dto, sc.vehicleMap.keySet().iterator().next().getDto());
-    assertTrue(sc.vehicleMap.containsValue(v1));
-
-    assertEquals(ImmutableSet.of(p1), sc.state.getAvailableParcels());
-    checkVehicles(asList(v1), sc.state.getVehicles());
+    assertEquals(ImmutableSet.of(p1), state.getAvailableParcels());
+    checkVehicles(asList(v1), state.getVehicles());
 
     rm.moveTo(v1, p1, create(NonSI.HOUR, 0L, 1L));
 
     checkVehicles(
       asList(v1),
-      handle
-        .convert(SolveArgs.create().useAllParcels().noCurrentRoutes()).state
-          .getVehicles());
+      handle.convert(SolveArgs.create().useAllParcels().noCurrentRoutes())
+        .getVehicles());
 
     rm.moveTo(v1, p1, create(NonSI.HOUR, 0, 40));
     assertTrue(rm.equalPosition(v1, p1));
     pm.service(v1, p1, create(NonSI.HOUR, 0, 1));
 
     assertEquals(VehicleState.PICKING_UP, pm.getVehicleState(v1));
-    final StateContext sc2 = handle.convert(SolveArgs.create().useAllParcels()
-      .noCurrentRoutes());
+    final GlobalStateObject state2 =
+      handle.convert(SolveArgs.create().useAllParcels()
+        .noCurrentRoutes());
 
-    assertTrue(sc2.state.getAvailableParcels().contains(p1));
-    assertFalse(sc2.state.getVehicles().get(0).getContents().contains(p1));
-    assertSame(p1, sc2.state.getVehicles().get(0).getDestination().get());
-    assertEquals(29, sc2.state.getVehicles().get(0).getRemainingServiceTime());
-    assertFalse(sc2.state.getVehicles().get(0).getRoute().isPresent());
+    assertTrue(state2.getAvailableParcels().contains(p1));
+    assertFalse(state2.getVehicles().get(0).getContents().contains(p1));
+    assertSame(p1, state2.getVehicles().get(0).getDestination().get());
+    assertEquals(29, state2.getVehicles().get(0).getRemainingServiceTime());
+    assertFalse(state2.getVehicles().get(0).getRoute().isPresent());
 
     // checkVehicles(asList(v1), sc2.state.vehicles);
   }
@@ -201,17 +195,17 @@ public class SolversTest {
       .with(clock)
       .build();
 
-    final StateContext sc = handle.convert(SolveArgs.create()
+    final GlobalStateObject state = handle.convert(SolveArgs.create()
       .noCurrentRoutes());
-    assertEquals(1, sc.state.getAvailableParcels().size());
-    assertEquals(0, sc.state.getVehicles().get(0).getContents().size());
+    assertEquals(1, state.getAvailableParcels().size());
+    assertEquals(0, state.getVehicles().get(0).getContents().size());
     final Solver solver = SolverValidator.wrap(new MultiVehicleSolverAdapter(
       new RandomMVArraysSolver(new MersenneTwister(123)), NonSI.MINUTE));
     Solvers.solverBuilder(solver)
       .with(mp)
       .with(clock)
       .build()
-      .solve(sc);
+      .solve(state);
 
     // give enough time to reach destination
     rm.moveTo(v1, destination, TimeLapseFactory.create(0, 1000000000));
@@ -220,31 +214,31 @@ public class SolversTest {
     pm.pickup(v1, destination, TimeLapseFactory.create(0, 1));
     assertEquals(VehicleState.PICKING_UP, pm.getVehicleState(v1));
 
-    final StateContext sc2 = handle.convert(SolveArgs.create()
+    final GlobalStateObject state2 = handle.convert(SolveArgs.create()
       .noCurrentRoutes());
-    assertEquals(1, sc2.state.getAvailableParcels().size());
-    assertEquals(0, sc2.state.getVehicles().get(0).getContents().size());
+    assertEquals(1, state2.getAvailableParcels().size());
+    assertEquals(0, state2.getVehicles().get(0).getContents().size());
 
     // finish pickup operation
     v1.tick(TimeLapseFactory.create(0, 1000000000));
     assertEquals(VehicleState.IDLE, pm.getVehicleState(v1));
 
-    final StateContext sc3 = handle.convert(SolveArgs.create()
+    final GlobalStateObject state3 = handle.convert(SolveArgs.create()
       .useParcels(ImmutableSet.<Parcel>of())
       .noCurrentRoutes());
-    assertTrue(sc3.state.getAvailableParcels().isEmpty());
-    assertEquals(1, sc3.state.getVehicles().get(0).getContents().size());
+    assertTrue(state3.getAvailableParcels().isEmpty());
+    assertEquals(1, state3.getVehicles().get(0).getContents().size());
 
     // move to delivery location
     rm.moveTo(v1, destination, TimeLapseFactory.create(0, 1000));
     assertEquals(destination, rm.getDestinationToParcel(v1));
     assertEquals(ParcelState.IN_CARGO, pm.getParcelState(p1));
 
-    final StateContext sc4 = handle.convert(SolveArgs.create()
+    final GlobalStateObject state4 = handle.convert(SolveArgs.create()
       .useParcels(ImmutableSet.<Parcel>of())
       .noCurrentRoutes());
-    assertEquals(1, sc4.state.getVehicles().get(0).getContents().size());
-    assertTrue(sc4.state.getAvailableParcels().isEmpty());
+    assertEquals(1, state4.getVehicles().get(0).getContents().size());
+    assertTrue(state4.getAvailableParcels().isEmpty());
 
     // service delivery
     rm.moveTo(v1, destination, TimeLapseFactory.create(0, 1000000000));
@@ -253,21 +247,21 @@ public class SolversTest {
     pm.deliver(v1, p1, TimeLapseFactory.create(0, 1));
     assertNull(rm.getDestinationToParcel(v1));
     assertEquals(VehicleState.DELIVERING, pm.getVehicleState(v1));
-    final StateContext sc5 = handle.convert(SolveArgs.create()
+    final GlobalStateObject state5 = handle.convert(SolveArgs.create()
       .useParcels(ImmutableSet.<Parcel>of())
       .noCurrentRoutes());
-    assertEquals(1, sc5.state.getVehicles().get(0).getContents().size());
-    assertTrue(sc5.state.getAvailableParcels().isEmpty());
+    assertEquals(1, state5.getVehicles().get(0).getContents().size());
+    assertTrue(state5.getAvailableParcels().isEmpty());
 
     // finish delivery operation
     v1.tick(TimeLapseFactory.create(0, 1000000000));
     assertEquals(VehicleState.IDLE, pm.getVehicleState(v1));
 
-    final StateContext sc6 = handle.convert(SolveArgs.create()
+    final GlobalStateObject state6 = handle.convert(SolveArgs.create()
       .useParcels(ImmutableSet.<Parcel>of())
       .noCurrentRoutes());
-    assertTrue(sc6.state.getVehicles().get(0).getContents().isEmpty());
-    assertTrue(sc6.state.getAvailableParcels().isEmpty());
+    assertTrue(state6.getVehicles().get(0).getContents().isEmpty());
+    assertTrue(state6.getAvailableParcels().isEmpty());
   }
 
   /**
@@ -357,28 +351,6 @@ public class SolversTest {
       state.withSingleVehicle(1),
       ImmutableList.of(routes.get(1))));
     assertEquals(cost, cost0 + cost1, 0.001);
-  }
-
-  /**
-   * Tests whether a mismatch in arguments supplied to convertRoutes is handled
-   * correctly.
-   */
-  @Test
-  public void convertRoutesFail() {
-    final Parcel a = Parcel.builder(
-      new Point(0, 0), new Point(1, 1)).build();
-    final Parcel b = Parcel.builder(
-      new Point(0, 1), new Point(1, 1)).build();
-
-    final Vehicle vehicle = new TestVehicle(new Point(1, 1));
-    final GlobalStateObject gso = mock(GlobalStateObject.class);
-    final VehicleStateObject vso = mock(VehicleStateObject.class);
-
-    final StateContext sc = new StateContext(gso,
-      ImmutableMap.of(vso, vehicle));
-
-    convertRoutes(sc,
-      ImmutableList.of(ImmutableList.of(a, b)));
   }
 
   // doesn't check the contents!
