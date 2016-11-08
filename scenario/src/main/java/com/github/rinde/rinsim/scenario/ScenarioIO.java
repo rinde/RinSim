@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -39,7 +41,11 @@ import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.ParcelDTO;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy;
 import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
+import com.github.rinde.rinsim.geom.Graph;
+import com.github.rinde.rinsim.geom.LengthData;
+import com.github.rinde.rinsim.geom.MultiAttributeData;
 import com.github.rinde.rinsim.geom.Point;
+import com.github.rinde.rinsim.geom.io.DotGraphIO;
 import com.github.rinde.rinsim.scenario.Scenario.ProblemClass;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.common.base.Charsets;
@@ -49,8 +55,10 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Splitter;
+import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -71,7 +79,7 @@ import com.google.gson.stream.JsonWriter;
  * @author Rinde van Lon
  */
 public final class ScenarioIO {
-  private static final Gson GSON = initialize();
+  static final Gson GSON = initialize();
   private static final String VALUE_SEPARATOR = ",";
   private static final String VALUE = "value";
   private static final String CLAZZ = "class";
@@ -91,6 +99,8 @@ public final class ScenarioIO {
       .registerTypeAdapter(Point.class, new PointIO())
       .registerTypeAdapter(TimeWindow.class, new TimeWindowIO())
       .registerTypeAdapter(Unit.class, adapt(UnitIO.INSTANCE))
+      .registerTypeAdapter(Supplier.class, adapt(SupplierIO.INSTANCE))
+      .registerTypeHierarchyAdapter(Graph.class, adapt(GraphIO.INSTANCE))
       .registerTypeAdapter(Measure.class, adapt(MeasureIO.INSTANCE))
       .registerTypeHierarchyAdapter(Enum.class, adapt(EnumIO.INSTANCE))
       .registerTypeAdapter(StopCondition.class,
@@ -320,6 +330,135 @@ public final class ScenarioIO {
         verifyNotNull(context)), "found a null: %s", typeOfT, json);
     }
   }
+
+  enum SupplierIO implements SafeNullIO<Supplier<?>> {
+    INSTANCE {
+      @Override
+      public JsonElement doSerialize(Supplier<?> src, Type typeOfSrc,
+          JsonSerializationContext context) {
+        final JsonObject obj = new JsonObject();
+        obj.add(CLAZZ, new JsonPrimitive(src.getClass().getName()));
+        obj.add(VALUE, context.serialize(src, src.getClass()));
+        return obj;
+      }
+
+      @Override
+      public Supplier<?> doDeserialize(JsonElement json, Type typeOfT,
+          JsonDeserializationContext context) {
+        final JsonObject obj = json.getAsJsonObject();
+        final Class<?> clazz = context.deserialize(obj.get(CLAZZ), Class.class);
+        return context.deserialize(obj.get(VALUE), clazz);
+      }
+    }
+  }
+
+  enum GraphIO implements SafeNullIO<Graph<?>> {
+    INSTANCE {
+      static final String DOT = "dot";
+      static final String CONN_DATA = "conn_data";
+      static final String LENGTH_DATA = "length";
+      static final String MA_DATA = "multi_attribute";
+
+      @Override
+      public JsonElement doSerialize(Graph<?> src, Type typeOfSrc,
+          JsonSerializationContext context) {
+
+        final JsonObject obj = new JsonObject();
+        System.out.println(src.getClass());
+        System.out.println(typeOfSrc);
+
+        final StringWriter sw = new StringWriter();
+        final TypeToken<Graph<LengthData>> t1 =
+          new TypeToken<Graph<LengthData>>() {};
+        final TypeToken<Graph<MultiAttributeData>> t2 =
+          new TypeToken<Graph<MultiAttributeData>>() {};
+        try {
+          if (t1.isSupertypeOf(typeOfSrc)) {
+            obj.add(CONN_DATA, new JsonPrimitive(LENGTH_DATA));
+            DotGraphIO.getLengthGraphIO().write((Graph<LengthData>) src, sw);
+          } else if (t2.isSupertypeOf(typeOfSrc)) {
+            obj.add(CONN_DATA, new JsonPrimitive(MA_DATA));
+            DotGraphIO.getMultiAttributeGraphIO()
+              .write((Graph<MultiAttributeData>) src, sw);
+          } else {
+            throw new IllegalArgumentException(
+              "Found unsupported graph/connectiondata type: " + typeOfSrc);
+          }
+        } catch (final IOException e) {
+          throw new IllegalStateException(e);
+        }
+
+        obj.add(DOT, new JsonPrimitive(sw.toString()));
+        return obj;
+      }
+
+      @Override
+      public Graph<?> doDeserialize(JsonElement json, Type typeOfT,
+          JsonDeserializationContext context) {
+        final JsonObject obj = json.getAsJsonObject();
+
+        final String dot = obj.getAsJsonPrimitive(DOT).getAsString();
+        final String connData = obj.getAsJsonPrimitive(CONN_DATA).getAsString();
+
+        try {
+          if (connData.equals(LENGTH_DATA)) {
+            return DotGraphIO.getLengthGraphIO().read(new StringReader(dot));
+          } else if (connData.equals(MA_DATA)) {
+            return DotGraphIO.getMultiAttributeGraphIO()
+              .read(new StringReader(dot));
+          } else {
+            throw new IllegalArgumentException();
+          }
+        } catch (final IOException e) {
+          throw new IllegalArgumentException(e);
+        }
+      }
+    }
+  }
+
+  static class GenericIO<T> implements SafeNullIO<T> {
+
+    GenericIO() {}
+
+    @Override
+    public JsonElement doSerialize(T src, Type typeOfSrc,
+        JsonSerializationContext context) {
+      final JsonObject obj = new JsonObject();
+      obj.add(CLAZZ, new JsonPrimitive(src.getClass().getName()));
+      obj.add(VALUE, context.serialize(src, src.getClass()));
+      return obj;
+    }
+
+    @Override
+    public T doDeserialize(JsonElement json, Type typeOfT,
+        JsonDeserializationContext context) {
+      final JsonObject obj = json.getAsJsonObject();
+      final Class<?> clazz = context.deserialize(obj.get(CLAZZ), Class.class);
+      return context.deserialize(obj.get(VALUE), clazz);
+    }
+  }
+
+  // enum GraphIO implements SafeNullIO<Graph<?>> {
+  // INSTANCE {
+  //
+  // @Override
+  // public JsonElement doSerialize(Graph<?> src, Type typeOfSrc,
+  // JsonSerializationContext context) {
+  // final JsonObject obj = new JsonObject();
+  // obj.add(CLAZZ, new JsonPrimitive(src.getClass().getName()));
+  // obj.add(VALUE, context.serialize(src, src.getClass()));
+  // return obj;
+  // }
+  //
+  // @Override
+  // public Graph<?> doDeserialize(JsonElement json, Type typeOfT,
+  // JsonDeserializationContext context) {
+  // final JsonObject obj = json.getAsJsonObject();
+  // final Class<?> clazz = context.deserialize(obj.get(CLAZZ), Class.class);
+  // return context.deserialize(obj.get(VALUE), clazz);
+  // }
+  // }
+  // }
 
   enum ScenarioObjIO implements SafeNullIO<Scenario> {
     INSTANCE {
@@ -575,8 +714,8 @@ public final class ScenarioIO {
           return getEnum(((Class<?>) typeOfT).getName(), json.getAsString());
         }
         final JsonObject obj = json.getAsJsonObject();
-        return getEnum(obj.get(CLAZZ).getAsString(), obj
-          .get(VALUE).getAsString());
+        return getEnum(obj.get(CLAZZ).getAsString(),
+          obj.get(VALUE).getAsString());
       }
     };
 

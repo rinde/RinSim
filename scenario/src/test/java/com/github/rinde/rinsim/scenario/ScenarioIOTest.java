@@ -26,8 +26,13 @@ import java.nio.file.Paths;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
+import com.github.rinde.rinsim.core.model.road.RoadModelBuilders.StaticGraphRMB;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController.ClockMode;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
+import com.github.rinde.rinsim.geom.LengthData;
+import com.github.rinde.rinsim.geom.Point;
+import com.github.rinde.rinsim.geom.TableGraph;
 import com.github.rinde.rinsim.testutil.TestUtil;
 
 /**
@@ -87,5 +92,46 @@ public class ScenarioIOTest {
 
     Files.delete(file);
     Files.delete(tmpDir);
+  }
+
+  static class TestObject {
+    TableGraph<LengthData> g;
+  }
+
+  @Test
+  public void testIO() {
+    final TableGraph<LengthData> g = new TableGraph<>();
+
+    g.addConnection(new Point(0, 0), new Point(1, 0));
+    g.addConnection(new Point(1, 1), new Point(1, 0));
+
+    final TestObject to = new TestObject();
+    to.g = g;
+
+    final String ser = ScenarioIO.GSON.toJson(to, TestObject.class);
+    System.out.println(ser);
+
+    final TestObject to2 = ScenarioIO.GSON.fromJson(ser, TestObject.class);
+
+    assertThat(to.g).isEqualTo(to2.g);
+
+    System.out.println();
+
+    System.out.println();
+
+    final Scenario s = Scenario.builder()
+      .addModel(TimeModel.builder().withTickLength(7L))
+      .addModel(RoadModelBuilders.staticGraph(g))
+      .build();
+
+    final String serialized = ScenarioIO.write(s);
+    System.out.println(serialized);
+    final Scenario deserialized = ScenarioIO.read(serialized);
+
+    System.out.println(
+      ((StaticGraphRMB) deserialized.getModelBuilders().asList().get(1))
+        .getGraph());
+
+    assertThat(s).isEqualTo(deserialized);
   }
 }

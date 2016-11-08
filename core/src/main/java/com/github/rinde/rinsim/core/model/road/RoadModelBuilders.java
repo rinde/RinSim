@@ -17,8 +17,6 @@ package com.github.rinde.rinsim.core.model.road;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import java.io.Serializable;
-
 import javax.annotation.CheckReturnValue;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
@@ -110,8 +108,8 @@ public final class RoadModelBuilders {
    * @param <S> The builder type itself, necessary to make an inheritance-based
    *          builder.
    */
-  public abstract static class AbstractRMB<T extends RoadModel, S> extends
-      AbstractModelBuilder<T, RoadUser> {
+  public abstract static class AbstractRMB<T extends RoadModel, S>
+      extends AbstractModelBuilder<T, RoadUser> {
 
     /**
      * The default distance unit: {@link SI#KILOMETER}.
@@ -123,6 +121,8 @@ public final class RoadModelBuilders {
      */
     protected static final Unit<Velocity> DEFAULT_SPEED_UNIT =
       NonSI.KILOMETERS_PER_HOUR;
+
+    private static final long serialVersionUID = 5047700025488786509L;
 
     /**
      * @return the distanceUnit
@@ -165,6 +165,11 @@ public final class RoadModelBuilders {
       extends AbstractRMB<T, S> {
 
     /**
+     *
+     */
+    private static final long serialVersionUID = -2141173156740097368L;
+
+    /**
      * Create a new instance.
      */
     protected AbstractGraphRMB() {
@@ -193,7 +198,13 @@ public final class RoadModelBuilders {
    *          builder.
    */
   public abstract static class AbstractDynamicGraphRMB<T extends DynamicGraphRoadModel, S>
-      extends AbstractGraphRMB<T, S, ListenableGraph<?>> {}
+      extends AbstractGraphRMB<T, S, ListenableGraph<?>> {
+
+    /**
+     *
+     */
+    private static final long serialVersionUID = 5715632391773718598L;
+  }
 
   /**
    * A builder for {@link PlaneRoadModel}. Instances can be obtained via
@@ -202,8 +213,7 @@ public final class RoadModelBuilders {
    */
   @AutoValue
   public abstract static class PlaneRMB
-      extends AbstractRMB<PlaneRoadModel, PlaneRMB>
-      implements Serializable {
+      extends AbstractRMB<PlaneRoadModel, PlaneRMB> {
     static final double DEFAULT_MAX_SPEED = 50d;
     static final Point DEFAULT_MIN_POINT = new Point(0, 0);
     static final Point DEFAULT_MAX_POINT = new Point(10, 10);
@@ -305,8 +315,7 @@ public final class RoadModelBuilders {
    */
   @AutoValue
   public abstract static class StaticGraphRMB
-      extends AbstractGraphRMB<GraphRoadModel, StaticGraphRMB, Graph<?>>
-      implements Serializable {
+      extends AbstractGraphRMB<GraphRoadModel, StaticGraphRMB, Graph<?>> {
     private static final long serialVersionUID = 1206566008918936928L;
 
     StaticGraphRMB() {
@@ -367,8 +376,7 @@ public final class RoadModelBuilders {
    */
   @AutoValue
   public abstract static class DynamicGraphRMB
-      extends AbstractDynamicGraphRMB<DynamicGraphRoadModel, DynamicGraphRMB>
-      implements Serializable {
+      extends AbstractDynamicGraphRMB<DynamicGraphRoadModel, DynamicGraphRMB> {
 
     private static final long serialVersionUID = 7269626100558413212L;
 
@@ -428,8 +436,7 @@ public final class RoadModelBuilders {
    */
   @AutoValue
   public abstract static class CachedGraphRMB
-      extends AbstractGraphRMB<CachedGraphRoadModel, CachedGraphRMB, Graph<?>>
-      implements Serializable {
+      extends AbstractGraphRMB<CachedGraphRoadModel, CachedGraphRMB, Graph<?>> {
 
     private static final long serialVersionUID = -7837221650923727573L;
 
@@ -472,8 +479,7 @@ public final class RoadModelBuilders {
   @AutoValue
   public abstract static class CollisionGraphRMB
       extends
-      AbstractDynamicGraphRMB<CollisionGraphRoadModel, CollisionGraphRMB>
-      implements Serializable {
+      AbstractDynamicGraphRMB<CollisionGraphRoadModel, CollisionGraphRMB> {
 
     /**
      * The default vehicle length: <code>2</code>.
