@@ -26,14 +26,18 @@ import java.nio.file.Paths;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.github.rinde.rinsim.core.Simulator;
+import com.github.rinde.rinsim.core.model.road.GraphRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
-import com.github.rinde.rinsim.core.model.road.RoadModelBuilders.StaticGraphRMB;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController.ClockMode;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
+import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.LengthData;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.geom.TableGraph;
+import com.github.rinde.rinsim.geom.io.DotGraphIO;
 import com.github.rinde.rinsim.testutil.TestUtil;
+import com.google.common.base.Suppliers;
 
 /**
  *
@@ -94,44 +98,71 @@ public class ScenarioIOTest {
     Files.delete(tmpDir);
   }
 
-  static class TestObject {
-    TableGraph<LengthData> g;
-  }
-
+  /**
+   * Tests correct serializing of GraphRoadModel with graph in a separate file.
+   * @throws IOException If something goes wrong with the filesystem.
+   */
   @Test
-  public void testIO() {
-    final TableGraph<LengthData> g = new TableGraph<>();
+  public void testGraphRmbIO() throws IOException {
+    final String ser =
+      "{\"events\":[],\"modelBuilders\":[{\"class\":\"com.github.rinde.rinsim.core.model.time.AutoValue_TimeModel_Builder\",\"value\":{\"tickLength\":7,\"timeUnit\":\"ms\",\"provTypes\":[{\"class\":\"java.lang.Class\",\"value\":\"com.github.rinde.rinsim.core.model.time.Clock\"},{\"class\":\"java.lang.Class\",\"value\":\"com.github.rinde.rinsim.core.model.time.ClockController\"}],\"deps\":[],\"modelType\":\"com.github.rinde.rinsim.core.model.time.TimeModel\",\"associatedType\":\"com.github.rinde.rinsim.core.model.time.TickListener\"}},{\"class\":\"com.github.rinde.rinsim.core.model.road.AutoValue_RoadModelBuilders_StaticGraphRMB\",\"value\":{\"distanceUnit\":\"km\",\"speedUnit\":\"km/h\",\"graphSupplier\":{\"class\":\"com.github.rinde.rinsim.geom.io.AutoValue_DotGraphIO_LengthDataSup\",\"value\":{\"path\":\"tmp.json\"}},\"provTypes\":[{\"class\":\"java.lang.Class\",\"value\":\"com.github.rinde.rinsim.core.model.road.RoadModel\"},{\"class\":\"java.lang.Class\",\"value\":\"com.github.rinde.rinsim.core.model.road.GraphRoadModel\"}],\"deps\":[],\"modelType\":\"com.github.rinde.rinsim.core.model.road.GraphRoadModel\",\"associatedType\":\"com.github.rinde.rinsim.core.model.road.RoadUser\"}}],\"timeWindow\":\"0,28800000\",\"stopCondition\":{\"class\":\"com.github.rinde.rinsim.scenario.StopConditions$Default\",\"value\":\"ALWAYS_FALSE\"},\"problemClass\":{\"class\":\"com.github.rinde.rinsim.scenario.AutoValue_Scenario_SimpleProblemClass\",\"value\":{\"id\":\"DEFAULT\"}},\"problemInstanceId\":\"\"}";
 
+    final Graph<LengthData> g = new TableGraph<>();
     g.addConnection(new Point(0, 0), new Point(1, 0));
     g.addConnection(new Point(1, 1), new Point(1, 0));
 
-    final TestObject to = new TestObject();
-    to.g = g;
+    final Path p = Paths.get("tmp.json");
 
-    final String ser = ScenarioIO.GSON.toJson(to, TestObject.class);
-    System.out.println(ser);
-
-    final TestObject to2 = ScenarioIO.GSON.fromJson(ser, TestObject.class);
-
-    assertThat(to.g).isEqualTo(to2.g);
-
-    System.out.println();
-
-    System.out.println();
+    DotGraphIO.getLengthGraphIO().write(g, p);
 
     final Scenario s = Scenario.builder()
       .addModel(TimeModel.builder().withTickLength(7L))
-      .addModel(RoadModelBuilders.staticGraph(g))
+      .addModel(RoadModelBuilders.staticGraph(
+        DotGraphIO.getLengthDataGraphSupplier(p)))
       .build();
 
     final String serialized = ScenarioIO.write(s);
-    System.out.println(serialized);
+    assertThat(serialized).isEqualTo(ser);
+
     final Scenario deserialized = ScenarioIO.read(serialized);
-
-    System.out.println(
-      ((StaticGraphRMB) deserialized.getModelBuilders().asList().get(1))
-        .getGraph());
-
     assertThat(s).isEqualTo(deserialized);
+
+    final Simulator sim = Simulator.builder()
+      .addModels(deserialized.getModelBuilders())
+      .build();
+
+    // check that the graph that is in the simulator equals the one we defined
+    // above
+    final Graph<?> graphInSim =
+      sim.getModelProvider().getModel(GraphRoadModel.class).getGraph();
+    assertThat(graphInSim).isEqualTo(g);
+
+    Files.delete(p);
+  }
+
+  /**
+   * Tests detection and correct error message.
+   * @throws IOException If something goes wrong with the filesystem.
+   */
+  @Test
+  public void testGraphRmbDirectIO() throws IOException {
+    final Graph<LengthData> g = new TableGraph<>();
+    g.addConnection(new Point(0, 0), new Point(1, 0));
+    g.addConnection(new Point(1, 1), new Point(1, 0));
+
+    final Scenario s = Scenario.builder()
+      .addModel(TimeModel.builder().withTickLength(7L))
+      .addModel(RoadModelBuilders.staticGraph(Suppliers.ofInstance(g)))
+      .build();
+
+    boolean fail = false;
+    try {
+      ScenarioIO.write(s);
+    } catch (final IllegalArgumentException e) {
+      fail = true;
+      assertThat(e.getMessage())
+        .isEqualTo("A graph cannot be serialized embedded in a scenario.");
+    }
+    assertThat(fail).isTrue();
   }
 }

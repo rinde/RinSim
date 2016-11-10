@@ -22,6 +22,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -36,10 +37,12 @@ import com.github.rinde.rinsim.geom.MultiAttributeData;
 import com.github.rinde.rinsim.geom.MultiAttributeData.Builder;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.geom.TableGraph;
+import com.google.auto.value.AutoValue;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Splitter;
+import com.google.common.base.Supplier;
 
 /**
  * Provides input (read) and output (write) operations for {@link Graph}
@@ -69,6 +72,7 @@ public class DotGraphIO<E extends ConnectionData> extends
   static final char KEY_VAL_SEPARATOR = '=';
   static final String QUOTE = "\"";
   static final String SPACE = " ";
+  static final String R_BRACE = ")";
 
   static final Splitter KEY_VAL_SPLITTER = Splitter.on(KEY_VAL_SEPARATOR)
     .trimResults();
@@ -181,6 +185,46 @@ public class DotGraphIO<E extends ConnectionData> extends
    */
   public static DotGraphIO<LengthData> getLengthGraphIO() {
     return new DotGraphIO<>(LengthDataIO.INSTANCE, Filters.noFilter());
+  }
+
+  /**
+   * Creates a new supplier that returns a graph parsed from the supplied path.
+   * @param path The path to parse.
+   * @return A new supplier instance.
+   */
+  public static Supplier<Graph<LengthData>> getLengthDataGraphSupplier(
+      String path) {
+    return LengthDataSup.create(path);
+  }
+
+  /**
+   * Creates a new supplier that returns a graph parsed from the supplied path.
+   * @param path The path to parse.
+   * @return A new supplier instance.
+   */
+  public static Supplier<Graph<LengthData>> getLengthDataGraphSupplier(
+      Path path) {
+    return LengthDataSup.create(path.toString());
+  }
+
+  /**
+   * Creates a new supplier that returns a graph parsed from the supplied path.
+   * @param path The path to parse.
+   * @return A new supplier instance.
+   */
+  public static Supplier<Graph<MultiAttributeData>> getMultiAttributeDataGraphSupplier(
+      String path) {
+    return MADataSup.create(path);
+  }
+
+  /**
+   * Creates a new supplier that returns a graph parsed from the supplied path.
+   * @param path The path to parse.
+   * @return A new supplier instance.
+   */
+  public static Supplier<Graph<MultiAttributeData>> getMultiAttributeDataGraphSupplier(
+      Path path) {
+    return MADataSup.create(path.toString());
   }
 
   /**
@@ -314,4 +358,56 @@ public class DotGraphIO<E extends ConnectionData> extends
       }
     }
   }
+
+  @AutoValue
+  abstract static class LengthDataSup implements Supplier<Graph<LengthData>> {
+    abstract String path();
+
+    @Override
+    public Graph<LengthData> get() {
+      try {
+        return getLengthGraphIO().read(path());
+      } catch (final IOException e) {
+        throw new IllegalArgumentException(e);
+      }
+    }
+
+    @Override
+    public String toString() {
+      return DotGraphIO.class.getName() + ".getLengthDataGraphSupplier("
+        + path()
+        + R_BRACE;
+    }
+
+    static LengthDataSup create(String p) {
+      return new AutoValue_DotGraphIO_LengthDataSup(p);
+    }
+  }
+
+  @AutoValue
+  abstract static class MADataSup
+      implements Supplier<Graph<MultiAttributeData>> {
+
+    abstract String path();
+
+    @Override
+    public Graph<MultiAttributeData> get() {
+      try {
+        return getMultiAttributeGraphIO().read(path());
+      } catch (final IOException e) {
+        throw new IllegalArgumentException(e);
+      }
+    }
+
+    @Override
+    public String toString() {
+      return DotGraphIO.class.getName() + ".getMultiAttributeDataGraphSupplier("
+        + path() + R_BRACE;
+    }
+
+    static MADataSup create(String p) {
+      return new AutoValue_DotGraphIO_MADataSup(p);
+    }
+  }
+
 }

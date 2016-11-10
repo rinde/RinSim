@@ -15,13 +15,18 @@
  */
 package com.github.rinde.rinsim.geom.io;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import org.hamcrest.CoreMatchers;
 import org.junit.Before;
@@ -41,6 +46,7 @@ import com.github.rinde.rinsim.geom.io.DotGraphIO.MultiAttributeDataIO;
 import com.github.rinde.rinsim.geom.io.Filters.SimpleFilters;
 import com.github.rinde.rinsim.testutil.TestUtil;
 import com.google.common.base.Joiner;
+import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -83,10 +89,10 @@ public class DotGraphIOTest {
    */
   @Before
   public void setUp() {
-    Point a = new Point(0, 0);
-    Point b = new Point(10, 0);
-    Point c = new Point(10, 10);
-    Point d = new Point(0, 10);
+    final Point a = new Point(0, 0);
+    final Point b = new Point(10, 0);
+    final Point c = new Point(10, 10);
+    final Point d = new Point(0, 10);
 
     simpleLDGraph = new TableGraph<>();
     Graphs.addBiPath(simpleLDGraph, a, b, c, d);
@@ -126,7 +132,7 @@ public class DotGraphIOTest {
    */
   @Test
   public void testInvalidDataBlock() throws IOException {
-    DotGraphIO<LengthData> io = DotGraphIO.getLengthGraphIO();
+    final DotGraphIO<LengthData> io = DotGraphIO.getLengthGraphIO();
     exception.expect(IllegalArgumentException.class);
     exception.expectMessage(CoreMatchers.startsWith("Data block"));
     io.read(new StringReader("n3 -> n2[d=\"1.1\", s=\"50000.0\""));
@@ -138,7 +144,7 @@ public class DotGraphIOTest {
    */
   @Test
   public void testDuplicateKeyInData() throws IOException {
-    DotGraphIO<LengthData> io = DotGraphIO.getLengthGraphIO();
+    final DotGraphIO<LengthData> io = DotGraphIO.getLengthGraphIO();
     exception.expect(IllegalArgumentException.class);
     exception.expectMessage(CoreMatchers.startsWith("Found a duplicate"));
     io.read(new StringReader("n3 -> n2[d=1.1, d=\"50000.0\"]"));
@@ -150,8 +156,9 @@ public class DotGraphIOTest {
    */
   @Test
   public void testInvalidAttributeName() throws IOException {
-    DotGraphIO<MultiAttributeData> io = DotGraphIO.getMultiAttributeGraphIO();
-    Graph<MultiAttributeData> g = new TableGraph<>();
+    final DotGraphIO<MultiAttributeData> io =
+      DotGraphIO.getMultiAttributeGraphIO();
+    final Graph<MultiAttributeData> g = new TableGraph<>();
     g.addConnection(Connection.create(new Point(0, 0), new Point(1, 1),
       MultiAttributeData.builder()
         .addAttribute("d", "invalid")
@@ -169,9 +176,9 @@ public class DotGraphIOTest {
   @SuppressWarnings("static-method")
   @Test
   public void testSelfCycleFilter() throws IOException {
-    StringReader sr = new StringReader(
+    final StringReader sr = new StringReader(
       "n0[p=\"5,5\"]\nn1[p=\"4,4\"]\nn0 -> n0\nn0 -> n1");
-    Graph<?> g = DotGraphIO.getLengthGraphIO(Filters.selfCycleFilter())
+    final Graph<?> g = DotGraphIO.getLengthGraphIO(Filters.selfCycleFilter())
       .read(sr);
     assertEquals(1, g.getConnections().size());
   }
@@ -183,18 +190,19 @@ public class DotGraphIOTest {
   @SuppressWarnings("static-method")
   @Test
   public void testLegacy() throws IOException {
-    Graph<LengthData> ldGraph = DotGraphIO.getLengthGraphIO().read(
+    final Graph<LengthData> ldGraph = DotGraphIO.getLengthGraphIO().read(
       new StringReader(Joiner.on("\n").join(LEGACY_FORMAT)));
 
-    Graph<MultiAttributeData> maGraph = DotGraphIO.getMultiAttributeGraphIO()
-      .read(new StringReader(Joiner.on("\n").join(LEGACY_FORMAT)));
+    final Graph<MultiAttributeData> maGraph =
+      DotGraphIO.getMultiAttributeGraphIO()
+        .read(new StringReader(Joiner.on("\n").join(LEGACY_FORMAT)));
 
     testLegacyFormat(ldGraph);
     testLegacyFormat(maGraph);
 
-    Point n0 = new Point(3296724.2131123254, 2.5725043247255992E7);
-    Point n19663 = new Point(3296782.7337179, 2.5724994399343655E7);
-    for (Connection<MultiAttributeData> conn : maGraph.getConnections()) {
+    final Point n0 = new Point(3296724.2131123254, 2.5725043247255992E7);
+    final Point n19663 = new Point(3296782.7337179, 2.5724994399343655E7);
+    for (final Connection<MultiAttributeData> conn : maGraph.getConnections()) {
       if (conn.from().equals(n0) && conn.to().equals(n19663)) {
         assertFalse(conn.data().get().getMaxSpeed().isPresent());
       } else {
@@ -206,12 +214,12 @@ public class DotGraphIOTest {
   }
 
   private static void testLegacyFormat(Graph<?> graph) {
-    Point n0 = new Point(3296724.2131123254, 2.5725043247255992E7);
-    Point n1 = new Point(3296796.1359189367, 2.572491905319646E7);
-    Point n2 = new Point(3296880.4785663, 2.5724779870530557E7);
-    Point n3 = new Point(3296883.3554785643, 2.5724671468889512E7);
-    Point n19663 = new Point(3296782.7337179, 2.5724994399343655E7);
-    Point n16767 = new Point(3296661.5525598335, 2.5725117255271256E7);
+    final Point n0 = new Point(3296724.2131123254, 2.5725043247255992E7);
+    final Point n1 = new Point(3296796.1359189367, 2.572491905319646E7);
+    final Point n2 = new Point(3296880.4785663, 2.5724779870530557E7);
+    final Point n3 = new Point(3296883.3554785643, 2.5724671468889512E7);
+    final Point n19663 = new Point(3296782.7337179, 2.5724994399343655E7);
+    final Point n16767 = new Point(3296661.5525598335, 2.5725117255271256E7);
 
     assertEquals(6, graph.getNodes().size());
     assertTrue(graph.containsNode(n0));
@@ -255,9 +263,9 @@ public class DotGraphIOTest {
    */
   @Test
   public void testLengthDataGraph() throws IOException {
-    StringWriter sw = new StringWriter();
+    final StringWriter sw = new StringWriter();
     DotGraphIO.getLengthGraphIO().write(simpleLDGraph, sw);
-    Graph<LengthData> g = DotGraphIO.getLengthGraphIO().read(
+    final Graph<LengthData> g = DotGraphIO.getLengthGraphIO().read(
       new StringReader(sw.toString()));
     assertEquals(simpleLDGraph, g);
   }
@@ -268,10 +276,39 @@ public class DotGraphIOTest {
    */
   @Test
   public void testMultiAttributeDataGraph() throws IOException {
-    StringWriter sw = new StringWriter();
+    final StringWriter sw = new StringWriter();
     DotGraphIO.getMultiAttributeGraphIO().write(simpleMAGraph, sw);
-    Graph<MultiAttributeData> g = DotGraphIO.getMultiAttributeGraphIO().read(
-      new StringReader(sw.toString()));
+    final Graph<MultiAttributeData> g =
+      DotGraphIO.getMultiAttributeGraphIO().read(
+        new StringReader(sw.toString()));
     assertEquals(simpleMAGraph, g);
+  }
+
+  @Test
+  public void supplierLDTest() throws IOException {
+    final Path p = Paths.get("tmp.json");
+    DotGraphIO.getLengthGraphIO().write(simpleLDGraph,
+      new FileWriter(p.toFile()));
+
+    final Supplier<Graph<LengthData>> sup =
+      DotGraphIO.getLengthDataGraphSupplier(p.toString());
+
+    sup.get();
+    assertThat(simpleLDGraph).isEqualTo(sup.get());
+    Files.delete(p);
+  }
+
+  @Test
+  public void supplierMADTest() throws IOException {
+    final Path p = Paths.get("tmp.json");
+    DotGraphIO.getMultiAttributeGraphIO().write(simpleMAGraph,
+      new FileWriter(p.toFile()));
+
+    final Supplier<Graph<MultiAttributeData>> sup =
+      DotGraphIO.getMultiAttributeDataGraphSupplier(p.toString());
+
+    sup.get();
+    assertThat(simpleMAGraph).isEqualTo(sup.get());
+    Files.delete(p);
   }
 }
