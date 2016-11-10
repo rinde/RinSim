@@ -347,8 +347,8 @@ public final class RoadModelBuilders {
     }
 
     @Override
-    public GraphRoadModel build(DependencyProvider dependencyProvider) {
-      return new GraphRoadModel(getGraph(), this);
+    public GraphRoadModelImpl build(DependencyProvider dependencyProvider) {
+      return new GraphRoadModelImpl(getGraph(), this);
     }
 
     @Override
@@ -376,7 +376,8 @@ public final class RoadModelBuilders {
    */
   @AutoValue
   public abstract static class DynamicGraphRMB
-      extends AbstractDynamicGraphRMB<DynamicGraphRoadModel, DynamicGraphRMB> {
+      extends
+      AbstractDynamicGraphRMB<DynamicGraphRoadModelImpl, DynamicGraphRMB> {
 
     private static final long serialVersionUID = 7269626100558413212L;
 
@@ -407,8 +408,9 @@ public final class RoadModelBuilders {
     }
 
     @Override
-    public DynamicGraphRoadModel build(DependencyProvider dependencyProvider) {
-      return new DynamicGraphRoadModel(getGraph(), this);
+    public DynamicGraphRoadModelImpl build(
+        DependencyProvider dependencyProvider) {
+      return new DynamicGraphRoadModelImpl(getGraph(), this);
     }
 
     @Override
@@ -479,7 +481,7 @@ public final class RoadModelBuilders {
   @AutoValue
   public abstract static class CollisionGraphRMB
       extends
-      AbstractDynamicGraphRMB<CollisionGraphRoadModel, CollisionGraphRMB> {
+      AbstractDynamicGraphRMB<CollisionGraphRoadModelImpl, CollisionGraphRMB> {
 
     /**
      * The default vehicle length: <code>2</code>.
@@ -554,7 +556,7 @@ public final class RoadModelBuilders {
     }
 
     @Override
-    public CollisionGraphRoadModel build(
+    public CollisionGraphRoadModelImpl build(
         DependencyProvider dependencyProvider) {
       checkArgument(getDistanceUnit() == SI.METER,
         "Currently only %s is supported, found %s.", SI.METER,
@@ -569,10 +571,10 @@ public final class RoadModelBuilders {
       final ListenableGraph<?> graph = getGraph();
 
       for (final Connection<?> conn : graph.getConnections()) {
-        CollisionGraphRoadModel
+        CollisionGraphRoadModelImpl
           .checkConnectionLength(minConnectionLength, conn);
       }
-      return new CollisionGraphRoadModel(graph, minConnectionLength, this);
+      return new CollisionGraphRoadModelImpl(graph, minConnectionLength, this);
     }
 
     @Override

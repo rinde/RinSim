@@ -35,6 +35,7 @@ import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.road.AbstractRoadModel;
 import com.github.rinde.rinsim.core.model.road.ForwardingRoadModel;
+import com.github.rinde.rinsim.core.model.road.GenericRoadModel;
 import com.github.rinde.rinsim.core.model.road.MoveProgress;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
@@ -72,7 +73,8 @@ import com.google.common.collect.Multimap;
  *
  * @author Rinde van Lon
  */
-public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
+public class PDPRoadModel extends ForwardingRoadModel<GenericRoadModel>
+    implements ModelReceiver {
 
   final Map<MovingRoadUser, DestinationObject> destinations;
   final Multimap<MovingRoadUser, DestinationObject> destinationHistory;
@@ -126,13 +128,13 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
   @Override
   public void addObjectAt(RoadUser newObj, Point pos) {
     checkType(newObj);
-    delegate.addObjectAt(newObj, pos);
+    delegate().addObjectAt(newObj, pos);
   }
 
   @Override
   public void addObjectAtSamePosition(RoadUser newObj, RoadUser existingObj) {
     checkType(newObj);
-    delegate.addObjectAtSamePosition(newObj, existingObj);
+    delegate().addObjectAtSamePosition(newObj, existingObj);
   }
 
   private boolean isAlreadyServiced(DestType type, RoadUser ru) {
@@ -228,7 +230,7 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
         newDestinationObject.roadUser());
       destinationHistory.put(object, newDestinationObject);
     }
-    return delegate.moveTo(object, newDestinationObject.dest(), time);
+    return delegate().moveTo(object, newDestinationObject.dest(), time);
   }
 
   /**
@@ -272,7 +274,7 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
   public MoveProgress moveTo(MovingRoadUser object, Point destination,
       TimeLapse time) {
     if (allowDiversion) {
-      return delegate.moveTo(object, destination, time);
+      return delegate().moveTo(object, destination, time);
     } else {
       return unsupported();
     }
@@ -286,7 +288,7 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
   public final MoveProgress followPath(MovingRoadUser object,
       Queue<Point> path, TimeLapse time) {
     if (allowDiversion) {
-      return delegate.followPath(object, path, time);
+      return delegate().followPath(object, path, time);
     } else {
       return unsupported();
     }
@@ -320,6 +322,13 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
       ModelBuilder<? extends RoadModel, ? extends RoadUser> delegate) {
     return Builder.create((ModelBuilder<RoadModel, RoadUser>) delegate, false);
   }
+
+  // FIXME
+  // public static Builder builder(
+  // ModelBuilder<? extends GraphRoadModel, ? extends RoadUser> delegate) {
+  // return Builder.create((ModelBuilder<GraphRoadModel, RoadUser>) delegate,
+  // false);
+  // }
 
   /**
    * Builder for constructing {@link PDPRoadModel} instances. Instances can be

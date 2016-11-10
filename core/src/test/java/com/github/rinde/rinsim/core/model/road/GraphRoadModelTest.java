@@ -41,7 +41,7 @@ import org.junit.runners.Parameterized.Parameters;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
-import com.github.rinde.rinsim.core.model.road.GraphRoadModel.Loc;
+import com.github.rinde.rinsim.core.model.road.GraphRoadModelImpl.Loc;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.ConnectionData;
 import com.github.rinde.rinsim.geom.Graph;
@@ -59,14 +59,14 @@ import com.google.common.base.VerifyException;
  *
  */
 @RunWith(Parameterized.class)
-public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
+public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModelImpl> {
 
   protected Graph<? extends ConnectionData> graph;
-  protected ModelBuilder<GraphRoadModel, RoadUser> supplier;
+  protected ModelBuilder<GraphRoadModelImpl, RoadUser> supplier;
 
   // TODO what about negative speeds? and what about negative speed limits?
 
-  public GraphRoadModelTest(ModelBuilder<GraphRoadModel, RoadUser> supplier) {
+  public GraphRoadModelTest(ModelBuilder<GraphRoadModelImpl, RoadUser> supplier) {
     this.supplier = supplier;
   }
 
@@ -617,7 +617,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
   @SuppressWarnings("null")
   @Test(expected = NullPointerException.class)
   public void locationConstructorFail() {
-    GraphRoadModel.asLoc(null);
+    GraphRoadModelImpl.asLoc(null);
   }
 
   @SuppressWarnings("unchecked")
@@ -627,12 +627,12 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
       MultiAttributeData.builder().setLength(300).build());
     ((Graph<MultiAttributeData>) graph).addConnection(NE, SW);
 
-    final Loc loc1 = GraphRoadModel.newLoc(Connection.create(SW, SE), 3);
-    final Loc loc2 = GraphRoadModel.newLoc(Connection.create(SW, SE), 1);
-    final Loc loc3 = GraphRoadModel.newLoc(Connection.create(SE, NE), 9.999999);
-    final Loc loc4 = GraphRoadModel.asLoc(SW);
-    final Loc loc5 = GraphRoadModel.newLoc(Connection.create(SE, SW), 1);
-    final Loc loc6 = GraphRoadModel.newLoc(Connection.create(NE, SW), 1);
+    final Loc loc1 = GraphRoadModelImpl.newLoc(Connection.create(SW, SE), 3);
+    final Loc loc2 = GraphRoadModelImpl.newLoc(Connection.create(SW, SE), 1);
+    final Loc loc3 = GraphRoadModelImpl.newLoc(Connection.create(SE, NE), 9.999999);
+    final Loc loc4 = GraphRoadModelImpl.asLoc(SW);
+    final Loc loc5 = GraphRoadModelImpl.newLoc(Connection.create(SE, SW), 1);
+    final Loc loc6 = GraphRoadModelImpl.newLoc(Connection.create(NE, SW), 1);
 
     assertEquals(NE, loc3);
     assertTrue(loc1.isOnSameConnection(loc2));
@@ -648,18 +648,18 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
   @Test(expected = NullPointerException.class)
   public void newLocationFail1() {
     @SuppressWarnings({"null", "unused"})
-    final Loc l = GraphRoadModel.asLoc(null);
+    final Loc l = GraphRoadModelImpl.asLoc(null);
   }
 
   @Test(expected = VerifyException.class)
   public void checkLocationFail1() {
-    final Loc l = GraphRoadModel.asLoc(new Point(-10, -10));
+    final Loc l = GraphRoadModelImpl.asLoc(new Point(-10, -10));
     model.verifyLocation(l);
   }
 
   @Test(expected = VerifyException.class)
   public void checkLocationFail2() {
-    final Loc l = GraphRoadModel.newLoc(Connection.create(
+    final Loc l = GraphRoadModelImpl.newLoc(Connection.create(
       new Point(-10, -10), new Point(100, 0)), 1);
     model.verifyLocation(l);
   }
@@ -676,7 +676,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
     final Point B = new Point(10, 0);
 
     final Graph<LengthData> g = new MultimapGraph<>();
-    final GraphRoadModel rm = RoadModelBuilders.staticGraph(g).build(
+    final GraphRoadModelImpl rm = RoadModelBuilders.staticGraph(g).build(
       mock(DependencyProvider.class));
     g.addConnection(A, B, LengthData.create(3));
 

@@ -25,7 +25,7 @@ import javax.measure.Measure;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
 
-import com.github.rinde.rinsim.core.model.road.GraphRoadModel.Loc;
+import com.github.rinde.rinsim.core.model.road.GraphRoadModelImpl.Loc;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.auto.value.AutoValue;

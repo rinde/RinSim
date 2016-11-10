@@ -30,14 +30,14 @@ import com.google.common.collect.Table;
 import com.google.common.collect.Tables;
 
 /**
- * Special {@link GraphRoadModel} that caches all
+ * Special {@link GraphRoadModelImpl} that caches all
  * {@link #getShortestPathTo(Point, Point)} invocations. Further, it keeps track
  * of all {@link RoadUser}s and their types, such that
  * {@link #getObjectsOfType(Class)} is now O(1).
  *
  * @author Rinde van Lon
  */
-public class CachedGraphRoadModel extends GraphRoadModel {
+public class CachedGraphRoadModel extends GraphRoadModelImpl {
 
   // TODO add cache specific unit tests
 

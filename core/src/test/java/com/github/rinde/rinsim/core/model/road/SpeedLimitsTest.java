@@ -58,8 +58,8 @@ import com.google.common.math.DoubleMath;
 public class SpeedLimitsTest {
   final static double DELTA = 0.00001;
 
-  ModelBuilder<GraphRoadModel, RoadUser> modelBuilder;
-  GraphRoadModel model;
+  ModelBuilder<GraphRoadModelImpl, RoadUser> modelBuilder;
+  GraphRoadModelImpl model;
   Queue<Point> path;
   Point A, B, C, D, E;
 
@@ -67,7 +67,7 @@ public class SpeedLimitsTest {
   private double pathLength;
 
   @SuppressWarnings("null")
-  public SpeedLimitsTest(ModelBuilder<GraphRoadModel, RoadUser> mb,
+  public SpeedLimitsTest(ModelBuilder<GraphRoadModelImpl, RoadUser> mb,
       double pSpeed) {
     modelBuilder = mb;
     speed = pSpeed;

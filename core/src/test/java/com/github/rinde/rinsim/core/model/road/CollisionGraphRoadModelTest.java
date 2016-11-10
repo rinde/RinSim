@@ -42,7 +42,7 @@ import com.github.rinde.rinsim.geom.TableGraph;
 import com.google.common.math.DoubleMath;
 
 /**
- * Tests for {@link CollisionGraphRoadModel}.
+ * Tests for {@link CollisionGraphRoadModelImpl}.
  * @author Rinde van Lon
  */
 public class CollisionGraphRoadModelTest {
@@ -51,7 +51,7 @@ public class CollisionGraphRoadModelTest {
   @SuppressWarnings("null")
   ListenableGraph<LengthData> graph;
   @SuppressWarnings("null")
-  CollisionGraphRoadModel model;
+  CollisionGraphRoadModelImpl model;
 
   /**
    * Set up a simple squared graph.
@@ -210,9 +210,9 @@ public class CollisionGraphRoadModelTest {
     model.moveTo(agv2, NE, meter(20));
 
     assertPointEquals(new Point(3, 0), model.getPosition(agv1),
-      GraphRoadModel.DELTA);
+      GraphRoadModelImpl.DELTA);
     assertPointEquals(new Point(2, 0), model.getPosition(agv2),
-      GraphRoadModel.DELTA);
+      GraphRoadModelImpl.DELTA);
 
     // moving is not allowed
     checkNoMovement(model.moveTo(agv2, NE, meter(20)));
@@ -220,7 +220,7 @@ public class CollisionGraphRoadModelTest {
     // when the object is removed, moving is allowed
     model.removeObject(agv1);
     model.moveTo(agv2, NE, meter(20));
-    assertPointEquals(NE, model.getPosition(agv2), GraphRoadModel.DELTA);
+    assertPointEquals(NE, model.getPosition(agv2), GraphRoadModelImpl.DELTA);
   }
 
   /**
@@ -251,9 +251,9 @@ public class CollisionGraphRoadModelTest {
     model.moveTo(agv2, NW, meter(10));
 
     assertPointEquals(new Point(1d - 0.0002777777778, 0),
-      model.getPosition(agv1), GraphRoadModel.DELTA);
+      model.getPosition(agv1), GraphRoadModelImpl.DELTA);
     assertPointEquals(new Point(0, 1.0), model.getPosition(agv2),
-      GraphRoadModel.DELTA);
+      GraphRoadModelImpl.DELTA);
 
     // moving agv2 is not allowed
     checkNoMovement(model.moveTo(agv2, NW, meter(20)));
@@ -276,7 +276,7 @@ public class CollisionGraphRoadModelTest {
     assertEquals(1L, tl3.getTimeLeft());
     model.moveTo(agv1, X, tl3);
     assertPointEquals(new Point(0, -1), model.getPosition(agv1),
-      GraphRoadModel.DELTA);
+      GraphRoadModelImpl.DELTA);
     model.moveTo(agv2, NW, meter(1));
     assertEquals(NW, model.getPosition(agv2));
   }
@@ -368,7 +368,7 @@ public class CollisionGraphRoadModelTest {
   }
 
   /**
-   * Some graphs are not compatible with {@link CollisionGraphRoadModel}.
+   * Some graphs are not compatible with {@link CollisionGraphRoadModelImpl}.
    */
   @Test
   public void testDetectInvalidConnAtConstruction() {

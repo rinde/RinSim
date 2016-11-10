@@ -22,7 +22,7 @@ import java.util.Map;
 import javax.measure.unit.SI;
 
 import com.github.rinde.rinsim.core.Simulator;
-import com.github.rinde.rinsim.core.model.road.CollisionGraphRoadModel;
+import com.github.rinde.rinsim.core.model.road.CollisionGraphRoadModelImpl;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.Graphs;
@@ -38,7 +38,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Table;
 
 /**
- * Example showcasing the {@link CollisionGraphRoadModel} with an
+ * Example showcasing the {@link CollisionGraphRoadModelImpl} with an
  * {@link WarehouseRenderer} and {@link AGVRenderer}.
  * @author Rinde van Lon
  */

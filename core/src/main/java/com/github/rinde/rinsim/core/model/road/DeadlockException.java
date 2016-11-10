@@ -23,7 +23,7 @@ import com.github.rinde.rinsim.geom.Connection;
  * vehicles are attempting to travel on the same road in opposite directions.
  * Note that this road is represented as <b>two</b> one-way {@link Connection}s.
  * If this exception would not have been thrown the
- * {@link CollisionGraphRoadModel} would have been in a deadlock state. This
+ * {@link CollisionGraphRoadModelImpl} would have been in a deadlock state. This
  * exception can be caught in order to reroute the agent.
  * @author Rinde van Lon
  */

@@ -40,7 +40,7 @@ import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.geom.TableGraph;
 
 /**
- * Integration test for {@link CollisionGraphRoadModel} and
+ * Integration test for {@link CollisionGraphRoadModelImpl} and
  * {@link DefaultPDPModel}.
  * @author Rinde van Lon
  */
@@ -50,7 +50,7 @@ public class CollisionGraphRoadModelPDPIntegrationTest {
   @SuppressWarnings("null")
   Simulator simulator;
   @SuppressWarnings("null")
-  CollisionGraphRoadModel rm;
+  CollisionGraphRoadModelImpl rm;
   @SuppressWarnings("null")
   DefaultPDPModel pm;
 
@@ -81,7 +81,7 @@ public class CollisionGraphRoadModelPDPIntegrationTest {
       .addModel(DefaultPDPModel.builder())
       .build();
 
-    rm = simulator.getModelProvider().getModel(CollisionGraphRoadModel.class);
+    rm = simulator.getModelProvider().getModel(CollisionGraphRoadModelImpl.class);
     pm = simulator.getModelProvider().getModel(DefaultPDPModel.class);
   }
 

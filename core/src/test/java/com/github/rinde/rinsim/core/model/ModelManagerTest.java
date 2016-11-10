@@ -33,12 +33,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
-import com.github.rinde.rinsim.core.model.road.GraphRoadModel;
+import com.github.rinde.rinsim.core.model.road.BrokenRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.road.RoadUser;
-import com.github.rinde.rinsim.geom.ConnectionData;
-import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.LengthData;
 import com.github.rinde.rinsim.geom.MultimapGraph;
 import com.google.common.collect.ImmutableSet;
@@ -419,22 +417,6 @@ public class ModelManagerTest {
   }
 
   class InnerObject {}
-}
-
-class BrokenRoadModel extends GraphRoadModel {
-  public BrokenRoadModel(Graph<? extends ConnectionData> pGraph) {
-    super(pGraph, RoadModelBuilders.staticGraph(pGraph));
-  }
-
-  @Override
-  public boolean doRegister(RoadUser obj) {
-    throw new RuntimeException("intended failure");
-  }
-
-  @Override
-  public boolean unregister(RoadUser obj) {
-    throw new RuntimeException("intended failure");
-  }
 }
 
 class OtherFooModel implements Model<Foo> {

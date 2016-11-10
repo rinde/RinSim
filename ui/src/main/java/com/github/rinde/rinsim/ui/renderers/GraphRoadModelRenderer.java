@@ -149,7 +149,7 @@ public final class GraphRoadModelRenderer extends AbstractCanvasRenderer {
     /**
      * Sets the margin to display around the graph.
      * @param m The margin, in the same unit as
-     *          {@link GraphRoadModel#getDistanceUnit()}.
+     *          {@link GraphRoadModelImpl#getDistanceUnit()}.
      * @return A new builder instance.
      */
     @CheckReturnValue

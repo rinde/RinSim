@@ -20,7 +20,7 @@ import java.util.Queue;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
-import com.github.rinde.rinsim.core.model.road.CollisionGraphRoadModel;
+import com.github.rinde.rinsim.core.model.road.CollisionGraphRoadModelImpl;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.time.TickListener;
@@ -30,7 +30,7 @@ import com.google.common.base.Optional;
 
 class AGVAgent implements TickListener, MovingRoadUser {
   private final RandomGenerator rng;
-  private Optional<CollisionGraphRoadModel> roadModel;
+  private Optional<CollisionGraphRoadModelImpl> roadModel;
   private Optional<Point> destination;
   private Queue<Point> path;
 
@@ -43,7 +43,7 @@ class AGVAgent implements TickListener, MovingRoadUser {
 
   @Override
   public void initRoadUser(RoadModel model) {
-    roadModel = Optional.of((CollisionGraphRoadModel) model);
+    roadModel = Optional.of((CollisionGraphRoadModelImpl) model);
     Point p;
     do {
       p = model.getRandomPosition(rng);

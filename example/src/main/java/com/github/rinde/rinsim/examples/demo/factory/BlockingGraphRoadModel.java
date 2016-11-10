@@ -29,7 +29,7 @@ import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
-import com.github.rinde.rinsim.core.model.road.GraphRoadModel;
+import com.github.rinde.rinsim.core.model.road.GraphRoadModelImpl;
 import com.github.rinde.rinsim.core.model.road.MoveProgress;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
@@ -49,7 +49,7 @@ import com.google.common.collect.Multimap;
  * @author Rinde van Lon
  *
  */
-public class BlockingGraphRoadModel extends GraphRoadModel {
+public class BlockingGraphRoadModel extends GraphRoadModelImpl {
 
   Set<Point> blockedNodes;
   Multimap<MovingRoadUser, Point> vehicleBlocks;
@@ -110,7 +110,7 @@ public class BlockingGraphRoadModel extends GraphRoadModel {
     private static final long serialVersionUID = -8663781587611642451L;
 
     Builder() {
-      setProvidingTypes(RoadModel.class, GraphRoadModel.class,
+      setProvidingTypes(RoadModel.class, GraphRoadModelImpl.class,
         BlockingGraphRoadModel.class);
     }
 

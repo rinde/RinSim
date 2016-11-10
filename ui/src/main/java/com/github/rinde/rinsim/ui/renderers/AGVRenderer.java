@@ -53,7 +53,7 @@ import com.google.common.collect.Sets;
  * Renders vehicles as AGVs. Instances can be obtained via
  * {@link AGVRenderer#builder()}.
  * <p>
- * <b>Requires:</b> a {@link CollisionGraphRoadModel} in the
+ * <b>Requires:</b> a {@link CollisionGraphRoadModelImpl} in the
  * {@link com.github.rinde.rinsim.core.Simulator}.
  * @author Rinde van Lon
  */
@@ -169,7 +169,7 @@ public final class AGVRenderer
      * Vehicles are drawn with a small half circle on top, the center of this
      * half circle indicates the vehicle origin. The origin is the actual
      * position as returned by
-     * {@link CollisionGraphRoadModel#getPosition(RoadUser)}.
+     * {@link CollisionGraphRoadModelImpl#getPosition(RoadUser)}.
      * @return A new builder instance.
      */
     @CheckReturnValue
@@ -179,7 +179,8 @@ public final class AGVRenderer
 
     @Override
     public AGVRenderer build(DependencyProvider dp) {
-      final CollisionGraphRoadModel rm = dp.get(CollisionGraphRoadModel.class);
+      final CollisionGraphRoadModel rm =
+        dp.get(CollisionGraphRoadModel.class);
       return new AGVRenderer(rm, vizOptions());
     }
 
