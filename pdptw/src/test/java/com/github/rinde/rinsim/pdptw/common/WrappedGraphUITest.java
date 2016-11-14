@@ -34,6 +34,7 @@ import com.github.rinde.rinsim.geom.Graphs;
 import com.github.rinde.rinsim.geom.LengthData;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.geom.TableGraph;
+import com.github.rinde.rinsim.pdptw.common.PDPRoadModel.PDPGraphRoadModel;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.ScenarioController;
 import com.github.rinde.rinsim.scenario.StopConditions;
@@ -61,6 +62,10 @@ public class WrappedGraphUITest {
   Point NW = new Point(0, 0);
   Point C = new Point(5, 5);
 
+  /**
+   * Tests that {@link GraphRoadModelRenderer} can render a
+   * {@link PDPGraphRoadModel}.
+   */
   @Test
   public void test() {
     final Graph<LengthData> g = new TableGraph<>();

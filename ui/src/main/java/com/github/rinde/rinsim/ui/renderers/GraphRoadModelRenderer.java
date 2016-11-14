@@ -137,6 +137,7 @@ public final class GraphRoadModelRenderer extends AbstractCanvasRenderer {
   @AutoValue
   public abstract static class Builder extends
       AbstractModelBuilder<GraphRoadModelRenderer, Void> {
+    private static final long serialVersionUID = -5509180917238606415L;
 
     Builder() {
       setDependencies(GraphRoadModel.class);
@@ -149,7 +150,7 @@ public final class GraphRoadModelRenderer extends AbstractCanvasRenderer {
     /**
      * Sets the margin to display around the graph.
      * @param m The margin, in the same unit as
-     *          {@link GraphRoadModelImpl#getDistanceUnit()}.
+     *          {@link GraphRoadModel#getDistanceUnit()}.
      * @return A new builder instance.
      */
     @CheckReturnValue

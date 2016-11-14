@@ -37,6 +37,7 @@ import org.eclipse.swt.graphics.Transform;
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.road.CollisionGraphRoadModel;
+import com.github.rinde.rinsim.core.model.road.CollisionGraphRoadModelImpl;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
 import com.github.rinde.rinsim.core.model.road.RoadUser;
 import com.github.rinde.rinsim.geom.Connection;
@@ -53,7 +54,7 @@ import com.google.common.collect.Sets;
  * Renders vehicles as AGVs. Instances can be obtained via
  * {@link AGVRenderer#builder()}.
  * <p>
- * <b>Requires:</b> a {@link CollisionGraphRoadModelImpl} in the
+ * <b>Requires:</b> a {@link CollisionGraphRoadModel} in the
  * {@link com.github.rinde.rinsim.core.Simulator}.
  * @author Rinde van Lon
  */
@@ -130,6 +131,7 @@ public final class AGVRenderer
   @AutoValue
   public abstract static class Builder
       extends AbstractModelBuilder<AGVRenderer, MovingRoadUser> {
+    private static final long serialVersionUID = -8359744710512375486L;
 
     Builder() {
       setDependencies(CollisionGraphRoadModel.class);

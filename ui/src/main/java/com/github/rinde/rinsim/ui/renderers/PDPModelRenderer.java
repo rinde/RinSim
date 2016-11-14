@@ -188,6 +188,8 @@ public final class PDPModelRenderer extends AbstractCanvasRenderer {
   public abstract static class Builder extends
       AbstractModelBuilder<PDPModelRenderer, Void> {
 
+    private static final long serialVersionUID = 8354062467527222977L;
+
     Builder() {
       setDependencies(RoadModel.class, PDPModel.class, Device.class);
     }

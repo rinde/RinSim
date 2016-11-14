@@ -99,6 +99,8 @@ public final class PlaneRoadModelRenderer extends AbstractCanvasRenderer {
      */
     public static final double DEFAULT_MARGIN = 0.02;
 
+    private static final long serialVersionUID = -3124446663942895548L;
+
     Builder() {
       setDependencies(RoadModel.class);
     }

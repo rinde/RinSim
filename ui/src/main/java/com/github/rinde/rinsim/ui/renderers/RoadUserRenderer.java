@@ -126,6 +126,8 @@ public final class RoadUserRenderer extends AbstractCanvasRenderer {
   public abstract static class Builder extends
       AbstractModelBuilder<RoadUserRenderer, Void> {
 
+    private static final long serialVersionUID = -7137180979168032846L;
+
     Builder() {
       setDependencies(RoadModel.class);
     }

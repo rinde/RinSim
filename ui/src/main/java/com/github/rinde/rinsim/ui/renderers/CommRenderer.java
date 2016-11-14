@@ -204,6 +204,8 @@ public final class CommRenderer extends AbstractTypedCanvasRenderer<CommUser> {
   public abstract static class Builder extends
       AbstractModelBuilder<CommRenderer, CommUser> {
 
+    private static final long serialVersionUID = 3529315729865532162L;
+
     Builder() {
       setDependencies(CommModel.class);
     }
