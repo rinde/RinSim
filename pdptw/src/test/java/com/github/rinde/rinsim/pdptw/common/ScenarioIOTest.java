@@ -30,6 +30,7 @@ import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicie
 import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.geom.Point;
+import com.github.rinde.rinsim.geom.io.DotGraphIO;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.Scenario.ProblemClass;
 import com.github.rinde.rinsim.scenario.Scenario.SimpleProblemClass;
@@ -93,6 +94,23 @@ public class ScenarioIOTest {
     for (final ProblemClass pc : pcs) {
       ScenarioTestUtil.assertScenarioIO(sb.problemClass(pc).build());
     }
+  }
+
+  @Test
+  public void testPDPRoadModel() {
+    final Scenario.Builder sb = Scenario
+      .builder(Scenario.DEFAULT_PROBLEM_CLASS);
+    sb.addModel(PDPRoadModel.builder(RoadModelBuilders.plane()));
+    ScenarioTestUtil.assertScenarioIO(sb.build());
+  }
+
+  @Test
+  public void testPDPGraphRoadModel() {
+    final Scenario.Builder sb = Scenario
+      .builder(Scenario.DEFAULT_PROBLEM_CLASS);
+    sb.addModel(PDPRoadModel.builderForGraphRoadModel(RoadModelBuilders
+      .staticGraph(DotGraphIO.getLengthDataGraphSupplier("fake.path"))));
+    ScenarioTestUtil.assertScenarioIO(sb.build());
   }
 
   enum TestProblemClass implements ProblemClass {

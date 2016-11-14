@@ -44,6 +44,7 @@ import com.google.common.collect.ImmutableList;
  * <a href="http://en.wikipedia.org/wiki/Decorator_pattern">decorator
  * pattern</a>.
  * @author Rinde van Lon
+ * @param <T> The type of {@link RoadModel} is being forwarded.
  */
 public class ForwardingRoadModel<T extends GenericRoadModel>
     extends GenericRoadModel {
@@ -240,6 +241,6 @@ public class ForwardingRoadModel<T extends GenericRoadModel>
      * @return The {@link ModelBuilder} that will be decorated by the
      *         {@link ForwardingRoadModel} constructed by this builder.
      */
-    public abstract ModelBuilder<RoadModel, RoadUser> getDelegateModelBuilder();
+    public abstract ModelBuilder<? extends RoadModel, RoadUser> getDelegateModelBuilder();
   }
 }

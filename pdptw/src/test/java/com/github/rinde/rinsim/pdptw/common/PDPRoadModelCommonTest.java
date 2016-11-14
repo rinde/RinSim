@@ -24,6 +24,8 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
+
 import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
 
@@ -45,7 +47,10 @@ import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.model.time.TimeLapseFactory;
+import com.github.rinde.rinsim.geom.Graph;
+import com.github.rinde.rinsim.geom.MultiAttributeData;
 import com.github.rinde.rinsim.geom.Point;
+import com.github.rinde.rinsim.geom.TableGraph;
 import com.github.rinde.rinsim.util.TimeWindow;
 
 public abstract class PDPRoadModelCommonTest {
@@ -64,9 +69,11 @@ public abstract class PDPRoadModelCommonTest {
   PDPModel pm;
 
   protected final boolean allowDiversion;
+  protected final boolean graphRM;
 
-  public PDPRoadModelCommonTest(boolean diversion) {
+  public PDPRoadModelCommonTest(boolean diversion, boolean graph) {
     allowDiversion = diversion;
+    graphRM = graph;
   }
 
   /**
@@ -76,15 +83,39 @@ public abstract class PDPRoadModelCommonTest {
   public void setUp() {
     final DependencyProvider dep = mock(DependencyProvider.class);
 
-    rm = PDPRoadModel.builder(
-      RoadModelBuilders.plane()
-        .withMinPoint(new Point(0, 0))
-        .withMaxPoint(new Point(10, 10))
+    if (graphRM) {
+      // construct a fully connected graph
+      final Graph<MultiAttributeData> g = new TableGraph<>();
+
+      final List<Point> allPoints =
+        asList(new Point(0, 0), new Point(10, 10), new Point(1, 0),
+          new Point(0, 7), new Point(5, 0), new Point(0, 5), new Point(0, 6),
+          new Point(5, 5), new Point(6, 6));
+      for (int i = 1; i < allPoints.size(); i++) {
+        for (int j = 0; j < i; j++) {
+          final MultiAttributeData ma = MultiAttributeData.builder()
+            .setMaxSpeed(0.1).build();
+          g.addConnection(allPoints.get(i), allPoints.get(j), ma);
+          g.addConnection(allPoints.get(j), allPoints.get(i), ma);
+        }
+      }
+      rm = PDPRoadModel.builderForGraphRoadModel(RoadModelBuilders.staticGraph(g)
         .withDistanceUnit(SI.KILOMETER)
-        .withMaxSpeed(0.1)
         .withSpeedUnit(NonSI.KILOMETERS_PER_HOUR))
-      .withAllowVehicleDiversion(allowDiversion)
-      .build(dep);
+        .withAllowVehicleDiversion(allowDiversion)
+        .build(dep);
+    } else {
+      rm = PDPRoadModel.builder(
+        RoadModelBuilders.plane()
+          .withMinPoint(new Point(0, 0))
+          .withMaxPoint(new Point(10, 10))
+          .withDistanceUnit(SI.KILOMETER)
+          .withMaxSpeed(0.1)
+          .withSpeedUnit(NonSI.KILOMETERS_PER_HOUR))
+        .withAllowVehicleDiversion(allowDiversion)
+        .build(dep);
+
+    }
 
     when(dep.get(RoadModel.class)).thenReturn(rm);
 
@@ -127,7 +158,7 @@ public abstract class PDPRoadModelCommonTest {
     // move to depot
     rm.moveTo(dv1, depot, time(1));
     // move to pickup location
-    rm.moveTo(dv1, dp1, time(100));
+    rm.moveTo(dv1, dp1, time(1000));
     // pickup
     pm.service(dv1, dp1, time(100));
     // move to delivery location

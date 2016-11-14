@@ -71,7 +71,7 @@ public class TimeLinePanelTest {
           .with(TimeLinePanel.builder())
           .withSpeedUp(200)
           .withAutoClose()
-          .withSimulatorEndTime(60 * 60 * 1000)
+          .withSimulatorEndTime(1 * 60 * 1000)
           .withAutoPlay())
       .build();
 

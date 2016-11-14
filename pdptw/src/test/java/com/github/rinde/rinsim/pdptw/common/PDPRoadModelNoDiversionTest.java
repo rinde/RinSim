@@ -15,14 +15,29 @@
  */
 package com.github.rinde.rinsim.pdptw.common;
 
+import java.util.Arrays;
+import java.util.Collection;
+
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
+
 /**
  * @author Rinde van Lon
- * 
+ *
  */
+@RunWith(Parameterized.class)
 public class PDPRoadModelNoDiversionTest extends PDPRoadModelCommonTest {
 
-  public PDPRoadModelNoDiversionTest() {
-    super(false);
+  public PDPRoadModelNoDiversionTest(boolean useGraph) {
+    super(false, useGraph);
+  }
+
+  @Parameters
+  public static Collection<Object[]> data() {
+    return Arrays.asList(new Object[][] {
+      {true}, {false}
+    });
   }
 
 }

@@ -18,12 +18,26 @@ package com.github.rinde.rinsim.pdptw.common;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import org.junit.Test;
+import java.util.Arrays;
+import java.util.Collection;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
+
+@RunWith(Parameterized.class)
 public class PDPRoadModelWithDiversionTest extends PDPRoadModelCommonTest {
 
-  public PDPRoadModelWithDiversionTest() {
-    super(true);
+  public PDPRoadModelWithDiversionTest(boolean useGraph) {
+    super(true, useGraph);
+  }
+
+  @Parameters
+  public static Collection<Object[]> data() {
+    return Arrays.asList(new Object[][] {
+      {true}, {false}
+    });
   }
 
   /**
