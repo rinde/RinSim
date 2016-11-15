@@ -97,9 +97,6 @@ public class DynamicGraphRoadModelImpl
     posMap.clear();
   }
 
-  /**
-   * @return A reference to the graph.
-   */
   @Override
   public ListenableGraph<?> getGraph() {
     return (ListenableGraph<? extends ConnectionData>) graph;

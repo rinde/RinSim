@@ -99,9 +99,10 @@ public abstract class PDPRoadModelCommonTest {
           g.addConnection(allPoints.get(j), allPoints.get(i), ma);
         }
       }
-      rm = PDPRoadModel.builderForGraphRoadModel(RoadModelBuilders.staticGraph(g)
-        .withDistanceUnit(SI.KILOMETER)
-        .withSpeedUnit(NonSI.KILOMETERS_PER_HOUR))
+      rm = PDPGraphRoadModel.builderForGraphRm(
+        RoadModelBuilders.staticGraph(g)
+          .withDistanceUnit(SI.KILOMETER)
+          .withSpeedUnit(NonSI.KILOMETERS_PER_HOUR))
         .withAllowVehicleDiversion(allowDiversion)
         .build(dep);
     } else {

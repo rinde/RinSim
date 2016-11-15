@@ -29,6 +29,7 @@ import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
+import com.github.rinde.rinsim.geom.ListenableGraph;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.geom.io.DotGraphIO;
 import com.github.rinde.rinsim.scenario.Scenario;
@@ -108,8 +109,34 @@ public class ScenarioIOTest {
   public void testPDPGraphRoadModel() {
     final Scenario.Builder sb = Scenario
       .builder(Scenario.DEFAULT_PROBLEM_CLASS);
-    sb.addModel(PDPRoadModel.builderForGraphRoadModel(RoadModelBuilders
-      .staticGraph(DotGraphIO.getLengthDataGraphSupplier("fake.path"))));
+    sb.addModel(PDPGraphRoadModel.builderForGraphRm(
+      RoadModelBuilders.staticGraph(
+        DotGraphIO.getLengthDataGraphSupplier("fake.path"))));
+    ScenarioTestUtil.assertScenarioIO(sb.build());
+  }
+
+  @Test
+  public void testPDPDynamicGraphRoadModel() {
+    final Scenario.Builder sb = Scenario
+      .builder(Scenario.DEFAULT_PROBLEM_CLASS);
+    sb.addModel(
+      PDPDynamicGraphRoadModel.builderForDynamicGraphRm(
+        RoadModelBuilders.dynamicGraph(
+          ListenableGraph.supplier(
+            DotGraphIO.getLengthDataGraphSupplier("fake.path")))));
+    ScenarioTestUtil.assertScenarioIO(sb.build());
+  }
+
+  @Test
+  public void testPDPCollisionGraphRoadModel() {
+    final Scenario.Builder sb = Scenario
+      .builder(Scenario.DEFAULT_PROBLEM_CLASS);
+    sb.addModel(
+      PDPCollisionGraphRoadModel.builderForCollisionGraphRm(
+        RoadModelBuilders.dynamicGraph(
+          ListenableGraph.supplier(
+            DotGraphIO.getLengthDataGraphSupplier("fake.path")))
+          .withCollisionAvoidance()));
     ScenarioTestUtil.assertScenarioIO(sb.build());
   }
 

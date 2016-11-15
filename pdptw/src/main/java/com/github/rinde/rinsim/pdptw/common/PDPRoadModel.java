@@ -36,16 +36,11 @@ import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.road.AbstractRoadModel;
 import com.github.rinde.rinsim.core.model.road.ForwardingRoadModel;
 import com.github.rinde.rinsim.core.model.road.GenericRoadModel;
-import com.github.rinde.rinsim.core.model.road.GraphRoadModel;
-import com.github.rinde.rinsim.core.model.road.GraphRoadModelImpl;
 import com.github.rinde.rinsim.core.model.road.MoveProgress;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadUser;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
-import com.github.rinde.rinsim.geom.Connection;
-import com.github.rinde.rinsim.geom.ConnectionData;
-import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Joiner;
@@ -322,26 +317,56 @@ public class PDPRoadModel extends ForwardingRoadModel<GenericRoadModel>
    * @return A new {@link Builder} that constructs {@link PDPRoadModel}
    *         instances that decorate the <code>delegate</code>.
    */
-  @SuppressWarnings("unchecked")
   public static Builder builder(
       ModelBuilder<? extends RoadModel, ? extends RoadUser> delegate) {
-    return Builder.create((ModelBuilder<RoadModel, RoadUser>) delegate, false,
-      false);
+    return Builder.create(delegate, false);
   }
 
   /**
-   * Create a new {@link Builder} instance that creates instances of
-   * {@link PDPGraphRoadModel}.
-   * @param delegate The {@link ModelBuilder} that constructs the
-   *          {@link GraphRoadModel} that is going to be decorated.
-   * @return A new {@link Builder} that constructs {@link PDPGraphRoadModel}
-   *         instances that decorate the <code>delegate</code>.
+   * Builder for {@link PDPRoadModel}.
+   * @author Rinde van Lon
    */
-  @SuppressWarnings("unchecked")
-  public static Builder builderForGraphRoadModel(
-      final ModelBuilder<? extends GraphRoadModel, ? extends RoadUser> delegate) {
-    return Builder.create((ModelBuilder<GraphRoadModel, RoadUser>) delegate,
-      false, true);
+  @AutoValue
+  public abstract static class Builder
+      extends AbstractBuilder<PDPRoadModel, RoadModel> {
+
+    private static final long serialVersionUID = -2254105659128952997L;
+
+    Builder() {
+      setProvidingTypes(RoadModel.class, PDPRoadModel.class);
+    }
+
+    @Override
+    public abstract ModelBuilder<RoadModel, RoadUser> getDelegateModelBuilder();
+
+    @Override
+    public PDPRoadModel build(DependencyProvider dependencyProvider) {
+      return new PDPRoadModel(
+        (AbstractRoadModel<?>) getDelegateModelBuilder()
+          .build(dependencyProvider),
+        getAllowVehicleDiversion());
+    }
+
+    @Override
+    public Builder withAllowVehicleDiversion(boolean allowDiversion) {
+      return create(getDelegateModelBuilder(), allowDiversion);
+    }
+
+    @Override
+    public String toString() {
+      return Joiner.on("").join(
+        PDPRoadModel.class.getSimpleName(),
+        ".builder(", getDelegateModelBuilder(), ")");
+    }
+
+    @SuppressWarnings("unchecked")
+    static Builder create(
+        ModelBuilder<? extends RoadModel, ? extends RoadUser> delegateModelBuilder,
+        boolean allowDiversion) {
+      return new AutoValue_PDPRoadModel_Builder(allowDiversion,
+        (ModelBuilder<RoadModel, RoadUser>) delegateModelBuilder);
+    }
+
   }
 
   /**
@@ -349,13 +374,15 @@ public class PDPRoadModel extends ForwardingRoadModel<GenericRoadModel>
    * obtained via {@link PDPRoadModel#builder(ModelBuilder)}.
    * @author Rinde van Lon
    */
-  @AutoValue
-  public abstract static class Builder extends
-      ForwardingRoadModel.Builder<PDPRoadModel> {
+  abstract static class AbstractBuilder<T extends PDPRoadModel, U extends RoadModel>
+      extends ForwardingRoadModel.Builder<T> {
 
-    private static final long serialVersionUID = -4743379496855573980L;
+    private static final long serialVersionUID = 5571499433551975529L;
 
-    Builder() {}
+    AbstractBuilder() {}
+
+    @Override
+    public abstract ModelBuilder<U, RoadUser> getDelegateModelBuilder();
 
     /**
      * @return <code>true</code> if vehicle diversion is allowed,
@@ -363,87 +390,10 @@ public class PDPRoadModel extends ForwardingRoadModel<GenericRoadModel>
      */
     public abstract boolean getAllowVehicleDiversion();
 
-    abstract boolean getCreateGraphRM();
-
-    /**
-     * Should the model allow vehicle diversion or not. See {@link PDPRoadModel}
-     * for more information about diversion. Default: <code>false</code>.
-     * @param allowDiversion Allow (<code>true</code>) or disallow (
-     *          <code>false</code>) vehicle diversion.
-     * @return This, as per the builder pattern.
-     */
     @CheckReturnValue
-    public Builder withAllowVehicleDiversion(boolean allowDiversion) {
-      return create(getDelegateModelBuilder(), allowDiversion,
-        getCreateGraphRM());
-    }
+    public abstract AbstractBuilder<T, U> withAllowVehicleDiversion(
+        boolean allowDiversion);
 
-    @Override
-    public PDPRoadModel build(DependencyProvider dependencyProvider) {
-      final AbstractRoadModel<?> rm =
-        (AbstractRoadModel<?>) getDelegateModelBuilder()
-          .build(dependencyProvider);
-
-      if (getCreateGraphRM()) {
-        checkArgument(rm instanceof GraphRoadModel,
-          "%s can only be constructed with a %s, found %s.",
-          PDPGraphRoadModel.class, GraphRoadModelImpl.class, rm);
-        return new PDPGraphRoadModel((GraphRoadModelImpl) rm,
-          getAllowVehicleDiversion());
-      }
-      return new PDPRoadModel(rm, getAllowVehicleDiversion());
-    }
-
-    @Override
-    public String toString() {
-      return Joiner.on("").join(
-        PDPRoadModel.class.getSimpleName(),
-        ".builder(",
-        getDelegateModelBuilder(),
-        ")");
-    }
-
-    static Builder create(
-        ModelBuilder<? extends RoadModel, RoadUser> delegateModelBuilder,
-        boolean allowVehicleDiversion, boolean createGraphRM) {
-      final Builder b = new AutoValue_PDPRoadModel_Builder(delegateModelBuilder,
-        allowVehicleDiversion, createGraphRM);
-
-      // the providing types depends on whether this builder creates GRM or not
-      if (b.getCreateGraphRM()) {
-        b.setProvidingTypes(RoadModel.class, PDPRoadModel.class,
-          GraphRoadModel.class);
-      } else {
-        b.setProvidingTypes(RoadModel.class, PDPRoadModel.class);
-      }
-      return b;
-    }
-  }
-
-  /**
-   * Wraps {@link GraphRoadModel} instances similar to {@link PDPRoadModel},
-   * adds support for {@link GraphRoadModel} specific methods.
-   * @author Rinde van Lon
-   */
-  public static class PDPGraphRoadModel extends PDPRoadModel
-      implements GraphRoadModel {
-
-    GraphRoadModel grm;
-
-    PDPGraphRoadModel(GraphRoadModelImpl rm, boolean diversion) {
-      super(rm, diversion);
-      grm = rm;
-    }
-
-    @Override
-    public Graph<? extends ConnectionData> getGraph() {
-      return grm.getGraph();
-    }
-
-    @Override
-    public Optional<? extends Connection<?>> getConnection(RoadUser obj) {
-      return grm.getConnection(obj);
-    }
   }
 
   @AutoValue

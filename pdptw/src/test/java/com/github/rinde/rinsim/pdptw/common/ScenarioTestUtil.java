@@ -55,7 +55,7 @@ public class ScenarioTestUtil {
     final String serialized = ScenarioIO.write(input);
     final Scenario parsed = ScenarioIO.read(serialized);
     final String serializedAgain = ScenarioIO.write(parsed);
-
+    System.out.println(serialized);
     assertThat(input).isEqualTo(parsed);
     assertThat(serialized).isEqualTo(serializedAgain);
   }

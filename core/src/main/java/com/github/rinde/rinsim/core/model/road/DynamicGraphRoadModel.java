@@ -41,6 +41,12 @@ import com.google.common.collect.ImmutableSet;
 public interface DynamicGraphRoadModel extends GraphRoadModel {
 
   /**
+   * @return A reference to the graph.
+   */
+  @Override
+  ListenableGraph<?> getGraph();
+
+  /**
    * Checks whether there is a {@link RoadUser} on the connection between
    * <code>from</code> and <code>to</code> (inclusive).
    * @param from The start point of a connection.

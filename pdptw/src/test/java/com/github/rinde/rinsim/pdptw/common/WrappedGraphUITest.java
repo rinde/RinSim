@@ -34,7 +34,6 @@ import com.github.rinde.rinsim.geom.Graphs;
 import com.github.rinde.rinsim.geom.LengthData;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.geom.TableGraph;
-import com.github.rinde.rinsim.pdptw.common.PDPRoadModel.PDPGraphRoadModel;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.ScenarioController;
 import com.github.rinde.rinsim.scenario.StopConditions;
@@ -77,7 +76,7 @@ public class WrappedGraphUITest {
 
     final Scenario.Builder b = Scenario.builder()
       .addModel(
-        PDPRoadModel.builderForGraphRoadModel(RoadModelBuilders.staticGraph(g)))
+        PDPGraphRoadModel.builderForGraphRm(RoadModelBuilders.staticGraph(g)))
       .addModel(DefaultPDPModel.builder())
       .addEvents(
         Collections
