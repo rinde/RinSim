@@ -13,8 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.central.rt;
+package com.github.rinde.rinsim.central;
 
-import com.github.rinde.rinsim.central.Measurable;
+import java.util.List;
 
-public interface MeasurableRealtimeSolver extends RealtimeSolver, Measurable {}
+/**
+ *
+ * @author Rinde van Lon
+ */
+public interface Measurable {
+  /**
+   *
+   * @return A list of {@link SolverTimeMeasurement}s.
+   */
+  List<SolverTimeMeasurement> getTimeMeasurements();
+}

@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.central.rt;
+package com.github.rinde.rinsim.central;
 
-import com.github.rinde.rinsim.central.Measurable;
-
-public interface MeasurableRealtimeSolver extends RealtimeSolver, Measurable {}
+public interface MeasureableSolver extends Solver, Measurable {}

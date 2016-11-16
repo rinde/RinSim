@@ -13,8 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.central.rt;
+package com.github.rinde.rinsim.central;
 
-import com.github.rinde.rinsim.central.Measurable;
+import com.google.auto.value.AutoValue;
 
-public interface MeasurableRealtimeSolver extends RealtimeSolver, Measurable {}
+@AutoValue
+public abstract class SolverTimeMeasurement {
+  public abstract GlobalStateObject input();
+
+  public abstract long durationNs();
+
+  public static SolverTimeMeasurement create(GlobalStateObject state,
+      long dur) {
+    return new AutoValue_SolverTimeMeasurement(state, dur);
+  }
+}
