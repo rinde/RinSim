@@ -32,6 +32,8 @@ import com.google.common.collect.ImmutableSet;
  * @author Rinde van Lon
  */
 public class CommandLineProgress implements ResultListener {
+  private static final String SLASH = "/";
+
   private final PrintStream printStream;
   private int total;
   private int received;
@@ -77,10 +79,18 @@ public class CommandLineProgress implements ResultListener {
     } else {
       received++;
     }
+    final Runtime r = Runtime.getRuntime();
+
+    final long freeM = r.freeMemory() / 1024 / 1024;
+    final long totalM = r.totalMemory() / 1024 / 1024;
+    final long maxM = r.maxMemory() / 1024 / 1024;
+
     final Duration dur = new Duration(startTime, System.currentTimeMillis());
     printStream.println(Joiner.on("")
-      .join(received, "/", total, " (failures: ", failures, ", duration: ",
-        PeriodFormat.getDefault().print(dur.toPeriod()), ")"));
+      .join(received, SLASH, total, " (failures: ", failures, ", duration: ",
+        PeriodFormat.getDefault().print(dur.toPeriod()),
+        ", memory free/total/max (M): ", freeM, SLASH, totalM, SLASH, maxM,
+        ")"));
   }
 
   @Override
