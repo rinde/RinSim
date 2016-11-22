@@ -66,6 +66,7 @@ public class CommandLineProgress implements ResultListener {
     printStream.print(" repetitions x ");
     printStream.print(seedRepetitions);
     printStream.println(" seed repetitions)");
+    printMemorySummary(printStream);
 
     total = numberOfSimulations;
     received = 0;
@@ -79,18 +80,27 @@ public class CommandLineProgress implements ResultListener {
     } else {
       received++;
     }
-    final Runtime r = Runtime.getRuntime();
-
-    final long freeM = r.freeMemory() / 1024 / 1024;
-    final long totalM = r.totalMemory() / 1024 / 1024;
-    final long maxM = r.maxMemory() / 1024 / 1024;
-
     final Duration dur = new Duration(startTime, System.currentTimeMillis());
     printStream.println(Joiner.on("")
       .join(received, SLASH, total, " (failures: ", failures, ", duration: ",
         PeriodFormat.getDefault().print(dur.toPeriod()),
-        ", memory free/total/max (M): ", freeM, SLASH, totalM, SLASH, maxM,
-        ")"));
+        ", memory free/total/max (M): ", memorySummary(), ")"));
+  }
+
+  static String memorySummary() {
+    final StringBuilder sb = new StringBuilder();
+    final Runtime r = Runtime.getRuntime();
+    final long freeM = r.freeMemory() / 1024 / 1024;
+    final long totalM = r.totalMemory() / 1024 / 1024;
+    final long maxM = r.maxMemory() / 1024 / 1024;
+
+    return sb.append(freeM).append(SLASH).append(totalM).append(SLASH)
+      .append(maxM).toString();
+  }
+
+  static void printMemorySummary(PrintStream printStream) {
+    printStream.print("Memory free/total/max (M): ");
+    printStream.println(memorySummary());
   }
 
   @Override
@@ -98,5 +108,6 @@ public class CommandLineProgress implements ResultListener {
     final Duration dur = new Duration(startTime, System.currentTimeMillis());
     printStream.println("Computing done, duration: "
       + PeriodFormat.getDefault().print(dur.toPeriod()) + ".");
+    printMemorySummary(printStream);
   }
 }
