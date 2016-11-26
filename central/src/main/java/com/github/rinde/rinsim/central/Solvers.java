@@ -19,7 +19,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
 
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -43,12 +42,15 @@ import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.VehicleParcelActionInfo;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
-import com.github.rinde.rinsim.core.model.road.RoadModels;
+import com.github.rinde.rinsim.core.model.road.GraphRoadModel;
 import com.github.rinde.rinsim.core.model.time.Clock;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
+import com.github.rinde.rinsim.geom.Connection;
+import com.github.rinde.rinsim.geom.Graphs;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
+import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -57,7 +59,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedHashMultiset;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
-import com.google.common.math.DoubleMath;
 
 /**
  * @author Rinde van Lon
@@ -118,6 +119,7 @@ public final class Solvers {
     }
 
     double totalDistance = 0;
+    long totalTravelTime = 0;
     int totalDeliveries = 0;
     int totalPickups = 0;
     long pickupTardiness = 0;
@@ -178,13 +180,19 @@ public final class Solvers {
           final Point nextLoc = inCargo ? cur.getDeliveryLocation()
             : cur.getPickupLocation();
           final Measure<Double, Length> distance = Measure.valueOf(
-            Point.distance(vehicleLocation, nextLoc), state.getDistUnit());
+            state.getTravelTimes().computeTheoreticalDistance(vehicleLocation,
+              vso.getDto().getStartPosition()),
+            // Point.distance(vehicleLocation, nextLoc),
+            state.getDistUnit());
           totalDistance += distance.getValue();
           vehicleLocation = nextLoc;
-          final long tt = DoubleMath.roundToLong(
-            RoadModels.computeTravelTime(speed, distance, state.getTimeUnit()),
-            RoundingMode.CEILING);
+          final long tt = state.getTravelTimes()
+            .getTheoreticalShortestTravelTime(vehicleLocation, nextLoc);
+          // final long tt = DoubleMath.roundToLong(
+          // RoadModels.computeTravelTime(speed, distance, state.getTimeUnit()),
+          // RoundingMode.CEILING);
           time += tt;
+          totalTravelTime += tt;
         }
         if (inCargo) {
           // check if we are early
@@ -222,13 +230,19 @@ public final class Solvers {
 
       // go to depot
       final Measure<Double, Length> distance = Measure.valueOf(
-        Point.distance(vehicleLocation, vso.getDto().getStartPosition()),
+        state.getTravelTimes().computeTheoreticalDistance(vehicleLocation,
+          vso.getDto().getStartPosition()),
+        // Point.distance(vehicleLocation, vso.getDto().getStartPosition()),
         state.getDistUnit());
       totalDistance += distance.getValue();
-      final long tt = DoubleMath.roundToLong(
-        RoadModels.computeTravelTime(speed, distance, state.getTimeUnit()),
-        RoundingMode.CEILING);
+      final long tt = state.getTravelTimes()
+        .getTheoreticalShortestTravelTime(vehicleLocation,
+          vso.getDto().getStartPosition());
+      // final long tt = DoubleMath.roundToLong(
+      // RoadModels.computeTravelTime(speed, distance, state.getTimeUnit()),
+      // RoundingMode.CEILING);
       time += tt;
+      totalTravelTime += tt;
       // check overtime
       if (vso.getDto().getAvailabilityTimeWindow().isAfterEnd(time)) {
         overTime += time - vso.getDto().getAvailabilityTimeWindow().end();
@@ -247,7 +261,8 @@ public final class Solvers {
     final int totalVehicles = state.getVehicles().size();
     final long simulationTime = maxTime - startTime;
 
-    return new ExtendedStats(totalDistance, totalPickups, totalDeliveries,
+    return new ExtendedStats(totalDistance, totalTravelTime, totalPickups,
+      totalDeliveries,
       totalParcels, totalParcels, pickupTardiness, deliveryTardiness, 0,
       simulationTime, true, totalVehicles, overTime, totalVehicles,
       movedVehicles, state.getTimeUnit(), state.getDistUnit(),
@@ -287,6 +302,25 @@ public final class Solvers {
 
     final ImmutableSet.Builder<Parcel> availableDestParcels =
       ImmutableSet.builder();
+
+    TravelTimes tt;
+    if (rm instanceof GraphRoadModel) {
+      tt = new DynamicGraphTravelTimes(
+        Graphs.unmodifiableGraph(((GraphRoadModel) rm).getGraph()),
+        time.getUnit(), rm.getDistanceUnit(), rm.getSpeedUnit(), vehicles);
+    } else {
+      double speed = 0;
+      for (final Vehicle v : vehicles) {
+        speed += v.getSpeed();
+      }
+      speed /= vehicles.size();
+      tt = new PlaneTravelTimes(rm, speed,
+        time.getUnit());
+    }
+    // rm.getTravelTimes();
+    // ScenarioGenerator.createTravelTimes((GraphRoadModel) rm, vehicles,
+    // time.getUnit());
+
     for (final Vehicle v : vehicles) {
       final ImmutableSet<Parcel> contentsMap =
         ImmutableSet.copyOf(pm.getContents(v));
@@ -318,7 +352,7 @@ public final class Solvers {
 
     GlobalStateObject gso = GlobalStateObject.create(availableParcelsKeys,
       vehicleMap.keySet().asList(), time.getValue().longValue(),
-      time.getUnit(), rm.getSpeedUnit(), rm.getDistanceUnit());
+      time.getUnit(), rm.getSpeedUnit(), rm.getDistanceUnit(), tt);
 
     if (fixRoutes) {
       gso = fixRoutes(gso);
@@ -365,6 +399,7 @@ public final class Solvers {
       vehicleList.add(VehicleStateObject.create(
         vso.getDto(),
         vso.getLocation(),
+        vso.getConnection(),
         vso.getContents(),
         vso.getRemainingServiceTime(),
         vso.getDestination().orNull(),
@@ -377,7 +412,8 @@ public final class Solvers {
       state.getTime(),
       state.getTimeUnit(),
       state.getSpeedUnit(),
-      state.getDistUnit());
+      state.getDistUnit(),
+      state.getTravelTimes());
   }
 
   // TODO check for bugs
@@ -405,7 +441,15 @@ public final class Solvers {
       availableDestBuilder.add(destination);
     }
 
+    Optional<? extends Connection<?>> conn =
+      Optional.absent();
+
+    if (rm instanceof GraphRoadModel) {
+      conn = ((GraphRoadModel) rm).getConnection(vehicle);
+    }
+
     return VehicleStateObject.create(vehicle.getDTO(), rm.getPosition(vehicle),
+      conn,
       contents, remainingServiceTime,
       destination == null ? null : destination,
       route);
@@ -686,12 +730,13 @@ public final class Solvers {
     private static final long serialVersionUID = 3682772955122186862L;
     final ImmutableList<ImmutableList<Long>> arrivalTimes;
 
-    ExtendedStats(double dist, int pick, int del, int parc, int accP,
+    ExtendedStats(double dist, long tt, int pick, int del, int parc, int accP,
         long pickTar, long delTar, long compT, long simT, boolean finish,
         int atDepot, long overT, int total, int moved, Unit<Duration> time,
         Unit<Length> distUnit, Unit<Velocity> speed,
         ImmutableList<ImmutableList<Long>> pArrivalTimes) {
-      super(dist, pick, del, parc, accP, pickTar, delTar, compT, simT, finish,
+      super(dist, tt, pick, del, parc, accP, pickTar, delTar, compT, simT,
+        finish,
         atDepot, overT, total, moved, time, distUnit, speed);
       arrivalTimes = pArrivalTimes;
     }
@@ -701,7 +746,24 @@ public final class Solvers {
     }
   }
 
-  static class TimeMeasurementSolverDecorator implements MeasureableSolver {
+  @AutoValue
+  public abstract static class SolverTimeMeasurement {
+    public abstract GlobalStateObject input();
+
+    public abstract long durationNs();
+
+    public static SolverTimeMeasurement create(GlobalStateObject state,
+        long dur) {
+      return new AutoValue_Solvers_SolverTimeMeasurement(state, dur);
+    }
+  }
+
+  public interface MeasureableSolver extends Solver {
+    List<SolverTimeMeasurement> getTimeMeasurements();
+  }
+
+  public static class TimeMeasurementSolverDecorator
+      implements MeasureableSolver {
     private final Solver delegate;
     private final List<SolverTimeMeasurement> measurements;
 

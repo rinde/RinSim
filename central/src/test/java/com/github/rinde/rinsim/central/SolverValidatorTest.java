@@ -16,6 +16,7 @@
 package com.github.rinde.rinsim.central;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
 
 import javax.measure.unit.SI;
 
@@ -24,9 +25,11 @@ import org.junit.Test;
 import com.github.rinde.rinsim.central.GlobalStateObject.VehicleStateObject;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
+import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.testutil.TestUtil;
 import com.github.rinde.rinsim.util.TimeWindow;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
@@ -42,11 +45,13 @@ public class SolverValidatorTest {
   static final Parcel p4 = parcel("p4");
   static final Parcel p5 = parcel("p5");
 
+  static final Optional<Connection<?>> absent = Optional.absent();
+
   @Test
   public void validateNegativeTime() {
     final GlobalStateObject state = GlobalStateObject.create(
       ImmutableSet.<Parcel>of(), ImmutableList.<VehicleStateObject>of(), -1,
-      SI.SECOND, SI.METERS_PER_SECOND, SI.METER);
+      SI.SECOND, SI.METERS_PER_SECOND, SI.METER, mock(TravelTimes.class));
     boolean fail = false;
     try {
       SolverValidator.validateInputs(state);
@@ -59,11 +64,13 @@ public class SolverValidatorTest {
 
   @Test
   public void validateNegativeRemainingTime() {
-    final VehicleStateObject vs1 = VehicleStateObject.create(vdto(), POINT,
-      ImmutableSet.of(p1), -1, p2, ImmutableList.<Parcel>of());
+    final VehicleStateObject vs1 =
+      VehicleStateObject.create(vdto(), POINT, absent,
+        ImmutableSet.of(p1), -1, p2, ImmutableList.<Parcel>of());
     final GlobalStateObject state = GlobalStateObject.create(
       ImmutableSet.<Parcel>of(),
-      ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER);
+      ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER,
+      mock(TravelTimes.class));
     boolean fail = false;
     try {
       SolverValidator.validateInputs(state);
@@ -77,11 +84,12 @@ public class SolverValidatorTest {
 
   @Test
   public void validateParcelAvailableAndInInventory() {
-    final VehicleStateObject vs1 = VehicleStateObject.create(vdto(), POINT,
-      ImmutableSet.of(p1), 0, p2, ImmutableList.<Parcel>of());
+    final VehicleStateObject vs1 =
+      VehicleStateObject.create(vdto(), POINT, absent,
+        ImmutableSet.of(p1), 0, p2, ImmutableList.<Parcel>of());
     final GlobalStateObject state = GlobalStateObject.create(
       ImmutableSet.of(p1), ImmutableList.of(vs1), 0, SI.SECOND,
-      SI.METERS_PER_SECOND, SI.METER);
+      SI.METERS_PER_SECOND, SI.METER, mock(TravelTimes.class));
 
     boolean fail = false;
     try {
@@ -96,28 +104,32 @@ public class SolverValidatorTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void validateParcelInTwoInventories() {
-    final VehicleStateObject vs1 = VehicleStateObject.create(vdto(), POINT,
-      ImmutableSet.of(p1), 0, p2, ImmutableList.<Parcel>of());
-    final VehicleStateObject vs2 = VehicleStateObject.create(vdto(), POINT,
-      ImmutableSet.of(p1), 0, p2, ImmutableList.<Parcel>of());
+    final VehicleStateObject vs1 =
+      VehicleStateObject.create(vdto(), POINT, absent,
+        ImmutableSet.of(p1), 0, p2, ImmutableList.<Parcel>of());
+    final VehicleStateObject vs2 =
+      VehicleStateObject.create(vdto(), POINT, absent,
+        ImmutableSet.of(p1), 0, p2, ImmutableList.<Parcel>of());
     final ImmutableSet<Parcel> empty = ImmutableSet.of();
     final GlobalStateObject state = GlobalStateObject.create(empty,
       ImmutableList.of(vs1, vs2), 0, SI.SECOND, SI.METERS_PER_SECOND,
-      SI.METER);
+      SI.METER, mock(TravelTimes.class));
     SolverValidator.validateInputs(state);
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void valiateInputsDestinationNotInContents() {
     final ImmutableSet<Parcel> empty = ImmutableSet.of();
-    final VehicleStateObject vs1 = VehicleStateObject.create(vdto(), POINT,
-      empty, 0, p1, ImmutableList.<Parcel>of());
-    final VehicleStateObject vs2 = VehicleStateObject.create(vdto(), POINT,
-      ImmutableSet.of(p2, p1), 0, p1, ImmutableList.<Parcel>of());
+    final VehicleStateObject vs1 =
+      VehicleStateObject.create(vdto(), POINT, absent,
+        empty, 0, p1, ImmutableList.<Parcel>of());
+    final VehicleStateObject vs2 =
+      VehicleStateObject.create(vdto(), POINT, absent,
+        ImmutableSet.of(p2, p1), 0, p1, ImmutableList.<Parcel>of());
 
     final GlobalStateObject state = GlobalStateObject.create(empty,
       ImmutableList.of(vs1, vs2), 0, SI.SECOND, SI.METERS_PER_SECOND,
-      SI.METER);
+      SI.METER, mock(TravelTimes.class));
     SolverValidator.validateInputs(state);
   }
 
@@ -127,14 +139,14 @@ public class SolverValidatorTest {
   @Test(expected = IllegalArgumentException.class)
   public void validateInvalidCurrentRoute1() {
     final Point p = new Point(0, 0);
-    final VehicleStateObject vs1 = VehicleStateObject.create(vdto(), p,
+    final VehicleStateObject vs1 = VehicleStateObject.create(vdto(), p, absent,
       ImmutableSet.of(p1), 0, p1, ImmutableList.of(p1));
-    final VehicleStateObject vs2 = VehicleStateObject.create(vdto(), p,
+    final VehicleStateObject vs2 = VehicleStateObject.create(vdto(), p, absent,
       ImmutableSet.of(p2), 0, null, null);
     final ImmutableSet<Parcel> available = ImmutableSet.of(p3);
     final GlobalStateObject state = GlobalStateObject.create(available,
       ImmutableList.of(vs1, vs2), 0, SI.SECOND, SI.METERS_PER_SECOND,
-      SI.METER);
+      SI.METER, mock(TravelTimes.class));
     SolverValidator.validateInputs(state);
   }
 
@@ -144,14 +156,14 @@ public class SolverValidatorTest {
   @Test(expected = IllegalArgumentException.class)
   public void validateInvalidCurrentRoute2() {
     final Point p = new Point(0, 0);
-    final VehicleStateObject vs1 = VehicleStateObject.create(vdto(), p,
+    final VehicleStateObject vs1 = VehicleStateObject.create(vdto(), p, absent,
       ImmutableSet.<Parcel>of(), 0, p1, ImmutableList.of(p1, p2, p1, p2));
-    final VehicleStateObject vs2 = VehicleStateObject.create(vdto(), p,
+    final VehicleStateObject vs2 = VehicleStateObject.create(vdto(), p, absent,
       ImmutableSet.<Parcel>of(), 0, null, ImmutableList.of(p2, p2));
     final ImmutableSet<Parcel> available = ImmutableSet.of(p1, p2);
     final GlobalStateObject state = GlobalStateObject.create(available,
       ImmutableList.of(vs1, vs2), 0, SI.SECOND, SI.METERS_PER_SECOND,
-      SI.METER);
+      SI.METER, mock(TravelTimes.class));
     SolverValidator.validateInputs(state);
   }
 
@@ -161,11 +173,12 @@ public class SolverValidatorTest {
   @Test(expected = IllegalArgumentException.class)
   public void validateInvalidCurrentRoute3() {
     final Point p = new Point(0, 0);
-    final VehicleStateObject vs1 = VehicleStateObject.create(vdto(), p,
+    final VehicleStateObject vs1 = VehicleStateObject.create(vdto(), p, absent,
       ImmutableSet.of(p1), 0, p1, ImmutableList.of(p3));
     final ImmutableSet<Parcel> available = ImmutableSet.of(p3);
     final GlobalStateObject state = GlobalStateObject.create(available,
-      ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER);
+      ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER,
+      mock(TravelTimes.class));
     SolverValidator.validateInputs(state);
   }
 
@@ -176,11 +189,12 @@ public class SolverValidatorTest {
   @Test(expected = IllegalArgumentException.class)
   public void validateInvalidCurrentRoute4a() {
     final Point p = new Point(0, 0);
-    final VehicleStateObject vs1 = VehicleStateObject.create(vdto(), p,
+    final VehicleStateObject vs1 = VehicleStateObject.create(vdto(), p, absent,
       ImmutableSet.of(p1), 0, p1, ImmutableList.of(p3, p1, p3));
     final ImmutableSet<Parcel> available = ImmutableSet.of(p3);
     final GlobalStateObject state = GlobalStateObject.create(available,
-      ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER);
+      ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER,
+      mock(TravelTimes.class));
     SolverValidator.validateInputs(state);
   }
 
@@ -191,11 +205,12 @@ public class SolverValidatorTest {
   @Test(expected = IllegalArgumentException.class)
   public void validateInvalidCurrentRoute4b() {
     final Point p = new Point(0, 0);
-    final VehicleStateObject vs1 = VehicleStateObject.create(vdto(), p,
+    final VehicleStateObject vs1 = VehicleStateObject.create(vdto(), p, absent,
       ImmutableSet.<Parcel>of(), 0, p1, ImmutableList.<Parcel>of());
     final ImmutableSet<Parcel> available = ImmutableSet.of(p1);
     final GlobalStateObject state = GlobalStateObject.create(available,
-      ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER);
+      ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER,
+      mock(TravelTimes.class));
     SolverValidator.validateInputs(state);
   }
 
@@ -205,11 +220,12 @@ public class SolverValidatorTest {
   @Test(expected = IllegalArgumentException.class)
   public void validateInvalidCurrentRoute5() {
     final Point p = new Point(0, 0);
-    final VehicleStateObject vs1 = VehicleStateObject.create(vdto(), p,
+    final VehicleStateObject vs1 = VehicleStateObject.create(vdto(), p, absent,
       ImmutableSet.of(p1), 0, p1, ImmutableList.of(p1, p1, p3));
     final ImmutableSet<Parcel> available = ImmutableSet.of(p3);
     final GlobalStateObject state = GlobalStateObject.create(available,
-      ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER);
+      ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER,
+      mock(TravelTimes.class));
     SolverValidator.validateInputs(state);
   }
 
@@ -219,11 +235,12 @@ public class SolverValidatorTest {
   @Test(expected = IllegalArgumentException.class)
   public void validateInvalidCurrentRoute6a() {
     final Point p = new Point(0, 0);
-    final VehicleStateObject vs1 = VehicleStateObject.create(vdto(), p,
+    final VehicleStateObject vs1 = VehicleStateObject.create(vdto(), p, absent,
       ImmutableSet.of(p1), 0, p1, ImmutableList.of(p1, p2));
     final ImmutableSet<Parcel> available = ImmutableSet.of(p2);
     final GlobalStateObject state = GlobalStateObject.create(available,
-      ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER);
+      ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER,
+      mock(TravelTimes.class));
     SolverValidator.validateInputs(state);
   }
 
@@ -233,11 +250,12 @@ public class SolverValidatorTest {
   @Test(expected = IllegalArgumentException.class)
   public void validateInvalidCurrentRoute6b() {
     final Point p = new Point(0, 0);
-    final VehicleStateObject vs1 = VehicleStateObject.create(vdto(), p,
+    final VehicleStateObject vs1 = VehicleStateObject.create(vdto(), p, absent,
       ImmutableSet.of(p1), 0, p1, ImmutableList.of(p1, p2, p2, p2));
     final ImmutableSet<Parcel> available = ImmutableSet.of(p2);
     final GlobalStateObject state = GlobalStateObject.create(available,
-      ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER);
+      ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER,
+      mock(TravelTimes.class));
     SolverValidator.validateInputs(state);
   }
 
@@ -247,16 +265,19 @@ public class SolverValidatorTest {
   @Test
   public void validateValidCurrentRoutes() {
     final ImmutableSet<Parcel> empty = ImmutableSet.of();
-    final VehicleStateObject vs1 = VehicleStateObject.create(vdto(), POINT,
-      ImmutableSet.of(p1), 0, p1, ImmutableList.of(p1));
-    final VehicleStateObject vs2 = VehicleStateObject.create(vdto(), POINT,
-      ImmutableSet.of(p2), 0, null, ImmutableList.of(p2));
-    final VehicleStateObject vs3 = VehicleStateObject.create(vdto(), POINT,
-      empty, 0, p3, ImmutableList.<Parcel>of(p3, p3));
+    final VehicleStateObject vs1 =
+      VehicleStateObject.create(vdto(), POINT, absent,
+        ImmutableSet.of(p1), 0, p1, ImmutableList.of(p1));
+    final VehicleStateObject vs2 =
+      VehicleStateObject.create(vdto(), POINT, absent,
+        ImmutableSet.of(p2), 0, null, ImmutableList.of(p2));
+    final VehicleStateObject vs3 =
+      VehicleStateObject.create(vdto(), POINT, absent,
+        empty, 0, p3, ImmutableList.<Parcel>of(p3, p3));
     final ImmutableSet<Parcel> available = ImmutableSet.of(p3);
     final GlobalStateObject state = GlobalStateObject.create(available,
       ImmutableList.of(vs1, vs2, vs3), 0, SI.SECOND, SI.METERS_PER_SECOND,
-      SI.CENTIMETER);
+      SI.CENTIMETER, mock(TravelTimes.class));
     SolverValidator.validateInputs(state);
   }
 
@@ -264,27 +285,30 @@ public class SolverValidatorTest {
   @Test
   public void validateCorrectInputs() {
     final ImmutableSet<Parcel> empty = ImmutableSet.of();
-    final VehicleStateObject vs1 = VehicleStateObject.create(vdto(), POINT,
-      ImmutableSet.of(p1), 0, p1, null);
-    final VehicleStateObject vs2 = VehicleStateObject.create(vdto(), POINT,
-      ImmutableSet.of(p2), 0, null, null);
-    final VehicleStateObject vs3 = VehicleStateObject.create(vdto(), POINT,
-      empty, 0, p3, null);
+    final VehicleStateObject vs1 =
+      VehicleStateObject.create(vdto(), POINT, absent,
+        ImmutableSet.of(p1), 0, p1, null);
+    final VehicleStateObject vs2 =
+      VehicleStateObject.create(vdto(), POINT, absent,
+        ImmutableSet.of(p2), 0, null, null);
+    final VehicleStateObject vs3 =
+      VehicleStateObject.create(vdto(), POINT, absent,
+        empty, 0, p3, null);
     final ImmutableSet<Parcel> available = ImmutableSet.of(p3);
     final GlobalStateObject state = GlobalStateObject.create(available,
       ImmutableList.of(vs1, vs2, vs3), 0, SI.SECOND, SI.METERS_PER_SECOND,
-      SI.CENTIMETER);
+      SI.CENTIMETER, mock(TravelTimes.class));
     SolverValidator.validateInputs(state);
   }
 
   @Test
   public void validateInvalidNumberOfRoutes() {
     final VehicleStateObject vs1 = VehicleStateObject.create(vdto(),
-      POINT, ImmutableSet.<Parcel>of(), 0, null, null);
+      POINT, absent, ImmutableSet.<Parcel>of(), 0, null, null);
     final ImmutableList<ImmutableList<Parcel>> routes = ImmutableList.of();
     final GlobalStateObject state = GlobalStateObject.create(
       ImmutableSet.<Parcel>of(), ImmutableList.of(vs1), 0, SI.SECOND,
-      SI.METERS_PER_SECOND, SI.CENTIMETER);
+      SI.METERS_PER_SECOND, SI.CENTIMETER, mock(TravelTimes.class));
     boolean fail = false;
     try {
       SolverValidator.validateOutputs(routes, state);
@@ -301,10 +325,12 @@ public class SolverValidatorTest {
     final VehicleStateObject vs1 = VehicleStateObject.create(vdto(),
       new Point(0,
         0),
+      absent,
       empty, 0, null, null);
     final VehicleStateObject vs2 = VehicleStateObject.create(vdto(),
       new Point(0,
         0),
+      absent,
       empty, 0, null, null);
 
     final ImmutableList<ImmutableList<Parcel>> routes = ImmutableList.of(
@@ -313,7 +339,8 @@ public class SolverValidatorTest {
     final ImmutableList<VehicleStateObject> vehicles = ImmutableList.of(vs1,
       vs2);
     final GlobalStateObject state = GlobalStateObject.create(availableParcels,
-      vehicles, 0, SI.SECOND, SI.METERS_PER_SECOND, SI.CENTIMETER);
+      vehicles, 0, SI.SECOND, SI.METERS_PER_SECOND, SI.CENTIMETER,
+      mock(TravelTimes.class));
 
     boolean fail = false;
     try {
@@ -332,6 +359,7 @@ public class SolverValidatorTest {
     final VehicleStateObject vs1 = VehicleStateObject.create(vdto(),
       new Point(0,
         0),
+      absent,
       empty, 0, null, null);
 
     final ImmutableList<ImmutableList<Parcel>> routes = ImmutableList
@@ -339,7 +367,8 @@ public class SolverValidatorTest {
     final ImmutableSet<Parcel> availableParcels = ImmutableSet.of(p1);
     final ImmutableList<VehicleStateObject> vehicles = ImmutableList.of(vs1);
     final GlobalStateObject state = GlobalStateObject.create(availableParcels,
-      vehicles, 0, SI.SECOND, SI.METERS_PER_SECOND, SI.CENTIMETER);
+      vehicles, 0, SI.SECOND, SI.METERS_PER_SECOND, SI.CENTIMETER,
+      mock(TravelTimes.class));
     boolean fail = false;
     try {
       SolverValidator.validateOutputs(routes, state);
@@ -355,6 +384,7 @@ public class SolverValidatorTest {
     final VehicleStateObject vs1 = VehicleStateObject.create(vdto(),
       new Point(0,
         0),
+      absent,
       ImmutableSet.of(p1), 0, null, null);
 
     final ImmutableList<ImmutableList<Parcel>> routes = ImmutableList
@@ -362,7 +392,8 @@ public class SolverValidatorTest {
     final ImmutableSet<Parcel> availableParcels = ImmutableSet.of();
     final ImmutableList<VehicleStateObject> vehicles = ImmutableList.of(vs1);
     final GlobalStateObject state = GlobalStateObject.create(availableParcels,
-      vehicles, 0, SI.SECOND, SI.METERS_PER_SECOND, SI.CENTIMETER);
+      vehicles, 0, SI.SECOND, SI.METERS_PER_SECOND, SI.CENTIMETER,
+      mock(TravelTimes.class));
     boolean fail = false;
     try {
       SolverValidator.validateOutputs(routes, state);
@@ -379,6 +410,7 @@ public class SolverValidatorTest {
     final VehicleStateObject vs1 = VehicleStateObject.create(vdto(),
       new Point(0,
         0),
+      absent,
       empty, 0, null, null);
 
     final ImmutableList<ImmutableList<Parcel>> routes = ImmutableList
@@ -386,7 +418,8 @@ public class SolverValidatorTest {
     final ImmutableSet<Parcel> availableParcels = ImmutableSet.of();
     final ImmutableList<VehicleStateObject> vehicles = ImmutableList.of(vs1);
     final GlobalStateObject state = GlobalStateObject.create(availableParcels,
-      vehicles, 0, SI.SECOND, SI.METERS_PER_SECOND, SI.CENTIMETER);
+      vehicles, 0, SI.SECOND, SI.METERS_PER_SECOND, SI.CENTIMETER,
+      mock(TravelTimes.class));
     boolean fail = false;
     try {
       SolverValidator.validateOutputs(routes, state);
@@ -404,10 +437,12 @@ public class SolverValidatorTest {
     final VehicleStateObject vs1 = VehicleStateObject.create(vdto(),
       new Point(0,
         0),
+      absent,
       empty, 0, null, null);
     final VehicleStateObject vs2 = VehicleStateObject.create(vdto(),
       new Point(0,
         0),
+      absent,
       empty, 0, null, null);
 
     final ImmutableList<ImmutableList<Parcel>> routes = ImmutableList.of(
@@ -416,7 +451,8 @@ public class SolverValidatorTest {
     final ImmutableList<VehicleStateObject> vehicles = ImmutableList.of(vs1,
       vs2);
     final GlobalStateObject state = GlobalStateObject.create(availableParcels,
-      vehicles, 0, SI.SECOND, SI.METERS_PER_SECOND, SI.CENTIMETER);
+      vehicles, 0, SI.SECOND, SI.METERS_PER_SECOND, SI.CENTIMETER,
+      mock(TravelTimes.class));
     boolean fail = false;
     try {
       SolverValidator.validateOutputs(routes, state);
@@ -434,10 +470,12 @@ public class SolverValidatorTest {
     final VehicleStateObject vs1 = VehicleStateObject.create(vdto(),
       new Point(0,
         0),
+      absent,
       empty, 0, null, null);
     final VehicleStateObject vs2 = VehicleStateObject.create(vdto(),
       new Point(0,
         0),
+      absent,
       empty, 0, null, null);
 
     final ImmutableList<ImmutableList<Parcel>> routes = ImmutableList.of(
@@ -447,7 +485,8 @@ public class SolverValidatorTest {
     final ImmutableList<VehicleStateObject> vehicles = ImmutableList.of(vs1,
       vs2);
     final GlobalStateObject state = GlobalStateObject.create(availableParcels,
-      vehicles, 0, SI.SECOND, SI.METERS_PER_SECOND, SI.CENTIMETER);
+      vehicles, 0, SI.SECOND, SI.METERS_PER_SECOND, SI.CENTIMETER,
+      mock(TravelTimes.class));
 
     boolean fail = false;
     try {
@@ -465,6 +504,7 @@ public class SolverValidatorTest {
     final VehicleStateObject vs1 = VehicleStateObject.create(vdto(),
       new Point(0,
         0),
+      absent,
       ImmutableSet.of(p1), 0, null, null);
 
     final ImmutableList<Parcel> empty = ImmutableList.of();
@@ -473,7 +513,8 @@ public class SolverValidatorTest {
     final ImmutableSet<Parcel> availableParcels = ImmutableSet.of();
     final ImmutableList<VehicleStateObject> vehicles = ImmutableList.of(vs1);
     final GlobalStateObject state = GlobalStateObject.create(availableParcels,
-      vehicles, 0, SI.SECOND, SI.METERS_PER_SECOND, SI.CENTIMETER);
+      vehicles, 0, SI.SECOND, SI.METERS_PER_SECOND, SI.CENTIMETER,
+      mock(TravelTimes.class));
 
     boolean fail = false;
     try {
@@ -492,6 +533,7 @@ public class SolverValidatorTest {
     final VehicleStateObject vs1 = VehicleStateObject.create(vdto(),
       new Point(0,
         0),
+      absent,
       empty, 0, p1, null);
 
     final ImmutableList<ImmutableList<Parcel>> routes = ImmutableList
@@ -500,7 +542,8 @@ public class SolverValidatorTest {
     final ImmutableSet<Parcel> availableParcels = ImmutableSet.of(p1, p2);
     final ImmutableList<VehicleStateObject> vehicles = ImmutableList.of(vs1);
     final GlobalStateObject state = GlobalStateObject.create(availableParcels,
-      vehicles, 0, SI.SECOND, SI.METERS_PER_SECOND, SI.CENTIMETER);
+      vehicles, 0, SI.SECOND, SI.METERS_PER_SECOND, SI.CENTIMETER,
+      mock(TravelTimes.class));
 
     boolean fail = false;
     try {
@@ -520,10 +563,12 @@ public class SolverValidatorTest {
     final VehicleStateObject vs1 = VehicleStateObject.create(vdto(),
       new Point(0,
         0),
+      absent,
       empty, 0, null, null);
     final VehicleStateObject vs2 = VehicleStateObject.create(vdto(),
       new Point(0,
         0),
+      absent,
       ImmutableSet.of(p3), 0, null, null);
 
     final ImmutableList<ImmutableList<Parcel>> routes = ImmutableList.of(
@@ -532,7 +577,8 @@ public class SolverValidatorTest {
     final ImmutableList<VehicleStateObject> vehicles = ImmutableList.of(vs1,
       vs2);
     final GlobalStateObject state = GlobalStateObject.create(availableParcels,
-      vehicles, 0, SI.SECOND, SI.METERS_PER_SECOND, SI.CENTIMETER);
+      vehicles, 0, SI.SECOND, SI.METERS_PER_SECOND, SI.CENTIMETER,
+      mock(TravelTimes.class));
     SolverValidator.validateOutputs(routes, state);
   }
 
@@ -543,14 +589,17 @@ public class SolverValidatorTest {
     final VehicleStateObject vs1 = VehicleStateObject.create(vdto(),
       new Point(0,
         0),
+      absent,
       empty, 0, null, null);
     final VehicleStateObject vs2 = VehicleStateObject.create(vdto(),
       new Point(0,
         0),
+      absent,
       ImmutableSet.of(p3), 0, null, null);
     final VehicleStateObject vs3 = VehicleStateObject.create(vdto(),
       new Point(0,
         0),
+      absent,
       empty, 0, p4, null);
 
     final ImmutableList<ImmutableList<Parcel>> routes = ImmutableList.of(
@@ -562,7 +611,8 @@ public class SolverValidatorTest {
       vs2, vs3);
     @SuppressWarnings("null")
     final GlobalStateObject state = GlobalStateObject.create(availableParcels,
-      vehicles, 0, SI.SECOND, SI.METERS_PER_SECOND, SI.CENTIMETER);
+      vehicles, 0, SI.SECOND, SI.METERS_PER_SECOND, SI.CENTIMETER,
+      mock(TravelTimes.class));
     final Solver solver = SolverValidator.wrap(new FakeSolver(routes));
     solver.solve(state);
   }

@@ -25,6 +25,7 @@ import javax.measure.unit.Unit;
 
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
+import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
@@ -74,12 +75,17 @@ public abstract class GlobalStateObject {
    */
   public abstract Unit<Length> getDistUnit();
 
+  /**
+   * @return An interface to calculate shortest paths
+   */
+  public abstract TravelTimes getTravelTimes();
+
   static GlobalStateObject create(ImmutableSet<Parcel> availableParcels,
       ImmutableList<VehicleStateObject> vehicles, long time,
       Unit<Duration> timeUnit, Unit<Velocity> speedUnit,
-      Unit<Length> distUnit) {
+      Unit<Length> distUnit, TravelTimes tt) {
     return new AutoValue_GlobalStateObject(
-      availableParcels, vehicles, time, timeUnit, speedUnit, distUnit);
+      availableParcels, vehicles, time, timeUnit, speedUnit, distUnit, tt);
   }
 
   /**
@@ -95,7 +101,8 @@ public abstract class GlobalStateObject {
       getVehicles().size());
     return create(getAvailableParcels(),
       ImmutableList.of(getVehicles().get(index)),
-      getTime(), getTimeUnit(), getSpeedUnit(), getDistUnit());
+      getTime(), getTimeUnit(), getSpeedUnit(), getDistUnit(),
+      getTravelTimes());
   }
 
   /**
@@ -114,7 +121,7 @@ public abstract class GlobalStateObject {
       b.add(getVehicles().get(i).withRoute(routes.get(i)));
     }
     return create(getAvailableParcels(), b.build(), getTime(), getTimeUnit(),
-      getSpeedUnit(), getDistUnit());
+      getSpeedUnit(), getDistUnit(), getTravelTimes());
   }
 
   /**
@@ -135,6 +142,8 @@ public abstract class GlobalStateObject {
      * @return Location of the vehicle.
      */
     public abstract Point getLocation();
+
+    public abstract Optional<? extends Connection<?>> getConnection();
 
     /**
      * @return The contents of the vehicle. This excludes parcels which are
@@ -183,12 +192,14 @@ public abstract class GlobalStateObject {
 
     @SuppressWarnings("unchecked")
     static VehicleStateObject create(VehicleDTO dto, Point location,
+        Optional<? extends Connection<?>> conn,
         ImmutableSet<Parcel> contents, long remainingServiceTime,
         @Nullable Parcel destination,
         @Nullable ImmutableList<? extends Parcel> route) {
       return new AutoValue_GlobalStateObject_VehicleStateObject(
         dto,
         location,
+        conn,
         contents,
         remainingServiceTime,
         Optional.fromNullable(destination),
@@ -196,7 +207,7 @@ public abstract class GlobalStateObject {
     }
 
     VehicleStateObject withRoute(ImmutableList<Parcel> route) {
-      return create(getDto(), getLocation(), getContents(),
+      return create(getDto(), getLocation(), getConnection(), getContents(),
         getRemainingServiceTime(), getDestination().orNull(), route);
     }
 

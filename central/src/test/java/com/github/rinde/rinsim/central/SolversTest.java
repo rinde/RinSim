@@ -61,6 +61,7 @@ import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.Clock;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.model.time.TimeLapseFactory;
+import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
@@ -68,6 +69,7 @@ import com.github.rinde.rinsim.pdptw.common.PDPTWTestUtil;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
 import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06ObjectiveFunction;
 import com.github.rinde.rinsim.util.TimeWindow;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
@@ -82,6 +84,7 @@ public class SolversTest {
   PDPRoadModel rm;
   PDPModel pm;
   ModelProvider mp;
+  TravelTimes tt;
 
   TestVehicle v1;
   TestVehicle v2;
@@ -122,6 +125,8 @@ public class SolversTest {
     p1 = createParcel(new Point(3, 0), new Point(0, 3));
     p2 = createParcel(new Point(6, 9), new Point(2, 9));
     p3 = createParcel(new Point(2, 8), new Point(8, 2));
+
+    tt = new PlaneTravelTimes(rm, v1.getSpeed(), NonSI.HOUR);
   }
 
   @Test
@@ -271,6 +276,7 @@ public class SolversTest {
    */
   @Test
   public void convertDecompositionTest() {
+    final Optional<Connection<?>> absent = Optional.absent();
     final VehicleDTO vd1 = VehicleDTO.builder()
       .startPosition(new Point(5, 5))
       .speed(30d)
@@ -317,6 +323,7 @@ public class SolversTest {
         VehicleStateObject.create(
           vd1,
           new Point(7, 9),
+          absent,
           ImmutableSet.<Parcel>of(a),
           0L,
           null,
@@ -324,6 +331,7 @@ public class SolversTest {
       .add(VehicleStateObject.create(
         vd1,
         new Point(3, 2),
+        absent,
         ImmutableSet.<Parcel>of(d),
         0L,
         null,
@@ -332,7 +340,7 @@ public class SolversTest {
 
     final GlobalStateObject state = GlobalStateObject.create(availableParcels,
       vehicles, 0L, SI.MILLI(SI.SECOND), NonSI.KILOMETERS_PER_HOUR,
-      SI.KILOMETER);
+      SI.KILOMETER, tt);
 
     final ImmutableList<ImmutableList<Parcel>> routes = ImmutableList
       .<ImmutableList<Parcel>>builder()
