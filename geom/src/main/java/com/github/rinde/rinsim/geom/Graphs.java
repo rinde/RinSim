@@ -36,6 +36,8 @@ import java.util.TreeMap;
 
 import javax.annotation.Nullable;
 
+import org.apache.commons.math3.random.MersenneTwister;
+
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
@@ -355,6 +357,35 @@ public final class Graphs {
     }
 
     return new LinkedList<>();
+  }
+
+  /**
+   * Returns the point closest to the exact center of the area spanned by the
+   * graph.
+   * @param graph The graph.
+   * @return The point of the graph closest to the exact center of the area
+   *         spanned by the graph.
+   */
+  public static Point getCenterMostPoint(Graph<?> graph) {
+    final ImmutableList<Point> extremes = getExtremes(graph);
+    final Point exactCenter =
+      Point.divide(Point.add(extremes.get(0), extremes.get(1)), 2d);
+    Point center = graph.getRandomNode(new MersenneTwister());
+    double distance = Point.distance(center, exactCenter);
+
+    for (final Point p : graph.getNodes()) {
+      final double pDistance = Point.distance(p, exactCenter);
+      if (pDistance < distance) {
+        center = p;
+        distance = pDistance;
+      }
+
+      if (center.equals(exactCenter)) {
+        return center;
+      }
+    }
+
+    return center;
   }
 
   /**

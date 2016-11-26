@@ -590,4 +590,32 @@ public class GraphsTest {
     }
     assertTrue(flag);
   }
+
+  /**
+   * Test finding center point when an exact point is available
+   */
+  @Test
+  public void closestExactCenterPoint() {
+    Point A, B, C;
+    A = new Point(0, 0);
+    B = new Point(2, 2);
+    C = new Point(1, 1);
+    Graphs.addBiPath(graph, A, B, C);
+
+    assertEquals(C, Graphs.getCenterMostPoint(graph));
+  }
+
+  /**
+   * Test finding center most point
+   */
+  @Test
+  public void closestAlmostCenterPoint() {
+    Point A, B, C;
+    A = new Point(0, 0);
+    B = new Point(2, 2);
+    C = new Point(1, 1.5);
+    Graphs.addBiPath(graph, A, B, C);
+
+    assertEquals(C, Graphs.getCenterMostPoint(graph));
+  }
 }
