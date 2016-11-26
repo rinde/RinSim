@@ -545,6 +545,66 @@ public final class Graphs {
       public double estimateCost(Graph<?> graph, Point from, Point to) {
         return Point.distance(from, to);
       }
+    },
+
+    /**
+     * Travel time implementation
+     */
+    TIME {
+      @Override
+      public double calculateCost(Graph<?> graph, Point from, Point to) {
+        final double speed = ((Graph<MultiAttributeData>) graph)
+          .getConnection(from, to).data().get()
+          .getMaxSpeed().get();
+        final double length = graph.connectionLength(from, to);
+        return length / speed; // Metric conflict, shouldn't affect relative
+                               // outcome
+      }
+
+      @Override
+      public double estimateCost(Graph<?> graph, Point from, Point to) {
+        double speed;
+        if (graph.hasConnection(from, to)) {
+          speed = ((Graph<MultiAttributeData>) graph)
+            .getConnection(from, to).data().get()
+            .getMaxSpeed().get();
+        } else {
+          speed = 50;
+        }
+        final double length = Point.distance(from, to);
+        return length / speed; // Metric conflict, shouldn't affect relative
+                               // outcome
+      }
+    },
+
+    /**
+     * Theoretical Travel time implementation
+     */
+    THEORETICAL_TIME {
+      @Override
+      public double calculateCost(Graph<?> graph, Point from, Point to) {
+        final double speed =
+          Double.parseDouble((String) ((Graph<MultiAttributeData>) graph)
+            .getConnection(from, to).data().get().getAttributes().get("ts"));
+        final double length = graph.connectionLength(from, to);
+        return length / speed; // Metric conflict, shouldn't affect relative
+                               // outcome
+      }
+
+      @Override
+      public double estimateCost(Graph<?> graph, Point from, Point to) {
+        double speed;
+        if (graph.hasConnection(from, to)) {
+          speed =
+            Double.parseDouble((String) ((Graph<MultiAttributeData>) graph)
+              .getConnection(from, to).data().get().getAttributes().get("ts"));
+        } else {
+          speed = 50;
+        }
+        final double length = Point.distance(from, to);
+        return length / speed; // Metric conflict, shouldn't affect relative
+                               // outcome
+      }
     }
   }
 
