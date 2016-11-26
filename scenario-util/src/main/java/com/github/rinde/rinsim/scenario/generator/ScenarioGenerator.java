@@ -19,8 +19,10 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newArrayList;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Logger;
 
 import javax.measure.Measure;
 import javax.measure.quantity.Duration;
@@ -32,11 +34,18 @@ import org.apache.commons.math3.random.RandomGenerator;
 
 import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
+import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.road.ForwardingRoadModel;
+import com.github.rinde.rinsim.core.model.road.GraphRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
+import com.github.rinde.rinsim.core.model.road.RoadModelBuilders.AbstractRMB;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders.PlaneRMB;
 import com.github.rinde.rinsim.core.model.road.RoadModels;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
+import com.github.rinde.rinsim.geom.Connection;
+import com.github.rinde.rinsim.geom.ConnectionData;
+import com.github.rinde.rinsim.geom.Graphs;
+import com.github.rinde.rinsim.geom.MultiAttributeData;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.AddDepotEvent;
 import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
@@ -46,6 +55,7 @@ import com.github.rinde.rinsim.scenario.Scenario.ProblemClass;
 import com.github.rinde.rinsim.scenario.TimeOutEvent;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.scenario.generator.Depots.DepotGenerator;
+import com.github.rinde.rinsim.scenario.generator.DynamicSpeeds.DynamicSpeedGenerator;
 import com.github.rinde.rinsim.scenario.generator.Parcels.ParcelGenerator;
 import com.github.rinde.rinsim.scenario.generator.Vehicles.VehicleGenerator;
 import com.github.rinde.rinsim.util.TimeWindow;
@@ -68,16 +78,21 @@ public final class ScenarioGenerator {
   private final ParcelGenerator parcelGenerator;
   private final VehicleGenerator vehicleGenerator;
   private final DepotGenerator depotGenerator;
+  private final ImmutableList<DynamicSpeedGenerator> dynamicSpeedGenerators;
 
   private final Unit<Velocity> speedUnit;
   private final Unit<Length> distanceUnit;
   private final Unit<Duration> timeUnit;
+
+  private static final Logger LOGGER =
+    Logger.getLogger("ScenarioGenerator");
 
   ScenarioGenerator(Builder b) {
     builder = b;
     parcelGenerator = b.parcelGenerator;
     vehicleGenerator = b.vehicleGenerator;
     depotGenerator = b.depotGenerator;
+    dynamicSpeedGenerators = ImmutableList.copyOf(b.dynamicSpeedGenerators);
     modelBuilders = ImmutableSet.copyOf(builder.modelSuppliers);
 
     final List<ModelBuilder<RoadModel, ?>> rmBuilders = findBuildersThatBuild(
@@ -86,19 +101,19 @@ public final class ScenarioGenerator {
       "Exactly one RoadModel builder must be supplied, found %s builders.",
       rmBuilders.size());
     final ModelBuilder<? extends RoadModel, ?> rmb = rmBuilders.get(0);
-    PlaneRMB planeBuilder;
+    AbstractRMB<?, ?> roadBuilder;
     if (rmb instanceof ForwardingRoadModel.Builder) {
       final ModelBuilder<?, ?> delegate = ((ForwardingRoadModel.Builder<?>) rmb)
         .getDelegateModelBuilder();
 
-      checkArgument(delegate instanceof PlaneRMB);
-      planeBuilder = (PlaneRMB) delegate;
+      // checkArgument(delegate instanceof PlaneRMB);
+      roadBuilder = (AbstractRMB<?, ?>) delegate;
     } else {
       checkArgument(rmb instanceof PlaneRMB);
-      planeBuilder = (PlaneRMB) rmb;
+      roadBuilder = (PlaneRMB) rmb;
     }
-    distanceUnit = planeBuilder.getDistanceUnit();
-    speedUnit = planeBuilder.getSpeedUnit();
+    distanceUnit = roadBuilder.getDistanceUnit();
+    speedUnit = roadBuilder.getSpeedUnit();
 
     final List<ModelBuilder<TimeModel, ?>> tmBuilders = findBuildersThatBuild(
       modelBuilders, TimeModel.class);
@@ -182,12 +197,17 @@ public final class ScenarioGenerator {
   // TODO change rng to seed?
   public Scenario generate(RandomGenerator rng, String id) {
     final ImmutableList.Builder<TimedEvent> b = ImmutableList.builder();
+
+    LOGGER.info("Starting generation scenario");
+
     // depots
+    LOGGER.info("- Generating Depots");
     final Iterable<? extends AddDepotEvent> depots = depotGenerator.generate(
       rng.nextLong(), parcelGenerator.getCenter());
     b.addAll(depots);
 
     // vehicles
+    LOGGER.info("- Generating Vehicles");
     final ImmutableList<AddVehicleEvent> vehicles = vehicleGenerator.generate(
       rng.nextLong(), parcelGenerator.getCenter(),
       builder.getTimeWindow().end());
@@ -197,13 +217,21 @@ public final class ScenarioGenerator {
       depots, vehicles);
 
     // parcels
+    LOGGER.info("- Generating Parcels");
     b.addAll(parcelGenerator.generate(rng.nextLong(), tm,
       builder.getTimeWindow().end()));
 
+    // dynamic speed events
+    LOGGER.info("- Generating Dynamic Speed Events");
+    for (final DynamicSpeedGenerator gen : dynamicSpeedGenerators) {
+      b.addAll(gen.generate(rng.nextLong(), builder.getTimeWindow().end()));
+    }
     // time out
+    LOGGER.info("- Generating Time Out");
     b.add(TimeOutEvent.create(builder.getTimeWindow().end()));
 
     // create
+    LOGGER.info("Building Scenario");
     return Scenario.builder(builder, builder.problemClass)
       .addModels(modelBuilders)
       .addEvents(b.build())
@@ -255,8 +283,19 @@ public final class ScenarioGenerator {
       }
     }
     checkArgument(roadModels.size() == 1);
+    if (roadModels.get(0) instanceof GraphRoadModel) {
+      return new DynamicGraphTravelTimes<>((GraphRoadModel) roadModels.get(0),
+        timeUnit, depots,
+        vehicles);
+    }
     return new DefaultTravelTimes(roadModels.get(0), timeUnit, depots,
       vehicles);
+  }
+
+  public static TravelTimes createTravelTimes(GraphRoadModel rm,
+      Collection<Vehicle> vehicles, Unit<Duration> timeUnit) {
+    return new DynamicGraphTravelTimes<MultiAttributeData>(rm, timeUnit,
+      Graphs.getCenterMostPoint(rm.getGraph()), vehicles.iterator());
   }
 
   static TravelTimes createTravelTimes(
@@ -265,6 +304,10 @@ public final class ScenarioGenerator {
       Iterable<? extends AddDepotEvent> depots,
       Iterable<? extends AddVehicleEvent> vehicles) {
     final RoadModel rm = getRm(modelSuppliers);
+    if (rm instanceof GraphRoadModel) {
+      return new DynamicGraphTravelTimes<>((GraphRoadModel) rm, tu, depots,
+        vehicles);
+    }
     return new DefaultTravelTimes(rm, tu, depots, vehicles);
   }
 
@@ -291,10 +334,13 @@ public final class ScenarioGenerator {
       .builder().build();
     static final DepotGenerator DEFAULT_DEPOT_GENERATOR = Depots
       .singleCenteredDepot();
+    static final List<DynamicSpeedGenerator> DEFAULT_DYNAMIC_SPEED_GENERATOR =
+      DynamicSpeeds.zeroEvents();
 
     ParcelGenerator parcelGenerator;
     VehicleGenerator vehicleGenerator;
     DepotGenerator depotGenerator;
+    List<DynamicSpeedGenerator> dynamicSpeedGenerators;
     final List<ModelBuilder<?, ?>> modelSuppliers;
     final ProblemClass problemClass;
 
@@ -304,6 +350,7 @@ public final class ScenarioGenerator {
       parcelGenerator = DEFAULT_PARCEL_GENERATOR;
       vehicleGenerator = DEFAULT_VEHICLE_GENERATOR;
       depotGenerator = DEFAULT_DEPOT_GENERATOR;
+      dynamicSpeedGenerators = DEFAULT_DYNAMIC_SPEED_GENERATOR;
       modelSuppliers = newArrayList();
     }
 
@@ -314,6 +361,7 @@ public final class ScenarioGenerator {
       parcelGenerator = b.parcelGenerator;
       vehicleGenerator = b.vehicleGenerator;
       depotGenerator = b.depotGenerator;
+      dynamicSpeedGenerators = b.dynamicSpeedGenerators;
       modelSuppliers = newArrayList(b.modelSuppliers);
     }
 
@@ -351,6 +399,17 @@ public final class ScenarioGenerator {
      */
     public Builder depots(DepotGenerator ds) {
       depotGenerator = ds;
+      return this;
+    }
+
+    /**
+     * Set the {@link DynamicSpeedGenerator}s to use for adding dynamic changes
+     * to maximum allowed to speed to the scenario.
+     * @param dsg The generators.
+     * @return This, as per the builder pattern.
+     */
+    public Builder dynamicSpeedGenerators(List<DynamicSpeedGenerator> dsg) {
+      dynamicSpeedGenerators = dsg;
       return this;
     }
 
@@ -455,6 +514,110 @@ public final class ScenarioGenerator {
       while (it.hasNext()) {
         final Point cur = it.next();
         final double d = Point.distance(from, cur);
+        if (d < dist) {
+          nearestDepot = cur;
+        }
+      }
+      return nearestDepot;
+    }
+  }
+
+  static class DynamicGraphTravelTimes<T extends ConnectionData>
+      implements TravelTimes {
+    private final GraphRoadModel roadModel;
+    private final Measure<Double, Velocity> vehicleSpeed;
+    private final Unit<Duration> timeUnit;
+    private final ImmutableList<Point> depotLocations;
+
+    DynamicGraphTravelTimes(GraphRoadModel rm, Unit<Duration> tu,
+        Iterable<? extends AddDepotEvent> depots,
+        Iterable<? extends AddVehicleEvent> vehicles) {
+      roadModel = rm;
+
+      double max = 0;
+      for (final AddVehicleEvent ave : vehicles) {
+        max = Math.max(max, ave.getVehicleDTO().getSpeed());
+      }
+      vehicleSpeed = Measure.valueOf(max, roadModel.getSpeedUnit());
+
+      final ImmutableList.Builder<Point> depotBuilder = ImmutableList.builder();
+      for (final AddDepotEvent ade : depots) {
+        depotBuilder.add(ade.getPosition());
+      }
+      depotLocations = depotBuilder.build();
+
+      timeUnit = tu;
+    }
+
+    DynamicGraphTravelTimes(GraphRoadModel rm, Unit<Duration> timeUnit,
+        Point centerMostPoint, Iterator<Vehicle> vehicles) {
+      roadModel = rm;
+
+      double max = 0;
+      while (vehicles.hasNext()) {
+        final Vehicle v = vehicles.next();
+        max = Math.max(max, v.getDTO().getSpeed());
+      }
+      vehicleSpeed = Measure.valueOf(max, roadModel.getSpeedUnit());
+
+      depotLocations = ImmutableList.of(centerMostPoint);
+
+      this.timeUnit = timeUnit;
+    }
+
+    @Override
+    public long getShortestTravelTime(Point from, Point to) {
+      // LOGGER.info("Travel Times - Calculating from: " + from.toString() + ",
+      // to: " + to.toString());
+      final Iterator<Point> path = roadModel.getShortestPathTo(from, to)
+        .iterator();
+
+      long travelTime = 0L;
+      Point prev = path.next();
+      while (path.hasNext()) {
+        final Point cur = path.next();
+        @SuppressWarnings("unchecked")
+        final Connection<T> conn =
+          (Connection<T>) roadModel.getGraph().getConnection(prev, cur);
+
+        final Measure<Double, Length> distance = Measure.valueOf(
+          conn.getLength(), roadModel.getDistanceUnit());
+        try {
+          travelTime +=
+            Math.min(RoadModels.computeTravelTime(vehicleSpeed, distance,
+              timeUnit),
+              RoadModels.computeTravelTime(
+                Measure.valueOf(
+                  ((MultiAttributeData) conn.data().get()).getMaxSpeed().get(),
+                  roadModel.getSpeedUnit()),
+                distance, timeUnit));
+        } catch (final Exception e) {
+          travelTime +=
+            RoadModels.computeTravelTime(vehicleSpeed, distance,
+              timeUnit);
+        }
+        prev = cur;
+      }
+      return travelTime;
+      // TT := millis
+      // conn.length := meter
+      // speed := kmh
+    }
+
+    @Override
+    public long getTravelTimeToNearestDepot(Point from) {
+      return getShortestTravelTime(from, findNearestDepot(from));
+    }
+
+    private Point findNearestDepot(Point from) {
+      final Iterator<Point> it = depotLocations.iterator();
+      Point nearestDepot = it.next();
+      final double dist =
+        Graphs.pathLength(roadModel.getShortestPathTo(from, nearestDepot));
+      while (it.hasNext()) {
+        final Point cur = it.next();
+        final double d =
+          Graphs.pathLength(roadModel.getShortestPathTo(from, cur));
         if (d < dist) {
           nearestDepot = cur;
         }
