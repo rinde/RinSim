@@ -19,13 +19,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import org.junit.Test;
+import java.util.HashSet;
+import java.util.Set;
 
-import com.github.rinde.rinsim.geom.Point;
+import org.junit.Test;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
- * 
+ *
  */
 public class PointTest {
 
@@ -33,10 +34,10 @@ public class PointTest {
 
   @Test
   public void distanceTest() {
-    Point p1 = new Point(0, 0);
-    Point p2 = new Point(10, 0);
-    Point p3 = new Point(10, 10);
-    Point p4 = new Point(0, 10);
+    final Point p1 = new Point(0, 0);
+    final Point p2 = new Point(10, 0);
+    final Point p3 = new Point(10, 10);
+    final Point p4 = new Point(0, 10);
 
     assertEquals(10, Point.distance(p1, p2), EPSILON);
     assertEquals(14.14, Point.distance(p1, p3), 0.01);
@@ -49,60 +50,79 @@ public class PointTest {
 
   @Test
   public void testAdd() {
-    Point p1 = new Point(1, 2);
-    Point p2 = new Point(3, 4);
+    final Point p1 = new Point(1, 2);
+    final Point p2 = new Point(3, 4);
 
-    Point result = Point.add(p1, p2);
+    final Point result = Point.add(p1, p2);
 
     assertEquals(new Point(4, 6), result);
   }
 
   @Test
   public void testDifference() {
-    Point p1 = new Point(4, 3);
-    Point p2 = new Point(1, 2);
+    final Point p1 = new Point(4, 3);
+    final Point p2 = new Point(1, 2);
 
-    Point result = Point.diff(p1, p2);
+    final Point result = Point.diff(p1, p2);
 
     assertEquals(new Point(3, 1), result);
   }
 
   @Test
   public void testDifferenceNegative() {
-    Point p1 = new Point(1, 2);
-    Point p2 = new Point(4, 3);
+    final Point p1 = new Point(1, 2);
+    final Point p2 = new Point(4, 3);
 
-    Point result = Point.diff(p1, p2);
+    final Point result = Point.diff(p1, p2);
 
     assertEquals(new Point(-3, -1), result);
   }
 
   @Test
   public void testMultiply() {
-    Point p1 = new Point(1, 2);
+    final Point p1 = new Point(1, 2);
 
-    Point result = Point.multiply(p1, 3);
+    final Point result = Point.multiply(p1, 3);
 
     assertEquals(new Point(3, 6), result);
   }
 
   @Test
   public void testDivide() {
-    Point p1 = new Point(1, 2);
+    final Point p1 = new Point(1, 2);
 
-    Point result = Point.divide(p1, 4);
+    final Point result = Point.divide(p1, 4);
 
     assertEquals(new Point(0.25, 0.5), result);
   }
 
   @Test
   public void testDivideByZero() {
-    Point p1 = new Point(0, 2);
+    final Point p1 = new Point(0, 2);
 
-    Point result = Point.divide(p1, 0);
+    final Point result = Point.divide(p1, 0);
 
     assertTrue(Double.isNaN(result.x));
     assertTrue(Double.isInfinite(result.y));
+  }
+
+  @Test
+  public void testCenterPoint() {
+    final Set<Point> points = new HashSet<>();
+    Point A, B, C, D;
+
+    A = new Point(0, 0);
+    B = new Point(2, 0);
+    C = new Point(0, 2);
+    D = new Point(2, 2);
+
+    points.add(A);
+    points.add(B);
+    points.add(C);
+    points.add(D);
+
+    final Point result = Point.center(points);
+    assertEquals(new Point(1, 1), result);
   }
 
   @Test
@@ -118,7 +138,7 @@ public class PointTest {
     assertFalse(new Point(0, 0).equals(new Point(1, 1)));
     assertTrue(new Point(0, 0).equals(new Point(0, 0)));
     assertFalse(new Point(0, 0).equals(new Object()));
-    assertFalse(new Point(0, 0).equals((Object) new Point(1, 0)));
+    assertFalse(new Point(0, 0).equals(new Point(1, 0)));
   }
 
 }
