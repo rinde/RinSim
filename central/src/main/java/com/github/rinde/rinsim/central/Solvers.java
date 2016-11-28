@@ -50,7 +50,6 @@ import com.github.rinde.rinsim.geom.Graphs;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
-import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -746,23 +745,7 @@ public final class Solvers {
     }
   }
 
-  @AutoValue
-  public abstract static class SolverTimeMeasurement {
-    public abstract GlobalStateObject input();
-
-    public abstract long durationNs();
-
-    public static SolverTimeMeasurement create(GlobalStateObject state,
-        long dur) {
-      return new AutoValue_Solvers_SolverTimeMeasurement(state, dur);
-    }
-  }
-
-  public interface MeasureableSolver extends Solver {
-    List<SolverTimeMeasurement> getTimeMeasurements();
-  }
-
-  public static class TimeMeasurementSolverDecorator
+  static class TimeMeasurementSolverDecorator
       implements MeasureableSolver {
     private final Solver delegate;
     private final List<SolverTimeMeasurement> measurements;
