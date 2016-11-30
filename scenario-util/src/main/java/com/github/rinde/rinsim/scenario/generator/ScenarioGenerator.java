@@ -71,6 +71,9 @@ import com.google.common.collect.ImmutableSet;
 // TODO rename to Scenarios? or Generators?
 public final class ScenarioGenerator {
 
+  private static final Logger LOGGER =
+    Logger.getLogger("ScenarioGenerator");
+
   // global properties
   final Builder builder;
   final ImmutableSet<ModelBuilder<?, ?>> modelBuilders;
@@ -83,9 +86,6 @@ public final class ScenarioGenerator {
   private final Unit<Velocity> speedUnit;
   private final Unit<Length> distanceUnit;
   private final Unit<Duration> timeUnit;
-
-  private static final Logger LOGGER =
-    Logger.getLogger("ScenarioGenerator");
 
   ScenarioGenerator(Builder b) {
     builder = b;
@@ -549,7 +549,7 @@ public final class ScenarioGenerator {
       timeUnit = tu;
     }
 
-    DynamicGraphTravelTimes(GraphRoadModel rm, Unit<Duration> timeUnit,
+    DynamicGraphTravelTimes(GraphRoadModel rm, Unit<Duration> tu,
         Point centerMostPoint, Iterator<Vehicle> vehicles) {
       roadModel = rm;
 
@@ -562,7 +562,7 @@ public final class ScenarioGenerator {
 
       depotLocations = ImmutableList.of(centerMostPoint);
 
-      this.timeUnit = timeUnit;
+      this.timeUnit = tu;
     }
 
     @Override

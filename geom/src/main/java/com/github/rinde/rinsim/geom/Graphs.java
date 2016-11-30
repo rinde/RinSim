@@ -548,7 +548,7 @@ public final class Graphs {
     },
 
     /**
-     * Travel time implementation
+     * Travel time implementation.
      */
     TIME {
       @Override
@@ -557,8 +557,8 @@ public final class Graphs {
           .getConnection(from, to).data().get()
           .getMaxSpeed().get();
         final double length = graph.connectionLength(from, to);
-        return length / speed; // Metric conflict, shouldn't affect relative
-                               // outcome
+        // Metric conflict, shouldn't affect relative outcome
+        return length / speed;
       }
 
       @Override
@@ -569,26 +569,27 @@ public final class Graphs {
             .getConnection(from, to).data().get()
             .getMaxSpeed().get();
         } else {
-          speed = 50;
+          speed = MultiAttributeData.DEFAULT_LINK_SPEED;
         }
         final double length = Point.distance(from, to);
-        return length / speed; // Metric conflict, shouldn't affect relative
-                               // outcome
+        // Metric conflict, shouldn't affect relative outcome
+        return length / speed;
       }
     },
 
     /**
-     * Theoretical Travel time implementation
+     * Theoretical Travel time implementation.
      */
     THEORETICAL_TIME {
       @Override
       public double calculateCost(Graph<?> graph, Point from, Point to) {
         final double speed =
           Double.parseDouble((String) ((Graph<MultiAttributeData>) graph)
-            .getConnection(from, to).data().get().getAttributes().get("ts"));
+            .getConnection(from, to).data().get().getAttributes()
+            .get(MultiAttributeData.THEORETICAL_SPEED_ATTRIBUTE));
         final double length = graph.connectionLength(from, to);
-        return length / speed; // Metric conflict, shouldn't affect relative
-                               // outcome
+        // Metric conflict, shouldn't affect relative outcome
+        return length / speed;
       }
 
       @Override
@@ -597,13 +598,14 @@ public final class Graphs {
         if (graph.hasConnection(from, to)) {
           speed =
             Double.parseDouble((String) ((Graph<MultiAttributeData>) graph)
-              .getConnection(from, to).data().get().getAttributes().get("ts"));
+              .getConnection(from, to).data().get().getAttributes()
+              .get(MultiAttributeData.THEORETICAL_SPEED_ATTRIBUTE));
         } else {
-          speed = 50;
+          speed = MultiAttributeData.DEFAULT_LINK_SPEED;
         }
         final double length = Point.distance(from, to);
-        return length / speed; // Metric conflict, shouldn't affect relative
-                               // outcome
+        // Metric conflict, shouldn't affect relative outcome
+        return length / speed;
       }
     }
   }
