@@ -187,7 +187,7 @@ public final class DynamicSpeeds {
      * Sets the starting connections for the to be generated hotspots. By
      * default the start positions of any hotspot is a random connection on the
      * graph.
-     * @param pos The supplier to draw connections from.
+     * @param conn The supplier to draw connections from.
      * @return This, as per the builder pattern.
      */
     public Builder startConnections(
