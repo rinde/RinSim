@@ -23,47 +23,42 @@ import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
+import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModels;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 
+/**
+ * The {@link TravelTimes} class to be used with the {@link PlaneRoadModel}.
+ * @author Vincent Van Gestel
+ */
 public class PlaneTravelTimes extends AbstractTravelTimes {
   private final Point min;
   private final Point max;
-  final Measure<Double, Velocity> vehicleSpeed;
 
   PlaneTravelTimes(Point min, Point max, Unit<Velocity> su,
       Unit<Duration> tu,
-      Unit<Length> du,
-      Iterable<? extends AddVehicleEvent> vehicles) {
+      Unit<Length> du) {
     super(tu, du);
     this.min = min;
     this.max = max;
-
-    double maxs = 0;
-    for (final AddVehicleEvent ave : vehicles) {
-      maxs = Math.max(maxs, ave.getVehicleDTO().getSpeed());
-    }
-    vehicleSpeed = Measure.valueOf(maxs, su);
   }
 
   PlaneTravelTimes(PlaneTravelTimes tt) {
     super(tt);
     min = tt.min;
     max = tt.max;
-    vehicleSpeed = tt.vehicleSpeed;
   }
 
   PlaneTravelTimes(PDPRoadModel prm, double vs, Unit<Duration> tu) {
     super(tu, prm.getDistanceUnit());
     min = prm.getBounds().get(0);
     max = prm.getBounds().get(1);
-    vehicleSpeed = Measure.valueOf(vs, prm.getSpeedUnit());
   }
 
   @Override
-  public long getTheoreticalShortestTravelTime(Point from, Point to) {
+  public long getTheoreticalShortestTravelTime(Point from, Point to,
+      Measure<Double, Velocity> vehicleSpeed) {
     checkArgument(
       isPointInBoundary(from),
       "from must be within the predefined boundary of the plane, from is %s, "
@@ -80,8 +75,9 @@ public class PlaneTravelTimes extends AbstractTravelTimes {
   }
 
   @Override
-  public long getCurrentShortestTravelTime(Point from, Point to) {
-    return getTheoreticalShortestTravelTime(from, to);
+  public long getCurrentShortestTravelTime(Point from, Point to,
+      Measure<Double, Velocity> vehicleSpeed) {
+    return getTheoreticalShortestTravelTime(from, to, vehicleSpeed);
   }
 
   /**
@@ -96,14 +92,14 @@ public class PlaneTravelTimes extends AbstractTravelTimes {
   }
 
   @Override
-  public double computeTheoreticalDistance(Point from, Point to) {
-    // TODO Auto-generated method stub
-    return 0;
+  public double computeTheoreticalDistance(Point from, Point to,
+      Measure<Double, Velocity> vehicleSpeed) {
+    return Point.distance(from, to);
   }
 
   @Override
-  public double computeCurrentDistance(Point from, Point to) {
-    // TODO Auto-generated method stub
-    return 0;
+  public double computeCurrentDistance(Point from, Point to,
+      Measure<Double, Velocity> vehicleSpeed) {
+    return Point.distance(from, to);
   }
 }

@@ -15,8 +15,16 @@
  */
 package com.github.rinde.rinsim.central;
 
+import javax.measure.Measure;
+import javax.measure.quantity.Velocity;
+
 import com.github.rinde.rinsim.geom.Point;
 
+/**
+ * Interface to be used for determining distance (both physical as well as in
+ * travel time) between two points with a given speed.
+ * @author Vincent Van Gestel
+ */
 public interface TravelTimes {
 
   /**
@@ -24,35 +32,51 @@ public interface TravelTimes {
    * <code>to</code> using the fastest available vehicle.
    * @param from The origin position.
    * @param to The destination position.
-   * @return The expected travel time between the two positions.
+   * @param vehicleSpeed the maximum speed of the vehicle that will be using the
+   *          result.
+   * @return The expected travel time between the two positions based on a given
+   *         maximum vehicle speed.
    */
-  long getTheoreticalShortestTravelTime(Point from, Point to);
+  long getTheoreticalShortestTravelTime(Point from, Point to,
+      Measure<Double, Velocity> vehicleSpeed);
 
   /**
    * Computes the current (based on a snapshot) travel time between
    * <code>from</code> and <code>to</code> using the fastest available vehicle.
    * @param from The origin position.
    * @param to The destination position.
-   * @return The expected travel time between the two positions.
+   * @param vehicleSpeed the maximum speed of the vehicle that will be using the
+   *          result.
+   * @return The expected travel time between the two positions based on a given
+   *         maximum vehicle speed.
    */
-  long getCurrentShortestTravelTime(Point from, Point to);
+  long getCurrentShortestTravelTime(Point from, Point to,
+      Measure<Double, Velocity> vehicleSpeed);
 
   /**
    * Computes the distance between two points, denoted as <code>from</code> and
    * <code>to</code> using the theoretically fastest possible route.
    * @param from The origin position
    * @param to The destination position.
-   * @return The expected distance between two positions.
+   * @param vehicleSpeed the maximum speed of the vehicle that will be using the
+   *          result.
+   * @return The expected distance between two positions based on a given
+   *         maximum vehicle speed.
    */
-  double computeTheoreticalDistance(Point from, Point to);
+  double computeTheoreticalDistance(Point from, Point to,
+      Measure<Double, Velocity> vehicleSpeed);
 
   /**
    * Computes the current distance between two points, denoted as
    * <code>from</code> and <code>to</code> using the fastest possible route.
    * @param from The origin position
    * @param to The destination position.
-   * @return The expected distance between two positions.
+   * @param vehicleSpeed the maximum speed of the vehicle that will be using the
+   *          result.
+   * @return The expected distance between two positions based on a given
+   *         maximum vehicle speed.
    */
-  double computeCurrentDistance(Point from, Point to);
+  double computeCurrentDistance(Point from, Point to,
+      Measure<Double, Velocity> vehicleSpeed);
 
 }
