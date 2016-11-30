@@ -101,7 +101,7 @@ public final class ScenarioGenerator {
       "Exactly one RoadModel builder must be supplied, found %s builders.",
       rmBuilders.size());
     final ModelBuilder<? extends RoadModel, ?> rmb = rmBuilders.get(0);
-    AbstractRMB<?, ?> roadBuilder;
+    final AbstractRMB<?, ?> roadBuilder;
     if (rmb instanceof ForwardingRoadModel.Builder) {
       final ModelBuilder<?, ?> delegate = ((ForwardingRoadModel.Builder<?>) rmb)
         .getDelegateModelBuilder();

@@ -342,7 +342,7 @@ public final class DynamicSpeeds {
         iteration = i + 1;
         LOGGER.info(
           "~ Generating Shockwave " + iteration + " out of " + numShockwaves);
-        Connection<MultiAttributeData> conn;
+        final Connection<MultiAttributeData> conn;
 
         if (startingConnectionSupplier.isPresent()) {
           conn = startingConnectionSupplier.get().get(rng.nextLong());
