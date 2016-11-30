@@ -152,8 +152,6 @@ public final class Solvers {
 
       long time = state.getTime();
       Point vehicleLocation = vso.getLocation();
-      final Measure<Double, Velocity> speed = Measure.valueOf(
-        vso.getDto().getSpeed(), state.getSpeedUnit());
       final Set<Parcel> seen = newHashSet();
       for (int j = 0; j < route.size(); j++) {
         final Parcel cur = route.get(j);

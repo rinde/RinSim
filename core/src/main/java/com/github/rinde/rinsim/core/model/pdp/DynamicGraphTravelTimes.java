@@ -49,7 +49,7 @@ import com.google.common.collect.Table;
 public class DynamicGraphTravelTimes<T extends ConnectionData>
     extends AbstractTravelTimes {
   /**
-   * Immutable graph
+   * Immutable graph.
    */
   private final Graph<T> g;
 

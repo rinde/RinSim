@@ -36,7 +36,7 @@ public class PlaneTravelTimes extends AbstractTravelTimes {
   private final Point max;
 
   /**
-   * Constructs a new {@link PlaneTravelTimes} object.}
+   * Constructs a new {@link PlaneTravelTimes} object.
    * @param minimumPoint The minimum point of the plane.
    * @param maximumPoint The maximum point of the plane.
    * @param tu The time unit.
