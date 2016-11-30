@@ -54,6 +54,7 @@ import com.github.rinde.rinsim.core.model.pdp.PDPModel.VehicleState;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.ParcelDTO;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
+import com.github.rinde.rinsim.core.model.pdp.TravelTimes;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
@@ -126,7 +127,7 @@ public class SolversTest {
     p2 = createParcel(new Point(6, 9), new Point(2, 9));
     p3 = createParcel(new Point(2, 8), new Point(8, 2));
 
-    tt = new PlaneTravelTimes(rm, v1.getSpeed(), NonSI.HOUR);
+    tt = rm.getTravelTimes(NonSI.HOUR);
   }
 
   @Test

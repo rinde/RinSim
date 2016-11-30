@@ -21,10 +21,14 @@ import static java.util.Arrays.asList;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import javax.measure.quantity.Duration;
+import javax.measure.unit.Unit;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
+import com.github.rinde.rinsim.core.model.pdp.TravelTimes;
 import com.github.rinde.rinsim.event.EventDispatcher;
 
 /**
@@ -114,4 +118,9 @@ public abstract class GenericRoadModel extends AbstractModel<RoadUser>
    */
   protected abstract boolean doRegister(RoadUser object);
 
+  /**
+   * @param timeUnit The unit of time to be used for the calculations.
+   * @return A {@link TravelTimes} object suitable for the {@link RoadModel}.
+   */
+  public abstract TravelTimes getTravelTimes(Unit<Duration> timeUnit);
 }

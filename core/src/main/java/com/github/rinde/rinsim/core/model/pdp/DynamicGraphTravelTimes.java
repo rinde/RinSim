@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.central;
+package com.github.rinde.rinsim.core.model.pdp;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -52,24 +52,35 @@ public class DynamicGraphTravelTimes<T extends ConnectionData>
    * Immutable graph
    */
   private final Graph<T> g;
-  final Unit<Velocity> speedUnit;
 
   private final Table<Point, Point, List<Point>> pathTable;
   private final Map<List<Point>, Long> pathTT;
 
-  DynamicGraphTravelTimes(Graph<T> g, Unit<Duration> tu, Unit<Length> du,
-      Unit<Velocity> su) {
+  /**
+   * Create a new {@link DynamicGraphTravelTimes} object based on a given graph,
+   * using the given measurement units.
+   * @param graph The graph to calculate routes on.
+   * @param tu The time unit to use.
+   * @param du The distance unit to use.
+   */
+  public DynamicGraphTravelTimes(Graph<T> graph, Unit<Duration> tu,
+      Unit<Length> du) {
     super(tu, du);
 
     pathTable = HashBasedTable.create();
     pathTT = new HashMap<>();
 
-    this.g = g;
-
-    speedUnit = su;
+    this.g = graph;
   }
 
-  DynamicGraphTravelTimes(DynamicGraphTravelTimes<T> tt, Graph<T> newGraph) {
+  /**
+   * Creates a new {@link DynamicGraphTravelTimes} object based on a previous
+   * one.
+   * @param tt The previous travel times.
+   * @param newGraph The new state of the graph.
+   */
+  public DynamicGraphTravelTimes(DynamicGraphTravelTimes<T> tt,
+      Graph<T> newGraph) {
     super(tt);
 
     // TODO Check for updates
@@ -77,7 +88,6 @@ public class DynamicGraphTravelTimes<T extends ConnectionData>
     pathTT = tt.pathTT;
 
     this.g = Graphs.unmodifiableGraph(newGraph);
-    speedUnit = tt.speedUnit;
   }
 
   @Override
@@ -118,7 +128,7 @@ public class DynamicGraphTravelTimes<T extends ConnectionData>
                   .parseDouble((String) ((MultiAttributeData) conn.data().get())
                     .getAttributes()
                     .get(MultiAttributeData.THEORETICAL_SPEED_ATTRIBUTE)),
-                speedUnit),
+                vehicleSpeed.getUnit()),
               distance, timeUnit));
       } catch (final Exception e) {
         e.printStackTrace();
@@ -158,7 +168,7 @@ public class DynamicGraphTravelTimes<T extends ConnectionData>
             RoadModels.computeTravelTime(
               Measure.valueOf(
                 ((MultiAttributeData) conn.data().get()).getMaxSpeed().get(),
-                speedUnit),
+                vehicleSpeed.getUnit()),
               distance, timeUnit));
       } catch (final Exception e) {
         travelTime +=

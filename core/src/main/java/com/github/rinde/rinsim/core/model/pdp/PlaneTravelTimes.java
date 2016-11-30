@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.central;
+package com.github.rinde.rinsim.core.model.pdp;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -26,7 +26,6 @@ import javax.measure.unit.Unit;
 import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModels;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 
 /**
  * The {@link TravelTimes} class to be used with the {@link PlaneRoadModel}.
@@ -36,24 +35,29 @@ public class PlaneTravelTimes extends AbstractTravelTimes {
   private final Point min;
   private final Point max;
 
-  PlaneTravelTimes(Point min, Point max, Unit<Velocity> su,
+  /**
+   * Constructs a new {@link PlaneTravelTimes} object.}
+   * @param minimumPoint The minimum point of the plane.
+   * @param maximumPoint The maximum point of the plane.
+   * @param tu The time unit.
+   * @param du The distance unit.
+   */
+  public PlaneTravelTimes(Point minimumPoint, Point maximumPoint,
       Unit<Duration> tu,
       Unit<Length> du) {
     super(tu, du);
-    this.min = min;
-    this.max = max;
+    min = minimumPoint;
+    max = maximumPoint;
   }
 
-  PlaneTravelTimes(PlaneTravelTimes tt) {
+  /**
+   * Construct a new {@link PlaneTravelTimes} object based on an older one.
+   * @param tt The base {@link PlaneTravelTimes} object.
+   */
+  public PlaneTravelTimes(PlaneTravelTimes tt) {
     super(tt);
     min = tt.min;
     max = tt.max;
-  }
-
-  PlaneTravelTimes(PDPRoadModel prm, double vs, Unit<Duration> tu) {
-    super(tu, prm.getDistanceUnit());
-    min = prm.getBounds().get(0);
-    max = prm.getBounds().get(1);
   }
 
   @Override

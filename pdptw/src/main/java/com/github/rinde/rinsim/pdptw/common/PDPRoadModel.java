@@ -23,6 +23,8 @@ import java.util.Queue;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
+import javax.measure.quantity.Duration;
+import javax.measure.unit.Unit;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
@@ -32,6 +34,7 @@ import com.github.rinde.rinsim.core.model.pdp.Depot;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
+import com.github.rinde.rinsim.core.model.pdp.TravelTimes;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.road.AbstractRoadModel;
 import com.github.rinde.rinsim.core.model.road.ForwardingRoadModel;
@@ -257,7 +260,7 @@ public class PDPRoadModel extends ForwardingRoadModel<GenericRoadModel>
       if (destinations.get(obj).type() == DestType.PICKUP
         && parcelState == ParcelState.AVAILABLE
         || parcelState == ParcelState.ANNOUNCED
-        // if it is a delivery destination it must still be in cargo
+      // if it is a delivery destination it must still be in cargo
         || destinations.get(obj).type() == DestType.DELIVERY
           && parcelState == ParcelState.IN_CARGO) {
         return (Parcel) destinations.get(obj).roadUser();
@@ -308,6 +311,11 @@ public class PDPRoadModel extends ForwardingRoadModel<GenericRoadModel>
   @Override
   public <U> U get(Class<U> type) {
     return type.cast(self);
+  }
+
+  @Override
+  public TravelTimes getTravelTimes(Unit<Duration> timeUnit) {
+    return delegate().getTravelTimes(timeUnit);
   }
 
   /**

@@ -41,12 +41,12 @@ import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.VehicleParcelActionInfo;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
+import com.github.rinde.rinsim.core.model.pdp.TravelTimes;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.road.GraphRoadModel;
 import com.github.rinde.rinsim.core.model.time.Clock;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.geom.Connection;
-import com.github.rinde.rinsim.geom.Graphs;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
@@ -180,16 +180,14 @@ public final class Solvers {
             : cur.getPickupLocation();
           final Measure<Double, Length> distance = Measure.valueOf(
             state.getTravelTimes().computeTheoreticalDistance(vehicleLocation,
-              vso.getDto().getStartPosition()),
-            // Point.distance(vehicleLocation, nextLoc),
+              vso.getDto().getStartPosition(),
+              Measure.valueOf(vso.getDto().getSpeed(), state.getSpeedUnit())),
             state.getDistUnit());
           totalDistance += distance.getValue();
           vehicleLocation = nextLoc;
           final long tt = state.getTravelTimes()
-            .getTheoreticalShortestTravelTime(vehicleLocation, nextLoc);
-          // final long tt = DoubleMath.roundToLong(
-          // RoadModels.computeTravelTime(speed, distance, state.getTimeUnit()),
-          // RoundingMode.CEILING);
+            .getTheoreticalShortestTravelTime(vehicleLocation, nextLoc,
+              Measure.valueOf(vso.getDto().getSpeed(), state.getSpeedUnit()));
           time += tt;
           totalTravelTime += tt;
         }
@@ -230,16 +228,14 @@ public final class Solvers {
       // go to depot
       final Measure<Double, Length> distance = Measure.valueOf(
         state.getTravelTimes().computeTheoreticalDistance(vehicleLocation,
-          vso.getDto().getStartPosition()),
-        // Point.distance(vehicleLocation, vso.getDto().getStartPosition()),
+          vso.getDto().getStartPosition(),
+          Measure.valueOf(vso.getDto().getSpeed(), state.getSpeedUnit())),
         state.getDistUnit());
       totalDistance += distance.getValue();
       final long tt = state.getTravelTimes()
         .getTheoreticalShortestTravelTime(vehicleLocation,
-          vso.getDto().getStartPosition());
-      // final long tt = DoubleMath.roundToLong(
-      // RoadModels.computeTravelTime(speed, distance, state.getTimeUnit()),
-      // RoundingMode.CEILING);
+          vso.getDto().getStartPosition(),
+          Measure.valueOf(vso.getDto().getSpeed(), state.getSpeedUnit()));
       time += tt;
       totalTravelTime += tt;
       // check overtime
@@ -302,23 +298,7 @@ public final class Solvers {
     final ImmutableSet.Builder<Parcel> availableDestParcels =
       ImmutableSet.builder();
 
-    TravelTimes tt;
-    if (rm instanceof GraphRoadModel) {
-      tt = new DynamicGraphTravelTimes(
-        Graphs.unmodifiableGraph(((GraphRoadModel) rm).getGraph()),
-        time.getUnit(), rm.getDistanceUnit(), rm.getSpeedUnit(), vehicles);
-    } else {
-      double speed = 0;
-      for (final Vehicle v : vehicles) {
-        speed += v.getSpeed();
-      }
-      speed /= vehicles.size();
-      tt = new PlaneTravelTimes(rm, speed,
-        time.getUnit());
-    }
-    // rm.getTravelTimes();
-    // ScenarioGenerator.createTravelTimes((GraphRoadModel) rm, vehicles,
-    // time.getUnit());
+    final TravelTimes tt = rm.getTravelTimes(time.getUnit());
 
     for (final Vehicle v : vehicles) {
       final ImmutableSet<Parcel> contentsMap =

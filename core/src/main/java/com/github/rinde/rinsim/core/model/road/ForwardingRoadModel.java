@@ -23,6 +23,7 @@ import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
@@ -31,6 +32,7 @@ import org.apache.commons.math3.random.RandomGenerator;
 
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
+import com.github.rinde.rinsim.core.model.pdp.TravelTimes;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.geom.Point;
@@ -225,6 +227,11 @@ public class ForwardingRoadModel<T extends GenericRoadModel>
     return delegate().get(type);
   }
 
+  @Override
+  public TravelTimes getTravelTimes(Unit<Duration> timeUnit) {
+    return delegate().getTravelTimes(timeUnit);
+  }
+
   /**
    * Abstract base builder for creating subclasses of
    * {@link ForwardingRoadModel}.
@@ -243,4 +250,5 @@ public class ForwardingRoadModel<T extends GenericRoadModel>
      */
     public abstract ModelBuilder<? extends RoadModel, RoadUser> getDelegateModelBuilder();
   }
+
 }
