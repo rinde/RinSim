@@ -27,8 +27,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.logging.Logger;
+
+import javax.annotation.Nonnull;
 
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
@@ -40,6 +41,7 @@ import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.geom.TableGraph;
 import com.github.rinde.rinsim.pdptw.common.ChangeConnectionSpeedEvent;
 import com.github.rinde.rinsim.util.StochasticSupplier;
+import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -66,7 +68,7 @@ public final class DynamicSpeeds {
   static final Function<Double, Double> DEFAULT_BEHAVIOUR_FUNCTION =
     new Function<Double, Double>() {
       @Override
-      public Double apply(Double input) {
+      public Double apply(@Nonnull Double input) {
         return Math.max(0,
           Math.min(EIGHTY_PERCENT / FIVE_KM * input + TWENTY_PERCENT, 1));
       }
@@ -616,10 +618,12 @@ public final class DynamicSpeeds {
         // + conn.from() + " to " + conn.to() + " at distance " + distance);
 
         final List<ChangeConnectionSpeedEvent> events = new ArrayList<>();
-        final double factor =
+        @Nonnull
+        final Double factor =
           behaviourSupplier.get(rng.nextLong())
             .apply(distance + conn.getLength() / 2);
-        final double speed =
+        @Nonnull
+        final Double speed =
           expandingSpeedSupplier.get(rng.nextLong()).apply(relTimestamp);
 
         long nextRelTimestamp = 0L;
@@ -709,10 +713,12 @@ public final class DynamicSpeeds {
        */
       private List<ChangeConnectionSpeedEvent> simulateForwardRecedingShockwave() {
         final List<ChangeConnectionSpeedEvent> events = new ArrayList<>();
-        final double factor =
-          1 / behaviourSupplier.get(rng.nextLong())
-            .apply(distance + conn.getLength() / 2);
-        final double speed =
+        @Nonnull
+        final Double factorInverse = behaviourSupplier.get(rng.nextLong())
+          .apply(distance + conn.getLength() / 2);
+        final Double factor = 1 / factorInverse;
+        @Nonnull
+        final Double speed =
           recedingSpeedSupplier.get(rng.nextLong()).apply(relTimestamp);
 
         long nextRelTimestamp = 0L;

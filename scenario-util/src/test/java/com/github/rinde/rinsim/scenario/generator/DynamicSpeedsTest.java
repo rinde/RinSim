@@ -20,8 +20,8 @@ import static org.junit.Assert.assertEquals;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.function.Function;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.junit.Before;
@@ -35,6 +35,7 @@ import com.github.rinde.rinsim.geom.TableGraph;
 import com.github.rinde.rinsim.pdptw.common.ChangeConnectionSpeedEvent;
 import com.github.rinde.rinsim.scenario.generator.DynamicSpeeds.DynamicSpeedGenerator;
 import com.github.rinde.rinsim.util.StochasticSuppliers;
+import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 
 /**
@@ -70,7 +71,7 @@ public class DynamicSpeedsTest {
     new Function<Double, Double>() {
 
       @Override
-      public Double apply(@SuppressWarnings("null") Double input) {
+      public Double apply(@Nonnull Double input) {
         return Math.max(0, Math.min(0.8d / 1000d * input + 0.2d, 1));
       }
     };
@@ -85,7 +86,7 @@ public class DynamicSpeedsTest {
   final Function<Long, Double> FROM_TEN_KM_H_DESCENDING =
     new Function<Long, Double>() {
       @Override
-      public Double apply(@SuppressWarnings("null") Long input) {
+      public Double apply(@Nonnull Long input) {
         return Math.max(0,
           TEN_KM_H_VALUE - TEN_KM_H_VALUE * input / (6 * MINUTE));
       }
@@ -94,7 +95,7 @@ public class DynamicSpeedsTest {
   final Function<Long, Double> FROM_FIVE_KM_H_DESCENDING =
     new Function<Long, Double>() {
       @Override
-      public Double apply(@SuppressWarnings("null") Long input) {
+      public Double apply(@Nonnull Long input) {
         return Math.max(0,
           TEN_KM_H_VALUE / 2 - TEN_KM_H_VALUE / 2 * input / (6 * MINUTE));
       }
