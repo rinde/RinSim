@@ -17,12 +17,10 @@ package com.github.rinde.rinsim.scenario.generator;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -101,23 +99,6 @@ public class DynamicSpeedsTest {
       }
     };
 
-  final Comparator<ChangeConnectionSpeedEvent> TIMING_COMP =
-    new Comparator<ChangeConnectionSpeedEvent>() {
-      @Override
-      public int compare(@Nullable ChangeConnectionSpeedEvent o1,
-          @Nullable ChangeConnectionSpeedEvent o2) {
-        if (o1 == null || o2 == null) {
-          return 0;
-        }
-        if (o1.getTime() < o2.getTime()) {
-          return -1;
-        } else if (o1.getTime() > o2.getTime()) {
-          return 1;
-        }
-        return 0;
-      }
-    };
-
   @Before
   public void setUp() throws Exception {
     graph = new TableGraph<>();
@@ -163,7 +144,6 @@ public class DynamicSpeedsTest {
 
     final List<ChangeConnectionSpeedEvent> events = Lists.newArrayList(
       gen.generate(123, scenarioLength));
-    events.sort(TIMING_COMP);
 
     assertEquals(8, events.size());
 
@@ -240,7 +220,6 @@ public class DynamicSpeedsTest {
 
     final List<ChangeConnectionSpeedEvent> events = Lists.newArrayList(
       gen.generate(123, scenarioLength));
-    events.sort(TIMING_COMP);
 
     assertEquals(8, events.size());
 
@@ -310,7 +289,6 @@ public class DynamicSpeedsTest {
 
     final List<ChangeConnectionSpeedEvent> events = Lists.newArrayList(
       gen.generate(123, scenarioLength));
-    events.sort(TIMING_COMP);
 
     assertEquals(5, events.size());
 
@@ -382,7 +360,6 @@ public class DynamicSpeedsTest {
 
     final List<ChangeConnectionSpeedEvent> events = Lists.newArrayList(
       gen.generate(123, scenarioLength));
-    events.sort(TIMING_COMP);
 
     assertEquals(6, events.size());
 
@@ -458,7 +435,6 @@ public class DynamicSpeedsTest {
   //
   // final List<ChangeConnectionSpeedEvent> events = Lists.newArrayList(
   // gen.generate(123, scenarioLength));
-  // events.sort(TIMING_COMP);
   //
   // assertEquals(22, events.size());
   //
@@ -534,7 +510,6 @@ public class DynamicSpeedsTest {
 
     final List<ChangeConnectionSpeedEvent> events = Lists.newArrayList(
       gen.generate(123, scenarioLength));
-    events.sort(TIMING_COMP);
 
     assertEquals(14, events.size());
 
@@ -589,7 +564,6 @@ public class DynamicSpeedsTest {
 
     final List<ChangeConnectionSpeedEvent> events = Lists.newArrayList(
       gen.generate(123, scenarioLength));
-    events.sort(TIMING_COMP);
 
     assertEquals(2, events.size());
 

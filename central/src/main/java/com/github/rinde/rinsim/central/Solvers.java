@@ -22,6 +22,7 @@ import static com.google.common.collect.Sets.newHashSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -127,130 +128,26 @@ public final class Solvers {
     final long startTime = state.getTime();
     long maxTime = 0;
     int movedVehicles = 0;
-    final Set<Parcel> parcels = newHashSet();
+    int totalParcels = 0;
 
     final ImmutableList.Builder<ImmutableList<Long>> arrivalTimesBuilder =
       ImmutableList.builder();
 
     for (int i = 0; i < state.getVehicles().size(); i++) {
-      final VehicleStateObject vso = state.getVehicles().get(i);
-      checkArgument(r.isPresent() || vso.getRoute().isPresent(),
-        "Vehicle routes must either be specified as an argument or must be part"
-          + " of the state object.");
-
-      final ImmutableList.Builder<Long> truckArrivalTimesBuilder =
-        ImmutableList.builder();
-      truckArrivalTimesBuilder.add(state.getTime());
-
-      ImmutableList<Parcel> route;
-      if (r.isPresent()) {
-        route = r.get().get(i);
-      } else {
-        route = vso.getRoute().get();
-      }
-      parcels.addAll(route);
-
-      long time = state.getTime();
-      Point vehicleLocation = vso.getLocation();
-      final Set<Parcel> seen = newHashSet();
-      for (int j = 0; j < route.size(); j++) {
-        final Parcel cur = route.get(j);
-        final boolean inCargo = vso.getContents().contains(cur)
-          || seen.contains(cur);
-        seen.add(cur);
-        if (vso.getDestination().isPresent() && j == 0) {
-          checkArgument(
-            vso.getDestination().asSet().contains(cur),
-            "If a vehicle has a destination, the first position in the route "
-              + "must equal this. Expected %s, is %s.",
-            vso.getDestination().get(), cur);
-        }
-
-        boolean firstAndServicing = false;
-        if (j == 0 && vso.getRemainingServiceTime() > 0) {
-          // we are already at the service location
-          firstAndServicing = true;
-          truckArrivalTimesBuilder.add(time);
-          time += vso.getRemainingServiceTime();
-        } else {
-          // vehicle is not there yet, go there first, then service
-          final Point nextLoc = inCargo ? cur.getDeliveryLocation()
-            : cur.getPickupLocation();
-          final Measure<Double, Length> distance = Measure.valueOf(
-            state.getTravelTimes().computeTheoreticalDistance(vehicleLocation,
-              vso.getDto().getStartPosition(),
-              Measure.valueOf(vso.getDto().getSpeed(), state.getSpeedUnit())),
-            state.getDistUnit());
-          totalDistance += distance.getValue();
-          vehicleLocation = nextLoc;
-          final long tt = state.getTravelTimes()
-            .getTheoreticalShortestTravelTime(vehicleLocation, nextLoc,
-              Measure.valueOf(vso.getDto().getSpeed(), state.getSpeedUnit()));
-          time += tt;
-          totalTravelTime += tt;
-        }
-        if (inCargo) {
-          // check if we are early
-          if (cur.getDeliveryTimeWindow().isBeforeStart(time)) {
-            time = cur.getDeliveryTimeWindow().begin();
-          }
-
-          if (!firstAndServicing) {
-            truckArrivalTimesBuilder.add(time);
-            time += cur.getDeliveryDuration();
-          }
-          // delivering
-          if (cur.getDeliveryTimeWindow().isAfterEnd(time)) {
-            final long tardiness = time - cur.getDeliveryTimeWindow().end();
-            deliveryTardiness += tardiness;
-          }
-          totalDeliveries++;
-        } else {
-          // check if we are early
-          if (cur.getPickupTimeWindow().isBeforeStart(time)) {
-            time = cur.getPickupTimeWindow().begin();
-          }
-          if (!firstAndServicing) {
-            truckArrivalTimesBuilder.add(time);
-            time += cur.getPickupDuration();
-          }
-          // picking up
-          if (cur.getPickupTimeWindow().isAfterEnd(time)) {
-            final long tardiness = time - cur.getPickupTimeWindow().end();
-            pickupTardiness += tardiness;
-          }
-          totalPickups++;
-        }
-      }
-
-      // go to depot
-      final Measure<Double, Length> distance = Measure.valueOf(
-        state.getTravelTimes().computeTheoreticalDistance(vehicleLocation,
-          vso.getDto().getStartPosition(),
-          Measure.valueOf(vso.getDto().getSpeed(), state.getSpeedUnit())),
-        state.getDistUnit());
-      totalDistance += distance.getValue();
-      final long tt = state.getTravelTimes()
-        .getTheoreticalShortestTravelTime(vehicleLocation,
-          vso.getDto().getStartPosition(),
-          Measure.valueOf(vso.getDto().getSpeed(), state.getSpeedUnit()));
-      time += tt;
-      totalTravelTime += tt;
-      // check overtime
-      if (vso.getDto().getAvailabilityTimeWindow().isAfterEnd(time)) {
-        overTime += time - vso.getDto().getAvailabilityTimeWindow().end();
-      }
-      maxTime = Math.max(maxTime, time);
-
-      truckArrivalTimesBuilder.add(time);
-      arrivalTimesBuilder.add(truckArrivalTimesBuilder.build());
-
-      if (time > startTime) {
-        // time has progressed -> the vehicle has moved
-        movedVehicles++;
-      }
+      final ExtendedStats stats = calculateStatsForVehicle(state, i, r);
+      totalDistance += stats.totalDistance;
+      totalTravelTime += stats.totalTime;
+      totalDeliveries += stats.totalDeliveries;
+      totalPickups += stats.totalPickups;
+      pickupTardiness += stats.pickupTardiness;
+      deliveryTardiness += stats.deliveryTardiness;
+      overTime += stats.overTime;
+      maxTime += Math.max(maxTime, stats.totalTime);
+      movedVehicles += stats.movedVehicles;
+      totalParcels += stats.totalParcels;
+      arrivalTimesBuilder.addAll(stats.arrivalTimes);
     }
-    final int totalParcels = parcels.size();
+
     final int totalVehicles = state.getVehicles().size();
     final long simulationTime = maxTime - startTime;
 
@@ -261,6 +158,148 @@ public final class Solvers {
       movedVehicles, state.getTimeUnit(), state.getDistUnit(),
       state.getSpeedUnit(),
       arrivalTimesBuilder.build());
+  }
+
+  private static ExtendedStats calculateStatsForVehicle(
+      GlobalStateObject state, int vehicleIndex,
+      Optional<ImmutableList<ImmutableList<Parcel>>> r) {
+
+    final Set<Parcel> parcels = new HashSet<>();
+    double totalDistance = 0;
+    long totalTravelTime = 0;
+    int totalDeliveries = 0;
+    int totalPickups = 0;
+    long pickupTardiness = 0;
+    long deliveryTardiness = 0;
+    long overTime = 0;
+    long maxTime = 0;
+    int movedVehicles = 0;
+    final ImmutableList.Builder<ImmutableList<Long>> arrivalTimesBuilder =
+      ImmutableList.builder();
+    final VehicleStateObject vso = state.getVehicles().get(vehicleIndex);
+    checkArgument(r.isPresent() || vso.getRoute().isPresent(),
+      "Vehicle routes must either be specified as an argument or must be part"
+        + " of the state object.");
+
+    final ImmutableList.Builder<Long> truckArrivalTimesBuilder =
+      ImmutableList.builder();
+    truckArrivalTimesBuilder.add(state.getTime());
+
+    final ImmutableList<Parcel> route;
+    if (r.isPresent()) {
+      route = r.get().get(vehicleIndex);
+    } else {
+      route = vso.getRoute().get();
+    }
+    parcels.addAll(route);
+
+    long time = state.getTime();
+    Point vehicleLocation = vso.getLocation();
+    final Set<Parcel> seen = newHashSet();
+    for (int j = 0; j < route.size(); j++) {
+      final Parcel cur = route.get(j);
+      final boolean inCargo = vso.getContents().contains(cur)
+        || seen.contains(cur);
+      seen.add(cur);
+      if (vso.getDestination().isPresent() && j == 0) {
+        checkArgument(
+          vso.getDestination().asSet().contains(cur),
+          "If a vehicle has a destination, the first position in the route "
+            + "must equal this. Expected %s, is %s.",
+          vso.getDestination().get(), cur);
+      }
+
+      boolean firstAndServicing = false;
+      if (j == 0 && vso.getRemainingServiceTime() > 0) {
+        // we are already at the service location
+        firstAndServicing = true;
+        truckArrivalTimesBuilder.add(time);
+        time += vso.getRemainingServiceTime();
+      } else {
+        // vehicle is not there yet, go there first, then service
+        final Point nextLoc = inCargo ? cur.getDeliveryLocation()
+          : cur.getPickupLocation();
+        final Measure<Double, Length> distance = Measure.valueOf(
+          state.getTravelTimes().computeTheoreticalDistance(vehicleLocation,
+            vso.getDto().getStartPosition(),
+            Measure.valueOf(vso.getDto().getSpeed(), state.getSpeedUnit())),
+          state.getDistUnit());
+        totalDistance += distance.getValue();
+        vehicleLocation = nextLoc;
+        final long tt = state.getTravelTimes()
+          .getTheoreticalShortestTravelTime(vehicleLocation, nextLoc,
+            Measure.valueOf(vso.getDto().getSpeed(), state.getSpeedUnit()));
+        time += tt;
+        totalTravelTime += tt;
+      }
+      if (inCargo) {
+        // check if we are early
+        if (cur.getDeliveryTimeWindow().isBeforeStart(time)) {
+          time = cur.getDeliveryTimeWindow().begin();
+        }
+
+        if (!firstAndServicing) {
+          truckArrivalTimesBuilder.add(time);
+          time += cur.getDeliveryDuration();
+        }
+        // delivering
+        if (cur.getDeliveryTimeWindow().isAfterEnd(time)) {
+          final long tardiness = time - cur.getDeliveryTimeWindow().end();
+          deliveryTardiness += tardiness;
+        }
+        totalDeliveries++;
+      } else {
+        // check if we are early
+        if (cur.getPickupTimeWindow().isBeforeStart(time)) {
+          time = cur.getPickupTimeWindow().begin();
+        }
+        if (!firstAndServicing) {
+          truckArrivalTimesBuilder.add(time);
+          time += cur.getPickupDuration();
+        }
+        // picking up
+        if (cur.getPickupTimeWindow().isAfterEnd(time)) {
+          final long tardiness = time - cur.getPickupTimeWindow().end();
+          pickupTardiness += tardiness;
+        }
+        totalPickups++;
+      }
+    }
+
+    // go to depot
+    final Measure<Double, Length> distance = Measure.valueOf(
+      state.getTravelTimes().computeTheoreticalDistance(vehicleLocation,
+        vso.getDto().getStartPosition(),
+        Measure.valueOf(vso.getDto().getSpeed(), state.getSpeedUnit())),
+      state.getDistUnit());
+    totalDistance += distance.getValue();
+    final long tt = state.getTravelTimes()
+      .getTheoreticalShortestTravelTime(vehicleLocation,
+        vso.getDto().getStartPosition(),
+        Measure.valueOf(vso.getDto().getSpeed(), state.getSpeedUnit()));
+    time += tt;
+    totalTravelTime += tt;
+    // check overtime
+    if (vso.getDto().getAvailabilityTimeWindow().isAfterEnd(time)) {
+      overTime += time - vso.getDto().getAvailabilityTimeWindow().end();
+    }
+    maxTime = Math.max(maxTime, time);
+
+    truckArrivalTimesBuilder.add(time);
+    arrivalTimesBuilder.add(truckArrivalTimesBuilder.build());
+
+    if (time > state.getTime()) {
+      // time has progressed -> the vehicle has moved
+      movedVehicles++;
+    }
+    return new ExtendedStats(totalDistance, totalTravelTime, totalPickups,
+      totalDeliveries,
+      parcels.size(), parcels.size(), pickupTardiness, deliveryTardiness, 0,
+      time - state.getTime(), true, 1, overTime, 1,
+      movedVehicles, state.getTimeUnit(), state.getDistUnit(),
+      state.getSpeedUnit(),
+      arrivalTimesBuilder.build());
+
   }
 
   public static Callable<ImmutableList<ImmutableList<Parcel>>> createSolverCallable(
