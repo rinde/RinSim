@@ -1,5 +1,10 @@
 # Release notes
 
+## v4.3.0
+ * Refactored MeasurableSolver system, introduced Measurable interface.
+ * Refactored PDPRoadModel system for compatibility with GraphRoadModel.
+ * GraphRoadMoel builder that links to an external graph can now be serialized in a scenario.
+
 ## v4.2.0
  * Created adapters to allow RealtimeSolver instances to run in simulated time.
  * Created MeasureableSolver and MeasureableRealtimeSolver interfaces that allows for measuring solver computation times.
