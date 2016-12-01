@@ -78,14 +78,6 @@ public final class GraphRoadModelRenderer extends AbstractCanvasRenderer {
   GraphRoadModelRenderer(GraphRoadModel grm, Builder b) {
     model = grm;
     updatedConnections = new CopyOnWriteArrayList<>();
-    ((ListenableGraph) grm.getGraph())
-      .getEventAPI()
-      .addListener(new Listener() {
-        @Override
-        public void handleEvent(Event e) {
-          updatedConnections.add(((GraphEvent) e).getConnection());
-        }
-      }, EventTypes.CHANGE_CONNECTION_DATA);
 
     margin = b.margin();
     showNodes = b.vizOptions().contains(VizOptions.NODE_CIRCLES);
@@ -94,6 +86,23 @@ public final class GraphRoadModelRenderer extends AbstractCanvasRenderer {
     showRelativeSpeedStatic = b.vizOptions().contains(VizOptions.REL_SPEED_S);
     showRelativeSpeedDynamic = b.vizOptions().contains(VizOptions.REL_SPEED_D);
     helper = new RenderHelper();
+
+    if (showRelativeSpeedDynamic) {
+      try {
+        ((ListenableGraph) grm.getGraph())
+          .getEventAPI()
+          .addListener(new Listener() {
+            @Override
+            public void handleEvent(Event e) {
+              updatedConnections.add(((GraphEvent) e).getConnection());
+            }
+          }, EventTypes.CHANGE_CONNECTION_DATA);
+      } catch (final ClassCastException e) {
+        throw new IllegalStateException(
+          "The GraphRoadModelRenderer has been configured with "
+            + "showRelativeSpeedDynamic, yet cannot provide a ListenableGraph");
+      }
+    }
   }
 
   @Override
