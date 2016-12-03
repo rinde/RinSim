@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.core.model.pdp;
+package com.github.rinde.rinsim.core.model.road;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -26,8 +26,6 @@ import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
-import com.github.rinde.rinsim.core.model.road.DynamicGraphRoadModel;
-import com.github.rinde.rinsim.core.model.road.RoadModels;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.ConnectionData;
 import com.github.rinde.rinsim.geom.Graph;
@@ -35,6 +33,7 @@ import com.github.rinde.rinsim.geom.Graphs;
 import com.github.rinde.rinsim.geom.MultiAttributeData;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Table;
 
 /**
@@ -51,60 +50,61 @@ public class DynamicGraphTravelTimes<T extends ConnectionData>
   /**
    * Immutable graph.
    */
-  private final Graph<T> g;
+  private final Graph<T> dynamicGraph;
 
   private final Table<Point, Point, List<Point>> pathTable;
-  private final Map<List<Point>, Long> pathTT;
+  private final Map<List<Point>, Long> pathTimeTable;
 
   /**
    * Create a new {@link DynamicGraphTravelTimes} object based on a given graph,
    * using the given measurement units.
    * @param graph The graph to calculate routes on.
-   * @param tu The time unit to use.
-   * @param du The distance unit to use.
+   * @param modelTimeUnit The time unit to use.
+   * @param modelDistanceUnit The distance unit to use.
    */
-  public DynamicGraphTravelTimes(Graph<T> graph, Unit<Duration> tu,
-      Unit<Length> du) {
-    super(tu, du);
+  DynamicGraphTravelTimes(Graph<T> graph, Unit<Duration> modelTimeUnit,
+      Unit<Length> modelDistanceUnit) {
+    super(modelTimeUnit, modelDistanceUnit);
 
     pathTable = HashBasedTable.create();
-    pathTT = new HashMap<>();
+    pathTimeTable = new HashMap<>();
 
-    this.g = graph;
+    this.dynamicGraph = graph;
   }
 
   /**
    * Creates a new {@link DynamicGraphTravelTimes} object based on a previous
    * one.
-   * @param tt The previous travel times.
+   * @param travelTimes The previous travel times.
    * @param newGraph The new state of the graph.
    */
-  public DynamicGraphTravelTimes(DynamicGraphTravelTimes<T> tt,
+  DynamicGraphTravelTimes(DynamicGraphTravelTimes<T> travelTimes,
       Graph<T> newGraph) {
-    super(tt);
+    super(travelTimes);
 
     // TODO Check for updates
-    pathTable = tt.pathTable;
-    pathTT = tt.pathTT;
+    pathTable = HashBasedTable.create(travelTimes.pathTable);
+    pathTimeTable = Maps.newHashMap(travelTimes.pathTimeTable);
 
-    this.g = Graphs.unmodifiableGraph(newGraph);
+    this.dynamicGraph = Graphs.immutableGraph(newGraph);
   }
 
   @Override
   public long getTheoreticalShortestTravelTime(Point from, Point to,
-      Measure<Double, Velocity> vehicleSpeed) {
+      Measure<Double, Velocity> maxVehicleSpeed) {
 
-    List<Point> path;
+    final List<Point> path;
 
     if (pathTable.contains(from, to)) {
       path = pathTable.get(from, to);
     } else {
       path = Graphs
-        .shortestPath(g, from, to, Graphs.GraphHeuristics.THEORETICAL_TIME);
+        .shortestPath(dynamicGraph, from, to,
+          Graphs.GraphHeuristics.THEORETICAL_TIME);
       pathTable.put(from, to, path);
     }
-    if (pathTT.containsKey(path)) {
-      return pathTT.get(path);
+    if (pathTimeTable.containsKey(path)) {
+      return pathTimeTable.get(path);
     }
 
     final Iterator<Point> pathI = path.iterator();
@@ -114,13 +114,13 @@ public class DynamicGraphTravelTimes<T extends ConnectionData>
     while (pathI.hasNext()) {
       final Point cur = pathI.next();
       final Connection<T> conn =
-        g.getConnection(prev, cur);
+        dynamicGraph.getConnection(prev, cur);
 
       final Measure<Double, Length> distance = Measure.valueOf(
         conn.getLength(), distanceUnit);
       try {
         travelTime +=
-          Math.min(RoadModels.computeTravelTime(vehicleSpeed, distance,
+          Math.min(RoadModels.computeTravelTime(maxVehicleSpeed, distance,
             timeUnit),
             RoadModels.computeTravelTime(
               Measure.valueOf(
@@ -128,8 +128,9 @@ public class DynamicGraphTravelTimes<T extends ConnectionData>
                   .parseDouble((String) ((MultiAttributeData) conn.data().get())
                     .getAttributes()
                     .get(MultiAttributeData.THEORETICAL_SPEED_ATTRIBUTE)),
-                vehicleSpeed.getUnit()),
+                maxVehicleSpeed.getUnit()),
               distance, timeUnit));
+        // TODO decide what to do with this try-catch block
       } catch (final Exception e) {
         e.printStackTrace();
         // travelTime +=
@@ -138,7 +139,7 @@ public class DynamicGraphTravelTimes<T extends ConnectionData>
       }
       prev = cur;
     }
-    pathTT.put(path, travelTime);
+    pathTimeTable.put(path, travelTime);
     return travelTime;
     // TT := millis
     // conn.length := meter
@@ -147,9 +148,9 @@ public class DynamicGraphTravelTimes<T extends ConnectionData>
 
   @Override
   public long getCurrentShortestTravelTime(Point from, Point to,
-      Measure<Double, Velocity> vehicleSpeed) {
+      Measure<Double, Velocity> maxVehicleSpeed) {
     final Iterator<Point> path =
-      Graphs.shortestPath(g, from, to, Graphs.GraphHeuristics.TIME)
+      Graphs.shortestPath(dynamicGraph, from, to, Graphs.GraphHeuristics.TIME)
         .iterator();
 
     long travelTime = 0L;
@@ -157,22 +158,23 @@ public class DynamicGraphTravelTimes<T extends ConnectionData>
     while (path.hasNext()) {
       final Point cur = path.next();
       final Connection<T> conn =
-        g.getConnection(prev, cur);
+        dynamicGraph.getConnection(prev, cur);
 
       final Measure<Double, Length> distance = Measure.valueOf(
         conn.getLength(), distanceUnit);
       try {
         travelTime +=
-          Math.min(RoadModels.computeTravelTime(vehicleSpeed, distance,
+          Math.min(RoadModels.computeTravelTime(maxVehicleSpeed, distance,
             timeUnit),
             RoadModels.computeTravelTime(
               Measure.valueOf(
                 ((MultiAttributeData) conn.data().get()).getMaxSpeed().get(),
-                vehicleSpeed.getUnit()),
+                maxVehicleSpeed.getUnit()),
               distance, timeUnit));
-      } catch (final Exception e) {
+      } catch (final IllegalStateException e) {
+        // No max speed is defined for this connection
         travelTime +=
-          RoadModels.computeTravelTime(vehicleSpeed, distance,
+          RoadModels.computeTravelTime(maxVehicleSpeed, distance,
             timeUnit);
       }
       prev = cur;
@@ -186,20 +188,21 @@ public class DynamicGraphTravelTimes<T extends ConnectionData>
 
   @Override
   public double computeTheoreticalDistance(Point from, Point to,
-      Measure<Double, Velocity> vehicleSpeed) {
+      Measure<Double, Velocity> maxVehicleSpeed) {
     if (pathTable.contains(from, to)) {
       return Graphs.pathLength(pathTable.get(from, to));
     }
     final List<Point> path = Graphs
-      .shortestPath(g, from, to, Graphs.GraphHeuristics.THEORETICAL_TIME);
+      .shortestPath(dynamicGraph, from, to,
+        Graphs.GraphHeuristics.THEORETICAL_TIME);
     pathTable.put(from, to, path);
     return Graphs.pathLength(path);
   }
 
   @Override
   public double computeCurrentDistance(Point from, Point to,
-      Measure<Double, Velocity> vehicleSpeed) {
+      Measure<Double, Velocity> maxVehicleSpeed) {
     return Graphs.pathLength(
-      Graphs.shortestPath(g, from, to, Graphs.GraphHeuristics.TIME));
+      Graphs.shortestPath(dynamicGraph, from, to, Graphs.GraphHeuristics.TIME));
   }
 }

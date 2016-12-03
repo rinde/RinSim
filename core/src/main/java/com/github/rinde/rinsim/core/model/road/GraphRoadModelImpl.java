@@ -33,8 +33,6 @@ import javax.measure.unit.Unit;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
-import com.github.rinde.rinsim.core.model.pdp.DynamicGraphTravelTimes;
-import com.github.rinde.rinsim.core.model.pdp.TravelTimes;
 import com.github.rinde.rinsim.core.model.road.GraphRoadModelImpl.Loc;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Connection;
@@ -474,6 +472,12 @@ public class GraphRoadModelImpl extends AbstractRoadModel<Loc>
   @Override
   public TravelTimes getTravelTimes(Unit<Duration> timeUnit) {
     return new DynamicGraphTravelTimes<>(graph, timeUnit, getDistanceUnit());
+  }
+
+  @Override
+  public TravelTimes getTravelTimes(TravelTimes previousTravelTimes) {
+    return new DynamicGraphTravelTimes<>(
+      (DynamicGraphTravelTimes) previousTravelTimes, graph);
   }
 
   @Deprecated

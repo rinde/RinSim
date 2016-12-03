@@ -32,7 +32,6 @@ import org.apache.commons.math3.random.RandomGenerator;
 
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
-import com.github.rinde.rinsim.core.model.pdp.TravelTimes;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.geom.Point;
@@ -230,6 +229,11 @@ public class ForwardingRoadModel<T extends GenericRoadModel>
   @Override
   public TravelTimes getTravelTimes(Unit<Duration> timeUnit) {
     return delegate().getTravelTimes(timeUnit);
+  }
+
+  @Override
+  public TravelTimes getTravelTimes(TravelTimes previousTravelTimes) {
+    return delegate().getTravelTimes(previousTravelTimes);
   }
 
   /**

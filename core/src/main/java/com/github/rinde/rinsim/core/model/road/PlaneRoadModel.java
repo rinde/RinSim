@@ -32,8 +32,6 @@ import javax.measure.unit.Unit;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
-import com.github.rinde.rinsim.core.model.pdp.PlaneTravelTimes;
-import com.github.rinde.rinsim.core.model.pdp.TravelTimes;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.collect.ImmutableList;
@@ -218,5 +216,10 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
   @Override
   public TravelTimes getTravelTimes(Unit<Duration> timeUnit) {
     return new PlaneTravelTimes(min, max, timeUnit, getDistanceUnit());
+  }
+
+  @Override
+  public TravelTimes getTravelTimes(TravelTimes previousTravelTimes) {
+    return previousTravelTimes;
   }
 }

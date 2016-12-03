@@ -44,7 +44,7 @@ import com.google.common.collect.Lists;
 public class DynamicSpeedsTest {
 
   static final double DELTA = 0.0001;
-  static final double TEN_KM_H_VALUE = 0.002777777777777778d;
+  static final double TEN_KM_H_IN_M_MILLIS = 0.002777777777777778d;
 
   @SuppressWarnings("null")
   Graph<MultiAttributeData> graph;
@@ -77,7 +77,7 @@ public class DynamicSpeedsTest {
   final Function<Long, Double> TEN_KM_H = new Function<Long, Double>() {
     @Override
     public Double apply(@SuppressWarnings("null") Long input) {
-      return TEN_KM_H_VALUE;
+      return TEN_KM_H_IN_M_MILLIS;
     }
   };
 
@@ -86,7 +86,7 @@ public class DynamicSpeedsTest {
       @Override
       public Double apply(@Nonnull Long input) {
         return Math.max(0,
-          TEN_KM_H_VALUE - TEN_KM_H_VALUE * input / (6 * MINUTE));
+          TEN_KM_H_IN_M_MILLIS - TEN_KM_H_IN_M_MILLIS * input / (6 * MINUTE));
       }
     };
 
@@ -95,7 +95,8 @@ public class DynamicSpeedsTest {
       @Override
       public Double apply(@Nonnull Long input) {
         return Math.max(0,
-          TEN_KM_H_VALUE / 2 - TEN_KM_H_VALUE / 2 * input / (6 * MINUTE));
+          TEN_KM_H_IN_M_MILLIS / 2
+            - TEN_KM_H_IN_M_MILLIS / 2 * input / (6 * MINUTE));
       }
     };
 
@@ -389,81 +390,6 @@ public class DynamicSpeedsTest {
       assertEquals(timings[i], event.getTime());
     }
   }
-
-  // /**
-  // * Tests behaviour of shockwaves with cycles in the expansion
-  // */
-  // @SuppressWarnings("unchecked")
-  // @Test
-  // public void shockwaveCycleTest() {
-  // Point A, B, C, D, E, Cprime, Dprime;
-  // A = new Point(0, 0);
-  // B = new Point(0, 250);
-  // C = new Point(0, 500);
-  // D = new Point(0, 750);
-  // E = new Point(0, 1000);
-  // Cprime = new Point(1, 500);
-  // Dprime = new Point(1, 750);
-  //
-  // Connection<MultiAttributeData> connA, connB, connC, connD;
-  // Connection<MultiAttributeData> connCprime, connDprime, connDD;
-  // connA = Connection.create(A, B,
-  // MultiAttributeData.builder().setMaxSpeed(100).build());
-  // connB = Connection.create(B, C,
-  // MultiAttributeData.builder().setMaxSpeed(100).build());
-  // connC = Connection.create(C, D,
-  // MultiAttributeData.builder().setMaxSpeed(100).build());
-  // connD = Connection.create(D, E,
-  // MultiAttributeData.builder().setMaxSpeed(100).build());
-  // connCprime = Connection.create(Cprime, D,
-  // MultiAttributeData.builder().setLength(250).setMaxSpeed(100).build());
-  // connDprime = Connection.create(Dprime, Cprime,
-  // MultiAttributeData.builder().setLength(250).setMaxSpeed(100).build());
-  // connDD = Connection.create(D, Dprime,
-  // MultiAttributeData.builder().setLength(250).setMaxSpeed(100).build());
-  //
-  // graph.addConnections(Lists.newArrayList(connA, connB, connC, connD));
-  // graph.addConnections(Lists.newArrayList(connCprime, connDprime, connDD));
-  //
-  // final DynamicSpeedGenerator gen = builder.withGraph(graph)
-  // .startConnections(StochasticSuppliers.constant(connD))
-  // .shockwaveDurations(StochasticSuppliers.constant(10 * MINUTE))
-  // .shockwaveBehaviour(StochasticSuppliers.constant(HALF))
-  // .shockwaveExpandingSpeed(StochasticSuppliers.constant(TEN_KM_H))
-  // .shockwaveRecedingSpeed(StochasticSuppliers.constant(TEN_KM_H))
-  // .build();
-  //
-  // final List<ChangeConnectionSpeedEvent> events = Lists.newArrayList(
-  // gen.generate(123, scenarioLength));
-  //
-  // assertEquals(22, events.size());
-  //
-  // /**
-  // * Shockwave travels at 10 Km/h, the total distance if 1 Km. every 1.5
-  // * minute, a connection is crossed. After connD, it branches into a cycle
-  // */
-  // final long[] timings =
-  // new long[] {(long) (1.5 * MINUTE), 3 * MINUTE, 3 * MINUTE,
-  // (long) (4.5 * MINUTE), (long) (4.5 * MINUTE), 6 * MINUTE, 6 * MINUTE,
-  // (long) (7.5 * MINUTE), (long) (7.5 * MINUTE), 9 * MINUTE, 9 * MINUTE,
-  //
-  // (long) (11.5 * MINUTE), 13 * MINUTE, 13 * MINUTE,
-  // (long) (14.5 * MINUTE), (long) (14.5 * MINUTE), 16 * MINUTE,
-  // 16 * MINUTE,
-  // (long) (17.5 * MINUTE), (long) (17.5 * MINUTE), 19 * MINUTE,
-  // 19 * MINUTE};
-  // /**
-  // * Expanding shockwave halves the speed, receding shockwave doubles
-  // */
-  // final double[] factors = new double[] {0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5,
-  // 0.5, 0.5, 0.5, 0.5, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2};
-  //
-  // for (int i = 0; i < events.size(); i++) {
-  // final ChangeConnectionSpeedEvent event = events.get(i);
-  // assertEquals(timings[i], event.getTime());
-  // assertEquals(factors[i], event.getFactor(), DELTA);
-  // }
-  // }
 
   /**
    * Tests behaviour of shockwaves without cycles in the expansion

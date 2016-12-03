@@ -28,7 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
-import com.github.rinde.rinsim.core.model.pdp.TravelTimes;
 import com.github.rinde.rinsim.event.EventDispatcher;
 
 /**
@@ -123,4 +122,12 @@ public abstract class GenericRoadModel extends AbstractModel<RoadUser>
    * @return A {@link TravelTimes} object suitable for the {@link RoadModel}.
    */
   public abstract TravelTimes getTravelTimes(Unit<Duration> timeUnit);
+
+  /**
+   * Construct a new {@link TravelTimes} object based on a previous one. Only
+   * useful if the previous object has a state that should be kept.
+   * @param previousTravelTimes The previous {@link TravelTimes} object.
+   * @return A {@link TravelTimes} object based on the given one.
+   */
+  public abstract TravelTimes getTravelTimes(TravelTimes previousTravelTimes);
 }

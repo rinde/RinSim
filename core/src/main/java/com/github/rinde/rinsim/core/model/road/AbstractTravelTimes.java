@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.core.model.pdp;
+package com.github.rinde.rinsim.core.model.road;
 
 import javax.measure.Measure;
 import javax.measure.quantity.Duration;
@@ -34,31 +34,31 @@ abstract class AbstractTravelTimes implements TravelTimes {
   final Unit<Duration> timeUnit;
   final Unit<Length> distanceUnit;
 
-  AbstractTravelTimes(Unit<Duration> tu,
-      Unit<Length> du) {
-    timeUnit = tu;
-    distanceUnit = du;
+  AbstractTravelTimes(Unit<Duration> modelTimeUnit,
+      Unit<Length> modelDistanceUnit) {
+    timeUnit = modelTimeUnit;
+    distanceUnit = modelDistanceUnit;
   }
 
-  AbstractTravelTimes(AbstractTravelTimes tt) {
-    timeUnit = tt.timeUnit;
-    distanceUnit = tt.distanceUnit;
+  AbstractTravelTimes(AbstractTravelTimes travelTimes) {
+    timeUnit = travelTimes.timeUnit;
+    distanceUnit = travelTimes.distanceUnit;
   }
 
   @Override
   public abstract long getTheoreticalShortestTravelTime(Point from, Point to,
-      Measure<Double, Velocity> vehicleSpeed);
+      Measure<Double, Velocity> maxVehicleSpeed);
 
   @Override
   public abstract long getCurrentShortestTravelTime(Point from, Point to,
-      Measure<Double, Velocity> vehicleSpeed);
+      Measure<Double, Velocity> maxVehicleSpeed);
 
   @Override
   public abstract double computeTheoreticalDistance(Point from, Point to,
-      Measure<Double, Velocity> vehicleSpeed);
+      Measure<Double, Velocity> maxVehicleSpeed);
 
   @Override
   public abstract double computeCurrentDistance(Point from, Point to,
-      Measure<Double, Velocity> vehicleSpeed);
+      Measure<Double, Velocity> maxVehicleSpeed);
 
 }

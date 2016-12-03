@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.core.model.pdp;
+package com.github.rinde.rinsim.core.model.road;
 
 import javax.measure.Measure;
 import javax.measure.quantity.Velocity;
@@ -32,51 +32,51 @@ public interface TravelTimes {
    * <code>to</code> using the fastest available vehicle.
    * @param from The origin position.
    * @param to The destination position.
-   * @param vehicleSpeed the maximum speed of the vehicle that will be using the
-   *          result.
+   * @param maxVehicleSpeed the maximum speed of the vehicle that will be using
+   *          the result.
    * @return The expected travel time between the two positions based on a given
    *         maximum vehicle speed.
    */
   long getTheoreticalShortestTravelTime(Point from, Point to,
-      Measure<Double, Velocity> vehicleSpeed);
+      Measure<Double, Velocity> maxVehicleSpeed);
 
   /**
    * Computes the current (based on a snapshot) travel time between
    * <code>from</code> and <code>to</code> using the fastest available vehicle.
    * @param from The origin position.
    * @param to The destination position.
-   * @param vehicleSpeed the maximum speed of the vehicle that will be using the
-   *          result.
+   * @param maxVehicleSpeed the maximum speed of the vehicle that will be using
+   *          the result.
    * @return The expected travel time between the two positions based on a given
    *         maximum vehicle speed.
    */
   long getCurrentShortestTravelTime(Point from, Point to,
-      Measure<Double, Velocity> vehicleSpeed);
+      Measure<Double, Velocity> maxVehicleSpeed);
 
   /**
    * Computes the distance between two points, denoted as <code>from</code> and
    * <code>to</code> using the theoretically fastest possible route.
    * @param from The origin position
    * @param to The destination position.
-   * @param vehicleSpeed the maximum speed of the vehicle that will be using the
-   *          result.
+   * @param maxVehicleSpeed the maximum speed of the vehicle that will be using
+   *          the result.
    * @return The expected distance between two positions based on a given
    *         maximum vehicle speed.
    */
   double computeTheoreticalDistance(Point from, Point to,
-      Measure<Double, Velocity> vehicleSpeed);
+      Measure<Double, Velocity> maxVehicleSpeed);
 
   /**
    * Computes the current distance between two points, denoted as
    * <code>from</code> and <code>to</code> using the fastest possible route.
    * @param from The origin position
    * @param to The destination position.
-   * @param vehicleSpeed the maximum speed of the vehicle that will be using the
-   *          result.
+   * @param maxVehicleSpeed the maximum speed of the vehicle that will be using
+   *          the result.
    * @return The expected distance between two positions based on a given
    *         maximum vehicle speed.
    */
   double computeCurrentDistance(Point from, Point to,
-      Measure<Double, Velocity> vehicleSpeed);
+      Measure<Double, Velocity> maxVehicleSpeed);
 
 }

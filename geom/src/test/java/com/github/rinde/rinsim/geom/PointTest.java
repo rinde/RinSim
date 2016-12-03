@@ -19,8 +19,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Test;
 
@@ -108,7 +108,7 @@ public class PointTest {
 
   @Test
   public void testCenterPoint() {
-    final Set<Point> points = new HashSet<>();
+    final List<Point> points = new ArrayList<>();
     Point A, B, C, D;
 
     A = new Point(0, 0);
@@ -121,7 +121,7 @@ public class PointTest {
     points.add(C);
     points.add(D);
 
-    final Point result = Point.center(points);
+    final Point result = Point.centroid(points);
     assertEquals(new Point(1, 1), result);
   }
 

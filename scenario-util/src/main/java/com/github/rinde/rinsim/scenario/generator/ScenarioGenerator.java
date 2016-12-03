@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.Logger;
 
 import javax.measure.Measure;
 import javax.measure.quantity.Duration;
@@ -31,6 +30,8 @@ import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
 import org.apache.commons.math3.random.RandomGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
@@ -72,7 +73,7 @@ import com.google.common.collect.ImmutableSet;
 public final class ScenarioGenerator {
 
   private static final Logger LOGGER =
-    Logger.getLogger("ScenarioGenerator");
+    LoggerFactory.getLogger("ScenarioGenerator");
 
   // global properties
   final Builder builder;
@@ -106,7 +107,6 @@ public final class ScenarioGenerator {
       final ModelBuilder<?, ?> delegate = ((ForwardingRoadModel.Builder<?>) rmb)
         .getDelegateModelBuilder();
 
-      // checkArgument(delegate instanceof PlaneRMB);
       roadBuilder = (AbstractRMB<?, ?>) delegate;
     } else {
       checkArgument(rmb instanceof PlaneRMB);
@@ -284,7 +284,7 @@ public final class ScenarioGenerator {
     }
     checkArgument(roadModels.size() == 1);
     if (roadModels.get(0) instanceof GraphRoadModel) {
-      return new DynamicGraphTravelTimes<>((GraphRoadModel) roadModels.get(0),
+      return new GraphTravelTimes<>((GraphRoadModel) roadModels.get(0),
         timeUnit, depots,
         vehicles);
     }
@@ -292,9 +292,9 @@ public final class ScenarioGenerator {
       vehicles);
   }
 
-  public static TravelTimes createTravelTimes(GraphRoadModel rm,
+  static TravelTimes createTravelTimes(GraphRoadModel rm,
       Collection<Vehicle> vehicles, Unit<Duration> timeUnit) {
-    return new DynamicGraphTravelTimes<MultiAttributeData>(rm, timeUnit,
+    return new GraphTravelTimes<MultiAttributeData>(rm, timeUnit,
       Graphs.getCenterMostPoint(rm.getGraph()), vehicles.iterator());
   }
 
@@ -305,7 +305,7 @@ public final class ScenarioGenerator {
       Iterable<? extends AddVehicleEvent> vehicles) {
     final RoadModel rm = getRm(modelSuppliers);
     if (rm instanceof GraphRoadModel) {
-      return new DynamicGraphTravelTimes<>((GraphRoadModel) rm, tu, depots,
+      return new GraphTravelTimes<>((GraphRoadModel) rm, tu, depots,
         vehicles);
     }
     return new DefaultTravelTimes(rm, tu, depots, vehicles);
@@ -522,14 +522,14 @@ public final class ScenarioGenerator {
     }
   }
 
-  static class DynamicGraphTravelTimes<T extends ConnectionData>
+  static class GraphTravelTimes<T extends ConnectionData>
       implements TravelTimes {
     private final GraphRoadModel roadModel;
     private final Measure<Double, Velocity> vehicleSpeed;
     private final Unit<Duration> timeUnit;
     private final ImmutableList<Point> depotLocations;
 
-    DynamicGraphTravelTimes(GraphRoadModel rm, Unit<Duration> tu,
+    GraphTravelTimes(GraphRoadModel rm, Unit<Duration> tu,
         Iterable<? extends AddDepotEvent> depots,
         Iterable<? extends AddVehicleEvent> vehicles) {
       roadModel = rm;
@@ -549,7 +549,7 @@ public final class ScenarioGenerator {
       timeUnit = tu;
     }
 
-    DynamicGraphTravelTimes(GraphRoadModel rm, Unit<Duration> tu,
+    GraphTravelTimes(GraphRoadModel rm, Unit<Duration> tu,
         Point centerMostPoint, Iterator<Vehicle> vehicles) {
       roadModel = rm;
 
@@ -567,8 +567,6 @@ public final class ScenarioGenerator {
 
     @Override
     public long getShortestTravelTime(Point from, Point to) {
-      // LOGGER.info("Travel Times - Calculating from: " + from.toString() + ",
-      // to: " + to.toString());
       final Iterator<Point> path = roadModel.getShortestPathTo(from, to)
         .iterator();
 

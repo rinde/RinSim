@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.core.model.pdp;
+package com.github.rinde.rinsim.core.model.road;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -23,15 +23,13 @@ import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
-import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
-import com.github.rinde.rinsim.core.model.road.RoadModels;
 import com.github.rinde.rinsim.geom.Point;
 
 /**
  * The {@link TravelTimes} class to be used with the {@link PlaneRoadModel}.
  * @author Vincent Van Gestel
  */
-public class PlaneTravelTimes extends AbstractTravelTimes {
+public final class PlaneTravelTimes extends AbstractTravelTimes {
   private final Point min;
   private final Point max;
 
@@ -39,30 +37,30 @@ public class PlaneTravelTimes extends AbstractTravelTimes {
    * Constructs a new {@link PlaneTravelTimes} object.
    * @param minimumPoint The minimum point of the plane.
    * @param maximumPoint The maximum point of the plane.
-   * @param tu The time unit.
-   * @param du The distance unit.
+   * @param modelTimeUnit The time unit.
+   * @param modelDistanceUnit The distance unit.
    */
-  public PlaneTravelTimes(Point minimumPoint, Point maximumPoint,
-      Unit<Duration> tu,
-      Unit<Length> du) {
-    super(tu, du);
+  PlaneTravelTimes(Point minimumPoint, Point maximumPoint,
+      Unit<Duration> modelTimeUnit,
+      Unit<Length> modelDistanceUnit) {
+    super(modelTimeUnit, modelDistanceUnit);
     min = minimumPoint;
     max = maximumPoint;
   }
 
   /**
    * Construct a new {@link PlaneTravelTimes} object based on an older one.
-   * @param tt The base {@link PlaneTravelTimes} object.
+   * @param travelTimes The base {@link PlaneTravelTimes} object.
    */
-  public PlaneTravelTimes(PlaneTravelTimes tt) {
-    super(tt);
-    min = tt.min;
-    max = tt.max;
+  PlaneTravelTimes(PlaneTravelTimes travelTimes) {
+    super(travelTimes);
+    min = travelTimes.min;
+    max = travelTimes.max;
   }
 
   @Override
   public long getTheoreticalShortestTravelTime(Point from, Point to,
-      Measure<Double, Velocity> vehicleSpeed) {
+      Measure<Double, Velocity> maxVehicleSpeed) {
     checkArgument(
       isPointInBoundary(from),
       "from must be within the predefined boundary of the plane, from is %s, "
@@ -73,15 +71,15 @@ public class PlaneTravelTimes extends AbstractTravelTimes {
       "to must be within the predefined boundary of the plane, to is %s,"
         + " boundary: min %s, max %s.",
       to, min, max);
-    return (long) RoadModels.computeTravelTime(vehicleSpeed,
+    return (long) RoadModels.computeTravelTime(maxVehicleSpeed,
       Measure.valueOf(Point.distance(from, to), distanceUnit),
       timeUnit);
   }
 
   @Override
   public long getCurrentShortestTravelTime(Point from, Point to,
-      Measure<Double, Velocity> vehicleSpeed) {
-    return getTheoreticalShortestTravelTime(from, to, vehicleSpeed);
+      Measure<Double, Velocity> maxVehicleSpeed) {
+    return getTheoreticalShortestTravelTime(from, to, maxVehicleSpeed);
   }
 
   /**
@@ -97,13 +95,13 @@ public class PlaneTravelTimes extends AbstractTravelTimes {
 
   @Override
   public double computeTheoreticalDistance(Point from, Point to,
-      Measure<Double, Velocity> vehicleSpeed) {
+      Measure<Double, Velocity> maxVehicleSpeed) {
     return Point.distance(from, to);
   }
 
   @Override
   public double computeCurrentDistance(Point from, Point to,
-      Measure<Double, Velocity> vehicleSpeed) {
+      Measure<Double, Velocity> maxVehicleSpeed) {
     return Point.distance(from, to);
   }
 }

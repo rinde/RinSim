@@ -266,8 +266,10 @@ public final class GraphRoadModelRenderer extends AbstractCanvasRenderer {
     }
 
     /**
-     * Shows relative speed to theoretical maximal allowed speed. (updates only
-     * when zooming in or out)
+     * Shows relative speed to theoretical maximal allowed speed. The
+     * theoretical maximum speed is an attribute of a graph. This attribute is
+     * found in {@link MultiAttributeData} under the
+     * "THEORETICAL_SPEED_ATTRIBUTE". (updates only when zooming in or out)
      * @return A new builder instance.
      */
     @CheckReturnValue
@@ -276,8 +278,10 @@ public final class GraphRoadModelRenderer extends AbstractCanvasRenderer {
     }
 
     /**
-     * Shows relative speed to theoretical maximal allowed speed. (updates
-     * constantly)
+     * Shows relative speed to theoretical maximal allowed speed. The
+     * theoretical maximum speed is an attribute of a graph. This attribute is
+     * found in {@link MultiAttributeData} under the
+     * "THEORETICAL_SPEED_ATTRIBUTE". (updates constantly)
      * @return A new builder instance.
      */
     @CheckReturnValue

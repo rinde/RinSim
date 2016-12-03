@@ -86,11 +86,7 @@ public abstract class ChangeConnectionSpeedEvent implements TimedEvent {
      */
     private static final long serialVersionUID = 1L;
 
-    DefaultChangeConnectionSpeedEventHandler() {
-      // this.graph = graph;
-    }
-
-    // private final Graph<MultiAttributeData> graph;
+    DefaultChangeConnectionSpeedEventHandler() {}
 
     @Override
     public void handleTimedEvent(ChangeConnectionSpeedEvent event,

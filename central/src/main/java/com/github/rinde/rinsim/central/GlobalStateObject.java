@@ -24,8 +24,8 @@ import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
-import com.github.rinde.rinsim.core.model.pdp.TravelTimes;
 import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
+import com.github.rinde.rinsim.core.model.road.TravelTimes;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.auto.value.AutoValue;
@@ -144,6 +144,9 @@ public abstract class GlobalStateObject {
      */
     public abstract Point getLocation();
 
+    /**
+     * @return The connection the vehicle is on, if applicable.
+     */
     public abstract Optional<? extends Connection<?>> getConnection();
 
     /**

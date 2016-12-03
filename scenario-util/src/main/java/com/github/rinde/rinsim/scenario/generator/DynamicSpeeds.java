@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
-import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
@@ -47,7 +46,24 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 /**
- * Utility class for creating {@link DynamicSpeedGenerator}s.
+ * Utility class for creating {@link DynamicSpeedGenerator}s. The generator has
+ * to be configured to produce the desired amount of shockwaves with the defined
+ * behaviour and speed.
+ *
+ * A shockwave is related to the "shockwaves" experienced in traffic jams.
+ * Similar to how throwing a rock in a pond results in waves, congested traffic
+ * will cause the same. The influence of these shockwaves is congested traffic
+ * moving across the network. In order to model realistic shockwaves, it is
+ * required to first calculate the speed of the shockwave as well as determine
+ * the flow delta in relation to the distance of the start of the shockwave.
+ * This is necessary since the simulator doesn't support the notion of capacity
+ * and density on connections. Both the speed and the flow delta are functions
+ * represented by the shockwave speed (expanding for the initial shockwave
+ * causing congestion, receding for the shockwave releasing the congestion) and
+ * the behaviour function influencing the percentage of resistance to apply to
+ * the connections. Finally shockwaves are bound in time with the duration
+ * parameter, which can also be customised. The shockwave duration sets the
+ * start time for the receding shockwave.
  * @author Vincent Van Gestel
  */
 public final class DynamicSpeeds {
@@ -186,9 +202,9 @@ public final class DynamicSpeeds {
     }
 
     /**
-     * Sets the starting connections for the to be generated hotspots. By
-     * default the start positions of any hotspot is a random connection on the
-     * graph.
+     * Sets the starting connections for the to be generated shockwaves. By
+     * default the start positions of any shockwave is a random connection on
+     * the graph.
      * @param conn The supplier to draw connections from.
      * @return This, as per the builder pattern.
      */
@@ -222,7 +238,8 @@ public final class DynamicSpeeds {
      * Vehicles Sets the behaviour for the shockwave. The behaviour indicates at
      * which capacity a connection can operate (driving speed relative to
      * maximal allowed speed on said connection), at every possible distance
-     * from the original location.
+     * from the original location. The functions should return exactly "1" when
+     * it should have no effect on the connection.
      * @param behaviour The function describing the relation between distance
      *          travelled and speed drop off.
      * @return This, as per the builder pattern.
@@ -235,7 +252,9 @@ public final class DynamicSpeeds {
 
     /**
      * Sets the function declaring the at which speed the shockwave propagates
-     * through the graph relative to the time elapsed.
+     * through the graph relative to the time elapsed. The functions should
+     * return exactly "0" when it should stop. The unit of this speed function
+     * should use the same unit of the distance and the time of the simulation.
      * @param speed The function describing the relation between elapsed time of
      *          the shockwave to the speed at which it travels.
      * @return This, as per the builder pattern.
@@ -248,7 +267,9 @@ public final class DynamicSpeeds {
 
     /**
      * Sets the function declaring the at which speed the shockwave recedes
-     * through the graph relative to the time elapsed.
+     * through the graph relative to the time elapsed. The functions should
+     * return exactly "0" when it should stop. The unit of this speed function
+     * should use the same unit of the distance and the time of the simulation.
      * @param speed The function describing the relation between elapsed time of
      *          the shockwave to the speed at which it travels.
      * @return This, as per the builder pattern.
@@ -294,10 +315,6 @@ public final class DynamicSpeeds {
   private static class DefaultDynamicSpeedGenerator
       implements DynamicSpeedGenerator {
 
-    // Logger
-    private static final Logger LOGGER =
-      Logger.getLogger("DynamicSpeedGenerator");
-
     // Generator variables
     private final Optional<Graph<MultiAttributeData>> graph;
     private final StochasticSupplier<Integer> numberOfShockwaves;
@@ -340,8 +357,6 @@ public final class DynamicSpeeds {
         numShockwaves);
       for (int i = 0; i < numShockwaves; i++) {
         iteration = i + 1;
-        LOGGER.info(
-          "~ Generating Shockwave " + iteration + " out of " + numShockwaves);
         final Connection<MultiAttributeData> conn;
 
         if (startingConnectionSupplier.isPresent()) {
@@ -357,9 +372,6 @@ public final class DynamicSpeeds {
         affectedGraph = new TableGraph<>();
         leafNodes = new HashSet<>();
 
-        LOGGER.info("~ Expanding Shockwave " + iteration);
-
-        // Breath First --
         final Queue<ShockwaveSimulation> shockwave = new LinkedList<>();
         shockwave.offer(
           new ShockwaveSimulation(shockwave, conn, conn, 0, startingTime, 0,
@@ -368,7 +380,6 @@ public final class DynamicSpeeds {
         while (!shockwave.isEmpty()) {
           builder.addAll(shockwave.poll().simulateExpandingShockwave());
         }
-        LOGGER.info("~ Receding Shockwave " + iteration);
         shockwave.offer(new ShockwaveSimulation(shockwave, conn, conn, 0,
           startingTime + eventDurationSupplier.get(rng.nextLong()),
           0,
@@ -377,201 +388,10 @@ public final class DynamicSpeeds {
         while (!shockwave.isEmpty()) {
           builder.addAll(shockwave.poll().simulateForwardRecedingShockwave());
         }
-        // -- Breath First
 
-        // Depth First --
-        // builder
-        // .addAll(simulateExpandingShockwave(conn, conn, 0, startingTime, 0,
-        // scenarioLength));
-        // simulation of forward receding shockwave
-        // LOGGER.info("~ Receding Shockwave " + iteration);
-        // builder.addAll(simulateForwardRecedingShockwave(conn, 0,
-        // startingTime + eventDurationSupplier.get(rng.nextLong()),
-        // 0,
-        // scenarioLength));
-        // simulation of expanding shockwave created graph and saved leaf nodes
-        // for (final Connection<MultiAttributeData> lconn : leafNodes) {
-        // builder.addAll(simulateBackwardsRecedingShockwave(lconn,
-        // startingTime + eventDurationSupplier.get(rng.nextLong()),
-        // scenarioLength));
-        // }
-        // -- Depth First
       }
       return builder.build();
     }
-
-    // Code used for depth first, probably not going to be used
-    // /**
-    // *
-    // * @param origin The previous connection
-    // * @param conn The current connection
-    // * @param relTimestamp The time of the shockwave after travelling origin
-    // * (before travelling current conn)
-    // * @param actualTimestamp The time of the simulation before travelling
-    // over
-    // * current conn
-    // * @param distance Total distance travelled
-    // * @param scenarioLength Total duration of the scenario
-    // * @return the simulated shockwave
-    // */
-    // private List<ChangeConnectionSpeedEvent> simulateExpandingShockwave(
-    // Connection<MultiAttributeData> origin,
-    // Connection<MultiAttributeData> conn, long relTimestamp,
-    // long actualTimestamp, double distance, long scenarioLength) {
-    // // LOGGER.info("~~ Expansion " + iteration + ": handling connection from
-    // "
-    // // + conn.from() + " to " + conn.to() + " at distance " + distance);
-    //
-    // final List<ChangeConnectionSpeedEvent> events = new ArrayList<>();
-    // final double factor =
-    // behaviourSupplier.get(rng.nextLong())
-    // .apply(distance + conn.getLength() / 2);
-    // final double speed =
-    // expandingSpeedSupplier.get(rng.nextLong()).apply(relTimestamp);
-    //
-    // long next_rel_timestamp = 0L;
-    // long next_actual_timestamp = 0L;
-    //
-    // if (speed != 0) {
-    // next_rel_timestamp = (long) (relTimestamp + conn.getLength() / speed);
-    // next_actual_timestamp =
-    // (long) (actualTimestamp + conn.getLength() / speed);
-    // }
-    //
-    // // Check Stop conditions
-    // // Stop if shockwave has no effect (factor == 1)
-    // // OR if shockwave burned out (speed == 0)
-    // // OR if shockwave duration reached
-    // // OR if next step if after scenario boundary
-    // if (factor == 1 || speed == 0
-    // || next_rel_timestamp >= eventDurationSupplier
-    // .get(rng.nextLong())
-    // || next_actual_timestamp >= scenarioLength) {
-    // leafNodes.add(origin); // Origin was last affected node
-    // // LOGGER.info("~~ Expansion " + iteration + ": stop condition
-    // // reached");
-    // return events; // Stop
-    // }
-    //
-    // // Add conn
-    // final ChangeConnectionSpeedEvent newEvent =
-    // ChangeConnectionSpeedEvent.create(next_actual_timestamp,
-    // conn, factor);
-    // events.add(newEvent);
-    //
-    // // Keep track of events linked to connections
-    // if (expansionMap.containsKey(conn)) {
-    // // Cycle, add to existing list
-    // final List<ChangeConnectionSpeedEvent> eventList =
-    // expansionMap.get(conn);
-    // eventList.add(newEvent);
-    // expansionMap.put(conn, eventList);
-    // } else {
-    // // New connection
-    // expansionMap.put(conn, Lists.newArrayList(newEvent));
-    // affectedGraph.addConnection(conn);
-    // }
-    //
-    // // Branch out
-    // final Collection<Point> next_froms = graph.get()
-    // .getIncomingConnections(conn.from());
-    // // Check dead end -> no need to continue branching
-    // if (next_froms.isEmpty() || next_froms.size() == 1
-    // && next_froms.iterator().next().equals(conn.to())) {
-    // leafNodes.add(conn);
-    // // LOGGER.info("~~ Expansion " + iteration + ": dead end reached");
-    // return events;
-    // }
-    // // LOGGER.info("~~ Expansion " + iteration + ": Branching Factor " +
-    // // next_froms.size());
-    // for (final Point next_from : next_froms) {
-    // if (next_from.equals(conn.to())) {
-    // // No backtracking in the other direction
-    // continue;
-    // }
-    // final Connection<MultiAttributeData> next_conn =
-    // graph.get().getConnection(next_from, conn.from());
-    // events.addAll(simulateExpandingShockwave(conn, next_conn,
-    // next_rel_timestamp, next_actual_timestamp,
-    // distance + conn.getLength(), scenarioLength));
-    // }
-    // // LOGGER.info("~~ Expansion " + iteration + ": Closed Branch");
-    // return events;
-    // }
-    //
-    // /**
-    // *
-    // * @param conn The connection being lifted
-    // * @param actualTimestamp The timestamp before lifting event
-    // * @param scenarioLength The total duration of the scenario
-    // * @return
-    // */
-    // private List<ChangeConnectionSpeedEvent>
-    // simulateForwardRecedingShockwave(
-    // Connection<MultiAttributeData> conn, long relTimestamp,
-    // long actualTimestamp, double distance, long scenarioLength) {
-    // final List<ChangeConnectionSpeedEvent> events = new ArrayList<>();
-    // final double factor = 1 /
-    // behaviourSupplier.get(rng.nextLong())
-    // .apply(distance + conn.getLength() / 2);
-    // final double speed =
-    // recedingSpeedSupplier.get(rng.nextLong()).apply(relTimestamp);
-    //
-    // long next_rel_timestamp = 0L;
-    // long next_actual_timestamp = 0L;
-    //
-    // if (speed != 0) {
-    // next_rel_timestamp = (long) (relTimestamp + conn.getLength() / speed);
-    // next_actual_timestamp =
-    // (long) (actualTimestamp + conn.getLength() / speed);
-    // }
-    //
-    // // Check Stop conditions
-    // // Stop if connection wasn't previously affected
-    // // OR if shockwave burned out (speed == 0)
-    // // OR if next step if after scenario boundary
-    // if (!affectedGraph.hasConnection(conn) || speed == 0
-    // || next_actual_timestamp >= scenarioLength) {
-    // return events; // Stop
-    // }
-    //
-    // // Remove conn
-    // final ChangeConnectionSpeedEvent newEvent =
-    // ChangeConnectionSpeedEvent.create(next_actual_timestamp,
-    // conn, factor);
-    // events.add(newEvent);
-    //
-    // // Remove track of events linked to connections
-    // if (expansionMap.get(conn).size() > 1) {
-    // // Cycle, remove only 1
-    // final List<ChangeConnectionSpeedEvent> eventList =
-    // expansionMap.get(conn);
-    // eventList.remove(0);
-    // expansionMap.put(conn, eventList);
-    // } else {
-    // // Last occurrence
-    // expansionMap.remove(conn);
-    // affectedGraph.removeConnection(conn.from(), conn.to());
-    // }
-    //
-    // // Branch out
-    // final Collection<Point> next_froms = ImmutableList.copyOf(
-    // affectedGraph.getIncomingConnections(conn.from()));
-    // // Check dead end -> no need to continue branching
-    // if (next_froms.isEmpty()) {
-    // return events;
-    // }
-    // for (final Point next_from : next_froms) {
-    // final Connection<MultiAttributeData> next_conn =
-    // graph.get().getConnection(next_from, conn.from());
-    // events.addAll(
-    // simulateForwardRecedingShockwave(next_conn, next_rel_timestamp,
-    // next_actual_timestamp,
-    // distance + conn.getLength(), scenarioLength));
-    // }
-    //
-    // return events;
-    // }
 
     class ShockwaveSimulation {
 
@@ -613,9 +433,6 @@ public final class DynamicSpeeds {
        * @return the events caused by this iteration of expansion.
        */
       private List<ChangeConnectionSpeedEvent> simulateExpandingShockwave() {
-        // LOGGER.info("~~ Expansion " + iteration + ": handling connection from
-        // "
-        // + conn.from() + " to " + conn.to() + " at distance " + distance);
 
         final List<ChangeConnectionSpeedEvent> events = new ArrayList<>();
         @Nonnull
@@ -649,8 +466,6 @@ public final class DynamicSpeeds {
           || expansionMap.containsKey(conn)) {
           // Origin was last affected node
           leafNodes.add(origin);
-          // LOGGER.info("~~ Expansion " + iteration + ": stop condition
-          // reached");
           // Stop
           return events;
         }

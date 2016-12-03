@@ -20,6 +20,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Verify.verifyNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.reverse;
+import static java.util.Objects.hash;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,8 +43,11 @@ import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.PeekingIterator;
+import com.google.common.collect.Table;
+import com.google.common.collect.Tables;
 
 /**
  * Utility class containing many methods for working with graphs.
@@ -134,6 +138,17 @@ public final class Graphs {
   public static <E extends ConnectionData> Graph<E> unmodifiableGraph(
       Graph<E> graph) {
     return new UnmodifiableGraph<>(graph);
+  }
+
+  /**
+   * Returns an immutable copy of the specified {@link Graph}.
+   * @param graph A graph.
+   * @param <E> The type of connection data.
+   * @return An immutable copy of the graph.
+   */
+  public static <E extends ConnectionData> Graph<E> immutableGraph(
+      Graph<E> graph) {
+    return new ImmutableGraph<>(graph);
   }
 
   /**
@@ -525,6 +540,148 @@ public final class Graphs {
     public Optional<E> removeConnectionData(Point from, Point to) {
       throw new UnsupportedOperationException();
     }
+  }
+
+  /**
+   * An immutable graph, based on the table-based implementation of a graph, as
+   * found in {@link TableGraph}.
+   * @author Vincent Van Gestel
+   * @param <E> The type of {@link ConnectionData} that is used.
+   */
+  private static class ImmutableGraph<E extends ConnectionData> extends
+      AbstractGraph<E> {
+
+    private final Table<Point, Point, Connection<E>> data;
+
+    /**
+     * Create a new immutable graph based on a given {@link Graph}.
+     * @param graph The graph to copy.
+     */
+    ImmutableGraph(Graph<E> graph) {
+      data = Tables.newCustomTable(
+        new LinkedHashMap<Point, Map<Point, Connection<E>>>(),
+        new LinkedHashMapFactory<Connection<E>>());
+      for (final Connection<E> conn : graph.getConnections()) {
+        data.put(conn.from(), conn.to(), conn);
+      }
+    }
+
+    @Override
+    public Set<Point> getNodes() {
+      return ImmutableSet.<Point>builder()
+        .addAll(data.rowKeySet())
+        .addAll(data.columnKeySet())
+        .build();
+    }
+
+    @Override
+    public boolean hasConnection(Point from, Point to) {
+      return data.contains(from, to);
+    }
+
+    @Override
+    public <T extends ConnectionData> boolean hasConnection(
+        Connection<T> connection) {
+      return hasConnection(connection.from(), connection.to())
+        && data.get(connection.from(), connection.to()).equals(connection);
+    }
+
+    @Override
+    public int getNumberOfNodes() {
+      return getNodes().size();
+    }
+
+    @Override
+    public int getNumberOfConnections() {
+      return data.size();
+    }
+
+    @Override
+    public boolean containsNode(Point node) {
+      return data.containsRow(node) || data.containsColumn(node);
+    }
+
+    @Override
+    public Collection<Point> getOutgoingConnections(Point node) {
+      return ImmutableSet.copyOf(data.row(node).keySet());
+    }
+
+    @Override
+    public Collection<Point> getIncomingConnections(Point node) {
+      return ImmutableSet.copyOf(data.column(node).keySet());
+    }
+
+    @Override
+    public void removeNode(Point node) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void removeConnection(Point from, Point to) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Connection<E>> getConnections() {
+      return ImmutableSet.copyOf(data.values());
+    }
+
+    @Override
+    protected void addConnection(Point from, Point to, Optional<E> connData) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void merge(Graph<E> other) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isEmpty() {
+      return data.isEmpty();
+    }
+
+    @Override
+    public Connection<E> getConnection(Point from, Point to) {
+      checkArgument(hasConnection(from, to), "%s -> %s is not a connection",
+        from, to);
+      return Connection.create(from, to);
+    }
+
+    @Override
+    public Optional<E> connectionData(Point from, Point to) {
+      if (data.contains(from, to)) {
+        return data.get(from, to).data();
+      }
+      return Optional.absent();
+    }
+
+    @Override
+    public Optional<E> setConnectionData(Point from, Point to, E connData) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Optional<E> removeConnectionData(Point from, Point to) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public int hashCode() {
+      return hash(data);
+    }
+
+    @Override
+    protected void doAddConnection(Point from, Point to, Optional<E> connData) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    protected Optional<E> doChangeConnectionData(Point from, Point to,
+        Optional<E> connData) {
+      throw new UnsupportedOperationException();
+    }
+
   }
 
   /**

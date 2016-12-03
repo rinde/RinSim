@@ -18,7 +18,6 @@ package com.github.rinde.rinsim.geom;
 import static com.google.common.base.Verify.verifyNotNull;
 
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.Comparator;
 
 import javax.annotation.Nonnull;
@@ -117,12 +116,14 @@ public class Point implements Serializable {
    * @param points The list of points
    * @return A new point indicating the center of the given points.
    */
-  public static Point center(Collection<Point> points) {
+  public static Point centroid(Iterable<Point> points) {
+    int size = 0;
     Point sumPoint = new Point(0, 0);
     for (final Point p : points) {
       sumPoint = Point.add(sumPoint, p);
+      size++;
     }
-    return divide(sumPoint, points.size());
+    return divide(sumPoint, size);
   }
 
   /**
