@@ -40,7 +40,7 @@ import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.FakeDependencyProvider;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
-import com.github.rinde.rinsim.core.model.road.PlaneTravelTimes;
+import com.github.rinde.rinsim.core.model.road.TravelTimesTestUtil;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
@@ -85,7 +85,9 @@ public class RtSolverModelTest {
     when(rm.getSpeedUnit()).thenReturn(NonSI.KILOMETERS_PER_HOUR);
     when(rm.getDistanceUnit()).thenReturn(SI.KILOMETER);
     when(rm.getTravelTimes(SI.MILLI(SI.SECOND)))
-      .thenReturn(mock(PlaneTravelTimes.class));
+      .thenReturn(
+        TravelTimesTestUtil.createDefaultPlaneTravelTimes(new Point(0, 0),
+          new Point(10, 10), SI.MILLI(SI.SECOND), SI.KILOMETER));
 
     dependencyProvider = FakeDependencyProvider.builder()
       .add(clock, RealtimeClockController.class)

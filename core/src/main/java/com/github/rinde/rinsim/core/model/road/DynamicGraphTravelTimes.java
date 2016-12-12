@@ -33,7 +33,6 @@ import com.github.rinde.rinsim.geom.Graphs;
 import com.github.rinde.rinsim.geom.MultiAttributeData;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Table;
 
 /**
@@ -83,8 +82,8 @@ public class DynamicGraphTravelTimes<T extends ConnectionData>
     super(travelTimes);
 
     // TODO Check for updates
-    pathTable = HashBasedTable.create(travelTimes.pathTable);
-    pathTimeTable = Maps.newHashMap(travelTimes.pathTimeTable);
+    pathTable = travelTimes.pathTable;
+    pathTimeTable = travelTimes.pathTimeTable;
 
     this.dynamicGraph = Graphs.immutableGraph(newGraph);
   }
@@ -118,29 +117,30 @@ public class DynamicGraphTravelTimes<T extends ConnectionData>
 
       final Measure<Double, Length> distance = Measure.valueOf(
         conn.getLength(), distanceUnit);
-      try {
-        travelTime +=
-          Math.min(RoadModels.computeTravelTime(maxVehicleSpeed, distance,
-            timeUnit),
-            RoadModels.computeTravelTime(
-              Measure.valueOf(
-                Double
-                  .parseDouble((String) ((MultiAttributeData) conn.data().get())
-                    .getAttributes()
-                    .get(MultiAttributeData.THEORETICAL_SPEED_ATTRIBUTE)),
-                maxVehicleSpeed.getUnit()),
-              distance, timeUnit));
-        // TODO decide what to do with this try-catch block
-      } catch (final Exception e) {
-        e.printStackTrace();
-        // travelTime +=
-        // RoadModels.computeTravelTime(vehicleSpeed, distance,
-        // timeUnit);
+
+      if (!conn.data().isPresent() ||
+        ((MultiAttributeData) conn.data().get()).getAttributes()
+          .get(MultiAttributeData.THEORETICAL_SPEED_ATTRIBUTE) == null) {
+        throw new IllegalArgumentException(
+          "The stored graph does not support computations using theoretical speed");
       }
+
+      travelTime +=
+        Math.min(RoadModels.computeTravelTime(maxVehicleSpeed, distance,
+          timeUnit),
+          RoadModels.computeTravelTime(
+            Measure.valueOf(
+              Double
+                .parseDouble((String) ((MultiAttributeData) conn.data().get())
+                  .getAttributes()
+                  .get(MultiAttributeData.THEORETICAL_SPEED_ATTRIBUTE)),
+              maxVehicleSpeed.getUnit()),
+            distance, timeUnit));
       prev = cur;
     }
     pathTimeTable.put(path, travelTime);
     return travelTime;
+
     // TT := millis
     // conn.length := meter
     // speed := kmh
@@ -162,7 +162,9 @@ public class DynamicGraphTravelTimes<T extends ConnectionData>
 
       final Measure<Double, Length> distance = Measure.valueOf(
         conn.getLength(), distanceUnit);
-      try {
+
+      if (conn.data().isPresent()
+        && ((MultiAttributeData) conn.data().get()).getMaxSpeed().isPresent()) {
         travelTime +=
           Math.min(RoadModels.computeTravelTime(maxVehicleSpeed, distance,
             timeUnit),
@@ -171,7 +173,7 @@ public class DynamicGraphTravelTimes<T extends ConnectionData>
                 ((MultiAttributeData) conn.data().get()).getMaxSpeed().get(),
                 maxVehicleSpeed.getUnit()),
               distance, timeUnit));
-      } catch (final IllegalStateException e) {
+      } else {
         // No max speed is defined for this connection
         travelTime +=
           RoadModels.computeTravelTime(maxVehicleSpeed, distance,

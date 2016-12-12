@@ -42,12 +42,12 @@ import org.apache.commons.math3.random.MersenneTwister;
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.PeekingIterator;
-import com.google.common.collect.Table;
-import com.google.common.collect.Tables;
 
 /**
  * Utility class containing many methods for working with graphs.
@@ -548,26 +548,26 @@ public final class Graphs {
    * @author Vincent Van Gestel
    * @param <E> The type of {@link ConnectionData} that is used.
    */
-  private static class ImmutableGraph<E extends ConnectionData> extends
+  public static class ImmutableGraph<E extends ConnectionData> extends
       AbstractGraph<E> {
 
-    private final Table<Point, Point, Connection<E>> data;
+    private final ImmutableTable<Point, Point, Connection<E>> data;
 
     /**
      * Create a new immutable graph based on a given {@link Graph}.
      * @param graph The graph to copy.
      */
     ImmutableGraph(Graph<E> graph) {
-      data = Tables.newCustomTable(
-        new LinkedHashMap<Point, Map<Point, Connection<E>>>(),
-        new LinkedHashMapFactory<Connection<E>>());
+      final ImmutableTable.Builder<Point, Point, Connection<E>> tableBuilder =
+        ImmutableTable.builder();
       for (final Connection<E> conn : graph.getConnections()) {
-        data.put(conn.from(), conn.to(), conn);
+        tableBuilder.put(conn.from(), conn.to(), conn);
       }
+      data = tableBuilder.build();
     }
 
     @Override
-    public Set<Point> getNodes() {
+    public ImmutableSet<Point> getNodes() {
       return ImmutableSet.<Point>builder()
         .addAll(data.rowKeySet())
         .addAll(data.columnKeySet())
@@ -602,35 +602,55 @@ public final class Graphs {
     }
 
     @Override
-    public Collection<Point> getOutgoingConnections(Point node) {
-      return ImmutableSet.copyOf(data.row(node).keySet());
+    public ImmutableCollection<Point> getOutgoingConnections(Point node) {
+      return data.row(node).keySet();
     }
 
     @Override
-    public Collection<Point> getIncomingConnections(Point node) {
-      return ImmutableSet.copyOf(data.column(node).keySet());
+    public ImmutableCollection<Point> getIncomingConnections(Point node) {
+      return data.column(node).keySet();
     }
 
+    /**
+     * @throws UnsupportedOperationException always.
+     * @deprecated Unsupported operation.
+     */
+    @Deprecated
     @Override
     public void removeNode(Point node) {
       throw new UnsupportedOperationException();
     }
 
+    /**
+     * @throws UnsupportedOperationException always.
+     * @deprecated Unsupported operation.
+     */
+    @Deprecated
     @Override
     public void removeConnection(Point from, Point to) {
       throw new UnsupportedOperationException();
     }
 
     @Override
-    public Set<Connection<E>> getConnections() {
+    public ImmutableSet<Connection<E>> getConnections() {
       return ImmutableSet.copyOf(data.values());
     }
 
+    /**
+     * @throws UnsupportedOperationException always.
+     * @deprecated Unsupported operation.
+     */
+    @Deprecated
     @Override
     protected void addConnection(Point from, Point to, Optional<E> connData) {
       throw new UnsupportedOperationException();
     }
 
+    /**
+     * @throws UnsupportedOperationException always.
+     * @deprecated Unsupported operation.
+     */
+    @Deprecated
     @Override
     public void merge(Graph<E> other) {
       throw new UnsupportedOperationException();
@@ -645,7 +665,7 @@ public final class Graphs {
     public Connection<E> getConnection(Point from, Point to) {
       checkArgument(hasConnection(from, to), "%s -> %s is not a connection",
         from, to);
-      return Connection.create(from, to);
+      return data.get(from, to);
     }
 
     @Override
@@ -656,11 +676,21 @@ public final class Graphs {
       return Optional.absent();
     }
 
+    /**
+     * @throws UnsupportedOperationException always.
+     * @deprecated Unsupported operation.
+     */
+    @Deprecated
     @Override
     public Optional<E> setConnectionData(Point from, Point to, E connData) {
       throw new UnsupportedOperationException();
     }
 
+    /**
+     * @throws UnsupportedOperationException always.
+     * @deprecated Unsupported operation.
+     */
+    @Deprecated
     @Override
     public Optional<E> removeConnectionData(Point from, Point to) {
       throw new UnsupportedOperationException();
@@ -671,11 +701,21 @@ public final class Graphs {
       return hash(data);
     }
 
+    /**
+     * @throws UnsupportedOperationException always.
+     * @deprecated Unsupported operation.
+     */
+    @Deprecated
     @Override
     protected void doAddConnection(Point from, Point to, Optional<E> connData) {
       throw new UnsupportedOperationException();
     }
 
+    /**
+     * @throws UnsupportedOperationException always.
+     * @deprecated Unsupported operation.
+     */
+    @Deprecated
     @Override
     protected Optional<E> doChangeConnectionData(Point from, Point to,
         Optional<E> connData) {
