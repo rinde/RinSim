@@ -111,7 +111,7 @@ public final class Gendreau06ObjectiveFunction
     // speed in kmh
     // convert to minutes by * 60
     // return stats.totalDistance / vehicleSpeed * H_TO_MINUTES;
-    return stats.totalTime * MS_TO_MINUTES;
+    return stats.timeUnit.getConverterTo(NonSI.MINUTE).convert(stats.totalTime);
   }
 
   /**

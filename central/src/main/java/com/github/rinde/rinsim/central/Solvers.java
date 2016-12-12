@@ -195,6 +195,8 @@ public final class Solvers {
 
     long time = state.getTime();
     Point vehicleLocation = vso.getLocation();
+    final Measure<Double, Velocity> maxSpeed =
+      Measure.valueOf(vso.getDto().getSpeed(), state.getSpeedUnit());
     final Set<Parcel> seen = newHashSet();
     for (int j = 0; j < route.size(); j++) {
       final Parcel cur = route.get(j);
@@ -221,14 +223,14 @@ public final class Solvers {
           : cur.getPickupLocation();
         final Measure<Double, Length> distance = Measure.valueOf(
           state.getTravelTimes().computeTheoreticalDistance(vehicleLocation,
-            vso.getDto().getStartPosition(),
-            Measure.valueOf(vso.getDto().getSpeed(), state.getSpeedUnit())),
+            nextLoc,
+            maxSpeed),
           state.getDistUnit());
         totalDistance += distance.getValue();
-        vehicleLocation = nextLoc;
         final long tt = state.getTravelTimes()
           .getTheoreticalShortestTravelTime(vehicleLocation, nextLoc,
-            Measure.valueOf(vso.getDto().getSpeed(), state.getSpeedUnit()));
+            maxSpeed);
+        vehicleLocation = nextLoc;
         time += tt;
         totalTravelTime += tt;
       }
@@ -269,14 +271,12 @@ public final class Solvers {
     // go to depot
     final Measure<Double, Length> distance = Measure.valueOf(
       state.getTravelTimes().computeTheoreticalDistance(vehicleLocation,
-        vso.getDto().getStartPosition(),
-        Measure.valueOf(vso.getDto().getSpeed(), state.getSpeedUnit())),
+        vso.getDto().getStartPosition(), maxSpeed),
       state.getDistUnit());
     totalDistance += distance.getValue();
     final long tt = state.getTravelTimes()
       .getTheoreticalShortestTravelTime(vehicleLocation,
-        vso.getDto().getStartPosition(),
-        Measure.valueOf(vso.getDto().getSpeed(), state.getSpeedUnit()));
+        vso.getDto().getStartPosition(), maxSpeed);
     time += tt;
     totalTravelTime += tt;
     // check overtime

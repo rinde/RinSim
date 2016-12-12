@@ -118,11 +118,11 @@ public class DynamicGraphTravelTimes<T extends ConnectionData>
       final Measure<Double, Length> distance = Measure.valueOf(
         conn.getLength(), distanceUnit);
 
-      if (!conn.data().isPresent() ||
-        ((MultiAttributeData) conn.data().get()).getAttributes()
+      if (!conn.data().isPresent()
+        || ((MultiAttributeData) conn.data().get()).getAttributes()
           .get(MultiAttributeData.THEORETICAL_SPEED_ATTRIBUTE) == null) {
         throw new IllegalArgumentException(
-          "The stored graph does not support computations using theoretical speed");
+          "The graph does not support computations using theoretical speed");
       }
 
       travelTime +=
