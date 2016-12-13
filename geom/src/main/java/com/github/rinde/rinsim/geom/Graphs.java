@@ -37,12 +37,9 @@ import java.util.TreeMap;
 
 import javax.annotation.Nullable;
 
-import org.apache.commons.math3.random.MersenneTwister;
-
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableTable;
@@ -375,35 +372,6 @@ public final class Graphs {
   }
 
   /**
-   * Returns the point closest to the exact center of the area spanned by the
-   * graph.
-   * @param graph The graph.
-   * @return The point of the graph closest to the exact center of the area
-   *         spanned by the graph.
-   */
-  public static Point getCenterMostPoint(Graph<?> graph) {
-    final ImmutableList<Point> extremes = getExtremes(graph);
-    final Point exactCenter =
-      Point.divide(Point.add(extremes.get(0), extremes.get(1)), 2d);
-    Point center = graph.getRandomNode(new MersenneTwister());
-    double distance = Point.distance(center, exactCenter);
-
-    for (final Point p : graph.getNodes()) {
-      final double pDistance = Point.distance(p, exactCenter);
-      if (pDistance < distance) {
-        center = p;
-        distance = pDistance;
-      }
-
-      if (center.equals(exactCenter)) {
-        return center;
-      }
-    }
-
-    return center;
-  }
-
-  /**
    * A heuristic can be used to direct the {@link #shortestPath} algorithm, it
    * determines the cost of traveling which should be minimized.
    * @author Rinde van Lon
@@ -602,12 +570,12 @@ public final class Graphs {
     }
 
     @Override
-    public ImmutableCollection<Point> getOutgoingConnections(Point node) {
+    public ImmutableSet<Point> getOutgoingConnections(Point node) {
       return data.row(node).keySet();
     }
 
     @Override
-    public ImmutableCollection<Point> getIncomingConnections(Point node) {
+    public ImmutableSet<Point> getIncomingConnections(Point node) {
       return data.column(node).keySet();
     }
 

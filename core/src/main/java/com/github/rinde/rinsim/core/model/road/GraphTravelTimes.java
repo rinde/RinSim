@@ -36,15 +36,14 @@ import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 
 /**
- * The {@link TravelTimes} class to be used with {@link DynamicGraphRoadModel}
- * graphs.
+ * The {@link TravelTimes} class to be used with {@link GraphRoadModel} graphs.
  * @author Vincent Van Gestel
  *
  * @param <T> The type of {@link ConnectionData} to expect from the graph.
  *          {@link MultiAttributeData} is required for use of
  *          getTheoreticalShortestTravelTime and getCurrentShortestTravelTimes.
  */
-public class DynamicGraphTravelTimes<T extends ConnectionData>
+public class GraphTravelTimes<T extends ConnectionData>
     extends AbstractTravelTimes {
   /**
    * Immutable graph.
@@ -55,13 +54,13 @@ public class DynamicGraphTravelTimes<T extends ConnectionData>
   private final Map<List<Point>, Long> pathTimeTable;
 
   /**
-   * Create a new {@link DynamicGraphTravelTimes} object based on a given graph,
-   * using the given measurement units.
+   * Create a new {@link GraphTravelTimes} object based on a given graph, using
+   * the given measurement units.
    * @param graph The graph to calculate routes on.
    * @param modelTimeUnit The time unit to use.
    * @param modelDistanceUnit The distance unit to use.
    */
-  DynamicGraphTravelTimes(Graph<T> graph, Unit<Duration> modelTimeUnit,
+  GraphTravelTimes(Graph<T> graph, Unit<Duration> modelTimeUnit,
       Unit<Length> modelDistanceUnit) {
     super(modelTimeUnit, modelDistanceUnit);
 
@@ -72,12 +71,11 @@ public class DynamicGraphTravelTimes<T extends ConnectionData>
   }
 
   /**
-   * Creates a new {@link DynamicGraphTravelTimes} object based on a previous
-   * one.
+   * Creates a new {@link GraphTravelTimes} object based on a previous one.
    * @param travelTimes The previous travel times.
    * @param newGraph The new state of the graph.
    */
-  DynamicGraphTravelTimes(DynamicGraphTravelTimes<T> travelTimes,
+  GraphTravelTimes(GraphTravelTimes<T> travelTimes,
       Graph<T> newGraph) {
     super(travelTimes);
 

@@ -471,13 +471,13 @@ public class GraphRoadModelImpl extends AbstractRoadModel<Loc>
 
   @Override
   public TravelTimes getTravelTimes(Unit<Duration> timeUnit) {
-    return new DynamicGraphTravelTimes<>(graph, timeUnit, getDistanceUnit());
+    return new GraphTravelTimes<>(graph, timeUnit, getDistanceUnit());
   }
 
   @Override
   public TravelTimes getTravelTimes(TravelTimes previousTravelTimes) {
-    return new DynamicGraphTravelTimes<>(
-      (DynamicGraphTravelTimes) previousTravelTimes, graph);
+    return new GraphTravelTimes<>(
+      (GraphTravelTimes) previousTravelTimes, graph);
   }
 
   @Deprecated

@@ -19,7 +19,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newArrayList;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -40,7 +39,6 @@ import com.github.rinde.rinsim.core.model.road.ForwardingRoadModel;
 import com.github.rinde.rinsim.core.model.road.GraphRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders.AbstractRMB;
-import com.github.rinde.rinsim.core.model.road.RoadModelBuilders.PlaneRMB;
 import com.github.rinde.rinsim.core.model.road.RoadModels;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.geom.Connection;
@@ -109,8 +107,7 @@ public final class ScenarioGenerator {
 
       roadBuilder = (AbstractRMB<?, ?>) delegate;
     } else {
-      checkArgument(rmb instanceof PlaneRMB);
-      roadBuilder = (PlaneRMB) rmb;
+      roadBuilder = (AbstractRMB<?, ?>) rmb;
     }
     distanceUnit = roadBuilder.getDistanceUnit();
     speedUnit = roadBuilder.getSpeedUnit();
@@ -290,12 +287,6 @@ public final class ScenarioGenerator {
     }
     return new DefaultTravelTimes(roadModels.get(0), timeUnit, depots,
       vehicles);
-  }
-
-  static TravelTimes createTravelTimes(GraphRoadModel rm,
-      Collection<Vehicle> vehicles, Unit<Duration> timeUnit) {
-    return new GraphTravelTimes<MultiAttributeData>(rm, timeUnit,
-      Graphs.getCenterMostPoint(rm.getGraph()), vehicles.iterator());
   }
 
   static TravelTimes createTravelTimes(
