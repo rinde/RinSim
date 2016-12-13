@@ -208,7 +208,11 @@ public final class IntensityFunctions {
   }
 
   /**
-   * A builder for creating sine {@link IntensityFunction} instances.
+   * A builder for creating sine {@link IntensityFunction} instances. A sine
+   * intensity function is characterized by:
+   * <code>f(x) = amplitude * sin(x * frequency * 2pi - pi * phaseShift) + height</code>
+   * . The builder can be created using {@link #sineIntensity()}.
+   *
    * @author Rinde van Lon
    */
   public static class SineIntensityBuilder {

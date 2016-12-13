@@ -537,9 +537,8 @@ public final class Experiment {
 
     /**
      * Specify a {@link PostProcessor} which is used to create a results object
-     * and perform error handling. results from a simulation. The data gathered
-     * by the post-processor ends up in
-     * {@link SimulationResult#getResultObject()}.
+     * and perform error handling. The data gathered by the post-processor ends
+     * up in {@link SimulationResult#getResultObject()}.
      * @param postProcessor The post-processor to use, by default
      *          {@link PostProcessors#defaultPostProcessor()} is used.
      * @return This, as per the builder pattern.

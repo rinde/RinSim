@@ -203,10 +203,11 @@ public final class TimeSeries {
    * Decorates the specified {@link TimeSeriesGenerator} such that it only
    * generates time series which conform to the specified {@link Predicate}.
    * Predicates can be combined by using the methods provided by
-   * {@link com.google.common.base.Predicates}. Note that when an impossible
-   * {@link Predicate} is specified, such as
-   * {@link com.google.common.base.Predicates#alwaysFalse()} the resulting
-   * {@link TimeSeriesGenerator} will enter an infinite loop.
+   * {@link com.google.common.base.Predicates Predicates}. Note that when an
+   * impossible {@link Predicate} is specified, such as
+   * {@link com.google.common.base.Predicates#alwaysFalse()
+   * Predicates.alwaysFalse()} the resulting {@link TimeSeriesGenerator} will
+   * enter an infinite loop.
    * @param tsg The {@link TimeSeriesGenerator} to filter.
    * @param predicate All returned {@link TimeSeriesGenerator}s will conform to
    *          this predicate.

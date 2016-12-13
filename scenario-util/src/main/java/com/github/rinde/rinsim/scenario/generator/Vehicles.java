@@ -64,6 +64,9 @@ public final class Vehicles {
    */
   public static VehicleGenerator homogenous(VehicleDTO dto,
       int numberOfVehicles) {
+    checkArgument(numberOfVehicles > 0,
+      "Number of vehicles must be strictly positive, found '%s'.",
+      numberOfVehicles);
     return new HomogenousVehicleGenerator(numberOfVehicles, dto);
   }
 

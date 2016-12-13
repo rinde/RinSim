@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkState;
 
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.experiment.Experiment.SimArgs;
+import com.github.rinde.rinsim.experiment.PostProcessor.FailureStrategy;
 import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
 import com.github.rinde.rinsim.pdptw.common.StatsTracker;
@@ -37,21 +38,36 @@ public final class PostProcessors {
 
   public static PostProcessor<StatisticsDTO> statisticsPostProcessor(
       ObjectiveFunction objectiveFunction) {
-    return new StatisticsPostProcessor(objectiveFunction);
+    return new StatisticsPostProcessor(objectiveFunction,
+      FailureStrategy.ABORT_EXPERIMENT_RUN);
+  }
+
+  public static PostProcessor<StatisticsDTO> statisticsPostProcessor(
+      ObjectiveFunction objectiveFunction, FailureStrategy failureStrategy) {
+    return new StatisticsPostProcessor(objectiveFunction, failureStrategy);
   }
 
   static class StatisticsPostProcessor implements PostProcessor<StatisticsDTO> {
     final ObjectiveFunction objectiveFunction;
+    final FailureStrategy failureStrategy;
 
-    StatisticsPostProcessor(ObjectiveFunction objFunc) {
+    StatisticsPostProcessor(ObjectiveFunction objFunc, FailureStrategy fs) {
       objectiveFunction = objFunc;
+      failureStrategy = fs;
     }
 
     @Override
     public StatisticsDTO collectResults(Simulator sim, SimArgs args) {
       final StatisticsDTO stats =
         sim.getModelProvider().getModel(StatsTracker.class).getStatistics();
-      checkState(objectiveFunction.isValidResult(stats),
+      final boolean isValidResult = objectiveFunction.isValidResult(stats);
+
+      // if we are going to include failures anyway, we shouldn't throw an
+      // exception
+      if (failureStrategy == FailureStrategy.INCLUDE) {
+        return stats;
+      }
+      checkState(isValidResult,
         "The simulation did not result in a valid result: %s, SimArgs: %s.",
         stats, args);
       return stats;
@@ -60,7 +76,7 @@ public final class PostProcessors {
     @Override
     public FailureStrategy handleFailure(Exception e, Simulator sim,
         SimArgs args) {
-      return FailureStrategy.ABORT_EXPERIMENT_RUN;
+      return failureStrategy;
     }
 
     @Override
