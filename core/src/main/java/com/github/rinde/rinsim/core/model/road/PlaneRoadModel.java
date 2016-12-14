@@ -28,6 +28,7 @@ import javax.annotation.Nonnull;
 import javax.measure.Measure;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
+import javax.measure.unit.Unit;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
@@ -210,5 +211,15 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
   @Nonnull
   public <U> U get(Class<U> type) {
     return type.cast(this);
+  }
+
+  @Override
+  public TravelTimes getTravelTimes(Unit<Duration> timeUnit) {
+    return new PlaneTravelTimes(min, max, timeUnit, getDistanceUnit());
+  }
+
+  @Override
+  public TravelTimes getTravelTimes(TravelTimes previousTravelTimes) {
+    return previousTravelTimes;
   }
 }

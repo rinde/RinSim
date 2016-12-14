@@ -112,6 +112,21 @@ public class Point implements Serializable {
   }
 
   /**
+   * Returns the center of a list of points.
+   * @param points The list of points
+   * @return A new point indicating the center of the given points.
+   */
+  public static Point centroid(Iterable<Point> points) {
+    int size = 0;
+    Point sumPoint = new Point(0, 0);
+    for (final Point p : points) {
+      sumPoint = Point.add(sumPoint, p);
+      size++;
+    }
+    return divide(sumPoint, size);
+  }
+
+  /**
    * Parses the specified string to a point. Example inputs:
    * <ul>
    * <li><code>(10.0,2)</code></li>

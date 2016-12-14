@@ -15,6 +15,7 @@
  */
 package com.github.rinde.rinsim.ui.renderers;
 
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Path;
 
@@ -47,6 +48,10 @@ class RenderHelper {
 
   void setBackgroundSysCol(int next) {
     gc.get().setBackground(gc.get().getDevice().getSystemColor(next));
+  }
+
+  void setBackgroundSysCol(Color color) {
+    gc.get().setBackground(color);
   }
 
   void drawCurve(Point p1, Point p2, Point control) {

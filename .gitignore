@@ -8,3 +8,4 @@ scenario-util/files/dataset/*
 scenario-util/files/test/times/*
 org.sonar.ide.eclipse.core.prefs
 *.log
+*.checkstyle

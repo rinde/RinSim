@@ -20,6 +20,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Verify.verifyNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.reverse;
+import static java.util.Objects.hash;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,6 +41,8 @@ import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.PeekingIterator;
 
@@ -132,6 +135,17 @@ public final class Graphs {
   public static <E extends ConnectionData> Graph<E> unmodifiableGraph(
       Graph<E> graph) {
     return new UnmodifiableGraph<>(graph);
+  }
+
+  /**
+   * Returns an immutable copy of the specified {@link Graph}.
+   * @param graph A graph.
+   * @param <E> The type of connection data.
+   * @return An immutable copy of the graph.
+   */
+  public static <E extends ConnectionData> Graph<E> immutableGraph(
+      Graph<E> graph) {
+    return new ImmutableGraph<>(graph);
   }
 
   /**
@@ -497,6 +511,188 @@ public final class Graphs {
   }
 
   /**
+   * An immutable graph, based on the table-based implementation of a graph, as
+   * found in {@link TableGraph}.
+   * @author Vincent Van Gestel
+   * @param <E> The type of {@link ConnectionData} that is used.
+   */
+  public static class ImmutableGraph<E extends ConnectionData> extends
+      AbstractGraph<E> {
+
+    private final ImmutableTable<Point, Point, Connection<E>> data;
+
+    /**
+     * Create a new immutable graph based on a given {@link Graph}.
+     * @param graph The graph to copy.
+     */
+    ImmutableGraph(Graph<E> graph) {
+      final ImmutableTable.Builder<Point, Point, Connection<E>> tableBuilder =
+        ImmutableTable.builder();
+      for (final Connection<E> conn : graph.getConnections()) {
+        tableBuilder.put(conn.from(), conn.to(), conn);
+      }
+      data = tableBuilder.build();
+    }
+
+    @Override
+    public ImmutableSet<Point> getNodes() {
+      return ImmutableSet.<Point>builder()
+        .addAll(data.rowKeySet())
+        .addAll(data.columnKeySet())
+        .build();
+    }
+
+    @Override
+    public boolean hasConnection(Point from, Point to) {
+      return data.contains(from, to);
+    }
+
+    @Override
+    public <T extends ConnectionData> boolean hasConnection(
+        Connection<T> connection) {
+      return hasConnection(connection.from(), connection.to())
+        && data.get(connection.from(), connection.to()).equals(connection);
+    }
+
+    @Override
+    public int getNumberOfNodes() {
+      return getNodes().size();
+    }
+
+    @Override
+    public int getNumberOfConnections() {
+      return data.size();
+    }
+
+    @Override
+    public boolean containsNode(Point node) {
+      return data.containsRow(node) || data.containsColumn(node);
+    }
+
+    @Override
+    public ImmutableSet<Point> getOutgoingConnections(Point node) {
+      return data.row(node).keySet();
+    }
+
+    @Override
+    public ImmutableSet<Point> getIncomingConnections(Point node) {
+      return data.column(node).keySet();
+    }
+
+    /**
+     * @throws UnsupportedOperationException always.
+     * @deprecated Unsupported operation.
+     */
+    @Deprecated
+    @Override
+    public void removeNode(Point node) {
+      throw new UnsupportedOperationException();
+    }
+
+    /**
+     * @throws UnsupportedOperationException always.
+     * @deprecated Unsupported operation.
+     */
+    @Deprecated
+    @Override
+    public void removeConnection(Point from, Point to) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public ImmutableSet<Connection<E>> getConnections() {
+      return ImmutableSet.copyOf(data.values());
+    }
+
+    /**
+     * @throws UnsupportedOperationException always.
+     * @deprecated Unsupported operation.
+     */
+    @Deprecated
+    @Override
+    protected void addConnection(Point from, Point to, Optional<E> connData) {
+      throw new UnsupportedOperationException();
+    }
+
+    /**
+     * @throws UnsupportedOperationException always.
+     * @deprecated Unsupported operation.
+     */
+    @Deprecated
+    @Override
+    public void merge(Graph<E> other) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isEmpty() {
+      return data.isEmpty();
+    }
+
+    @Override
+    public Connection<E> getConnection(Point from, Point to) {
+      checkArgument(hasConnection(from, to), "%s -> %s is not a connection",
+        from, to);
+      return data.get(from, to);
+    }
+
+    @Override
+    public Optional<E> connectionData(Point from, Point to) {
+      if (data.contains(from, to)) {
+        return data.get(from, to).data();
+      }
+      return Optional.absent();
+    }
+
+    /**
+     * @throws UnsupportedOperationException always.
+     * @deprecated Unsupported operation.
+     */
+    @Deprecated
+    @Override
+    public Optional<E> setConnectionData(Point from, Point to, E connData) {
+      throw new UnsupportedOperationException();
+    }
+
+    /**
+     * @throws UnsupportedOperationException always.
+     * @deprecated Unsupported operation.
+     */
+    @Deprecated
+    @Override
+    public Optional<E> removeConnectionData(Point from, Point to) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public int hashCode() {
+      return hash(data);
+    }
+
+    /**
+     * @throws UnsupportedOperationException always.
+     * @deprecated Unsupported operation.
+     */
+    @Deprecated
+    @Override
+    protected void doAddConnection(Point from, Point to, Optional<E> connData) {
+      throw new UnsupportedOperationException();
+    }
+
+    /**
+     * @throws UnsupportedOperationException always.
+     * @deprecated Unsupported operation.
+     */
+    @Deprecated
+    @Override
+    protected Optional<E> doChangeConnectionData(Point from, Point to,
+        Optional<E> connData) {
+      throw new UnsupportedOperationException();
+    }
+
+  }
+
+  /**
    * Default {@link Graphs.Heuristic} implementation.
    * @author Rinde van Lon
    */
@@ -513,6 +709,68 @@ public final class Graphs {
       @Override
       public double estimateCost(Graph<?> graph, Point from, Point to) {
         return Point.distance(from, to);
+      }
+    },
+
+    /**
+     * Travel time implementation.
+     */
+    TIME {
+      @Override
+      public double calculateCost(Graph<?> graph, Point from, Point to) {
+        final double speed = ((Graph<MultiAttributeData>) graph)
+          .getConnection(from, to).data().get()
+          .getMaxSpeed().get();
+        final double length = graph.connectionLength(from, to);
+        // Metric conflict, shouldn't affect relative outcome
+        return length / speed;
+      }
+
+      @Override
+      public double estimateCost(Graph<?> graph, Point from, Point to) {
+        double speed;
+        if (graph.hasConnection(from, to)) {
+          speed = ((Graph<MultiAttributeData>) graph)
+            .getConnection(from, to).data().get()
+            .getMaxSpeed().get();
+        } else {
+          speed = MultiAttributeData.DEFAULT_LINK_SPEED;
+        }
+        final double length = Point.distance(from, to);
+        // Metric conflict, shouldn't affect relative outcome
+        return length / speed;
+      }
+    },
+
+    /**
+     * Theoretical Travel time implementation.
+     */
+    THEORETICAL_TIME {
+      @Override
+      public double calculateCost(Graph<?> graph, Point from, Point to) {
+        final double speed =
+          Double.parseDouble((String) ((Graph<MultiAttributeData>) graph)
+            .getConnection(from, to).data().get().getAttributes()
+            .get(MultiAttributeData.THEORETICAL_SPEED_ATTRIBUTE));
+        final double length = graph.connectionLength(from, to);
+        // Metric conflict, shouldn't affect relative outcome
+        return length / speed;
+      }
+
+      @Override
+      public double estimateCost(Graph<?> graph, Point from, Point to) {
+        double speed;
+        if (graph.hasConnection(from, to)) {
+          speed =
+            Double.parseDouble((String) ((Graph<MultiAttributeData>) graph)
+              .getConnection(from, to).data().get().getAttributes()
+              .get(MultiAttributeData.THEORETICAL_SPEED_ATTRIBUTE));
+        } else {
+          speed = MultiAttributeData.DEFAULT_LINK_SPEED;
+        }
+        final double length = Point.distance(from, to);
+        // Metric conflict, shouldn't affect relative outcome
+        return length / speed;
       }
     }
   }

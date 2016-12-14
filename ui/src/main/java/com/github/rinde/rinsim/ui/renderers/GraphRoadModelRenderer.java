@@ -19,19 +19,28 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.annotation.CheckReturnValue;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.road.GraphRoadModel;
+import com.github.rinde.rinsim.event.Event;
+import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.ConnectionData;
 import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.Graphs;
+import com.github.rinde.rinsim.geom.ListenableGraph;
+import com.github.rinde.rinsim.geom.ListenableGraph.EventTypes;
+import com.github.rinde.rinsim.geom.ListenableGraph.GraphEvent;
+import com.github.rinde.rinsim.geom.MultiAttributeData;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.ui.renderers.CanvasRenderer.AbstractCanvasRenderer;
 import com.google.auto.value.AutoValue;
@@ -48,25 +57,52 @@ import com.google.common.collect.Sets;
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  */
 public final class GraphRoadModelRenderer extends AbstractCanvasRenderer {
+
   private static final int NODE_RADIUS = 2;
   private static final Point RELATIVE_TEXT_POSITION = new Point(4, -14);
   private static final int ARROW_HEAD_SIZE = 8;
-  private static final Point ARROW_REL_FROM_TO = new Point(.9, .95);
+  // private static final Point ARROW_REL_FROM_TO = new Point(.9, .95);
+  private static final Point ARROW_REL_FROM_TO = new Point(.6, .65);
+
+  final List<Connection<? extends ConnectionData>> updatedConnections;
 
   private final GraphRoadModel model;
   private final int margin;
   private final boolean showNodes;
   private final boolean showNodeCoordinates;
   private final boolean showDirectionArrows;
+  private final boolean showRelativeSpeedStatic;
+  private final boolean showRelativeSpeedDynamic;
   private final RenderHelper helper;
 
   GraphRoadModelRenderer(GraphRoadModel grm, Builder b) {
     model = grm;
+    updatedConnections = new CopyOnWriteArrayList<>();
+
     margin = b.margin();
     showNodes = b.vizOptions().contains(VizOptions.NODE_CIRCLES);
     showNodeCoordinates = b.vizOptions().contains(VizOptions.NODE_COORDS);
     showDirectionArrows = b.vizOptions().contains(VizOptions.DIR_ARROWS);
+    showRelativeSpeedStatic = b.vizOptions().contains(VizOptions.REL_SPEED_S);
+    showRelativeSpeedDynamic = b.vizOptions().contains(VizOptions.REL_SPEED_D);
     helper = new RenderHelper();
+
+    if (showRelativeSpeedDynamic) {
+      try {
+        ((ListenableGraph) grm.getGraph())
+          .getEventAPI()
+          .addListener(new Listener() {
+            @Override
+            public void handleEvent(Event e) {
+              updatedConnections.add(((GraphEvent) e).getConnection());
+            }
+          }, EventTypes.CHANGE_CONNECTION_DATA);
+      } catch (final ClassCastException e) {
+        throw new IllegalStateException(
+          "The GraphRoadModelRenderer has been configured with "
+            + "showRelativeSpeedDynamic, yet cannot provide a ListenableGraph");
+      }
+    }
   }
 
   @Override
@@ -100,11 +136,53 @@ public final class GraphRoadModelRenderer extends AbstractCanvasRenderer {
         helper.setBackgroundSysCol(SWT.COLOR_GRAY);
         helper.drawArrow(f, t, ARROW_HEAD_SIZE, ARROW_HEAD_SIZE);
       }
+
+      if (showRelativeSpeedStatic) {
+        final double dist = Point.distance(e.from(), e.to());
+        final Point f = PointUtil.on(e, dist * ARROW_REL_FROM_TO.x);
+        final Point t = PointUtil.on(e, dist * ARROW_REL_FROM_TO.y);
+        final MultiAttributeData data = (MultiAttributeData) e.data().get();
+        final double ratio =
+          data.getMaxSpeed().get()
+            / Double.parseDouble((String) data.getAttributes()
+              .get(MultiAttributeData.THEORETICAL_SPEED_ATTRIBUTE));
+        final Color color =
+          new Color(gc.getDevice(),
+            (int) Math.max(Math.min(-510 * ratio + 510, 255), 0),
+            (int) Math.max(Math.min(510 * ratio, 255), 0), 0);
+        helper.setBackgroundSysCol(color);
+        helper.drawArrow(f, t, ARROW_HEAD_SIZE, ARROW_HEAD_SIZE);
+        color.dispose();
+      }
+
     }
   }
 
   @Override
-  public void renderDynamic(GC gc, ViewPort vp, long time) {}
+  public void renderDynamic(GC gc, ViewPort vp, long time) {
+    helper.adapt(gc, vp);
+    if (showRelativeSpeedDynamic) {
+      final Set<Connection<? extends ConnectionData>> set =
+        ImmutableSet.copyOf(updatedConnections);
+      for (final Connection<? extends ConnectionData> e : set) {
+        final double dist = Point.distance(e.from(), e.to());
+        final Point f = PointUtil.on(e, dist * ARROW_REL_FROM_TO.x);
+        final Point t = PointUtil.on(e, dist * ARROW_REL_FROM_TO.y);
+        final MultiAttributeData data = (MultiAttributeData) e.data().get();
+        final double ratio =
+          data.getMaxSpeed().get()
+            / Double.parseDouble((String) data.getAttributes().get("ts"));
+        final Color color =
+          new Color(gc.getDevice(),
+            (int) Math.max(Math.min(-510 * ratio + 510, 255), 0),
+            (int) Math.max(Math.min(510 * ratio, 255), 0), 0);
+        helper.setBackgroundSysCol(color);
+        helper.drawArrow(f, t, ARROW_HEAD_SIZE, ARROW_HEAD_SIZE);
+        color.dispose();
+      }
+      // updatedConnections.clear();
+    }
+  }
 
   @Override
   public Optional<ViewRect> getViewRect() {
@@ -127,7 +205,7 @@ public final class GraphRoadModelRenderer extends AbstractCanvasRenderer {
   }
 
   enum VizOptions {
-    NODE_CIRCLES, NODE_COORDS, DIR_ARROWS;
+    NODE_CIRCLES, NODE_COORDS, DIR_ARROWS, REL_SPEED_D, REL_SPEED_S;
   }
 
   /**
@@ -187,6 +265,30 @@ public final class GraphRoadModelRenderer extends AbstractCanvasRenderer {
       return create(margin(), VizOptions.DIR_ARROWS, vizOptions());
     }
 
+    /**
+     * Shows relative speed to theoretical maximal allowed speed. The
+     * theoretical maximum speed is an attribute of a graph. This attribute is
+     * found in {@link MultiAttributeData} under the
+     * "THEORETICAL_SPEED_ATTRIBUTE". (updates only when zooming in or out)
+     * @return A new builder instance.
+     */
+    @CheckReturnValue
+    public Builder withStaticRelativeSpeedVisualization() {
+      return create(margin(), VizOptions.REL_SPEED_S, vizOptions());
+    }
+
+    /**
+     * Shows relative speed to theoretical maximal allowed speed. The
+     * theoretical maximum speed is an attribute of a graph. This attribute is
+     * found in {@link MultiAttributeData} under the
+     * "THEORETICAL_SPEED_ATTRIBUTE". (updates constantly)
+     * @return A new builder instance.
+     */
+    @CheckReturnValue
+    public Builder withDynamicRelativeSpeedVisualization() {
+      return create(margin(), VizOptions.REL_SPEED_D, vizOptions());
+    }
+
     @Override
     public GraphRoadModelRenderer build(DependencyProvider dependencyProvider) {
       return new GraphRoadModelRenderer(
@@ -206,5 +308,6 @@ public final class GraphRoadModelRenderer extends AbstractCanvasRenderer {
       return create(margin,
         Sets.immutableEnumSet(opt, opts.toArray(new VizOptions[] {})));
     }
+
   }
 }

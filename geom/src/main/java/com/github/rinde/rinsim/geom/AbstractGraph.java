@@ -128,6 +128,22 @@ public abstract class AbstractGraph<E extends ConnectionData> implements
   }
 
   @Override
+  public Connection<E> getRandomConnection(
+      RandomGenerator generator) {
+    checkState(!isEmpty(),
+      "Can not find a random connection in an empty graph.");
+    final Set<Connection<E>> conns = getConnections();
+    final int idx = generator.nextInt(conns.size());
+    int index = 0;
+    for (final Connection<E> conn : conns) {
+      if (idx == index++) {
+        return conn;
+      }
+    }
+    throw new IllegalStateException();
+  }
+
+  @Override
   public Optional<E> setConnectionData(Point from, Point to, E connData) {
     return changeConnectionData(from, to, Optional.of(connData));
   }

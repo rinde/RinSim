@@ -475,7 +475,7 @@ public final class View
     }
 
     static Builder create() {
-      ImmutableMap<MenuItems, Integer> accelerators;
+      final ImmutableMap<MenuItems, Integer> accelerators;
       @Nullable
       final Locale loc = InputContext.getInstance().getLocale();
       if (loc != null

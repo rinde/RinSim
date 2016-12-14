@@ -121,7 +121,7 @@ public final class StatsTracker extends AbstractModelVoid implements
       compTime = System.currentTimeMillis() - theListener.startTimeReal;
     }
 
-    return new StatisticsDTO(theListener.totalDistance,
+    return new StatisticsDTO(theListener.totalDistance, theListener.totalTime,
       theListener.totalPickups, theListener.totalDeliveries,
       theListener.totalParcels, theListener.acceptedParcels,
       theListener.pickupTardiness, theListener.deliveryTardiness, compTime,
@@ -154,6 +154,7 @@ public final class StatsTracker extends AbstractModelVoid implements
     protected int totalVehicles;
     protected final Map<MovingRoadUser, Double> distanceMap;
     protected double totalDistance;
+    protected long totalTime;
     protected final Map<MovingRoadUser, Long> lastArrivalTimeAtDepot;
 
     protected int totalPickups;
@@ -177,6 +178,7 @@ public final class StatsTracker extends AbstractModelVoid implements
       totalVehicles = 0;
       distanceMap = newLinkedHashMap();
       totalDistance = 0d;
+      totalTime = 0L;
       lastArrivalTimeAtDepot = newLinkedHashMap();
 
       totalPickups = 0;
@@ -204,6 +206,7 @@ public final class StatsTracker extends AbstractModelVoid implements
           .getValue()
           .doubleValue());
         totalDistance += me.pathProgress.distance().getValue().doubleValue();
+        totalTime += me.pathProgress.time().getValue();
         // if we are closer than 10 cm to the depot, we say we are 'at'
         // the depot
         if (Point.distance(me.roadModel.getPosition(me.roadUser),
