@@ -16,6 +16,7 @@
 package com.github.rinde.rinsim.central;
 
 import static java.util.Arrays.asList;
+import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -33,7 +34,10 @@ import javax.measure.unit.Unit;
 import com.github.rinde.rinsim.central.GlobalStateObject.VehicleStateObject;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
+import com.github.rinde.rinsim.core.model.road.TravelTimes;
+import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.Point;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -50,6 +54,8 @@ public class GlobalStateObjectBuilder {
   Unit<Duration> timeUnit;
   Unit<Velocity> speedUnit;
   Unit<Length> distUnit;
+
+  TravelTimes mockedTT = mock(TravelTimes.class);
 
   GlobalStateObjectBuilder() {
     availableParcels = new LinkedHashSet<>();
@@ -112,7 +118,8 @@ public class GlobalStateObjectBuilder {
       time,
       timeUnit,
       speedUnit,
-      distUnit);
+      distUnit,
+      mockedTT);
   }
 
   public static GlobalStateObjectBuilder globalBuilder() {
@@ -175,9 +182,11 @@ public class GlobalStateObjectBuilder {
     }
 
     public VehicleStateObject build() {
+      final Optional<Connection<?>> absent = Optional.absent();
       return VehicleStateObject.create(
         dto,
         location,
+        absent,
         ImmutableSet.copyOf(contents),
         remainingServiceTime,
         destination,

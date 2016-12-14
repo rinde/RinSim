@@ -63,6 +63,10 @@ public class StatisticsDTO implements Serializable {
    */
   public final double totalDistance;
   /**
+   * The cumulative time all vehicles have spend travelling.
+   */
+  public final long totalTime;
+  /**
    * The total number of parcels that are picked up.
    */
   public final int totalPickups;
@@ -119,6 +123,7 @@ public class StatisticsDTO implements Serializable {
   /**
    * Create a new statistics object.
    * @param dist {@link #totalDistance}.
+   * @param tt {@link #totalTime}.
    * @param pick {@link #totalPickups}.
    * @param del {@link #totalDeliveries}.
    * @param parc {@link #totalParcels}.
@@ -136,11 +141,13 @@ public class StatisticsDTO implements Serializable {
    * @param distUnit {@link #distanceUnit}.
    * @param speed {@link #speedUnit}.
    */
-  public StatisticsDTO(double dist, int pick, int del, int parc, int accP,
+  public StatisticsDTO(double dist, long tt, int pick, int del, int parc,
+      int accP,
       long pickTar, long delTar, long compT, long simT, boolean finish,
       int atDepot, long overT, int total, int moved, Unit<Duration> time,
       Unit<Length> distUnit, Unit<Velocity> speed) {
     totalDistance = dist;
+    totalTime = tt;
     totalPickups = pick;
     totalDeliveries = del;
     totalParcels = parc;
@@ -178,6 +185,7 @@ public class StatisticsDTO implements Serializable {
     }
     final StatisticsDTO other = (StatisticsDTO) obj;
     return new EqualsBuilder().append(totalDistance, other.totalDistance)
+      .append(totalTime, other.totalTime)
       .append(totalPickups, other.totalPickups)
       .append(totalDeliveries, other.totalDeliveries)
       .append(totalParcels, other.totalParcels)
@@ -194,7 +202,8 @@ public class StatisticsDTO implements Serializable {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(totalDistance, totalPickups, totalParcels,
+    return Objects.hashCode(totalDistance, totalTime, totalPickups,
+      totalParcels,
       acceptedParcels, pickupTardiness, deliveryTardiness, simulationTime,
       simFinish, vehiclesAtDepot, overTime, totalVehicles, movedVehicles);
   }

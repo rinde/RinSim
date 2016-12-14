@@ -165,6 +165,11 @@ public abstract class ForwardingGraph<E extends ConnectionData> implements
   }
 
   @Override
+  public Connection<E> getRandomConnection(RandomGenerator generator) {
+    return delegate.getRandomConnection(generator);
+  }
+
+  @Override
   public boolean equals(@Nullable Object other) {
     return delegate.equals(other);
   }

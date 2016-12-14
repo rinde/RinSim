@@ -23,6 +23,7 @@ import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
@@ -225,6 +226,16 @@ public class ForwardingRoadModel<T extends GenericRoadModel>
     return delegate().get(type);
   }
 
+  @Override
+  public TravelTimes getTravelTimes(Unit<Duration> timeUnit) {
+    return delegate().getTravelTimes(timeUnit);
+  }
+
+  @Override
+  public TravelTimes getTravelTimes(TravelTimes previousTravelTimes) {
+    return delegate().getTravelTimes(previousTravelTimes);
+  }
+
   /**
    * Abstract base builder for creating subclasses of
    * {@link ForwardingRoadModel}.
@@ -243,4 +254,5 @@ public class ForwardingRoadModel<T extends GenericRoadModel>
      */
     public abstract ModelBuilder<? extends RoadModel, RoadUser> getDelegateModelBuilder();
   }
+
 }

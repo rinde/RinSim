@@ -39,6 +39,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import com.github.rinde.rinsim.geom.Graphs.GraphHeuristics;
 import com.google.common.base.Function;
 
 /**
@@ -139,6 +140,39 @@ public class GraphsTest {
 
     assertEquals(asList(a, c, b),
       Graphs.shortestPathEuclideanDistance(graph, a, b));
+  }
+
+  /**
+   * The fastest path changes based on the maximal allowed speed
+   */
+  @Test
+  public void fastestPathConnData() {
+    final Graph<MultiAttributeData> attributeGraph =
+      new TableGraph<>();
+    Point A, B, C, D;
+    A = new Point(0, 0);
+    B = new Point(0, 10);
+    C = new Point(10, 10);
+    D = new Point(10, 0);
+    attributeGraph.addConnection(A, B,
+      MultiAttributeData.builder().setMaxSpeed(2).build());
+    attributeGraph.addConnection(B, C,
+      MultiAttributeData.builder().setMaxSpeed(2).build());
+    attributeGraph.addConnection(A, D,
+      MultiAttributeData.builder().setMaxSpeed(1).build());
+    attributeGraph.addConnection(D, C,
+      MultiAttributeData.builder().setMaxSpeed(1).build());
+
+    assertEquals(asList(A, B, C),
+      Graphs.shortestPath(attributeGraph, A, C, GraphHeuristics.TIME));
+
+    attributeGraph.setConnectionData(A, D,
+      MultiAttributeData.builder().setMaxSpeed(10).build());
+    attributeGraph.setConnectionData(D, C,
+      MultiAttributeData.builder().setMaxSpeed(10).build());
+
+    assertEquals(asList(A, D, C),
+      Graphs.shortestPath(attributeGraph, A, C, GraphHeuristics.TIME));
   }
 
   @Test(expected = IllegalArgumentException.class)

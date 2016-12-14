@@ -469,6 +469,17 @@ public class GraphRoadModelImpl extends AbstractRoadModel<Loc>
     return type.cast(self);
   }
 
+  @Override
+  public TravelTimes getTravelTimes(Unit<Duration> timeUnit) {
+    return new GraphTravelTimes<>(graph, timeUnit, getDistanceUnit());
+  }
+
+  @Override
+  public TravelTimes getTravelTimes(TravelTimes previousTravelTimes) {
+    return new GraphTravelTimes<>(
+      (GraphTravelTimes) previousTravelTimes, graph);
+  }
+
   @Deprecated
   @Override
   public ImmutableList<Point> getBounds() {

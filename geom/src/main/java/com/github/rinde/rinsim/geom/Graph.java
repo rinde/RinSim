@@ -209,4 +209,12 @@ public interface Graph<E extends ConnectionData> {
    */
   Point getRandomNode(RandomGenerator generator);
 
+  /**
+   * Get a random connection in the graph.
+   * @param generator used to generate the random connection.
+   * @return random {@link Connection}
+   */
+  Connection<E> getRandomConnection(
+      RandomGenerator generator);
+
 }

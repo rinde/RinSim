@@ -356,11 +356,11 @@ public final class Menu {
      * <b>Example:</b><br>
      * This code will construct two groups, one containing two options and one
      * containing three options.
-     * 
+     *
      * <pre>
      * {@code
      * Builder b = Menu.builder();
-     * 
+     *
      * b.openGroup()
      * .add(..).add(..)
      * .openGroup()
@@ -368,7 +368,7 @@ public final class Menu {
      * .closeGroup();
      * }
      * </pre>
-     * 
+     *
      * @return This, as per the builder pattern.
      */
     public Builder openGroup() {
@@ -440,7 +440,7 @@ public final class Menu {
      * added with <code>shortPrefix = 's', longPrefix = 'sub.'</code>, the
      * resulting menu will be
      * <code>(sa, sub.add),(sb),(sc, sub.construct)</code>.
-     * 
+     *
      * @param shortPrefix The prefix to use for the short option names.
      * @param longPrefix The prefix to use for the long option names.
      * @param menu The menu to add as a sub menu.
@@ -602,7 +602,7 @@ public final class Menu {
 
     @Override
     public void parse(List<String> arguments) {
-      Optional<V> value;
+      final Optional<V> value;
       if (!arguments.isEmpty()) {
         value = Optional
           .of(option.argumentType.parse(option,

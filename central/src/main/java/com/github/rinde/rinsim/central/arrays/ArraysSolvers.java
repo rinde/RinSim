@@ -563,7 +563,7 @@ public final class ArraysSolvers {
     int tardiness = 0;
     // start at index 1 since there can be no tardiness at start location
     for (int i = 1; i < route.length; i++) {
-      int st;
+      final int st;
       if (i == 1 && remainingServiceTime > 0) {
         st = remainingServiceTime;
       } else {
