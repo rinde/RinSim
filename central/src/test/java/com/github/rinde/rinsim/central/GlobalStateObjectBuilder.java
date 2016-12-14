@@ -107,6 +107,11 @@ public class GlobalStateObjectBuilder {
     return this;
   }
 
+  public GlobalStateObjectBuilder setTravelTimes(TravelTimes tt) {
+    mockedTT = tt;
+    return this;
+  }
+
   public GlobalStateObject build() {
     return SolverValidator.validateInputs(buildUnsafe());
   }
