@@ -214,7 +214,6 @@ public interface Graph<E extends ConnectionData> {
    * @param generator used to generate the random connection.
    * @return random {@link Connection}
    */
-  Connection<E> getRandomConnection(
-      RandomGenerator generator);
+  Connection<E> getRandomConnection(RandomGenerator generator);
 
 }

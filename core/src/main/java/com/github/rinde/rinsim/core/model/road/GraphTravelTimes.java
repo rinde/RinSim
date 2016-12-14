@@ -30,6 +30,7 @@ import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.ConnectionData;
 import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.Graphs;
+import com.github.rinde.rinsim.geom.ImmutableGraph;
 import com.github.rinde.rinsim.geom.MultiAttributeData;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.collect.HashBasedTable;
@@ -83,7 +84,7 @@ public class GraphTravelTimes<T extends ConnectionData>
     pathTable = travelTimes.pathTable;
     pathTimeTable = travelTimes.pathTimeTable;
 
-    this.dynamicGraph = Graphs.immutableGraph(newGraph);
+    this.dynamicGraph = ImmutableGraph.copyOf(newGraph);
   }
 
   @Override
