@@ -71,6 +71,7 @@ public class ScheduleUtilTest {
   @Test
   public void testFixSchedule1() {
     final GlobalStateObject state = globalBuilder()
+      .setPlaneTravelTimes(new Point(0, 0), new Point(10, 10))
       .addAvailableParcel(p1)
       .addVehicle(vehicleBuilder()
         .setDestination(p1)
@@ -91,6 +92,7 @@ public class ScheduleUtilTest {
   @Test
   public void testFixSchedule2() {
     final GlobalStateObject state = globalBuilder()
+      .setPlaneTravelTimes(new Point(0, 0), new Point(10, 10))
       .addAvailableParcels(p1, p2)
       .addVehicle(vehicleBuilder()
         .setDestination(p1)
@@ -124,6 +126,7 @@ public class ScheduleUtilTest {
   @Test
   public void testFixSchedule3() {
     final GlobalStateObject state = globalBuilder()
+      .setPlaneTravelTimes(new Point(0, 0), new Point(10, 10))
       .addAvailableParcels(p1)
       .addVehicle(vehicleBuilder()
         .addToContents(p2)
@@ -148,6 +151,7 @@ public class ScheduleUtilTest {
   @Test
   public void testFixSchedule4() {
     final GlobalStateObject state = globalBuilder()
+      .setPlaneTravelTimes(new Point(0, 0), new Point(10, 10))
       .addAvailableParcels(p1)
       .addVehicle(vehicleBuilder()
         .addToContents(p2)
@@ -173,6 +177,7 @@ public class ScheduleUtilTest {
   @Test
   public void testFixSchedule5() {
     final GlobalStateObject state = globalBuilder()
+      .setPlaneTravelTimes(new Point(0, 0), new Point(10, 10))
       .addAvailableParcels(p1)
       .addVehicle(vehicleBuilder()
         .addToContents(p2)
@@ -194,6 +199,7 @@ public class ScheduleUtilTest {
   @Test
   public void testFixSchedule6() {
     final GlobalStateObject state = globalBuilder()
+      .setPlaneTravelTimes(new Point(0, 0), new Point(10, 10))
       .addAvailableParcels(p1, p5)
       .addVehicle(vehicleBuilder()
         .addToContents(p2)
@@ -238,6 +244,7 @@ public class ScheduleUtilTest {
   @Test
   public void testFixScheduleWrongInputs() {
     final GlobalStateObject state = globalBuilder()
+      .setPlaneTravelTimes(new Point(0, 0), new Point(10, 10))
       .addAvailableParcels(p1)
       .addVehicle(vehicleBuilder()
         .build())
@@ -255,6 +262,7 @@ public class ScheduleUtilTest {
     assertThat(fail).isTrue();
 
     final GlobalStateObject wrongState = globalBuilder()
+      .setPlaneTravelTimes(new Point(0, 0), new Point(10, 10))
       .addVehicle(vehicleBuilder().setRoute(route()).build()).build();
 
     fail = false;
