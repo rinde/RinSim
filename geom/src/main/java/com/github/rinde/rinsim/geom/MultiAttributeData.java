@@ -45,11 +45,6 @@ public abstract class MultiAttributeData implements ConnectionData {
    */
   public static final String THEORETICAL_SPEED_ATTRIBUTE = "ts";
 
-  /**
-   * The default speed to be used when a speed is required, but none is present.
-   */
-  public static final Double DEFAULT_LINK_SPEED = 50.0;
-
   MultiAttributeData() {}
 
   @Override

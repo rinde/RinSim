@@ -39,7 +39,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.github.rinde.rinsim.geom.Graphs.GraphHeuristics;
 import com.google.common.base.Function;
 
 /**
@@ -164,7 +163,7 @@ public class GraphsTest {
       MultiAttributeData.builder().setMaxSpeed(1).build());
 
     assertEquals(asList(A, B, C),
-      Graphs.shortestPath(attributeGraph, A, C, GraphHeuristics.TIME));
+      Graphs.shortestPath(attributeGraph, A, C, GraphHeuristics.time(50d)));
 
     attributeGraph.setConnectionData(A, D,
       MultiAttributeData.builder().setMaxSpeed(10).build());
@@ -172,7 +171,7 @@ public class GraphsTest {
       MultiAttributeData.builder().setMaxSpeed(10).build());
 
     assertEquals(asList(A, D, C),
-      Graphs.shortestPath(attributeGraph, A, C, GraphHeuristics.TIME));
+      Graphs.shortestPath(attributeGraph, A, C, GraphHeuristics.time(50d)));
   }
 
   @Test(expected = IllegalArgumentException.class)

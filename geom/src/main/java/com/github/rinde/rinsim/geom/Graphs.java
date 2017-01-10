@@ -160,7 +160,7 @@ public final class Graphs {
    */
   public static <E extends ConnectionData> List<Point> shortestPathEuclideanDistance(
       Graph<E> graph, final Point from, final Point to) {
-    return Graphs.shortestPath(graph, from, to, GraphHeuristics.EUCLIDEAN);
+    return Graphs.shortestPath(graph, from, to, GraphHeuristics.euclidean());
   }
 
   /**
@@ -493,89 +493,6 @@ public final class Graphs {
     @Override
     public Optional<E> removeConnectionData(Point from, Point to) {
       throw new UnsupportedOperationException();
-    }
-  }
-
-  /**
-   * Default {@link Graphs.Heuristic} implementation.
-   * @author Rinde van Lon
-   */
-  public enum GraphHeuristics implements Graphs.Heuristic {
-    /**
-     * Euclidean distance implementation.
-     */
-    EUCLIDEAN {
-      @Override
-      public double calculateCost(Graph<?> graph, Point from, Point to) {
-        return graph.connectionLength(from, to);
-      }
-
-      @Override
-      public double estimateCost(Graph<?> graph, Point from, Point to) {
-        return Point.distance(from, to);
-      }
-    },
-
-    /**
-     * Travel time implementation.
-     */
-    TIME {
-      @Override
-      public double calculateCost(Graph<?> graph, Point from, Point to) {
-        final double speed = ((Graph<MultiAttributeData>) graph)
-          .getConnection(from, to).data().get()
-          .getMaxSpeed().get();
-        final double length = graph.connectionLength(from, to);
-        // Metric conflict, shouldn't affect relative outcome
-        return length / speed;
-      }
-
-      @Override
-      public double estimateCost(Graph<?> graph, Point from, Point to) {
-        double speed;
-        if (graph.hasConnection(from, to)) {
-          speed = ((Graph<MultiAttributeData>) graph)
-            .getConnection(from, to).data().get()
-            .getMaxSpeed().get();
-        } else {
-          speed = MultiAttributeData.DEFAULT_LINK_SPEED;
-        }
-        final double length = Point.distance(from, to);
-        // Metric conflict, shouldn't affect relative outcome
-        return length / speed;
-      }
-    },
-
-    /**
-     * Theoretical Travel time implementation.
-     */
-    THEORETICAL_TIME {
-      @Override
-      public double calculateCost(Graph<?> graph, Point from, Point to) {
-        final double speed =
-          Double.parseDouble((String) ((Graph<MultiAttributeData>) graph)
-            .getConnection(from, to).data().get().getAttributes()
-            .get(MultiAttributeData.THEORETICAL_SPEED_ATTRIBUTE));
-        final double length = graph.connectionLength(from, to);
-        // Metric conflict, shouldn't affect relative outcome
-        return length / speed;
-      }
-
-      @Override
-      public double estimateCost(Graph<?> graph, Point from, Point to) {
-        double speed;
-        if (graph.hasConnection(from, to)) {
-          speed =
-            Double.parseDouble((String) ((Graph<MultiAttributeData>) graph)
-              .getConnection(from, to).data().get().getAttributes()
-              .get(MultiAttributeData.THEORETICAL_SPEED_ATTRIBUTE));
-        } else {
-          speed = MultiAttributeData.DEFAULT_LINK_SPEED;
-        }
-        final double length = Point.distance(from, to);
-        // Metric conflict, shouldn't affect relative outcome
-        return length / speed;
-      }
     }
   }
 

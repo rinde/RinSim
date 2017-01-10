@@ -29,6 +29,7 @@ import javax.measure.unit.Unit;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.ConnectionData;
 import com.github.rinde.rinsim.geom.Graph;
+import com.github.rinde.rinsim.geom.GraphHeuristics;
 import com.github.rinde.rinsim.geom.Graphs;
 import com.github.rinde.rinsim.geom.ImmutableGraph;
 import com.github.rinde.rinsim.geom.MultiAttributeData;
@@ -64,11 +65,9 @@ public class GraphTravelTimes<T extends ConnectionData>
   GraphTravelTimes(Graph<T> graph, Unit<Duration> modelTimeUnit,
       Unit<Length> modelDistanceUnit) {
     super(modelTimeUnit, modelDistanceUnit);
-
     pathTable = HashBasedTable.create();
     pathTimeTable = new HashMap<>();
-
-    this.dynamicGraph = graph;
+    dynamicGraph = graph;
   }
 
   /**
@@ -83,8 +82,7 @@ public class GraphTravelTimes<T extends ConnectionData>
     // TODO Check for updates
     pathTable = travelTimes.pathTable;
     pathTimeTable = travelTimes.pathTimeTable;
-
-    this.dynamicGraph = ImmutableGraph.copyOf(newGraph);
+    dynamicGraph = ImmutableGraph.copyOf(newGraph);
   }
 
   @Override
@@ -96,7 +94,8 @@ public class GraphTravelTimes<T extends ConnectionData>
       path = pathTable.get(from, to);
     } else {
       path = Graphs.shortestPath(dynamicGraph, from, to,
-        Graphs.GraphHeuristics.THEORETICAL_TIME);
+        GraphHeuristics
+          .theoreticalTime(maxVehicleSpeed.getValue().doubleValue()));
       pathTable.put(from, to, path);
     }
     if (pathTimeTable.containsKey(path)) {
@@ -109,8 +108,7 @@ public class GraphTravelTimes<T extends ConnectionData>
     Point prev = pathI.next();
     while (pathI.hasNext()) {
       final Point cur = pathI.next();
-      final Connection<T> conn =
-        dynamicGraph.getConnection(prev, cur);
+      final Connection<T> conn = dynamicGraph.getConnection(prev, cur);
 
       final Measure<Double, Length> distance = Measure.valueOf(
         conn.getLength(), distanceUnit);
@@ -137,17 +135,14 @@ public class GraphTravelTimes<T extends ConnectionData>
     }
     pathTimeTable.put(path, travelTime);
     return travelTime;
-
-    // TT := millis
-    // conn.length := meter
-    // speed := kmh
   }
 
   @Override
   public double getCurrentShortestTravelTime(Point from, Point to,
       Measure<Double, Velocity> maxVehicleSpeed) {
     final Iterator<Point> path =
-      Graphs.shortestPath(dynamicGraph, from, to, Graphs.GraphHeuristics.TIME)
+      Graphs.shortestPath(dynamicGraph, from, to,
+        GraphHeuristics.time(maxVehicleSpeed.getValue().doubleValue()))
         .iterator();
 
     double travelTime = 0d;
@@ -177,10 +172,6 @@ public class GraphTravelTimes<T extends ConnectionData>
       prev = cur;
     }
     return travelTime;
-    // TT := millis
-    // conn.length := meter
-    // speed := kmh
-
   }
 
   @Override
@@ -189,9 +180,9 @@ public class GraphTravelTimes<T extends ConnectionData>
     if (pathTable.contains(from, to)) {
       return Graphs.pathLength(pathTable.get(from, to));
     }
-    final List<Point> path = Graphs
-      .shortestPath(dynamicGraph, from, to,
-        Graphs.GraphHeuristics.THEORETICAL_TIME);
+    final List<Point> path = Graphs.shortestPath(dynamicGraph, from, to,
+      GraphHeuristics
+        .theoreticalTime(maxVehicleSpeed.getValue().doubleValue()));
     pathTable.put(from, to, path);
     return Graphs.pathLength(path);
   }
@@ -200,6 +191,7 @@ public class GraphTravelTimes<T extends ConnectionData>
   public double computeCurrentDistance(Point from, Point to,
       Measure<Double, Velocity> maxVehicleSpeed) {
     return Graphs.pathLength(
-      Graphs.shortestPath(dynamicGraph, from, to, Graphs.GraphHeuristics.TIME));
+      Graphs.shortestPath(dynamicGraph, from, to,
+        GraphHeuristics.time(maxVehicleSpeed.getValue().doubleValue())));
   }
 }

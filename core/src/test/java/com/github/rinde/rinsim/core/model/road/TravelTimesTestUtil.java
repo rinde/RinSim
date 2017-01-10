@@ -19,6 +19,7 @@ import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
 import javax.measure.unit.Unit;
 
+import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.Point;
 
 public class TravelTimesTestUtil {
@@ -32,6 +33,12 @@ public class TravelTimesTestUtil {
   public static TravelTimes createDefaultPlaneTravelTimes(Point min, Point max,
       Unit<Duration> timeUnit, Unit<Length> distanceUnit) {
     return new PlaneTravelTimes(min, max, timeUnit, distanceUnit);
+  }
+
+  public static GraphTravelTimes createGraphTravelTimes(Graph<?> graph,
+      Unit<Duration> modelTimeUnit,
+      Unit<Length> modelDistanceUnit) {
+    return new GraphTravelTimes<>(graph, modelTimeUnit, modelDistanceUnit);
   }
 
 }

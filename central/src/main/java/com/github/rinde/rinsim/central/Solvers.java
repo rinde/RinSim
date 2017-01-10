@@ -224,13 +224,15 @@ public final class Solvers {
         final Point nextLoc = inCargo ? cur.getDeliveryLocation()
           : cur.getPickupLocation();
         final Measure<Double, Length> distance = Measure.valueOf(
-          state.getTravelTimes().computeTheoreticalDistance(vehicleLocation,
-            nextLoc,
-            maxSpeed),
+          state.getTravelTimes()
+            // .computeTheoreticalDistance(vehicleLocation, nextLoc, maxSpeed),
+            .computeCurrentDistance(vehicleLocation, nextLoc, maxSpeed),
           state.getDistUnit());
         totalDistance += distance.getValue();
         final double tt = state.getTravelTimes()
-          .getTheoreticalShortestTravelTime(vehicleLocation, nextLoc, maxSpeed);
+          // .getTheoreticalShortestTravelTime(vehicleLocation, nextLoc,
+          // maxSpeed);
+          .getCurrentShortestTravelTime(vehicleLocation, nextLoc, maxSpeed);
         vehicleLocation = nextLoc;
         time += DoubleMath.roundToLong(tt, RoundingMode.CEILING);
         totalTravelTime += tt;
@@ -271,12 +273,16 @@ public final class Solvers {
 
     // go to depot
     final Measure<Double, Length> distance = Measure.valueOf(
-      state.getTravelTimes().computeTheoreticalDistance(vehicleLocation,
+      state.getTravelTimes().computeCurrentDistance(vehicleLocation,
         vso.getDto().getStartPosition(), maxSpeed),
+      // state.getTravelTimes().computeTheoreticalDistance(vehicleLocation,
+      // vso.getDto().getStartPosition(), maxSpeed),
       state.getDistUnit());
     totalDistance += distance.getValue();
     final double tt = state.getTravelTimes()
-      .getTheoreticalShortestTravelTime(vehicleLocation,
+      // .getTheoreticalShortestTravelTime(vehicleLocation,
+      // vso.getDto().getStartPosition(), maxSpeed);
+      .getCurrentShortestTravelTime(vehicleLocation,
         vso.getDto().getStartPosition(), maxSpeed);
     time += DoubleMath.roundToLong(tt, RoundingMode.CEILING);
     totalTravelTime += tt;

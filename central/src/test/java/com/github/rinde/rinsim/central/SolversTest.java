@@ -60,11 +60,16 @@ import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.road.TravelTimes;
+import com.github.rinde.rinsim.core.model.road.TravelTimesTestUtil;
 import com.github.rinde.rinsim.core.model.time.Clock;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.model.time.TimeLapseFactory;
 import com.github.rinde.rinsim.geom.Connection;
+import com.github.rinde.rinsim.geom.Graph;
+import com.github.rinde.rinsim.geom.Graphs;
+import com.github.rinde.rinsim.geom.LengthData;
 import com.github.rinde.rinsim.geom.Point;
+import com.github.rinde.rinsim.geom.TableGraph;
 import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.pdptw.common.PDPTWTestUtil;
@@ -381,12 +386,32 @@ public class SolversTest {
       .build();
 
     final ImmutableList<ImmutableList<Parcel>> schedule =
-      RandomSolver.create(123L).solve(gso);
+      ImmutableList.of(ImmutableList.of(A, A));
 
     // cost in milliseconds
     final double rinSimCost = Gendreau06ObjectiveFunction.instance(50d)
       .computeCost(Solvers.computeStats(gso, schedule)) * 60000d;
     assertThat(rinSimCost).isWithin(0.00001).of(563828.5364288616);
+
+    final Graph<LengthData> g = new TableGraph<>();
+    Graphs.addBiPath(g, new Point(5, 5), new Point(2, 0), new Point(0, 0),
+      new Point(5, 5));
+
+    final GlobalStateObject gso2 = GlobalStateObjectBuilder.globalBuilder()
+      .addAvailableParcel(A)
+      .addVehicle(GlobalStateObjectBuilder.vehicleBuilder()
+        .setLocation(new Point(5, 5))
+        .setRoute(ImmutableList.<Parcel>of(A, A))
+        .setRemainingServiceTime(120000L)
+        .setDestination(A)
+        .build())
+      .setTravelTimes(TravelTimesTestUtil.createGraphTravelTimes(g,
+        SI.MILLI(SI.SECOND), SI.KILOMETER))
+      .build();
+
+    final double rinSimCost2 = Gendreau06ObjectiveFunction.instance(50d)
+      .computeCost(Solvers.computeStats(gso2, schedule)) * 60000d;
+    assertThat(rinSimCost2).isWithin(0.00001).of(563828.5364288616);
   }
 
   // doesn't check the contents!
