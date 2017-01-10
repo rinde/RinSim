@@ -16,6 +16,7 @@
 package com.github.rinde.rinsim.central;
 
 import static com.github.rinde.rinsim.core.model.time.TimeLapseFactory.create;
+import static com.google.common.truth.Truth.assertThat;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -360,6 +361,32 @@ public class SolversTest {
       state.withSingleVehicle(1),
       ImmutableList.of(routes.get(1))));
     assertEquals(cost, cost0 + cost1, 0.001);
+  }
+
+  @Test
+  public void precisionTest() throws InterruptedException {
+    final Parcel A = Parcel.builder(new Point(5, 5), new Point(2, 0))
+      .serviceDuration(180000L)
+      .build();
+
+    final GlobalStateObject gso = GlobalStateObjectBuilder.globalBuilder()
+      .addAvailableParcel(A)
+      .addVehicle(GlobalStateObjectBuilder.vehicleBuilder()
+        .setLocation(new Point(5, 5))
+        .setRoute(ImmutableList.<Parcel>of(A, A))
+        .setRemainingServiceTime(120000L)
+        .setDestination(A)
+        .build())
+      .setPlaneTravelTimes(new Point(0, 0), new Point(10, 10))
+      .build();
+
+    final ImmutableList<ImmutableList<Parcel>> schedule =
+      RandomSolver.create(123L).solve(gso);
+
+    // cost in milliseconds
+    final double rinSimCost = Gendreau06ObjectiveFunction.instance(50d)
+      .computeCost(Solvers.computeStats(gso, schedule)) * 60000d;
+    assertThat(rinSimCost).isWithin(0.00001).of(563828.5364288616);
   }
 
   // doesn't check the contents!
