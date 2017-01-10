@@ -17,8 +17,6 @@ package com.github.rinde.rinsim.core.model.road;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import java.math.RoundingMode;
-
 import javax.measure.Measure;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
@@ -26,7 +24,6 @@ import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
 import com.github.rinde.rinsim.geom.Point;
-import com.google.common.math.DoubleMath;
 
 /**
  * The {@link TravelTimes} class to be used with the {@link PlaneRoadModel}.
@@ -62,7 +59,7 @@ public final class PlaneTravelTimes extends AbstractTravelTimes {
   }
 
   @Override
-  public long getTheoreticalShortestTravelTime(Point from, Point to,
+  public double getTheoreticalShortestTravelTime(Point from, Point to,
       Measure<Double, Velocity> maxVehicleSpeed) {
     checkArgument(
       isPointInBoundary(from),
@@ -74,15 +71,13 @@ public final class PlaneTravelTimes extends AbstractTravelTimes {
       "to must be within the predefined boundary of the plane, to is %s,"
         + " boundary: min %s, max %s.",
       to, min, max);
-    return DoubleMath.roundToLong(
-      RoadModels.computeTravelTime(maxVehicleSpeed,
-        Measure.valueOf(Point.distance(from, to), distanceUnit),
-        timeUnit),
-      RoundingMode.CEILING);
+    return RoadModels.computeTravelTime(maxVehicleSpeed,
+      Measure.valueOf(Point.distance(from, to), distanceUnit),
+      timeUnit);
   }
 
   @Override
-  public long getCurrentShortestTravelTime(Point from, Point to,
+  public double getCurrentShortestTravelTime(Point from, Point to,
       Measure<Double, Velocity> maxVehicleSpeed) {
     return getTheoreticalShortestTravelTime(from, to, maxVehicleSpeed);
   }

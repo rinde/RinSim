@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
 
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -59,6 +60,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedHashMultiset;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
+import com.google.common.math.DoubleMath;
 
 /**
  * @author Rinde van Lon
@@ -119,7 +121,7 @@ public final class Solvers {
     }
 
     double totalDistance = 0;
-    long totalTravelTime = 0;
+    double totalTravelTime = 0;
     int totalDeliveries = 0;
     int totalPickups = 0;
     long pickupTardiness = 0;
@@ -136,13 +138,13 @@ public final class Solvers {
     for (int i = 0; i < state.getVehicles().size(); i++) {
       final ExtendedStats stats = calculateStatsForVehicle(state, i, r);
       totalDistance += stats.totalDistance;
-      totalTravelTime += stats.totalTime;
+      totalTravelTime += stats.totalTravelTime;
       totalDeliveries += stats.totalDeliveries;
       totalPickups += stats.totalPickups;
       pickupTardiness += stats.pickupTardiness;
       deliveryTardiness += stats.deliveryTardiness;
       overTime += stats.overTime;
-      maxTime += Math.max(maxTime, stats.totalTime);
+      maxTime += Math.max(maxTime, stats.totalTravelTime);
       movedVehicles += stats.movedVehicles;
       totalParcels += stats.totalParcels;
       arrivalTimesBuilder.addAll(stats.arrivalTimes);
@@ -166,7 +168,7 @@ public final class Solvers {
 
     final Set<Parcel> parcels = new HashSet<>();
     double totalDistance = 0;
-    long totalTravelTime = 0;
+    double totalTravelTime = 0;
     int totalDeliveries = 0;
     int totalPickups = 0;
     long pickupTardiness = 0;
@@ -227,11 +229,10 @@ public final class Solvers {
             maxSpeed),
           state.getDistUnit());
         totalDistance += distance.getValue();
-        final long tt = state.getTravelTimes()
-          .getTheoreticalShortestTravelTime(vehicleLocation, nextLoc,
-            maxSpeed);
+        final double tt = state.getTravelTimes()
+          .getTheoreticalShortestTravelTime(vehicleLocation, nextLoc, maxSpeed);
         vehicleLocation = nextLoc;
-        time += tt;
+        time += DoubleMath.roundToLong(tt, RoundingMode.CEILING);
         totalTravelTime += tt;
       }
       if (inCargo) {
@@ -274,10 +275,10 @@ public final class Solvers {
         vso.getDto().getStartPosition(), maxSpeed),
       state.getDistUnit());
     totalDistance += distance.getValue();
-    final long tt = state.getTravelTimes()
+    final double tt = state.getTravelTimes()
       .getTheoreticalShortestTravelTime(vehicleLocation,
         vso.getDto().getStartPosition(), maxSpeed);
-    time += tt;
+    time += DoubleMath.roundToLong(tt, RoundingMode.CEILING);
     totalTravelTime += tt;
     // check overtime
     if (vso.getDto().getAvailabilityTimeWindow().isAfterEnd(time)) {
@@ -746,7 +747,7 @@ public final class Solvers {
     private static final long serialVersionUID = 3682772955122186862L;
     final ImmutableList<ImmutableList<Long>> arrivalTimes;
 
-    ExtendedStats(double dist, long tt, int pick, int del, int parc, int accP,
+    ExtendedStats(double dist, double tt, int pick, int del, int parc, int accP,
         long pickTar, long delTar, long compT, long simT, boolean finish,
         int atDepot, long overT, int total, int moved, Unit<Duration> time,
         Unit<Length> distUnit, Unit<Velocity> speed,

@@ -37,7 +37,7 @@ public interface TravelTimes {
    * @return The expected travel time between the two positions based on a given
    *         maximum vehicle speed.
    */
-  long getTheoreticalShortestTravelTime(Point from, Point to,
+  double getTheoreticalShortestTravelTime(Point from, Point to,
       Measure<Double, Velocity> maxVehicleSpeed);
 
   /**
@@ -50,7 +50,7 @@ public interface TravelTimes {
    * @return The expected travel time between the two positions based on a given
    *         maximum vehicle speed.
    */
-  long getCurrentShortestTravelTime(Point from, Point to,
+  double getCurrentShortestTravelTime(Point from, Point to,
       Measure<Double, Velocity> maxVehicleSpeed);
 
   /**

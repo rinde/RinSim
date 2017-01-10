@@ -52,7 +52,7 @@ public class GraphTravelTimes<T extends ConnectionData>
   private final Graph<T> dynamicGraph;
 
   private final Table<Point, Point, List<Point>> pathTable;
-  private final Map<List<Point>, Long> pathTimeTable;
+  private final Map<List<Point>, Double> pathTimeTable;
 
   /**
    * Create a new {@link GraphTravelTimes} object based on a given graph, using
@@ -88,17 +88,15 @@ public class GraphTravelTimes<T extends ConnectionData>
   }
 
   @Override
-  public long getTheoreticalShortestTravelTime(Point from, Point to,
+  public double getTheoreticalShortestTravelTime(Point from, Point to,
       Measure<Double, Velocity> maxVehicleSpeed) {
 
     final List<Point> path;
-
     if (pathTable.contains(from, to)) {
       path = pathTable.get(from, to);
     } else {
-      path = Graphs
-        .shortestPath(dynamicGraph, from, to,
-          Graphs.GraphHeuristics.THEORETICAL_TIME);
+      path = Graphs.shortestPath(dynamicGraph, from, to,
+        Graphs.GraphHeuristics.THEORETICAL_TIME);
       pathTable.put(from, to, path);
     }
     if (pathTimeTable.containsKey(path)) {
@@ -107,7 +105,7 @@ public class GraphTravelTimes<T extends ConnectionData>
 
     final Iterator<Point> pathI = path.iterator();
 
-    long travelTime = 0L;
+    double travelTime = 0d;
     Point prev = pathI.next();
     while (pathI.hasNext()) {
       final Point cur = pathI.next();
@@ -146,18 +144,17 @@ public class GraphTravelTimes<T extends ConnectionData>
   }
 
   @Override
-  public long getCurrentShortestTravelTime(Point from, Point to,
+  public double getCurrentShortestTravelTime(Point from, Point to,
       Measure<Double, Velocity> maxVehicleSpeed) {
     final Iterator<Point> path =
       Graphs.shortestPath(dynamicGraph, from, to, Graphs.GraphHeuristics.TIME)
         .iterator();
 
-    long travelTime = 0L;
+    double travelTime = 0d;
     Point prev = path.next();
     while (path.hasNext()) {
       final Point cur = path.next();
-      final Connection<T> conn =
-        dynamicGraph.getConnection(prev, cur);
+      final Connection<T> conn = dynamicGraph.getConnection(prev, cur);
 
       final Measure<Double, Length> distance = Measure.valueOf(
         conn.getLength(), distanceUnit);
@@ -175,8 +172,7 @@ public class GraphTravelTimes<T extends ConnectionData>
       } else {
         // No max speed is defined for this connection
         travelTime +=
-          RoadModels.computeTravelTime(maxVehicleSpeed, distance,
-            timeUnit);
+          RoadModels.computeTravelTime(maxVehicleSpeed, distance, timeUnit);
       }
       prev = cur;
     }

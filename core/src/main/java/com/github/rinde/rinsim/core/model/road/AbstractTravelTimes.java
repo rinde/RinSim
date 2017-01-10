@@ -15,13 +15,9 @@
  */
 package com.github.rinde.rinsim.core.model.road;
 
-import javax.measure.Measure;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
-import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
-
-import com.github.rinde.rinsim.geom.Point;
 
 /**
  * The abstract class for the {@link TravelTimes} interface. Each class
@@ -44,21 +40,4 @@ abstract class AbstractTravelTimes implements TravelTimes {
     timeUnit = travelTimes.timeUnit;
     distanceUnit = travelTimes.distanceUnit;
   }
-
-  @Override
-  public abstract long getTheoreticalShortestTravelTime(Point from, Point to,
-      Measure<Double, Velocity> maxVehicleSpeed);
-
-  @Override
-  public abstract long getCurrentShortestTravelTime(Point from, Point to,
-      Measure<Double, Velocity> maxVehicleSpeed);
-
-  @Override
-  public abstract double computeTheoreticalDistance(Point from, Point to,
-      Measure<Double, Velocity> maxVehicleSpeed);
-
-  @Override
-  public abstract double computeCurrentDistance(Point from, Point to,
-      Measure<Double, Velocity> maxVehicleSpeed);
-
 }
