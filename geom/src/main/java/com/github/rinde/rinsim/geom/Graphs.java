@@ -361,6 +361,7 @@ public final class Graphs {
    * A heuristic can be used to direct the {@link #shortestPath} algorithm, it
    * determines the cost of traveling which should be minimized.
    * @author Rinde van Lon
+   * @see GraphHeuristics
    */
   public interface Heuristic {
     /**
