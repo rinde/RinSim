@@ -32,8 +32,6 @@ public final class Gendreau06ObjectiveFunction
   private static final long serialVersionUID = 6069190376442772396L;
   private static final Gendreau06ObjectiveFunction INSTANCE =
     new Gendreau06ObjectiveFunction(30d, 1d, 1d, 1d);
-  private static final double MS_TO_MINUTES = 60000d;
-  private static final double H_TO_MINUTES = 60d;
 
   private final double vehicleSpeed;
   private final double ttFactor;
@@ -98,7 +96,6 @@ public final class Gendreau06ObjectiveFunction
       .append(tardiness(stats)).append("\nOvertime: ")
       .append(overTime(stats)).append("\nTotal: ").append(computeCost(stats))
       .toString();
-
   }
 
   /**
@@ -107,11 +104,8 @@ public final class Gendreau06ObjectiveFunction
    * @return The travel time in minutes.
    */
   public double travelTime(StatisticsDTO stats) {
-    // total dist in km
-    // speed in kmh
-    // convert to minutes by * 60
-    // return stats.totalDistance / vehicleSpeed * H_TO_MINUTES;
-    return stats.timeUnit.getConverterTo(NonSI.MINUTE).convert(stats.totalTime);
+    return stats.timeUnit.getConverterTo(NonSI.MINUTE)
+      .convert(stats.totalTravelTime);
   }
 
   /**
@@ -120,7 +114,8 @@ public final class Gendreau06ObjectiveFunction
    * @return The tardiness in minutes.
    */
   public double tardiness(StatisticsDTO stats) {
-    return (stats.pickupTardiness + stats.deliveryTardiness) / MS_TO_MINUTES;
+    return stats.timeUnit.getConverterTo(NonSI.MINUTE)
+      .convert(stats.pickupTardiness + stats.deliveryTardiness);
   }
 
   /**
@@ -129,7 +124,7 @@ public final class Gendreau06ObjectiveFunction
    * @return The over time in minutes.
    */
   public double overTime(StatisticsDTO stats) {
-    return stats.overTime / MS_TO_MINUTES;
+    return stats.timeUnit.getConverterTo(NonSI.MINUTE).convert(stats.overTime);
   }
 
   public double getVehicleSpeed() {
