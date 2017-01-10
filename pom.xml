@@ -256,12 +256,12 @@
 			<plugin>
 				<groupId>com.mycila</groupId>
 				<artifactId>license-maven-plugin</artifactId>
-				<version>2.11</version>
+				<version>3.0</version>
 				<configuration>
 					<header>LICENSE_HEADER</header>
 					<properties>
-						<owner>Rinde van Lon, iMinds-DistriNet, KU Leuven</owner>
-						<year>2016</year>
+						<owner>Rinde van Lon, imec-DistriNet, KU Leuven</owner>
+						<year>2017</year>
 					</properties>
 					<mapping>
 						<java>SLASHSTAR_STYLE</java>
