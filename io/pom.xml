@@ -23,7 +23,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<sonar.language>java</sonar.language>
 	</properties>
-	
+
 	<build>
 		<plugins>
 			<plugin>
@@ -45,6 +45,16 @@
 		<dependency>
 			<groupId>com.github.rinde</groupId>
 			<artifactId>rinsim-cli</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.hamcrest</groupId>
+			<artifactId>hamcrest-junit</artifactId>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 </project>

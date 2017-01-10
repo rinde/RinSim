@@ -137,7 +137,7 @@ public class DotGraphIO<E extends ConnectionData> extends
 
   @Override
   public void write(Graph<E> graph, Writer writer) throws IOException {
-    try (final BufferedWriter out = new BufferedWriter(writer)) {
+    try (BufferedWriter out = new BufferedWriter(writer)) {
       final StringBuilder string = new StringBuilder();
       string.append("digraph mapgraph {\n");
 

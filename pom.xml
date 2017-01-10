@@ -1,5 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.rinde</groupId>
 	<artifactId>rinsim-main</artifactId>
@@ -86,7 +85,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-surefire-plugin</artifactId>
-					<version>2.19</version>
+					<version>2.19.1</version>
 					<configuration>
 						<argLine>${argLine}</argLine>
 						<excludedGroups>${test.excludedGroups}</excludedGroups>
@@ -96,8 +95,7 @@
 					</configuration>
 				</plugin>
 
-				<!-- suppresses an annoying warning in all children pom files (maven-enforce-plugin 
-					blabla) -->
+				<!-- suppresses an annoying warning in all children pom files (maven-enforce-plugin blabla) -->
 				<plugin>
 					<groupId>org.eclipse.m2e</groupId>
 					<artifactId>lifecycle-mapping</artifactId>
@@ -125,7 +123,7 @@
 											jacoco-maven-plugin
 										</artifactId>
 										<versionRange>
-											[0.7.1.201405082137,)
+											[0.7.7.201606060606,)
 										</versionRange>
 										<goals>
 											<goal>prepare-agent</goal>
@@ -240,7 +238,7 @@
 			<plugin>
 				<groupId>org.sonatype.plugins</groupId>
 				<artifactId>nexus-staging-maven-plugin</artifactId>
-				<version>1.6.3</version>
+				<version>1.6.7</version>
 				<extensions>true</extensions>
 				<configuration>
 					<serverId>ossrh</serverId>
@@ -249,8 +247,7 @@
 				</configuration>
 			</plugin>
 
-			<!-- <plugin> <groupId>org.bsc.maven</groupId> <artifactId>maven-processor-plugin</artifactId> 
-				<version>3.1.0-beta1</version> </plugin> -->
+			<!-- <plugin> <groupId>org.bsc.maven</groupId> <artifactId>maven-processor-plugin</artifactId> <version>3.1.0-beta1</version> </plugin> -->
 
 			<!-- license -->
 			<plugin>
@@ -320,7 +317,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
-				<version>2.4</version>
+				<version>3.0.1</version>
 				<executions>
 					<execution>
 						<id>attach-sources</id>
@@ -335,7 +332,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.10.3</version>
+				<version>2.10.4</version>
 				<executions>
 					<execution>
 						<goals>
@@ -364,27 +361,27 @@
 					</execution>
 				</executions>
 			</plugin>
-			
+
 			<!-- creates a test-jar which can then be reused in other projects' tests -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>2.6</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                        <configuration>
-                            <excludes>
-                                <excludes>**/logback-test.xml</excludes>
-                                <excludes>**/logback.xml</excludes>
-                            </excludes>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.6</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+						<configuration>
+							<excludes>
+								<excludes>**/logback-test.xml</excludes>
+								<excludes>**/logback.xml</excludes>
+							</excludes>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -413,13 +410,12 @@
 						<!-- newer versions seem to crash on travis -->
 						<version>2.5</version>
 					</dependency>
-					 <dependency>
+					<dependency>
 						<groupId>com.google.errorprone</groupId>
 						<artifactId>error_prone_core</artifactId>
-						<!-- versions higher than 2.0.5 require JDK 8 which we 
-						     do not want to force upon our users (yet) -->
+						<!-- versions higher than 2.0.5 require JDK 8 which we do not want to force upon our users (yet) -->
 						<version>2.0.5</version>
-					</dependency> 
+					</dependency>
 				</dependencies>
 			</plugin>
 
@@ -497,28 +493,11 @@
 	</profiles>
 
 	<dependencies>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.12</version>
-			<scope>test</scope>
-		</dependency>
 
-		<dependency>
-			<groupId>org.hamcrest</groupId>
-			<artifactId>hamcrest-junit</artifactId>
-			<version>2.0.0.0</version>
-		</dependency>
 	</dependencies>
 
 	<dependencyManagement>
 		<dependencies>
-			<dependency>
-				<groupId>com.google.truth</groupId>
-				<artifactId>truth</artifactId>
-				<version>0.28</version>
-				<scope>test</scope>
-			</dependency>
 			<dependency>
 				<groupId>com.google.guava</groupId>
 				<artifactId>guava</artifactId>
@@ -527,7 +506,7 @@
 			<dependency>
 				<groupId>org.slf4j</groupId>
 				<artifactId>slf4j-api</artifactId>
-				<version>1.7.13</version>
+				<version>1.7.21</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.commons</groupId>
@@ -537,12 +516,12 @@
 			<dependency>
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-math3</artifactId>
-				<version>3.5</version>
+				<version>3.6.1</version>
 			</dependency>
 			<dependency>
 				<groupId>commons-io</groupId>
 				<artifactId>commons-io</artifactId>
-				<version>2.4</version>
+				<version>2.5</version>
 			</dependency>
 			<dependency>
 				<groupId>joda-time</groupId>
@@ -563,18 +542,6 @@
 				<groupId>org.jscience</groupId>
 				<artifactId>jscience</artifactId>
 				<version>4.3.1</version>
-			</dependency>
-			<dependency>
-				<groupId>org.mockito</groupId>
-				<artifactId>mockito-core</artifactId>
-				<version>1.10.8</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>com.google.auto.value</groupId>
-				<artifactId>auto-value</artifactId>
-				<version>1.2</version>
-				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.github.rinde</groupId>
@@ -679,10 +646,44 @@
 				<version>${project.version}</version>
 				<type>test-jar</type>
 			</dependency>
+
+			<!-- TEST -->
+			<dependency>
+				<groupId>org.mockito</groupId>
+				<artifactId>mockito-core</artifactId>
+				<version>2.3.0</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>com.google.truth</groupId>
+				<artifactId>truth</artifactId>
+				<version>0.30</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>junit</groupId>
+				<artifactId>junit</artifactId>
+				<version>4.12</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.hamcrest</groupId>
+				<artifactId>hamcrest-junit</artifactId>
+				<version>2.0.0.0</version>
+				<scope>test</scope>
+			</dependency>
+
+			<!-- PROVIDED -->
 			<dependency>
 				<groupId>ch.qos.logback</groupId>
 				<artifactId>logback-classic</artifactId>
-				<version>1.1.3</version>
+				<version>1.1.8</version>
+				<scope>provided</scope>
+			</dependency>
+			<dependency>
+				<groupId>com.google.auto.value</groupId>
+				<artifactId>auto-value</artifactId>
+				<version>1.3</version>
 				<scope>provided</scope>
 			</dependency>
 		</dependencies>
