@@ -197,6 +197,9 @@ public final class Solvers {
 
     long time = state.getTime();
     Point vehicleLocation = vso.getLocation();
+    if (vso.getConnection().isPresent()) {
+      vehicleLocation = vso.getConnection().get().to();
+    }
     final Measure<Double, Velocity> maxSpeed =
       Measure.valueOf(vso.getDto().getSpeed(), state.getSpeedUnit());
     final Set<Parcel> seen = newHashSet();

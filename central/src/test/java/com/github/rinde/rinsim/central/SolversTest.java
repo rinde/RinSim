@@ -414,6 +414,76 @@ public class SolversTest {
     assertThat(rinSimCost2).isWithin(0.00001).of(563828.5364288616);
   }
 
+  /**
+   * Tests whether the
+   * {@link Solvers#computeStats(GlobalStateObject, ImmutableList)} method
+   * succeeds when the vehicle is moving on a connection.
+   */
+  @Test
+  public void vehicleOnConnectionTest() {
+    final DependencyProvider graphdp = mock(DependencyProvider.class);
+
+    // A graph for the vehicle to be present on
+    final Graph g = new TableGraph<>();
+    // The connection points
+    final Point a = new Point(0, 0);
+    final Point b = new Point(1, 1);
+    // The connections
+    g.addConnection(a, b);
+    g.addConnection(b, a);
+
+    // Build a PDPRoadModel with the graph
+    final PDPRoadModel graphRm = PDPRoadModel.builder(
+      RoadModelBuilders.staticGraph(g))
+      .withAllowVehicleDiversion(true)
+      .build(graphdp);
+
+    when(graphdp.get(RoadModel.class)).thenReturn(graphRm);
+
+    // The test vehicle
+    final MovingTestVehicle mv1 =
+      new MovingTestVehicle(a, b, graphRm);
+    graphRm.register(mv1);
+
+    // The test parcel for the route
+    final Parcel mp1 = createParcel(b, a);
+
+    // Move the vehicle a bit
+    mv1.tickImpl(TimeLapseFactory.create(0l, 1l));
+
+    // Build State
+    final ImmutableSet<Parcel> availableParcels = ImmutableSet
+      .<Parcel>builder()
+      .add(mp1)
+      .build();
+
+    final ImmutableList<VehicleStateObject> vehicles = ImmutableList
+      .<VehicleStateObject>builder()
+      .add(
+        VehicleStateObject.create(
+          mv1.getDTO(),
+          graphRm.getPosition(mv1),
+          (Optional<? extends Connection<?>>) Optional
+            .of(g.getConnection(a, b)),
+          ImmutableSet.<Parcel>of(mp1),
+          0L,
+          null,
+          null))
+      .build();
+
+    final GlobalStateObject state = GlobalStateObject.create(availableParcels,
+      vehicles, 1L, SI.MILLI(SI.SECOND), NonSI.KILOMETERS_PER_HOUR,
+      SI.KILOMETER, graphRm.getTravelTimes(SI.MILLI(SI.SECOND)));
+
+    final ImmutableList<ImmutableList<Parcel>> routes = ImmutableList
+      .<ImmutableList<Parcel>>builder()
+      .add(ImmutableList.<Parcel>of(mp1))
+      .build();
+
+    // Should succeed
+    Solvers.computeStats(state, routes);
+  }
+
   // doesn't check the contents!
   void checkVehicles(List<? extends TestVehicle> expected,
       ImmutableList<VehicleStateObject> states) {
@@ -483,5 +553,28 @@ public class SolversTest {
 
     @Override
     protected void tickImpl(TimeLapse time) {}
+  }
+
+  static class MovingTestVehicle extends Vehicle {
+    public final VehicleDTO dto;
+    private final Point target;
+    private final PDPRoadModel model;
+
+    MovingTestVehicle(Point start, Point destination, PDPRoadModel m) {
+      super(VehicleDTO.builder()
+        .startPosition(start)
+        .speed(.1)
+        .capacity(1)
+        .availabilityTimeWindow(TW)
+        .build());
+      dto = getDTO();
+      target = destination;
+      model = m;
+    }
+
+    @Override
+    protected void tickImpl(TimeLapse time) {
+      model.moveTo(this, target, time);
+    }
   }
 }
