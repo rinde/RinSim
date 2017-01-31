@@ -72,6 +72,7 @@ import com.github.rinde.rinsim.geom.LengthData;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.geom.TableGraph;
 import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
+import com.github.rinde.rinsim.pdptw.common.PDPGraphRoadModel;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.pdptw.common.PDPTWTestUtil;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
@@ -434,7 +435,7 @@ public class SolversTest {
     g.addConnection(b, a);
 
     // Build a PDPRoadModel with the graph
-    final PDPRoadModel graphRm = PDPRoadModel.builder(
+    final PDPRoadModel graphRm = PDPGraphRoadModel.builderForGraphRm(
       RoadModelBuilders.staticGraph(g))
       .withAllowVehicleDiversion(true)
       .build(graphdp);
