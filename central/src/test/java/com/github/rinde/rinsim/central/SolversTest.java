@@ -450,7 +450,7 @@ public class SolversTest {
     final Parcel mp1 = createParcel(b, a);
 
     // Move the vehicle a bit
-    mv1.tickImpl(TimeLapseFactory.create(0l, 1l));
+    mv1.tickImpl(TimeLapseFactory.create(0L, 1L));
 
     // Build State
     final ImmutableSet<Parcel> availableParcels = ImmutableSet
