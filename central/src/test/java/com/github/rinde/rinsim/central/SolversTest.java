@@ -57,6 +57,7 @@ import com.github.rinde.rinsim.core.model.pdp.ParcelDTO;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
+import com.github.rinde.rinsim.core.model.road.GraphRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.road.TravelTimes;
@@ -457,14 +458,16 @@ public class SolversTest {
       .add(mp1)
       .build();
 
+    final Optional<? extends Connection<?>> vehicleConnection =
+      ((GraphRoadModel) graphRm).getConnection(mv1);
+
     final ImmutableList<VehicleStateObject> vehicles = ImmutableList
       .<VehicleStateObject>builder()
       .add(
         VehicleStateObject.create(
           mv1.getDTO(),
           graphRm.getPosition(mv1),
-          (Optional<? extends Connection<?>>) Optional
-            .of(g.getConnection(a, b)),
+          vehicleConnection,
           ImmutableSet.<Parcel>of(mp1),
           0L,
           null,
