@@ -21,6 +21,7 @@ import java.util.Collections;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.SimulatorAPI;
@@ -39,6 +40,7 @@ import com.github.rinde.rinsim.scenario.ScenarioController;
 import com.github.rinde.rinsim.scenario.StopConditions;
 import com.github.rinde.rinsim.scenario.TimeOutEvent;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
+import com.github.rinde.rinsim.testutil.GuiTests;
 import com.github.rinde.rinsim.ui.View;
 import com.github.rinde.rinsim.ui.renderers.GraphRoadModelRenderer;
 import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
@@ -49,6 +51,7 @@ import com.google.common.math.DoubleMath;
  *
  * @author Rinde van Lon
  */
+@Category(GuiTests.class)
 public class WrappedGraphUITest {
 
   Point N = new Point(5, 0);
