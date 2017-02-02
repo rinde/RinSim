@@ -470,10 +470,7 @@ public final class RtSolverModel
           computingSimSolvers.add((RtSimSolverSchedulerBridge) e.getIssuer());
         } else if (e.getEventType() == EventType.DONE_COMPUTING) {
           // done computing
-          if (((RtSimSolverSchedulerBridge) e.getIssuer()).rtSimSolver
-            .isComputing()) {
-            ((RtSimSolverSchedulerBridge) e.getIssuer()).rtSimSolver.cancel();
-          }
+
           checkState(computingSimSolvers.remove(e.getIssuer()));
 
           // if (!isComputing()) {
