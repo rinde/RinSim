@@ -96,7 +96,7 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
     height = max.y - min.y;
     maxSpeed = unitConversion.toInSpeed(b.getMaxSpeed());
     snapshot = new PlaneModelSnapshot(min, max, getDistanceUnit());
-    fakeGraph = new FakeGraph<ConnectionData>();
+    fakeGraph = new FakeGraph<>();
   }
 
   @Override

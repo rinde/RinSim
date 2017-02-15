@@ -57,9 +57,15 @@ import com.google.common.collect.Multimap;
 public class DynamicGraphRoadModelImpl
     extends GraphRoadModelImpl
     implements DynamicGraphRoadModel {
+
+  /**
+   * A static immutable view on this model. It is absent when a change occurs
+   * and is cached whenever {@link #getSnapshot()} is called.
+   */
+  protected Optional<GraphModelSnapshot> snapshot;
+
   final Multimap<Connection<?>, RoadUser> connMap;
   final Multimap<Point, RoadUser> posMap;
-  protected Optional<GraphModelSnapshot> snapshot;
 
   /**
    * Creates a new instance.
