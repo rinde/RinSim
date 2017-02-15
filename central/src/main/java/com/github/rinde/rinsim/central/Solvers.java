@@ -49,6 +49,7 @@ import com.github.rinde.rinsim.core.model.road.TravelTimes;
 import com.github.rinde.rinsim.core.model.time.Clock;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.geom.Connection;
+import com.github.rinde.rinsim.geom.ConnectionData;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
@@ -197,11 +198,28 @@ public final class Solvers {
 
     long time = state.getTime();
     Point vehicleLocation = vso.getLocation();
-    if (vso.getConnection().isPresent()) {
-      vehicleLocation = vso.getConnection().get().to();
-    }
     final Measure<Double, Velocity> maxSpeed =
       Measure.valueOf(vso.getDto().getSpeed(), state.getSpeedUnit());
+    if (vso.getConnection().isPresent()) {
+      final Connection<? extends ConnectionData> conn =
+        vso.getConnection().get();
+      vehicleLocation = conn.to();
+      final double connectionPercentage =
+        Point.distance(vso.getLocation(), conn.to())
+          / Point.distance(conn.from(), conn.to());
+      // Compensate for the distance and time lost!
+      // Distance is the percentage of the connection length
+      // still required to travel.
+      totalDistance += vso.getConnection().get().getLength()
+        * connectionPercentage;
+      // Travel time is the time that would be spend on the
+      // remainder of the connection.
+      final double timeOffset =
+        state.getTravelTimes().getCurrentShortestTravelTime(conn.from(),
+          conn.to(), maxSpeed) * connectionPercentage;
+      time += timeOffset;
+      totalTravelTime += timeOffset;
+    }
     final Set<Parcel> seen = newHashSet();
     for (int j = 0; j < route.size(); j++) {
       final Parcel cur = route.get(j);

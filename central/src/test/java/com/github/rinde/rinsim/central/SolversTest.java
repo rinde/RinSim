@@ -40,6 +40,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.central.GlobalStateObject.VehicleStateObject;
+import com.github.rinde.rinsim.central.Solvers.ExtendedStats;
 import com.github.rinde.rinsim.central.Solvers.SimulationConverter;
 import com.github.rinde.rinsim.central.Solvers.SolveArgs;
 import com.github.rinde.rinsim.central.arrays.MultiVehicleSolverAdapter;
@@ -429,14 +430,15 @@ public class SolversTest {
     final Graph g = new TableGraph<>();
     // The connection points
     final Point a = new Point(0, 0);
-    final Point b = new Point(1, 1);
+    final Point b = new Point(2, 0);
+    final Point c = new Point(2, 1);
     // The connections
-    g.addConnection(a, b);
-    g.addConnection(b, a);
+    Graphs.addBiPath(g, a, b, c);
 
     // Build a PDPRoadModel with the graph
     final PDPRoadModel graphRm = PDPGraphRoadModel.builderForGraphRm(
-      RoadModelBuilders.staticGraph(g))
+      RoadModelBuilders.staticGraph(g).withDistanceUnit(SI.METER)
+        .withSpeedUnit(SI.METERS_PER_SECOND))
       .withAllowVehicleDiversion(true)
       .build(graphdp);
 
@@ -448,10 +450,7 @@ public class SolversTest {
     graphRm.register(mv1);
 
     // The test parcel for the route
-    final Parcel mp1 = createParcel(b, a);
-
-    // Move the vehicle a bit
-    mv1.tickImpl(TimeLapseFactory.create(0L, 1L));
+    final Parcel mp1 = createParcel(b, c);
 
     // Build State
     final ImmutableSet<Parcel> availableParcels = ImmutableSet
@@ -459,10 +458,10 @@ public class SolversTest {
       .add(mp1)
       .build();
 
-    final Optional<? extends Connection<?>> vehicleConnection =
-      ((GraphRoadModel) graphRm).getConnection(mv1);
+    Optional<? extends Connection<?>> vehicleConnection =
+      Optional.absent();
 
-    final ImmutableList<VehicleStateObject> vehicles = ImmutableList
+    ImmutableList<VehicleStateObject> vehicles = ImmutableList
       .<VehicleStateObject>builder()
       .add(
         VehicleStateObject.create(
@@ -475,9 +474,9 @@ public class SolversTest {
           null))
       .build();
 
-    final GlobalStateObject state = GlobalStateObject.create(availableParcels,
-      vehicles, 1L, SI.MILLI(SI.SECOND), NonSI.KILOMETERS_PER_HOUR,
-      SI.KILOMETER, graphRm.getTravelTimes(SI.MILLI(SI.SECOND)));
+    GlobalStateObject state = GlobalStateObject.create(availableParcels,
+      vehicles, 0L, SI.SECOND, SI.METERS_PER_SECOND,
+      SI.METER, graphRm.getTravelTimes(SI.SECOND));
 
     final ImmutableList<ImmutableList<Parcel>> routes = ImmutableList
       .<ImmutableList<Parcel>>builder()
@@ -485,7 +484,43 @@ public class SolversTest {
       .build();
 
     // Should succeed
-    Solvers.computeStats(state, routes);
+    ExtendedStats stats = Solvers.computeStats(state, routes);
+    // Assert initial solver values
+    assertEquals(6d, stats.totalDistance, 0.00001);
+    assertEquals(6d, stats.totalTravelTime, 0.00001);
+
+    // Move the vehicle a bit
+    mv1.tickImpl(TimeLapseFactory.create(SI.SECOND, 0L, 1L));
+    // Assert new location of vehicle
+    assertEquals(new Point(1, 0), graphRm.getPosition(mv1));
+
+    vehicleConnection =
+      ((GraphRoadModel) graphRm).getConnection(mv1);
+
+    vehicles = ImmutableList
+      .<VehicleStateObject>builder()
+      .add(
+        VehicleStateObject.create(
+          mv1.getDTO(),
+          graphRm.getPosition(mv1),
+          vehicleConnection,
+          ImmutableSet.<Parcel>of(mp1),
+          0L,
+          null,
+          null))
+      .build();
+
+    state =
+      GlobalStateObject.create(availableParcels,
+        vehicles, 1L, SI.SECOND, SI.METERS_PER_SECOND,
+        SI.METER, graphRm.getTravelTimes(SI.SECOND));
+
+    // Should succeed
+    stats = Solvers.computeStats(state, routes);
+
+    // Assert correct new stats
+    assertEquals(5d, stats.totalDistance, 0.00001);
+    assertEquals(5d, stats.totalTravelTime, 0.00001);
   }
 
   // doesn't check the contents!
@@ -567,7 +602,7 @@ public class SolversTest {
     MovingTestVehicle(Point start, Point destination, PDPRoadModel m) {
       super(VehicleDTO.builder()
         .startPosition(start)
-        .speed(.1)
+        .speed(1)
         .capacity(1)
         .availabilityTimeWindow(TW)
         .build());
