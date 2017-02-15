@@ -21,19 +21,29 @@ import static java.util.Arrays.asList;
 
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.measure.Measure;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
+import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
+import com.github.rinde.rinsim.geom.AbstractGraph;
+import com.github.rinde.rinsim.geom.Connection;
+import com.github.rinde.rinsim.geom.ConnectionData;
+import com.github.rinde.rinsim.geom.Graphs;
+import com.github.rinde.rinsim.geom.HeuristicPath;
 import com.github.rinde.rinsim.geom.Point;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.math.DoubleMath;
 
@@ -74,6 +84,10 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
    */
   public final double maxSpeed;
 
+  private final RoadModelSnapshot snapshot;
+
+  private final FakeGraph<ConnectionData> fakeGraph;
+
   PlaneRoadModel(RoadModelBuilders.PlaneRMB b) {
     super(b.getDistanceUnit(), b.getSpeedUnit());
     min = b.getMin();
@@ -81,6 +95,8 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
     width = max.x - min.x;
     height = max.y - min.y;
     maxSpeed = unitConversion.toInSpeed(b.getMaxSpeed());
+    snapshot = new PlaneModelSnapshot(min, max, getDistanceUnit());
+    fakeGraph = new FakeGraph<ConnectionData>();
   }
 
   @Override
@@ -181,6 +197,32 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
   }
 
   @Override
+  public HeuristicPath getPathTo(Point from, Point to, Unit<Duration> timeUnit,
+      Measure<Double, Velocity> speed, Graphs.Heuristic heuristic) {
+    return new HeuristicPath(
+      Graphs.shortestPath(fakeGraph, from, to, heuristic),
+      heuristic.calculateCost(fakeGraph, from, to),
+      heuristic.calculateTravelTime(fakeGraph, from, to, getDistanceUnit(),
+        speed, timeUnit));
+  }
+
+  @Override
+  public Measure<Double, Length> getDistanceOfPath(Iterable<Point> path) {
+    final Iterator<Point> pathIt = path.iterator();
+    checkArgument(pathIt.hasNext(),
+      "cannot check distance of an empty path.");
+    Point prev = pathIt.next();
+    double distance = 0d;
+    Point cur = null;
+    while (pathIt.hasNext()) {
+      cur = pathIt.next();
+      distance += Point.distance(cur, prev);
+      prev = cur;
+    }
+    return Measure.valueOf(distance, getDistanceUnit());
+  }
+
+  @Override
   protected Point locObj2point(Point locObj) {
     return locObj;
   }
@@ -214,12 +256,101 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
   }
 
   @Override
-  public TravelTimes getTravelTimes(Unit<Duration> timeUnit) {
-    return new PlaneTravelTimes(min, max, timeUnit, getDistanceUnit());
+  public RoadModelSnapshot getSnapshot() {
+    return snapshot;
   }
 
-  @Override
-  public TravelTimes getTravelTimes(TravelTimes previousTravelTimes) {
-    return previousTravelTimes;
+  private static class FakeGraph<E extends ConnectionData>
+      extends AbstractGraph<E> {
+
+    FakeGraph() {}
+
+    @Override
+    public boolean containsNode(Point node) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Collection<Point> getOutgoingConnections(Point node) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Collection<Point> getIncomingConnections(Point node) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean hasConnection(Point from, Point to) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T extends ConnectionData> boolean hasConnection(
+        Connection<T> connection) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Connection<E> getConnection(Point from, Point to) {
+      return Connection.create(from, to);
+    }
+
+    @Override
+    public Optional<E> connectionData(Point from, Point to) {
+      return Optional.absent();
+    }
+
+    @Override
+    public int getNumberOfConnections() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Connection<E>> getConnections() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public int getNumberOfNodes() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Point> getNodes() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isEmpty() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void removeNode(Point node) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void removeConnection(Point from, Point to) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    protected void doAddConnection(Point from, Point to, Optional<E> connData) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    protected Optional<E> doChangeConnectionData(Point from, Point to,
+        Optional<E> connData) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public int hashCode() {
+      return 0;
+    }
+
   }
 }

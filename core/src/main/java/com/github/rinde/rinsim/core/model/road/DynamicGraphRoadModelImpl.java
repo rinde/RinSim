@@ -31,6 +31,7 @@ import com.github.rinde.rinsim.geom.ListenableGraph;
 import com.github.rinde.rinsim.geom.ListenableGraph.EventTypes;
 import com.github.rinde.rinsim.geom.ListenableGraph.GraphEvent;
 import com.github.rinde.rinsim.geom.Point;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
@@ -58,6 +59,7 @@ public class DynamicGraphRoadModelImpl
     implements DynamicGraphRoadModel {
   final Multimap<Connection<?>, RoadUser> connMap;
   final Multimap<Point, RoadUser> posMap;
+  protected Optional<GraphModelSnapshot> snapshot;
 
   /**
    * Creates a new instance.
@@ -70,6 +72,7 @@ public class DynamicGraphRoadModelImpl
     getGraph().getEventAPI().addListener(new GraphModificationChecker(this));
     connMap = LinkedHashMultimap.create();
     posMap = LinkedHashMultimap.create();
+    snapshot = Optional.absent();
   }
 
   @Override
@@ -212,6 +215,14 @@ public class DynamicGraphRoadModelImpl
     super.removeObject(object);
   }
 
+  @Override
+  public RoadModelSnapshot getSnapshot() {
+    if (!snapshot.isPresent()) {
+      snapshot = Optional.of(new GraphModelSnapshot(graph, getDistanceUnit()));
+    }
+    return snapshot.get();
+  }
+
   private static class GraphModificationChecker implements Listener {
     static final String UNMODIFIABLE_MSG = "There is an object on (%s) "
       + "therefore the last connection to that location (%s->%s) can not be "
@@ -226,6 +237,7 @@ public class DynamicGraphRoadModelImpl
     @Override
     public void handleEvent(Event e) {
       verify(e instanceof GraphEvent);
+      model.snapshot = Optional.absent();
       final GraphEvent ge = (GraphEvent) e;
       if (ge.getEventType() == EventTypes.REMOVE_CONNECTION
         || ge.getEventType() == EventTypes.CHANGE_CONNECTION_DATA) {

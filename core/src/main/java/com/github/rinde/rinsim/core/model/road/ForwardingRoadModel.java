@@ -23,6 +23,7 @@ import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.measure.Measure;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
@@ -34,6 +35,8 @@ import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.EventAPI;
+import com.github.rinde.rinsim.geom.Graphs;
+import com.github.rinde.rinsim.geom.HeuristicPath;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
@@ -201,6 +204,17 @@ public class ForwardingRoadModel<T extends GenericRoadModel>
   }
 
   @Override
+  public HeuristicPath getPathTo(Point from, Point to, Unit<Duration> timeUnit,
+      Measure<Double, Velocity> speed, Graphs.Heuristic heuristic) {
+    return delegate().getPathTo(from, to, timeUnit, speed, heuristic);
+  }
+
+  @Override
+  public Measure<Double, Length> getDistanceOfPath(Iterable<Point> path) {
+    return delegate().getDistanceOfPath(path);
+  }
+
+  @Override
   public EventAPI getEventAPI() {
     return delegate().getEventAPI();
   }
@@ -227,13 +241,8 @@ public class ForwardingRoadModel<T extends GenericRoadModel>
   }
 
   @Override
-  public TravelTimes getTravelTimes(Unit<Duration> timeUnit) {
-    return delegate().getTravelTimes(timeUnit);
-  }
-
-  @Override
-  public TravelTimes getTravelTimes(TravelTimes previousTravelTimes) {
-    return delegate().getTravelTimes(previousTravelTimes);
+  public RoadModelSnapshot getSnapshot() {
+    return delegate().getSnapshot();
   }
 
   /**

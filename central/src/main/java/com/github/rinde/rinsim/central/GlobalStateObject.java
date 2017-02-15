@@ -25,7 +25,7 @@ import javax.measure.unit.Unit;
 
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
-import com.github.rinde.rinsim.core.model.road.TravelTimes;
+import com.github.rinde.rinsim.core.model.road.RoadModelSnapshot;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.auto.value.AutoValue;
@@ -77,16 +77,17 @@ public abstract class GlobalStateObject {
   public abstract Unit<Length> getDistUnit();
 
   /**
-   * @return An interface to calculate shortest paths
+   * @return The snapshot of the road model.
    */
-  public abstract TravelTimes getTravelTimes();
+  public abstract RoadModelSnapshot getRoadModelSnapshot();
 
   static GlobalStateObject create(ImmutableSet<Parcel> availableParcels,
       ImmutableList<VehicleStateObject> vehicles, long time,
       Unit<Duration> timeUnit, Unit<Velocity> speedUnit,
-      Unit<Length> distUnit, TravelTimes tt) {
+      Unit<Length> distUnit, RoadModelSnapshot snapshot) {
     return new AutoValue_GlobalStateObject(
-      availableParcels, vehicles, time, timeUnit, speedUnit, distUnit, tt);
+      availableParcels, vehicles, time, timeUnit, speedUnit, distUnit,
+      snapshot);
   }
 
   /**
@@ -103,7 +104,7 @@ public abstract class GlobalStateObject {
     return create(getAvailableParcels(),
       ImmutableList.of(getVehicles().get(index)),
       getTime(), getTimeUnit(), getSpeedUnit(), getDistUnit(),
-      getTravelTimes());
+      getRoadModelSnapshot());
   }
 
   /**
@@ -122,7 +123,7 @@ public abstract class GlobalStateObject {
       b.add(getVehicles().get(i).withRoute(routes.get(i)));
     }
     return create(getAvailableParcels(), b.build(), getTime(), getTimeUnit(),
-      getSpeedUnit(), getDistUnit(), getTravelTimes());
+      getSpeedUnit(), getDistUnit(), getRoadModelSnapshot());
   }
 
   /**

@@ -16,6 +16,12 @@
 package com.github.rinde.rinsim.geom;
 
 import javax.annotation.Nullable;
+import javax.measure.Measure;
+import javax.measure.quantity.Duration;
+import javax.measure.quantity.Length;
+import javax.measure.quantity.Velocity;
+import javax.measure.unit.SI;
+import javax.measure.unit.Unit;
 
 import com.google.common.base.Optional;
 
@@ -70,6 +76,22 @@ public final class GraphHeuristics {
       public String toString() {
         return GraphHeuristics.class.getSimpleName() + ".euclidean()";
       }
+
+      @Override
+      public double calculateTravelTime(Graph<?> graph, Point from, Point to,
+          Unit<Length> distanceUnit,
+          Measure<Double, Velocity> speed, Unit<Duration> outputTimeUnit) {
+        final Measure<Double, Length> distance = Measure
+          .valueOf(graph.getConnection(from, to).getLength(), distanceUnit);
+
+        return Measure.valueOf(distance.doubleValue(SI.METER)
+          // divided by m/s
+          / speed.doubleValue(SI.METERS_PER_SECOND),
+          // gives seconds
+          SI.SECOND)
+          // convert to desired unit
+          .doubleValue(outputTimeUnit);
+      }
     }
   }
 
@@ -94,6 +116,29 @@ public final class GraphHeuristics {
         }
       }
       return null;
+    }
+
+    @Override
+    public double calculateTravelTime(Graph<?> graph, Point from, Point to,
+        Unit<Length> distanceUnit,
+        Measure<Double, Velocity> speed, Unit<Duration> outputTimeUnit) {
+      final Measure<Double, Length> distance =
+        Measure.valueOf(graph.connectionLength(from, to), distanceUnit);
+      return Math.min(doCalculateTravelTime(speed, distance, outputTimeUnit),
+        doCalculateTravelTime(
+          Measure.valueOf(getSpeed(graph, from, to), speed.getUnit()), distance,
+          outputTimeUnit));
+    }
+
+    double doCalculateTravelTime(Measure<Double, Velocity> speed,
+        Measure<Double, Length> distance, Unit<Duration> outputTimeUnit) {
+      return Measure.valueOf(distance.doubleValue(SI.METER)
+        // divided by m/s
+        / speed.doubleValue(SI.METERS_PER_SECOND),
+        // gives seconds
+        SI.SECOND)
+        // convert to desired unit
+        .doubleValue(outputTimeUnit);
     }
 
     @Override
@@ -140,7 +185,6 @@ public final class GraphHeuristics {
       return GraphHeuristics.class.getSimpleName() + ".time(" + defaultMaxSpeed
         + R_BRACE;
     }
-
   }
 
   static class TheoreticalTimeGraphHeuristic extends AbstractMadGraphHeuristic {

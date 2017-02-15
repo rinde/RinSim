@@ -22,6 +22,8 @@ import java.util.Queue;
 import java.util.Set;
 
 import javax.annotation.Nullable;
+import javax.measure.Measure;
+import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
@@ -31,6 +33,8 @@ import org.apache.commons.math3.random.RandomGenerator;
 import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.EventAPI;
+import com.github.rinde.rinsim.geom.Graphs;
+import com.github.rinde.rinsim.geom.HeuristicPath;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
@@ -350,6 +354,11 @@ public interface RoadModel extends Model<RoadUser> {
    */
   List<Point> getShortestPathTo(Point from, Point to);
 
+  HeuristicPath getPathTo(Point from, Point to, Unit<Duration> timeUnit,
+      Measure<Double, Velocity> maxSpeed, Graphs.Heuristic heuristic);
+
+  Measure<Double, Length> getDistanceOfPath(Iterable<Point> path);
+
   /**
    * @return The {@link EventAPI} for this road model.
    */
@@ -371,4 +380,6 @@ public interface RoadModel extends Model<RoadUser> {
    * @return The speed unit as used in this model to represent speeds.
    */
   Unit<Velocity> getSpeedUnit();
+
+  RoadModelSnapshot getSnapshot();
 }

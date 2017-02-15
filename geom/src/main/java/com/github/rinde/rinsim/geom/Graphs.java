@@ -35,6 +35,11 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import javax.annotation.Nullable;
+import javax.measure.Measure;
+import javax.measure.quantity.Duration;
+import javax.measure.quantity.Length;
+import javax.measure.quantity.Velocity;
+import javax.measure.unit.Unit;
 
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
@@ -382,6 +387,10 @@ public final class Graphs {
      * @return The cost of traveling.
      */
     double calculateCost(Graph<?> graph, Point from, Point to);
+
+    double calculateTravelTime(Graph<?> graph, Point from, Point to,
+        Unit<Length> distanceUnit,
+        Measure<Double, Velocity> speed, Unit<Duration> outputTimeUnit);
   }
 
   // Equals is not consistent with compareTo!

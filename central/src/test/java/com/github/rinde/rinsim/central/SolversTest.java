@@ -59,8 +59,8 @@ import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
-import com.github.rinde.rinsim.core.model.road.TravelTimes;
-import com.github.rinde.rinsim.core.model.road.TravelTimesTestUtil;
+import com.github.rinde.rinsim.core.model.road.RoadModelSnapshot;
+import com.github.rinde.rinsim.core.model.road.RoadModelSnapshotTestUtil;
 import com.github.rinde.rinsim.core.model.time.Clock;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.model.time.TimeLapseFactory;
@@ -91,7 +91,7 @@ public class SolversTest {
   PDPRoadModel rm;
   PDPModel pm;
   ModelProvider mp;
-  TravelTimes tt;
+  RoadModelSnapshot ss;
 
   TestVehicle v1;
   TestVehicle v2;
@@ -133,7 +133,7 @@ public class SolversTest {
     p2 = createParcel(new Point(6, 9), new Point(2, 9));
     p3 = createParcel(new Point(2, 8), new Point(8, 2));
 
-    tt = rm.getTravelTimes(NonSI.HOUR);
+    ss = rm.getSnapshot();
   }
 
   @Test
@@ -347,7 +347,7 @@ public class SolversTest {
 
     final GlobalStateObject state = GlobalStateObject.create(availableParcels,
       vehicles, 0L, SI.MILLI(SI.SECOND), NonSI.KILOMETERS_PER_HOUR,
-      SI.KILOMETER, tt);
+      SI.KILOMETER, ss);
 
     final ImmutableList<ImmutableList<Parcel>> routes = ImmutableList
       .<ImmutableList<Parcel>>builder()
@@ -405,8 +405,8 @@ public class SolversTest {
         .setRemainingServiceTime(120000L)
         .setDestination(A)
         .build())
-      .setTravelTimes(TravelTimesTestUtil.createGraphTravelTimes(g,
-        SI.MILLI(SI.SECOND), SI.KILOMETER))
+      .setSnapshot(RoadModelSnapshotTestUtil.createGraphRoadModelSnapshot(g,
+        SI.KILOMETER))
       .build();
 
     final double rinSimCost2 = Gendreau06ObjectiveFunction.instance(50d)
