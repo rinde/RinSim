@@ -17,7 +17,7 @@ package com.github.rinde.rinsim.geom;
 
 import java.util.List;
 
-import com.github.rinde.rinsim.geom.Graphs.Heuristic;
+import com.google.auto.value.AutoValue;
 
 /**
  * An immutable class containing a path with a certain heuristic value and
@@ -25,35 +25,38 @@ import com.github.rinde.rinsim.geom.Graphs.Heuristic;
  * the path by a {@link Graphs.Heuristic}.
  * @author Vincent Van Gestel
  */
-public final class HeuristicPath {
+@AutoValue
+public abstract class HeuristicPath {
 
   /**
-   * The actual path.
+   * @return The actual path.
    */
-  public final List<Point> path;
-  /**
-   * The heuristic value of the path.
-   */
-  public final double value;
-  /**
-   * The perceived travel time of the path by the heuristic.
-   */
-  public final double travelTime;
+  public abstract List<Point> getPath();
 
   /**
-   * Constructor for the immutable path, heuristic value pairing.
-   * @param pointPath The actual path, as indicated by a list of consecutive
-   *          points.
-   * @param heuristicValue The value of the path as defined by a
-   *          {@link Heuristic}.
-   * @param pathTravelTime The travel time over the path as perceived by the
-   *          {@link Heuristic}.
+   * @return The heuristic value of the path.
    */
-  public HeuristicPath(List<Point> pointPath, double heuristicValue,
-      double pathTravelTime) {
-    path = pointPath;
-    value = heuristicValue;
-    travelTime = pathTravelTime;
+  public abstract double getValue();
+
+  /**
+   * @return Travel time that it takes to traverse the path as calculated by the
+   *         heuristic.
+   */
+  public abstract double getTravelTime();
+
+  /**
+   * Creates a new path annotated with its heuristic value and travel time.
+   * @param path The actual path.
+   * @param value The heuristic value of the path.
+   * @param travelTime Travel time that it takes to traverse the path as
+   *          calculated by the heuristic.
+   * @return The annotated heuristic path.
+   */
+  public static HeuristicPath create(
+      List<Point> path,
+      double value,
+      double travelTime) {
+    return new AutoValue_HeuristicPath(path, value, travelTime);
   }
 
 }

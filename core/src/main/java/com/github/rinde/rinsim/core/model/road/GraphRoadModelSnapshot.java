@@ -27,34 +27,34 @@ import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
 import com.github.rinde.rinsim.geom.ConnectionData;
-import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.Graphs;
+import com.github.rinde.rinsim.geom.Graphs.Heuristic;
 import com.github.rinde.rinsim.geom.HeuristicPath;
 import com.github.rinde.rinsim.geom.ImmutableGraph;
 import com.github.rinde.rinsim.geom.Point;
+import com.google.auto.value.AutoValue;
 
 /**
  * The snapshot for a {@link GraphRoadModel}. It can be a snapshot of a
  * {@link DynamicGraphRoadModel} as well, since a snapshot loses its dynamic
  * aspect.
  * @author Vincent Van Gestel
- *
  */
-final class GraphModelSnapshot extends AbstractModelSnapshot {
+@AutoValue
+abstract class GraphRoadModelSnapshot
+    implements RoadModelSnapshot {
 
-  private final ImmutableGraph<? extends ConnectionData> graph;
+  GraphRoadModelSnapshot() {}
 
-  GraphModelSnapshot(Graph<? extends ConnectionData> snapshotGraph,
-      Unit<Length> modelDistanceUnit) {
-    super(modelDistanceUnit);
-    graph = ImmutableGraph.copyOf(snapshotGraph);
-  }
+  public abstract ImmutableGraph<? extends ConnectionData> getGraph();
+
+  public abstract Unit<Length> getModelDistanceUnit();
 
   @Override
   public HeuristicPath getPathTo(Point from, Point to, Unit<Duration> timeUnit,
-      Measure<Double, Velocity> speed, Graphs.Heuristic heuristic) {
+      Measure<Double, Velocity> speed, Heuristic heuristic) {
     final List<Point> path =
-      Graphs.shortestPath(graph, from, to, heuristic);
+      Graphs.shortestPath(getGraph(), from, to, heuristic);
 
     final Iterator<Point> pathIt = path.iterator();
 
@@ -63,27 +63,30 @@ final class GraphModelSnapshot extends AbstractModelSnapshot {
     Point prev = pathIt.next();
     while (pathIt.hasNext()) {
       final Point cur = pathIt.next();
-      cost += heuristic.calculateCost(graph, prev, cur);
-      travelTime += heuristic.calculateTravelTime(graph, prev, cur,
-        distanceUnit, speed, timeUnit);
+      cost += heuristic.calculateCost(getGraph(), prev, cur);
+      travelTime += heuristic.calculateTravelTime(getGraph(), prev, cur,
+        getModelDistanceUnit(), speed, timeUnit);
       prev = cur;
     }
-    return new HeuristicPath(path, cost, travelTime);
+    return HeuristicPath.create(path, cost, travelTime);
   }
 
   @Override
-  public Measure<Double, Length> getDistanceOfPath(Iterable<Point> path) {
+  public Measure<Double, Length> getDistanceOfPath(Iterable<Point> path)
+      throws IllegalArgumentException {
     final Iterator<Point> pathIt = path.iterator();
     checkArgument(pathIt.hasNext(), "Cannot check distance of an empty path.");
     Point prev = pathIt.next();
     Point cur = null;
+    checkArgument(pathIt.hasNext(),
+      "Cannot check distance of a path with only one element.");
     double distance = 0d;
     while (pathIt.hasNext()) {
       cur = pathIt.next();
-      distance += graph.connectionLength(prev, cur);
+      distance += getGraph().connectionLength(prev, cur);
       prev = cur;
     }
-    return Measure.valueOf(distance, distanceUnit);
+    return Measure.valueOf(distance, getModelDistanceUnit());
   }
 
 }

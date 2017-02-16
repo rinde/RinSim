@@ -56,7 +56,9 @@ public interface RoadModelSnapshot {
    * @param path The path to determine the distance of.
    * @return The length of the given path in the distance unit of the
    *         {@link RoadModel}.
+   * @throws IllegalArgumentException If the path contains less than two points.
    */
-  Measure<Double, Length> getDistanceOfPath(Iterable<Point> path);
+  Measure<Double, Length> getDistanceOfPath(Iterable<Point> path)
+      throws IllegalArgumentException;
 
 }

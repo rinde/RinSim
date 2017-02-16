@@ -27,11 +27,11 @@ import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.ConnectionData;
 import com.github.rinde.rinsim.geom.Graph;
+import com.github.rinde.rinsim.geom.ImmutableGraph;
 import com.github.rinde.rinsim.geom.ListenableGraph;
 import com.github.rinde.rinsim.geom.ListenableGraph.EventTypes;
 import com.github.rinde.rinsim.geom.ListenableGraph.GraphEvent;
 import com.github.rinde.rinsim.geom.Point;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
@@ -58,12 +58,6 @@ public class DynamicGraphRoadModelImpl
     extends GraphRoadModelImpl
     implements DynamicGraphRoadModel {
 
-  /**
-   * A static immutable view on this model. It is absent when a change occurs
-   * and is cached whenever {@link #getSnapshot()} is called.
-   */
-  protected Optional<GraphModelSnapshot> snapshot;
-
   final Multimap<Connection<?>, RoadUser> connMap;
   final Multimap<Point, RoadUser> posMap;
 
@@ -78,7 +72,6 @@ public class DynamicGraphRoadModelImpl
     getGraph().getEventAPI().addListener(new GraphModificationChecker(this));
     connMap = LinkedHashMultimap.create();
     posMap = LinkedHashMultimap.create();
-    snapshot = Optional.absent();
   }
 
   @Override
@@ -221,12 +214,13 @@ public class DynamicGraphRoadModelImpl
     super.removeObject(object);
   }
 
-  @Override
-  public RoadModelSnapshot getSnapshot() {
-    if (!snapshot.isPresent()) {
-      snapshot = Optional.of(new GraphModelSnapshot(graph, getDistanceUnit()));
-    }
-    return snapshot.get();
+  /**
+   * Updates the snapshot of this road model. This should be called whenever a
+   * change to the graph occurs.
+   */
+  protected void updateSnapshot() {
+    snapshot = new AutoValue_GraphRoadModelSnapshot(
+      ImmutableGraph.copyOf(getGraph()), getDistanceUnit());
   }
 
   private static class GraphModificationChecker implements Listener {
@@ -243,7 +237,7 @@ public class DynamicGraphRoadModelImpl
     @Override
     public void handleEvent(Event e) {
       verify(e instanceof GraphEvent);
-      model.snapshot = Optional.absent();
+      model.updateSnapshot();
       final GraphEvent ge = (GraphEvent) e;
       if (ge.getEventType() == EventTypes.REMOVE_CONNECTION
         || ge.getEventType() == EventTypes.CHANGE_CONNECTION_DATA) {

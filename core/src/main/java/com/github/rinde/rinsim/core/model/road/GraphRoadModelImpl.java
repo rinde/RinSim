@@ -23,7 +23,6 @@ import static com.google.common.base.Verify.verify;
 
 import java.math.RoundingMode;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
 
@@ -44,6 +43,7 @@ import com.github.rinde.rinsim.geom.ConnectionData;
 import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.Graphs;
 import com.github.rinde.rinsim.geom.HeuristicPath;
+import com.github.rinde.rinsim.geom.ImmutableGraph;
 import com.github.rinde.rinsim.geom.MultiAttributeData;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Optional;
@@ -75,7 +75,10 @@ public class GraphRoadModelImpl extends AbstractRoadModel<Loc>
    */
   protected final Graph<? extends ConnectionData> graph;
 
-  private final RoadModelSnapshot snapshot;
+  /**
+   * The snapshot of this model.
+   */
+  protected RoadModelSnapshot snapshot;
 
   /**
    * Creates a new instance using the specified {@link Graph} as road structure.
@@ -87,7 +90,8 @@ public class GraphRoadModelImpl extends AbstractRoadModel<Loc>
       RoadModelBuilders.AbstractGraphRMB<?, ?, ?> b) {
     super(b.getDistanceUnit(), b.getSpeedUnit());
     graph = g;
-    snapshot = new GraphModelSnapshot(graph, b.getDistanceUnit());
+    snapshot = new AutoValue_GraphRoadModelSnapshot(
+      ImmutableGraph.copyOf(graph), b.getDistanceUnit());
   }
 
   @Override
@@ -399,37 +403,13 @@ public class GraphRoadModelImpl extends AbstractRoadModel<Loc>
   @Override
   public HeuristicPath getPathTo(Point from, Point to, Unit<Duration> timeUnit,
       Measure<Double, Velocity> speed, Graphs.Heuristic heuristic) {
-    final List<Point> path =
-      Graphs.shortestPath(graph, from, to, heuristic);
-
-    final Iterator<Point> pathIt = path.iterator();
-
-    double cost = 0d;
-    double travelTime = 0d;
-    Point prev = pathIt.next();
-    while (pathIt.hasNext()) {
-      final Point cur = pathIt.next();
-      cost += heuristic.calculateCost(graph, prev, cur);
-      travelTime += heuristic.calculateTravelTime(graph, prev, cur,
-        getDistanceUnit(), speed, timeUnit);
-      prev = cur;
-    }
-    return new HeuristicPath(path, cost, travelTime);
+    return snapshot.getPathTo(from, to, timeUnit, speed, heuristic);
   }
 
   @Override
-  public Measure<Double, Length> getDistanceOfPath(Iterable<Point> path) {
-    final Iterator<Point> pathIt = path.iterator();
-    checkArgument(pathIt.hasNext(), "Cannot check distance of an empty path.");
-    Point prev = pathIt.next();
-    Point cur = null;
-    double distance = 0d;
-    while (pathIt.hasNext()) {
-      cur = pathIt.next();
-      distance += graph.connectionLength(prev, cur);
-      prev = cur;
-    }
-    return Measure.valueOf(distance, getDistanceUnit());
+  public Measure<Double, Length> getDistanceOfPath(Iterable<Point> path)
+      throws IllegalArgumentException {
+    return snapshot.getDistanceOfPath(path);
   }
 
   /**

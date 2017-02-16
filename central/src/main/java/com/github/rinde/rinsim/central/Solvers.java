@@ -238,9 +238,9 @@ public final class Solvers {
           snapshot.getPathTo(vehicleLocation, nextLoc, state.getTimeUnit(),
             maxSpeed, heuristic);
         final Measure<Double, Length> distance =
-          snapshot.getDistanceOfPath(hp.path);
+          snapshot.getDistanceOfPath(hp.getPath());
         totalDistance += distance.getValue();
-        final double tt = hp.travelTime;
+        final double tt = hp.getTravelTime();
         vehicleLocation = nextLoc;
         time += DoubleMath.roundToLong(tt, RoundingMode.CEILING);
         totalTravelTime += tt;
@@ -285,9 +285,9 @@ public final class Solvers {
         state.getTimeUnit(),
         maxSpeed, heuristic);
     final Measure<Double, Length> distance =
-      snapshot.getDistanceOfPath(hp.path);
+      snapshot.getDistanceOfPath(hp.getPath());
     totalDistance += distance.getValue();
-    final double tt = hp.travelTime;
+    final double tt = hp.getTravelTime();
     time += DoubleMath.roundToLong(tt, RoundingMode.CEILING);
     totalTravelTime += tt;
     // check overtime

@@ -39,7 +39,6 @@ import com.github.rinde.rinsim.core.model.road.GenericRoadModel;
 import com.github.rinde.rinsim.core.model.road.MoveProgress;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
-import com.github.rinde.rinsim.core.model.road.RoadModelSnapshot;
 import com.github.rinde.rinsim.core.model.road.RoadUser;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
@@ -309,11 +308,6 @@ public class PDPRoadModel extends ForwardingRoadModel<GenericRoadModel>
   @Override
   public <U> U get(Class<U> type) {
     return type.cast(self);
-  }
-
-  @Override
-  public RoadModelSnapshot getSnapshot() {
-    return delegate().getSnapshot();
   }
 
   /**

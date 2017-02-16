@@ -22,7 +22,6 @@ import static java.util.Arrays.asList;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
@@ -41,10 +40,12 @@ import com.github.rinde.rinsim.geom.AbstractGraph;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.ConnectionData;
 import com.github.rinde.rinsim.geom.Graphs;
+import com.github.rinde.rinsim.geom.Graphs.Heuristic;
 import com.github.rinde.rinsim.geom.HeuristicPath;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.common.math.DoubleMath;
 
 /**
@@ -86,7 +87,7 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
 
   private final RoadModelSnapshot snapshot;
 
-  private final FakeGraph<ConnectionData> fakeGraph;
+  private final PlaneGraph<ConnectionData> planeGraph;
 
   PlaneRoadModel(RoadModelBuilders.PlaneRMB b) {
     super(b.getDistanceUnit(), b.getSpeedUnit());
@@ -95,8 +96,8 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
     width = max.x - min.x;
     height = max.y - min.y;
     maxSpeed = unitConversion.toInSpeed(b.getMaxSpeed());
-    snapshot = new PlaneModelSnapshot(min, max, getDistanceUnit());
-    fakeGraph = new FakeGraph<>();
+    snapshot = new AutoValue_PlaneRoadModelSnapshot(this);
+    planeGraph = new PlaneGraph<>();
   }
 
   @Override
@@ -198,28 +199,22 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
 
   @Override
   public HeuristicPath getPathTo(Point from, Point to, Unit<Duration> timeUnit,
-      Measure<Double, Velocity> speed, Graphs.Heuristic heuristic) {
-    return new HeuristicPath(
-      Graphs.shortestPath(fakeGraph, from, to, heuristic),
-      heuristic.calculateCost(fakeGraph, from, to),
-      heuristic.calculateTravelTime(fakeGraph, from, to, getDistanceUnit(),
+      Measure<Double, Velocity> speed, Heuristic heuristic) {
+    return HeuristicPath.create(
+      asList(from, to),
+      heuristic.calculateCost(planeGraph, from, to),
+      heuristic.calculateTravelTime(planeGraph, from, to, getDistanceUnit(),
         speed, timeUnit));
   }
 
   @Override
-  public Measure<Double, Length> getDistanceOfPath(Iterable<Point> path) {
-    final Iterator<Point> pathIt = path.iterator();
-    checkArgument(pathIt.hasNext(),
-      "cannot check distance of an empty path.");
-    Point prev = pathIt.next();
-    double distance = 0d;
-    Point cur = null;
-    while (pathIt.hasNext()) {
-      cur = pathIt.next();
-      distance += Point.distance(cur, prev);
-      prev = cur;
-    }
-    return Measure.valueOf(distance, getDistanceUnit());
+  public Measure<Double, Length> getDistanceOfPath(Iterable<Point> path)
+      throws IllegalArgumentException {
+    final List<Point> pathAsList = Lists.newArrayList(path);
+    checkArgument(pathAsList.size() > 1,
+      "Cannot evaluate the distance of a path with less than two points.");
+    return Measure.valueOf(Graphs.pathLength(pathAsList),
+      getDistanceUnit());
   }
 
   @Override
@@ -260,10 +255,10 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
     return snapshot;
   }
 
-  private static class FakeGraph<E extends ConnectionData>
+  private static class PlaneGraph<E extends ConnectionData>
       extends AbstractGraph<E> {
 
-    FakeGraph() {}
+    PlaneGraph() {}
 
     @Override
     public boolean containsNode(Point node) {

@@ -19,6 +19,7 @@ import javax.measure.quantity.Length;
 import javax.measure.unit.Unit;
 
 import com.github.rinde.rinsim.geom.Graph;
+import com.github.rinde.rinsim.geom.ImmutableGraph;
 import com.github.rinde.rinsim.geom.Point;
 
 /**
@@ -38,7 +39,9 @@ public class RoadModelSnapshotTestUtil {
   public static RoadModelSnapshot createPlaneRoadModelSnapshot(
       Point minimum,
       Point maximum, Unit<Length> planeDistanceUnit) {
-    return new PlaneModelSnapshot(minimum, maximum, planeDistanceUnit);
+    return new AutoValue_PlaneRoadModelSnapshot(
+      new PlaneRoadModel(RoadModelBuilders.plane().withMinPoint(minimum)
+        .withMaxPoint(maximum).withDistanceUnit(planeDistanceUnit)));
   }
 
   /**
@@ -47,8 +50,10 @@ public class RoadModelSnapshotTestUtil {
    * @param modelDistanceUnit The distance unit of the model.
    * @return A snapshot with the desired properties.
    */
-  public static GraphModelSnapshot createGraphRoadModelSnapshot(Graph<?> graph,
+  public static GraphRoadModelSnapshot createGraphRoadModelSnapshot(
+      Graph<?> graph,
       Unit<Length> modelDistanceUnit) {
-    return new GraphModelSnapshot(graph, modelDistanceUnit);
+    return new AutoValue_GraphRoadModelSnapshot(ImmutableGraph.copyOf(graph),
+      modelDistanceUnit);
   }
 }
