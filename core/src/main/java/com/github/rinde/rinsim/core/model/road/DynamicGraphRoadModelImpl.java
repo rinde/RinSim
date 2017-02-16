@@ -67,14 +67,14 @@ public class DynamicGraphRoadModelImpl
     extends GraphRoadModelImpl
     implements DynamicGraphRoadModel {
 
-  final Multimap<Connection<?>, RoadUser> connMap;
-  final Multimap<Point, RoadUser> posMap;
-
   /**
    * The immutable snapshot of this model. It should be invalidated (by putting
    * it to absent) whenever a change occurs.
    */
   protected Optional<GraphRoadModelSnapshot> snapshot;
+
+  final Multimap<Connection<?>, RoadUser> connMap;
+  final Multimap<Point, RoadUser> posMap;
 
   /**
    * Creates a new instance.
