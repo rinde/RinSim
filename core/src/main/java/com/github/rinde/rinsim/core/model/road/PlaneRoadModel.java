@@ -277,7 +277,7 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
 
     @Override
     public boolean hasConnection(Point from, Point to) {
-      throw new UnsupportedOperationException();
+      return true;
     }
 
     @Override
