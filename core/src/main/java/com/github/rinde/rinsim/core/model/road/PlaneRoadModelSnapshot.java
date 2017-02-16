@@ -49,4 +49,8 @@ abstract class PlaneRoadModelSnapshot
       throws IllegalArgumentException {
     return getModel().getDistanceOfPath(path);
   }
+
+  static PlaneRoadModelSnapshot create(PlaneRoadModel model) {
+    return new AutoValue_PlaneRoadModelSnapshot(model);
+  }
 }

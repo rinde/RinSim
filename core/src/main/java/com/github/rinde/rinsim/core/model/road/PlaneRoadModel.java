@@ -96,7 +96,7 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
     width = max.x - min.x;
     height = max.y - min.y;
     maxSpeed = unitConversion.toInSpeed(b.getMaxSpeed());
-    snapshot = new AutoValue_PlaneRoadModelSnapshot(this);
+    snapshot = PlaneRoadModelSnapshot.create(this);
     planeGraph = new PlaneGraph<>();
   }
 

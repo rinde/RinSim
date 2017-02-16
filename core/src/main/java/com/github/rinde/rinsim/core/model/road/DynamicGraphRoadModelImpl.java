@@ -21,17 +21,26 @@ import static com.google.common.base.Verify.verify;
 
 import java.util.Queue;
 
+import javax.measure.Measure;
+import javax.measure.quantity.Duration;
+import javax.measure.quantity.Length;
+import javax.measure.quantity.Velocity;
+import javax.measure.unit.Unit;
+
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.ConnectionData;
 import com.github.rinde.rinsim.geom.Graph;
+import com.github.rinde.rinsim.geom.Graphs;
+import com.github.rinde.rinsim.geom.HeuristicPath;
 import com.github.rinde.rinsim.geom.ImmutableGraph;
 import com.github.rinde.rinsim.geom.ListenableGraph;
 import com.github.rinde.rinsim.geom.ListenableGraph.EventTypes;
 import com.github.rinde.rinsim.geom.ListenableGraph.GraphEvent;
 import com.github.rinde.rinsim.geom.Point;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
@@ -62,6 +71,12 @@ public class DynamicGraphRoadModelImpl
   final Multimap<Point, RoadUser> posMap;
 
   /**
+   * The immutable snapshot of this model. It should be invalidated (by putting
+   * it to absent) whenever a change occurs.
+   */
+  protected Optional<GraphRoadModelSnapshot> snapshot;
+
+  /**
    * Creates a new instance.
    * @param g The graph to use.
    * @param b The builder that contains the properties to initialize this model.
@@ -72,6 +87,7 @@ public class DynamicGraphRoadModelImpl
     getGraph().getEventAPI().addListener(new GraphModificationChecker(this));
     connMap = LinkedHashMultimap.create();
     posMap = LinkedHashMultimap.create();
+    snapshot = Optional.absent();
   }
 
   @Override
@@ -214,13 +230,27 @@ public class DynamicGraphRoadModelImpl
     super.removeObject(object);
   }
 
-  /**
-   * Updates the snapshot of this road model. This should be called whenever a
-   * change to the graph occurs.
-   */
-  protected void updateSnapshot() {
-    snapshot = new AutoValue_GraphRoadModelSnapshot(
-      ImmutableGraph.copyOf(getGraph()), getDistanceUnit());
+  @Override
+  public HeuristicPath getPathTo(Point from, Point to, Unit<Duration> timeUnit,
+      Measure<Double, Velocity> speed, Graphs.Heuristic heuristic) {
+    if (!snapshot.isPresent()) {
+      updateSnapshot();
+    }
+    return snapshot.get().getPathTo(from, to, timeUnit, speed, heuristic);
+  }
+
+  @Override
+  public Measure<Double, Length> getDistanceOfPath(Iterable<Point> path)
+      throws IllegalArgumentException {
+    if (!snapshot.isPresent()) {
+      updateSnapshot();
+    }
+    return snapshot.get().getDistanceOfPath(path);
+  }
+
+  private void updateSnapshot() {
+    snapshot = Optional.of(GraphRoadModelSnapshot.create(
+      ImmutableGraph.copyOf(getGraph()), getDistanceUnit()));
   }
 
   private static class GraphModificationChecker implements Listener {
@@ -237,7 +267,7 @@ public class DynamicGraphRoadModelImpl
     @Override
     public void handleEvent(Event e) {
       verify(e instanceof GraphEvent);
-      model.updateSnapshot();
+      model.snapshot = Optional.absent();
       final GraphEvent ge = (GraphEvent) e;
       if (ge.getEventType() == EventTypes.REMOVE_CONNECTION
         || ge.getEventType() == EventTypes.CHANGE_CONNECTION_DATA) {

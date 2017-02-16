@@ -78,7 +78,7 @@ public class GraphRoadModelImpl extends AbstractRoadModel<Loc>
   /**
    * The snapshot of this model.
    */
-  protected RoadModelSnapshot snapshot;
+  private final RoadModelSnapshot snapshot;
 
   /**
    * Creates a new instance using the specified {@link Graph} as road structure.
@@ -90,7 +90,7 @@ public class GraphRoadModelImpl extends AbstractRoadModel<Loc>
       RoadModelBuilders.AbstractGraphRMB<?, ?, ?> b) {
     super(b.getDistanceUnit(), b.getSpeedUnit());
     graph = g;
-    snapshot = new AutoValue_GraphRoadModelSnapshot(
+    snapshot = GraphRoadModelSnapshot.create(
       ImmutableGraph.copyOf(graph), b.getDistanceUnit());
   }
 

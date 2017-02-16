@@ -89,4 +89,9 @@ abstract class GraphRoadModelSnapshot
     return Measure.valueOf(distance, getModelDistanceUnit());
   }
 
+  static GraphRoadModelSnapshot create(
+      ImmutableGraph<ConnectionData> graph, Unit<Length> distanceUnit) {
+    return new AutoValue_GraphRoadModelSnapshot(graph, distanceUnit);
+  }
+
 }
