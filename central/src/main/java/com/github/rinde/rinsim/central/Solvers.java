@@ -45,10 +45,13 @@ import com.github.rinde.rinsim.core.model.pdp.PDPModel.VehicleParcelActionInfo;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.road.GraphRoadModel;
-import com.github.rinde.rinsim.core.model.road.TravelTimes;
+import com.github.rinde.rinsim.core.model.road.RoadModelSnapshot;
 import com.github.rinde.rinsim.core.model.time.Clock;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.geom.Connection;
+import com.github.rinde.rinsim.geom.GraphHeuristics;
+import com.github.rinde.rinsim.geom.Graphs.Heuristic;
+import com.github.rinde.rinsim.geom.HeuristicPath;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
@@ -109,6 +112,12 @@ public final class Solvers {
    */
   public static ExtendedStats computeStats(GlobalStateObject state,
       @Nullable ImmutableList<ImmutableList<Parcel>> routes) {
+    return computeStats(state, routes, GraphHeuristics.euclidean());
+  }
+
+  public static ExtendedStats computeStats(GlobalStateObject state,
+      @Nullable ImmutableList<ImmutableList<Parcel>> routes,
+      Heuristic heuristic) {
     final Optional<ImmutableList<ImmutableList<Parcel>>> r = Optional
       .fromNullable(routes);
 
@@ -136,7 +145,8 @@ public final class Solvers {
       ImmutableList.builder();
 
     for (int i = 0; i < state.getVehicles().size(); i++) {
-      final ExtendedStats stats = calculateStatsForVehicle(state, i, r);
+      final ExtendedStats stats =
+        calculateStatsForVehicle(state, i, r, heuristic);
       totalDistance += stats.totalDistance;
       totalTravelTime += stats.totalTravelTime;
       totalDeliveries += stats.totalDeliveries;
@@ -164,7 +174,7 @@ public final class Solvers {
 
   private static ExtendedStats calculateStatsForVehicle(
       GlobalStateObject state, int vehicleIndex,
-      Optional<ImmutableList<ImmutableList<Parcel>>> r) {
+      Optional<ImmutableList<ImmutableList<Parcel>>> r, Heuristic heuristic) {
 
     final Set<Parcel> parcels = new HashSet<>();
     double totalDistance = 0;
@@ -183,6 +193,7 @@ public final class Solvers {
       "Vehicle routes must either be specified as an argument or must be part"
         + " of the state object.");
 
+    final RoadModelSnapshot snapshot = state.getRoadModelSnapshot();
     final ImmutableList.Builder<Long> truckArrivalTimesBuilder =
       ImmutableList.builder();
     truckArrivalTimesBuilder.add(state.getTime());
@@ -223,16 +234,13 @@ public final class Solvers {
         // vehicle is not there yet, go there first, then service
         final Point nextLoc = inCargo ? cur.getDeliveryLocation()
           : cur.getPickupLocation();
-        final Measure<Double, Length> distance = Measure.valueOf(
-          state.getTravelTimes()
-            // .computeTheoreticalDistance(vehicleLocation, nextLoc, maxSpeed),
-            .computeCurrentDistance(vehicleLocation, nextLoc, maxSpeed),
-          state.getDistUnit());
+        final HeuristicPath hp =
+          snapshot.getPathTo(vehicleLocation, nextLoc, state.getTimeUnit(),
+            maxSpeed, heuristic);
+        final Measure<Double, Length> distance =
+          snapshot.getDistanceOfPath(hp.getPath());
         totalDistance += distance.getValue();
-        final double tt = state.getTravelTimes()
-          // .getTheoreticalShortestTravelTime(vehicleLocation, nextLoc,
-          // maxSpeed);
-          .getCurrentShortestTravelTime(vehicleLocation, nextLoc, maxSpeed);
+        final double tt = hp.getTravelTime();
         vehicleLocation = nextLoc;
         time += DoubleMath.roundToLong(tt, RoundingMode.CEILING);
         totalTravelTime += tt;
@@ -272,18 +280,14 @@ public final class Solvers {
     }
 
     // go to depot
-    final Measure<Double, Length> distance = Measure.valueOf(
-      state.getTravelTimes().computeCurrentDistance(vehicleLocation,
-        vso.getDto().getStartPosition(), maxSpeed),
-      // state.getTravelTimes().computeTheoreticalDistance(vehicleLocation,
-      // vso.getDto().getStartPosition(), maxSpeed),
-      state.getDistUnit());
+    final HeuristicPath hp =
+      snapshot.getPathTo(vehicleLocation, vso.getDto().getStartPosition(),
+        state.getTimeUnit(),
+        maxSpeed, heuristic);
+    final Measure<Double, Length> distance =
+      snapshot.getDistanceOfPath(hp.getPath());
     totalDistance += distance.getValue();
-    final double tt = state.getTravelTimes()
-      // .getTheoreticalShortestTravelTime(vehicleLocation,
-      // vso.getDto().getStartPosition(), maxSpeed);
-      .getCurrentShortestTravelTime(vehicleLocation,
-        vso.getDto().getStartPosition(), maxSpeed);
+    final double tt = hp.getTravelTime();
     time += DoubleMath.roundToLong(tt, RoundingMode.CEILING);
     totalTravelTime += tt;
     // check overtime
@@ -342,7 +346,7 @@ public final class Solvers {
     final ImmutableSet.Builder<Parcel> availableDestParcels =
       ImmutableSet.builder();
 
-    final TravelTimes tt = rm.getTravelTimes(time.getUnit());
+    final RoadModelSnapshot snapshot = rm.getSnapshot();
 
     for (final Vehicle v : vehicles) {
       final ImmutableSet<Parcel> contentsMap =
@@ -375,7 +379,7 @@ public final class Solvers {
 
     GlobalStateObject gso = GlobalStateObject.create(availableParcelsKeys,
       vehicleMap.keySet().asList(), time.getValue().longValue(),
-      time.getUnit(), rm.getSpeedUnit(), rm.getDistanceUnit(), tt);
+      time.getUnit(), rm.getSpeedUnit(), rm.getDistanceUnit(), snapshot);
 
     if (fixRoutes) {
       gso = fixRoutes(gso);
@@ -436,7 +440,7 @@ public final class Solvers {
       state.getTimeUnit(),
       state.getSpeedUnit(),
       state.getDistUnit(),
-      state.getTravelTimes());
+      state.getRoadModelSnapshot());
   }
 
   // TODO check for bugs

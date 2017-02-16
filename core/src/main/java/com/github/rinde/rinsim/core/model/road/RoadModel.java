@@ -22,6 +22,8 @@ import java.util.Queue;
 import java.util.Set;
 
 import javax.annotation.Nullable;
+import javax.measure.Measure;
+import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
@@ -31,6 +33,8 @@ import org.apache.commons.math3.random.RandomGenerator;
 import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.EventAPI;
+import com.github.rinde.rinsim.geom.Graphs.Heuristic;
+import com.github.rinde.rinsim.geom.HeuristicPath;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
@@ -351,6 +355,31 @@ public interface RoadModel extends Model<RoadUser> {
   List<Point> getShortestPathTo(Point from, Point to);
 
   /**
+   * Finds a path that is optimal according to the given {@link Heuristic}
+   * between the points <code>from</code> and <code>to</code>.
+   * @param from The starting point.
+   * @param to The ending point.
+   * @param timeUnit The time unit to use for the calculations.
+   * @param maxSpeed The speed of the {@link RoadUser} that requests the path.
+   * @param heuristic The heuristic to use to determine the optimal path.
+   * @return The path following the heuristic decorated with the heuristic value
+   *         for the path as well as its travel time with the given speed in the
+   *         given time unit.
+   */
+  HeuristicPath getPathTo(Point from, Point to, Unit<Duration> timeUnit,
+      Measure<Double, Velocity> maxSpeed, Heuristic heuristic);
+
+  /**
+   * Determines the distance of the given path, indicated by a list of
+   * connecting points.
+   * @param path The path to find the distance of.
+   * @return The length of the given path in the distance unit of the model.
+   * @throws IllegalArgumentException If the path contains less than two points.
+   */
+  Measure<Double, Length> getDistanceOfPath(Iterable<Point> path)
+      throws IllegalArgumentException;
+
+  /**
    * @return The {@link EventAPI} for this road model.
    */
   EventAPI getEventAPI();
@@ -371,4 +400,9 @@ public interface RoadModel extends Model<RoadUser> {
    * @return The speed unit as used in this model to represent speeds.
    */
   Unit<Velocity> getSpeedUnit();
+
+  /**
+   * @return A snapshot of the current state of this road model.
+   */
+  RoadModelSnapshot getSnapshot();
 }

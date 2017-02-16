@@ -23,8 +23,6 @@ import java.util.Queue;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
-import javax.measure.quantity.Duration;
-import javax.measure.unit.Unit;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
@@ -42,7 +40,6 @@ import com.github.rinde.rinsim.core.model.road.MoveProgress;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadUser;
-import com.github.rinde.rinsim.core.model.road.TravelTimes;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.auto.value.AutoValue;
@@ -311,11 +308,6 @@ public class PDPRoadModel extends ForwardingRoadModel<GenericRoadModel>
   @Override
   public <U> U get(Class<U> type) {
     return type.cast(self);
-  }
-
-  @Override
-  public TravelTimes getTravelTimes(Unit<Duration> timeUnit) {
-    return delegate().getTravelTimes(timeUnit);
   }
 
   /**

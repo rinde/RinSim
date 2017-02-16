@@ -25,7 +25,7 @@ import org.junit.Test;
 import com.github.rinde.rinsim.central.GlobalStateObject.VehicleStateObject;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
-import com.github.rinde.rinsim.core.model.road.TravelTimes;
+import com.github.rinde.rinsim.core.model.road.RoadModelSnapshot;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.testutil.TestUtil;
@@ -52,7 +52,7 @@ public class SolverValidatorTest {
   public void validateNegativeTime() {
     final GlobalStateObject state = GlobalStateObject.create(
       ImmutableSet.<Parcel>of(), ImmutableList.<VehicleStateObject>of(), -1,
-      SI.SECOND, SI.METERS_PER_SECOND, SI.METER, mock(TravelTimes.class));
+      SI.SECOND, SI.METERS_PER_SECOND, SI.METER, mock(RoadModelSnapshot.class));
     boolean fail = false;
     try {
       SolverValidator.validateInputs(state);
@@ -71,7 +71,7 @@ public class SolverValidatorTest {
     final GlobalStateObject state = GlobalStateObject.create(
       ImmutableSet.<Parcel>of(),
       ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER,
-      mock(TravelTimes.class));
+      mock(RoadModelSnapshot.class));
     boolean fail = false;
     try {
       SolverValidator.validateInputs(state);
@@ -90,7 +90,7 @@ public class SolverValidatorTest {
         ImmutableSet.of(p1), 0, p2, ImmutableList.<Parcel>of());
     final GlobalStateObject state = GlobalStateObject.create(
       ImmutableSet.of(p1), ImmutableList.of(vs1), 0, SI.SECOND,
-      SI.METERS_PER_SECOND, SI.METER, mock(TravelTimes.class));
+      SI.METERS_PER_SECOND, SI.METER, mock(RoadModelSnapshot.class));
 
     boolean fail = false;
     try {
@@ -114,7 +114,7 @@ public class SolverValidatorTest {
     final ImmutableSet<Parcel> empty = ImmutableSet.of();
     final GlobalStateObject state = GlobalStateObject.create(empty,
       ImmutableList.of(vs1, vs2), 0, SI.SECOND, SI.METERS_PER_SECOND,
-      SI.METER, mock(TravelTimes.class));
+      SI.METER, mock(RoadModelSnapshot.class));
     SolverValidator.validateInputs(state);
   }
 
@@ -130,7 +130,7 @@ public class SolverValidatorTest {
 
     final GlobalStateObject state = GlobalStateObject.create(empty,
       ImmutableList.of(vs1, vs2), 0, SI.SECOND, SI.METERS_PER_SECOND,
-      SI.METER, mock(TravelTimes.class));
+      SI.METER, mock(RoadModelSnapshot.class));
     SolverValidator.validateInputs(state);
   }
 
@@ -147,7 +147,7 @@ public class SolverValidatorTest {
     final ImmutableSet<Parcel> available = ImmutableSet.of(p3);
     final GlobalStateObject state = GlobalStateObject.create(available,
       ImmutableList.of(vs1, vs2), 0, SI.SECOND, SI.METERS_PER_SECOND,
-      SI.METER, mock(TravelTimes.class));
+      SI.METER, mock(RoadModelSnapshot.class));
     SolverValidator.validateInputs(state);
   }
 
@@ -164,7 +164,7 @@ public class SolverValidatorTest {
     final ImmutableSet<Parcel> available = ImmutableSet.of(p1, p2);
     final GlobalStateObject state = GlobalStateObject.create(available,
       ImmutableList.of(vs1, vs2), 0, SI.SECOND, SI.METERS_PER_SECOND,
-      SI.METER, mock(TravelTimes.class));
+      SI.METER, mock(RoadModelSnapshot.class));
     SolverValidator.validateInputs(state);
   }
 
@@ -179,7 +179,7 @@ public class SolverValidatorTest {
     final ImmutableSet<Parcel> available = ImmutableSet.of(p3);
     final GlobalStateObject state = GlobalStateObject.create(available,
       ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER,
-      mock(TravelTimes.class));
+      mock(RoadModelSnapshot.class));
     SolverValidator.validateInputs(state);
   }
 
@@ -195,7 +195,7 @@ public class SolverValidatorTest {
     final ImmutableSet<Parcel> available = ImmutableSet.of(p3);
     final GlobalStateObject state = GlobalStateObject.create(available,
       ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER,
-      mock(TravelTimes.class));
+      mock(RoadModelSnapshot.class));
     SolverValidator.validateInputs(state);
   }
 
@@ -211,7 +211,7 @@ public class SolverValidatorTest {
     final ImmutableSet<Parcel> available = ImmutableSet.of(p1);
     final GlobalStateObject state = GlobalStateObject.create(available,
       ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER,
-      mock(TravelTimes.class));
+      mock(RoadModelSnapshot.class));
     SolverValidator.validateInputs(state);
   }
 
@@ -226,7 +226,7 @@ public class SolverValidatorTest {
     final ImmutableSet<Parcel> available = ImmutableSet.of(p3);
     final GlobalStateObject state = GlobalStateObject.create(available,
       ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER,
-      mock(TravelTimes.class));
+      mock(RoadModelSnapshot.class));
     SolverValidator.validateInputs(state);
   }
 
@@ -241,7 +241,7 @@ public class SolverValidatorTest {
     final ImmutableSet<Parcel> available = ImmutableSet.of(p2);
     final GlobalStateObject state = GlobalStateObject.create(available,
       ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER,
-      mock(TravelTimes.class));
+      mock(RoadModelSnapshot.class));
     SolverValidator.validateInputs(state);
   }
 
@@ -256,7 +256,7 @@ public class SolverValidatorTest {
     final ImmutableSet<Parcel> available = ImmutableSet.of(p2);
     final GlobalStateObject state = GlobalStateObject.create(available,
       ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER,
-      mock(TravelTimes.class));
+      mock(RoadModelSnapshot.class));
     SolverValidator.validateInputs(state);
   }
 
@@ -278,7 +278,7 @@ public class SolverValidatorTest {
     final ImmutableSet<Parcel> available = ImmutableSet.of(p3);
     final GlobalStateObject state = GlobalStateObject.create(available,
       ImmutableList.of(vs1, vs2, vs3), 0, SI.SECOND, SI.METERS_PER_SECOND,
-      SI.CENTIMETER, mock(TravelTimes.class));
+      SI.CENTIMETER, mock(RoadModelSnapshot.class));
     SolverValidator.validateInputs(state);
   }
 
@@ -298,7 +298,7 @@ public class SolverValidatorTest {
     final ImmutableSet<Parcel> available = ImmutableSet.of(p3);
     final GlobalStateObject state = GlobalStateObject.create(available,
       ImmutableList.of(vs1, vs2, vs3), 0, SI.SECOND, SI.METERS_PER_SECOND,
-      SI.CENTIMETER, mock(TravelTimes.class));
+      SI.CENTIMETER, mock(RoadModelSnapshot.class));
     SolverValidator.validateInputs(state);
   }
 
@@ -309,7 +309,7 @@ public class SolverValidatorTest {
     final ImmutableList<ImmutableList<Parcel>> routes = ImmutableList.of();
     final GlobalStateObject state = GlobalStateObject.create(
       ImmutableSet.<Parcel>of(), ImmutableList.of(vs1), 0, SI.SECOND,
-      SI.METERS_PER_SECOND, SI.CENTIMETER, mock(TravelTimes.class));
+      SI.METERS_PER_SECOND, SI.CENTIMETER, mock(RoadModelSnapshot.class));
     boolean fail = false;
     try {
       SolverValidator.validateOutputs(routes, state);
@@ -341,7 +341,7 @@ public class SolverValidatorTest {
       vs2);
     final GlobalStateObject state = GlobalStateObject.create(availableParcels,
       vehicles, 0, SI.SECOND, SI.METERS_PER_SECOND, SI.CENTIMETER,
-      mock(TravelTimes.class));
+      mock(RoadModelSnapshot.class));
 
     boolean fail = false;
     try {
@@ -369,7 +369,7 @@ public class SolverValidatorTest {
     final ImmutableList<VehicleStateObject> vehicles = ImmutableList.of(vs1);
     final GlobalStateObject state = GlobalStateObject.create(availableParcels,
       vehicles, 0, SI.SECOND, SI.METERS_PER_SECOND, SI.CENTIMETER,
-      mock(TravelTimes.class));
+      mock(RoadModelSnapshot.class));
     boolean fail = false;
     try {
       SolverValidator.validateOutputs(routes, state);
@@ -394,7 +394,7 @@ public class SolverValidatorTest {
     final ImmutableList<VehicleStateObject> vehicles = ImmutableList.of(vs1);
     final GlobalStateObject state = GlobalStateObject.create(availableParcels,
       vehicles, 0, SI.SECOND, SI.METERS_PER_SECOND, SI.CENTIMETER,
-      mock(TravelTimes.class));
+      mock(RoadModelSnapshot.class));
     boolean fail = false;
     try {
       SolverValidator.validateOutputs(routes, state);
@@ -420,7 +420,7 @@ public class SolverValidatorTest {
     final ImmutableList<VehicleStateObject> vehicles = ImmutableList.of(vs1);
     final GlobalStateObject state = GlobalStateObject.create(availableParcels,
       vehicles, 0, SI.SECOND, SI.METERS_PER_SECOND, SI.CENTIMETER,
-      mock(TravelTimes.class));
+      mock(RoadModelSnapshot.class));
     boolean fail = false;
     try {
       SolverValidator.validateOutputs(routes, state);
@@ -453,7 +453,7 @@ public class SolverValidatorTest {
       vs2);
     final GlobalStateObject state = GlobalStateObject.create(availableParcels,
       vehicles, 0, SI.SECOND, SI.METERS_PER_SECOND, SI.CENTIMETER,
-      mock(TravelTimes.class));
+      mock(RoadModelSnapshot.class));
     boolean fail = false;
     try {
       SolverValidator.validateOutputs(routes, state);
@@ -487,7 +487,7 @@ public class SolverValidatorTest {
       vs2);
     final GlobalStateObject state = GlobalStateObject.create(availableParcels,
       vehicles, 0, SI.SECOND, SI.METERS_PER_SECOND, SI.CENTIMETER,
-      mock(TravelTimes.class));
+      mock(RoadModelSnapshot.class));
 
     boolean fail = false;
     try {
@@ -515,7 +515,7 @@ public class SolverValidatorTest {
     final ImmutableList<VehicleStateObject> vehicles = ImmutableList.of(vs1);
     final GlobalStateObject state = GlobalStateObject.create(availableParcels,
       vehicles, 0, SI.SECOND, SI.METERS_PER_SECOND, SI.CENTIMETER,
-      mock(TravelTimes.class));
+      mock(RoadModelSnapshot.class));
 
     boolean fail = false;
     try {
@@ -544,7 +544,7 @@ public class SolverValidatorTest {
     final ImmutableList<VehicleStateObject> vehicles = ImmutableList.of(vs1);
     final GlobalStateObject state = GlobalStateObject.create(availableParcels,
       vehicles, 0, SI.SECOND, SI.METERS_PER_SECOND, SI.CENTIMETER,
-      mock(TravelTimes.class));
+      mock(RoadModelSnapshot.class));
 
     boolean fail = false;
     try {
@@ -579,7 +579,7 @@ public class SolverValidatorTest {
       vs2);
     final GlobalStateObject state = GlobalStateObject.create(availableParcels,
       vehicles, 0, SI.SECOND, SI.METERS_PER_SECOND, SI.CENTIMETER,
-      mock(TravelTimes.class));
+      mock(RoadModelSnapshot.class));
     SolverValidator.validateOutputs(routes, state);
   }
 
@@ -613,7 +613,7 @@ public class SolverValidatorTest {
     @SuppressWarnings("null")
     final GlobalStateObject state = GlobalStateObject.create(availableParcels,
       vehicles, 0, SI.SECOND, SI.METERS_PER_SECOND, SI.CENTIMETER,
-      mock(TravelTimes.class));
+      mock(RoadModelSnapshot.class));
     final Solver solver = SolverValidator.wrap(new FakeSolver(routes));
     solver.solve(state);
   }
