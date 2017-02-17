@@ -34,8 +34,8 @@ import javax.measure.unit.Unit;
 import com.github.rinde.rinsim.central.GlobalStateObject.VehicleStateObject;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
-import com.github.rinde.rinsim.core.model.road.TravelTimes;
-import com.github.rinde.rinsim.core.model.road.TravelTimesTestUtil;
+import com.github.rinde.rinsim.core.model.road.RoadModelSnapshot;
+import com.github.rinde.rinsim.core.model.road.RoadModelSnapshotTestUtil;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Optional;
@@ -56,7 +56,7 @@ public class GlobalStateObjectBuilder {
   Unit<Velocity> speedUnit;
   Unit<Length> distUnit;
 
-  TravelTimes travelTimes;
+  RoadModelSnapshot snapshot;
 
   GlobalStateObjectBuilder() {
     availableParcels = new LinkedHashSet<>();
@@ -108,14 +108,14 @@ public class GlobalStateObjectBuilder {
     return this;
   }
 
-  public GlobalStateObjectBuilder setTravelTimes(TravelTimes tt) {
-    travelTimes = tt;
+  public GlobalStateObjectBuilder setSnapshot(RoadModelSnapshot ss) {
+    snapshot = ss;
     return this;
   }
 
   public GlobalStateObjectBuilder setPlaneTravelTimes(Point min, Point max) {
-    travelTimes = TravelTimesTestUtil.createDefaultPlaneTravelTimes(min, max,
-      timeUnit, distUnit);
+    snapshot = RoadModelSnapshotTestUtil.createPlaneRoadModelSnapshot(min, max,
+      distUnit);
     return this;
   }
 
@@ -124,7 +124,7 @@ public class GlobalStateObjectBuilder {
   }
 
   public GlobalStateObject buildUnsafe() {
-    checkState(travelTimes != null, "TravelTimes may not be null.");
+    checkState(snapshot != null, "Snapshot may not be null.");
     return GlobalStateObject.create(
       ImmutableSet.copyOf(availableParcels),
       ImmutableList.copyOf(vehicles),
@@ -132,7 +132,7 @@ public class GlobalStateObjectBuilder {
       timeUnit,
       speedUnit,
       distUnit,
-      travelTimes);
+      snapshot);
   }
 
   public static GlobalStateObjectBuilder globalBuilder() {

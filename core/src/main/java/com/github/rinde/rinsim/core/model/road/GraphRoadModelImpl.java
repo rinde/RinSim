@@ -28,7 +28,10 @@ import java.util.Queue;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.measure.Measure;
 import javax.measure.quantity.Duration;
+import javax.measure.quantity.Length;
+import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
 import org.apache.commons.math3.random.RandomGenerator;
@@ -38,6 +41,9 @@ import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.ConnectionData;
 import com.github.rinde.rinsim.geom.Graph;
+import com.github.rinde.rinsim.geom.Graphs;
+import com.github.rinde.rinsim.geom.HeuristicPath;
+import com.github.rinde.rinsim.geom.ImmutableGraph;
 import com.github.rinde.rinsim.geom.MultiAttributeData;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Optional;
@@ -70,6 +76,11 @@ public class GraphRoadModelImpl extends AbstractRoadModel<Loc>
   protected final Graph<? extends ConnectionData> graph;
 
   /**
+   * The snapshot of this model.
+   */
+  private final RoadModelSnapshot snapshot;
+
+  /**
    * Creates a new instance using the specified {@link Graph} as road structure.
    * The default units are used as defined by {@link AbstractRoadModel}.
    * @param g The graph which will be used as road structure.
@@ -79,6 +90,8 @@ public class GraphRoadModelImpl extends AbstractRoadModel<Loc>
       RoadModelBuilders.AbstractGraphRMB<?, ?, ?> b) {
     super(b.getDistanceUnit(), b.getSpeedUnit());
     graph = g;
+    snapshot = GraphRoadModelSnapshot.create(
+      ImmutableGraph.copyOf(graph), b.getDistanceUnit());
   }
 
   @Override
@@ -387,6 +400,18 @@ public class GraphRoadModelImpl extends AbstractRoadModel<Loc>
     return shortestPathEuclideanDistance(graph, from, to);
   }
 
+  @Override
+  public HeuristicPath getPathTo(Point from, Point to, Unit<Duration> timeUnit,
+      Measure<Double, Velocity> speed, Graphs.Heuristic heuristic) {
+    return snapshot.getPathTo(from, to, timeUnit, speed, heuristic);
+  }
+
+  @Override
+  public Measure<Double, Length> getDistanceOfPath(Iterable<Point> path)
+      throws IllegalArgumentException {
+    return snapshot.getDistanceOfPath(path);
+  }
+
   /**
    * @return An unmodifiable view on the graph.
    */
@@ -469,21 +494,15 @@ public class GraphRoadModelImpl extends AbstractRoadModel<Loc>
     return type.cast(self);
   }
 
-  @Override
-  public TravelTimes getTravelTimes(Unit<Duration> timeUnit) {
-    return new GraphTravelTimes<>(graph, timeUnit, getDistanceUnit());
-  }
-
-  @Override
-  public TravelTimes getTravelTimes(TravelTimes previousTravelTimes) {
-    return new GraphTravelTimes<>(
-      (GraphTravelTimes) previousTravelTimes, graph);
-  }
-
   @Deprecated
   @Override
   public ImmutableList<Point> getBounds() {
     throw new UnsupportedOperationException("Not yet implemented.");
+  }
+
+  @Override
+  public RoadModelSnapshot getSnapshot() {
+    return snapshot;
   }
 
   /**
