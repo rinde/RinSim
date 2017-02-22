@@ -50,7 +50,6 @@ import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
-import com.github.rinde.rinsim.core.model.pdp.Depot;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.VehicleState;
@@ -527,13 +526,14 @@ public class SolversTest {
 
   /**
    * When a vehicle starts in a depot, the solver has to calculate the distance
-   * to the depot. This path has only one element (when calculated with
+   * to the depot from the starting position. Similar if a parcel is at the same
+   * location as the vehicle, the distance to this parcel is zero. These paths
+   * have only one element (when calculated with
    * {@link Graphs#shortestPath(Graph, Point, Point, Heuristic)}) and the
    * distance should be correctly interpreted as zero.
    */
   @Test
   public void vehicleOnStartPositionTest() {
-    final Depot depot = new Depot(new Point(0, 0));
     final TestVehicle vehicle = new TestVehicle(new Point(0, 0));
     final Parcel parcel = createParcel(new Point(0, 0), new Point(0, 0));
 
