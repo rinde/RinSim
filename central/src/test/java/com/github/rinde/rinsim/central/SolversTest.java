@@ -50,6 +50,7 @@ import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
+import com.github.rinde.rinsim.core.model.pdp.Depot;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.VehicleState;
@@ -69,6 +70,7 @@ import com.github.rinde.rinsim.core.model.time.TimeLapseFactory;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.Graphs;
+import com.github.rinde.rinsim.geom.Graphs.Heuristic;
 import com.github.rinde.rinsim.geom.LengthData;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.geom.TableGraph;
@@ -521,6 +523,53 @@ public class SolversTest {
     // Assert correct new stats
     assertEquals(5d, stats.totalDistance, 0.00001);
     assertEquals(5d, stats.totalTravelTime, 0.00001);
+  }
+
+  /**
+   * When a vehicle starts in a depot, the solver has to calculate the distance
+   * to the depot. This path has only one element (when calculated with
+   * {@link Graphs#shortestPath(Graph, Point, Point, Heuristic)}) and the
+   * distance should be correctly interpreted as zero.
+   */
+  @Test
+  public void vehicleOnStartPositionTest() {
+    final Depot depot = new Depot(new Point(0, 0));
+    final TestVehicle vehicle = new TestVehicle(new Point(0, 0));
+    final Parcel parcel = createParcel(new Point(0, 0), new Point(0, 0));
+
+    final Graph g = new TableGraph<>();
+    g.addConnection(new Point(0, 0), new Point(1, 0));
+    final DependencyProvider graphdp = mock(DependencyProvider.class);
+    final PDPRoadModel graphRm = PDPGraphRoadModel.builderForGraphRm(
+      RoadModelBuilders.staticGraph(g).withDistanceUnit(SI.METER)
+        .withSpeedUnit(SI.METERS_PER_SECOND))
+      .withAllowVehicleDiversion(true)
+      .build(graphdp);
+    when(graphdp.get(RoadModel.class)).thenReturn(graphRm);
+
+    // Build State
+    final ImmutableSet<Parcel> availableParcels = ImmutableSet
+      .<Parcel>builder()
+      .add(parcel)
+      .build();
+
+    final VehicleStateObject vehicelState =
+      GlobalStateObjectBuilder.vehicleBuilder().setVehicleDTO(vehicle.getDTO())
+        .setDestination(parcel).setRoute(availableParcels.asList()).build();
+    final GlobalStateObject globalState =
+      GlobalStateObjectBuilder.globalBuilder().addAvailableParcel(parcel)
+        .addVehicle(vehicelState).setSnapshot(graphRm.getSnapshot())
+        .buildUnsafe();
+
+    final ImmutableList<ImmutableList<Parcel>> routes = ImmutableList
+      .<ImmutableList<Parcel>>builder()
+      .add(ImmutableList.<Parcel>of(parcel))
+      .build();
+
+    // Should succeed
+    final ExtendedStats stats = Solvers.computeStats(globalState, routes);
+    // Assert that the vehicle doesn't need to move.
+    assertEquals(0d, stats.totalDistance, 0.00001);
   }
 
   // doesn't check the contents!

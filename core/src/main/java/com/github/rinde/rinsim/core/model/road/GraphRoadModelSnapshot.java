@@ -78,8 +78,6 @@ abstract class GraphRoadModelSnapshot
     checkArgument(pathIt.hasNext(), "Cannot check distance of an empty path.");
     Point prev = pathIt.next();
     Point cur = null;
-    checkArgument(pathIt.hasNext(),
-      "Cannot check distance of a path with only one element.");
     double distance = 0d;
     while (pathIt.hasNext()) {
       cur = pathIt.next();
