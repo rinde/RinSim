@@ -325,7 +325,7 @@ public interface RoadModel extends Model<RoadUser> {
    * @param <Y> The type of the objects in the returned set.
    * @return A set of {@link RoadUser} objects.
    */
-  <Y extends RoadUser> Set<Y> getObjectsOfType(final Class<Y> type);
+  <Y extends RoadUser> Set<Y> getObjectsOfType(Class<Y> type);
 
   /**
    * Convenience method for {@link #getShortestPathTo(Point, Point)}.

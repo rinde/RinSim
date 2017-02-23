@@ -62,7 +62,7 @@ public class RouteRenderer extends AbstractCanvasRenderer {
       int prevY = vp.toCoordY(from.y);
 
       for (final Parcel parcel : ImmutableList.copyOf(v.getRoute())) {
-        Point to;
+        final Point to;
         if (pdpModel.getParcelState(parcel).isPickedUp()
           || seen.contains(parcel)) {
           to = parcel.getDto().getDeliveryLocation();

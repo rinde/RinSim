@@ -117,7 +117,7 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
   @Override
   public MoveProgress moveTo(MovingRoadUser object, Point destination,
       TimeLapse time) {
-    Queue<Point> path;
+    final Queue<Point> path;
     if (objDestinations.containsKey(object)
       && objDestinations.get(object).destination.equals(destination)) {
       // is valid move? -> assume it is

@@ -20,7 +20,6 @@ import static com.google.common.base.Verify.verifyNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
-import java.io.Serializable;
 import java.math.RoundingMode;
 import java.util.List;
 import java.util.Set;
@@ -114,7 +113,7 @@ class AgvModel
           RoundingMode.CEILING);
 
         final Point rnd = rndBorder();
-        Point dest;
+        final Point dest;
         if (i >= points.get(0).size()) {
           dest = rndBorder();
         } else {
@@ -162,7 +161,7 @@ class AgvModel
       final BoxHandle bh = box.boxHandle;
       bh.wordIndex = (bh.wordIndex + 1) % points.size();
 
-      Point dest;
+      final Point dest;
       if (bh.index >= points.get(bh.wordIndex).size()) {
         dest = rndBorder();
       } else {
@@ -220,8 +219,7 @@ class AgvModel
   }
 
   @AutoValue
-  abstract static class Builder extends AbstractModelBuilder<AgvModel, AGV>
-      implements Serializable {
+  abstract static class Builder extends AbstractModelBuilder<AgvModel, AGV> {
 
     private static final long serialVersionUID = -8527252625057713751L;
 

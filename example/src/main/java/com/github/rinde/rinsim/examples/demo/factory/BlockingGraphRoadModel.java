@@ -19,7 +19,6 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
@@ -104,8 +103,7 @@ public class BlockingGraphRoadModel extends GraphRoadModelImpl {
 
   @AutoValue
   abstract static class Builder
-      extends AbstractGraphRMB<BlockingGraphRoadModel, Builder, Graph<?>>
-      implements Serializable {
+      extends AbstractGraphRMB<BlockingGraphRoadModel, Builder, Graph<?>> {
 
     private static final long serialVersionUID = -8663781587611642451L;
 

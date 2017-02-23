@@ -111,7 +111,7 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
   @Override
   protected Optional<E> doChangeConnectionData(Point from, Point to,
       Optional<E> connData) {
-    Optional<E> dat;
+    final Optional<E> dat;
     if (lazyConnectionTable.contains(from, to)) {
       dat = lazyConnectionTable.get(from, to).data();
     } else {

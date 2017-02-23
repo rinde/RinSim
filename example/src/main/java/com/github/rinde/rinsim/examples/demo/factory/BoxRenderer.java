@@ -205,6 +205,8 @@ class BoxRenderer extends AbstractCanvasRenderer {
   @AutoValue
   abstract static class Builder
       extends AbstractModelBuilder<BoxRenderer, Void> {
+    private static final long serialVersionUID = 3349625514419113101L;
+
     Builder() {
       setDependencies(RoadModel.class, PDPModel.class);
     }

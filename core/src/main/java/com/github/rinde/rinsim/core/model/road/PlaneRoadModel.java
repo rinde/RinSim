@@ -27,6 +27,7 @@ import java.util.Queue;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.measure.Measure;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
@@ -345,6 +346,11 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
     @Override
     public int hashCode() {
       return 0;
+    }
+
+    @Override
+    public boolean equals(@Nullable Object other) {
+      return false;
     }
 
   }

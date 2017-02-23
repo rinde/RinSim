@@ -37,7 +37,7 @@ public interface TickListener {
    * method is finished.
    * @param timeLapse The time lapse that is handed to this object.
    */
-  void tick(final TimeLapse timeLapse);
+  void tick(TimeLapse timeLapse);
 
   /**
    * Is called after all {@link TickListener}s have received their call to
@@ -47,5 +47,5 @@ public interface TickListener {
    * consuming actions can be done in the implementation of this method.
    * @param timeLapse The time lapse that is handed to this object.
    */
-  void afterTick(final TimeLapse timeLapse);
+  void afterTick(TimeLapse timeLapse);
 }

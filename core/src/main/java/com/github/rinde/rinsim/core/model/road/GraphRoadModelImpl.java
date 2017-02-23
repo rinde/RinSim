@@ -180,7 +180,7 @@ public class GraphRoadModelImpl extends AbstractRoadModel<Loc>
           + ">= 0, but is %s.",
         connLength);
 
-      double traveledDistance;
+      final double traveledDistance;
       if (travelableDistance >= connLength) {
         // jump to next node in path (this may be a node or a point on a
         // connection)
@@ -340,7 +340,7 @@ public class GraphRoadModelImpl extends AbstractRoadModel<Loc>
   protected Connection<?> getConnection(Point from, Point to) {
     final boolean fromIsOnConn = isOnConnection(from);
     final boolean toIsOnConn = isOnConnection(to);
-    Connection<?> conn;
+    final Connection<?> conn;
     final String errorMsg =
       "The specified points must be part of the same connection.";
     if (fromIsOnConn) {

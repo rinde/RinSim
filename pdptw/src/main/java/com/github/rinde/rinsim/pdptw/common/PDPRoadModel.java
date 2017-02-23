@@ -155,7 +155,7 @@ public class PDPRoadModel extends ForwardingRoadModel<GenericRoadModel>
   @Override
   public MoveProgress moveTo(MovingRoadUser object,
       RoadUser destinationRoadUser, TimeLapse time) {
-    DestinationObject newDestinationObject;
+    final DestinationObject newDestinationObject;
     if (destinationRoadUser instanceof Parcel) {
       final Parcel dp = (Parcel) destinationRoadUser;
       final DestType type = containsObject(dp) ? DestType.PICKUP

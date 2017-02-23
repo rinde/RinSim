@@ -18,6 +18,8 @@ package com.github.rinde.rinsim.geom;
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Objects.hash;
 
+import javax.annotation.Nullable;
+
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableTable;
@@ -177,6 +179,11 @@ public class ImmutableGraph<E extends ConnectionData> extends AbstractGraph<E> {
   @Override
   public int hashCode() {
     return hash(data);
+  }
+
+  @Override
+  public boolean equals(@Nullable Object other) {
+    return Graphs.equal(this, other);
   }
 
   /**

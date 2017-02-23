@@ -129,7 +129,7 @@ public final class WarehouseExample {
 
       for (int i = 0; i < matrix.columnMap().size(); i++) {
 
-        Iterable<Point> path;
+        final Iterable<Point> path;
         if (i % 2 == 0) {
           path = Lists.reverse(newArrayList(matrix.column(i).values()));
         } else {
