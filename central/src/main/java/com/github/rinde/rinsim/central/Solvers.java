@@ -101,7 +101,8 @@ public final class Solvers {
    * state may be half-way a simulation, it is possible that the returned
    * statistics describe only a partial simulation. As a result
    * {@link StatisticsDTO#totalDeliveries} does not necessarily equal
-   * {@link StatisticsDTO#totalPickups}.
+   * {@link StatisticsDTO#totalPickups}. The travel times and distance are
+   * computed using {@link GraphHeuristics#euclidean()}.
    * @param state The state which represents a simulation.
    * @param routes Specifies the route the vehicles are currently following,
    *          must be of same size as the number of vehicles (one route per
@@ -116,6 +117,28 @@ public final class Solvers {
     return computeStats(state, routes, GraphHeuristics.euclidean());
   }
 
+  /**
+   * Computes a {@link StatisticsDTO} instance for the given
+   * {@link GlobalStateObject} and routes. For each vehicle in the state the
+   * specified route is used and its arrival times, tardiness and travel times
+   * are computed. The resulting {@link StatisticsDTO} has the same properties
+   * as performing a simulation with the same state. However, since the current
+   * state may be half-way a simulation, it is possible that the returned
+   * statistics describe only a partial simulation. As a result
+   * {@link StatisticsDTO#totalDeliveries} does not necessarily equal
+   * {@link StatisticsDTO#totalPickups}. The travel times and distance are
+   * computed using the specified heuristic.
+   * @param state The state which represents a simulation.
+   * @param routes Specifies the route the vehicles are currently following,
+   *          must be of same size as the number of vehicles (one route per
+   *          vehicle). If this is <code>null</code> the
+   *          {@link VehicleStateObject#getRoute()} field must be set instead
+   *          for <b>each</b> vehicle.
+   * @param heuristic The heuristic that is used to compute travel times and
+   *          distance.
+   * @return The statistics that will be generated when executing this
+   *         simulation.
+   */
   public static ExtendedStats computeStats(GlobalStateObject state,
       @Nullable ImmutableList<ImmutableList<Parcel>> routes,
       Heuristic heuristic) {
@@ -130,65 +153,23 @@ public final class Solvers {
         state.getVehicles().size(), r.get().size());
     }
 
-    double totalDistance = 0;
-    double totalTravelTime = 0;
-    int totalDeliveries = 0;
-    int totalPickups = 0;
-    long pickupTardiness = 0;
-    long deliveryTardiness = 0;
-    long overTime = 0;
-    final long startTime = state.getTime();
-    long maxTime = 0;
-    int movedVehicles = 0;
-    int totalParcels = 0;
-
-    final ImmutableList.Builder<ImmutableList<Long>> arrivalTimesBuilder =
-      ImmutableList.builder();
-
+    final MutableStats stats = new MutableStats();
     for (int i = 0; i < state.getVehicles().size(); i++) {
-      final ExtendedStats stats =
-        calculateStatsForVehicle(state, i, r, heuristic);
-      totalDistance += stats.totalDistance;
-      totalTravelTime += stats.totalTravelTime;
-      totalDeliveries += stats.totalDeliveries;
-      totalPickups += stats.totalPickups;
-      pickupTardiness += stats.pickupTardiness;
-      deliveryTardiness += stats.deliveryTardiness;
-      overTime += stats.overTime;
-      maxTime += Math.max(maxTime, stats.totalTravelTime);
-      movedVehicles += stats.movedVehicles;
-      totalParcels += stats.totalParcels;
-      arrivalTimesBuilder.addAll(stats.arrivalTimes);
+      calculateStatsForVehicle(stats, state, i, r, heuristic);
     }
-
     final int totalVehicles = state.getVehicles().size();
-    final long simulationTime = maxTime - startTime;
+    final long simulationTime = stats.maxTime - state.getTime();
 
-    return new ExtendedStats(totalDistance, totalTravelTime, totalPickups,
-      totalDeliveries,
-      totalParcels, totalParcels, pickupTardiness, deliveryTardiness, 0,
-      simulationTime, true, totalVehicles, overTime, totalVehicles,
-      movedVehicles, state.getTimeUnit(), state.getDistUnit(),
-      state.getSpeedUnit(),
-      arrivalTimesBuilder.build());
+    return new ExtendedStats(stats, 0,
+      simulationTime, true, totalVehicles, totalVehicles,
+      state.getTimeUnit(), state.getDistUnit(), state.getSpeedUnit());
   }
 
-  private static ExtendedStats calculateStatsForVehicle(
+  private static void calculateStatsForVehicle(MutableStats stats,
       GlobalStateObject state, int vehicleIndex,
       Optional<ImmutableList<ImmutableList<Parcel>>> r, Heuristic heuristic) {
 
     final Set<Parcel> parcels = new HashSet<>();
-    double totalDistance = 0;
-    double totalTravelTime = 0;
-    int totalDeliveries = 0;
-    int totalPickups = 0;
-    long pickupTardiness = 0;
-    long deliveryTardiness = 0;
-    long overTime = 0;
-    long maxTime = 0;
-    int movedVehicles = 0;
-    final ImmutableList.Builder<ImmutableList<Long>> arrivalTimesBuilder =
-      ImmutableList.builder();
     final VehicleStateObject vso = state.getVehicles().get(vehicleIndex);
     checkArgument(r.isPresent() || vso.getRoute().isPresent(),
       "Vehicle routes must either be specified as an argument or must be part"
@@ -211,6 +192,9 @@ public final class Solvers {
     Point vehicleLocation = vso.getLocation();
     final Measure<Double, Velocity> maxSpeed =
       Measure.valueOf(vso.getDto().getSpeed(), state.getSpeedUnit());
+
+    // In case the vehicle is on a connection, the vehicle first has to move to
+    // the connection exit.
     if (vso.getConnection().isPresent()) {
       final Connection<? extends ConnectionData> conn =
         vso.getConnection().get();
@@ -218,18 +202,15 @@ public final class Solvers {
       final double connectionPercentage =
         Point.distance(vso.getLocation(), conn.to())
           / Point.distance(conn.from(), conn.to());
-      // Compensate for the distance and time lost!
-      // Distance is the percentage of the connection length
-      // still required to travel.
-      totalDistance += vso.getConnection().get().getLength()
+      // Compute distance required to exist the current connection.
+      stats.totalDistance += vso.getConnection().get().getLength()
         * connectionPercentage;
-      // Travel time is the time that would be spend on the
-      // remainder of the connection.
-      final double timeOffset =
+      // Compute time required to exit the current connection.
+      final double exitConnTT =
         snapshot.getPathTo(conn.from(), conn.to(), state.getTimeUnit(),
           maxSpeed, heuristic).getTravelTime() * connectionPercentage;
-      time += timeOffset;
-      totalTravelTime += timeOffset;
+      time += exitConnTT;
+      stats.totalTravelTime += exitConnTT;
     }
     final Set<Parcel> seen = newHashSet();
     for (int j = 0; j < route.size(); j++) {
@@ -260,11 +241,11 @@ public final class Solvers {
             maxSpeed, heuristic);
         final Measure<Double, Length> distance =
           snapshot.getDistanceOfPath(hp.getPath());
-        totalDistance += distance.getValue();
+        stats.totalDistance += distance.getValue();
         final double tt = hp.getTravelTime();
         vehicleLocation = nextLoc;
         time += DoubleMath.roundToLong(tt, RoundingMode.CEILING);
-        totalTravelTime += tt;
+        stats.totalTravelTime += tt;
       }
       if (inCargo) {
         // check if we are early
@@ -279,9 +260,9 @@ public final class Solvers {
         // delivering
         if (cur.getDeliveryTimeWindow().isAfterEnd(time)) {
           final long tardiness = time - cur.getDeliveryTimeWindow().end();
-          deliveryTardiness += tardiness;
+          stats.deliveryTardiness += tardiness;
         }
-        totalDeliveries++;
+        stats.totalDeliveries++;
       } else {
         // check if we are early
         if (cur.getPickupTimeWindow().isBeforeStart(time)) {
@@ -294,9 +275,9 @@ public final class Solvers {
         // picking up
         if (cur.getPickupTimeWindow().isAfterEnd(time)) {
           final long tardiness = time - cur.getPickupTimeWindow().end();
-          pickupTardiness += tardiness;
+          stats.pickupTardiness += tardiness;
         }
-        totalPickups++;
+        stats.totalPickups++;
       }
     }
 
@@ -307,31 +288,24 @@ public final class Solvers {
         maxSpeed, heuristic);
     final Measure<Double, Length> distance =
       snapshot.getDistanceOfPath(hp.getPath());
-    totalDistance += distance.getValue();
+    stats.totalDistance += distance.getValue();
     final double tt = hp.getTravelTime();
     time += DoubleMath.roundToLong(tt, RoundingMode.CEILING);
-    totalTravelTime += tt;
+    stats.totalTravelTime += tt;
     // check overtime
     if (vso.getDto().getAvailabilityTimeWindow().isAfterEnd(time)) {
-      overTime += time - vso.getDto().getAvailabilityTimeWindow().end();
+      stats.overTime += time - vso.getDto().getAvailabilityTimeWindow().end();
     }
-    maxTime = Math.max(maxTime, time);
+    stats.maxTime = Math.max(stats.maxTime, time);
 
     truckArrivalTimesBuilder.add(time);
-    arrivalTimesBuilder.add(truckArrivalTimesBuilder.build());
+    stats.arrivalTimesBuilder.add(truckArrivalTimesBuilder.build());
 
     if (time > state.getTime()) {
       // time has progressed -> the vehicle has moved
-      movedVehicles++;
+      stats.movedVehicles++;
     }
-    return new ExtendedStats(totalDistance, totalTravelTime, totalPickups,
-      totalDeliveries,
-      parcels.size(), parcels.size(), pickupTardiness, deliveryTardiness, 0,
-      time - state.getTime(), true, 1, overTime, 1,
-      movedVehicles, state.getTimeUnit(), state.getDistUnit(),
-      state.getSpeedUnit(),
-      arrivalTimesBuilder.build());
-
+    stats.totalParcels += parcels.size();
   }
 
   public static Callable<ImmutableList<ImmutableList<Parcel>>> createSolverCallable(
@@ -368,7 +342,6 @@ public final class Solvers {
       ImmutableSet.builder();
 
     final RoadModelSnapshot snapshot = rm.getSnapshot();
-
     for (final Vehicle v : vehicles) {
       final ImmutableSet<Parcel> contentsMap =
         ImmutableSet.copyOf(pm.getContents(v));
@@ -381,7 +354,6 @@ public final class Solvers {
 
       final VehicleStateObject vehicleState = convertToVehicleState(rm, pm, v,
         contentsMap, route, availableDestParcels);
-
       vbuilder.put(vehicleState, v);
     }
 
@@ -778,15 +750,17 @@ public final class Solvers {
     private static final long serialVersionUID = 3682772955122186862L;
     final ImmutableList<ImmutableList<Long>> arrivalTimes;
 
-    ExtendedStats(double dist, double tt, int pick, int del, int parc, int accP,
-        long pickTar, long delTar, long compT, long simT, boolean finish,
-        int atDepot, long overT, int total, int moved, Unit<Duration> time,
-        Unit<Length> distUnit, Unit<Velocity> speed,
-        ImmutableList<ImmutableList<Long>> pArrivalTimes) {
-      super(dist, tt, pick, del, parc, accP, pickTar, delTar, compT, simT,
+    ExtendedStats(MutableStats stats, long compT, long simT, boolean finish,
+        int atDepot, int totalV, Unit<Duration> time,
+        Unit<Length> distUnit, Unit<Velocity> speed) {
+
+      super(stats.totalDistance, stats.totalTravelTime, stats.totalPickups,
+        stats.totalDeliveries, stats.totalParcels, stats.totalParcels,
+        stats.pickupTardiness, stats.deliveryTardiness, compT, simT,
         finish,
-        atDepot, overT, total, moved, time, distUnit, speed);
-      arrivalTimes = pArrivalTimes;
+        atDepot, stats.overTime, totalV, stats.movedVehicles, time, distUnit,
+        speed);
+      arrivalTimes = stats.arrivalTimesBuilder.build();
     }
 
     public ImmutableList<ImmutableList<Long>> getArrivalTimes() {
@@ -838,4 +812,20 @@ public final class Solvers {
     }
   }
 
+  static class MutableStats {
+    double totalDistance;
+    double totalTravelTime;
+    int totalDeliveries;
+    int totalPickups;
+    long pickupTardiness;
+    long deliveryTardiness;
+    long overTime;
+    long maxTime;
+    int movedVehicles;
+    int totalParcels;
+    final ImmutableList.Builder<ImmutableList<Long>> arrivalTimesBuilder =
+      ImmutableList.builder();
+
+    MutableStats() {}
+  }
 }

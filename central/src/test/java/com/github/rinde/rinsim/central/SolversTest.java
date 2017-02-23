@@ -437,17 +437,18 @@ public class SolversTest {
     Graphs.addBiPath(g, a, b, c);
 
     // Build a PDPRoadModel with the graph
-    final PDPRoadModel graphRm = PDPGraphRoadModel.builderForGraphRm(
-      RoadModelBuilders.staticGraph(g).withDistanceUnit(SI.METER)
-        .withSpeedUnit(SI.METERS_PER_SECOND))
-      .withAllowVehicleDiversion(true)
-      .build(graphdp);
+    final PDPRoadModel graphRm =
+      PDPGraphRoadModel.builderForGraphRm(
+        RoadModelBuilders.staticGraph(g)
+          .withDistanceUnit(SI.METER)
+          .withSpeedUnit(SI.METERS_PER_SECOND))
+        .withAllowVehicleDiversion(true)
+        .build(graphdp);
 
     when(graphdp.get(RoadModel.class)).thenReturn(graphRm);
 
     // The test vehicle
-    final MovingTestVehicle mv1 =
-      new MovingTestVehicle(a, b, graphRm);
+    final MovingTestVehicle mv1 = new MovingTestVehicle(a, b, graphRm);
     graphRm.register(mv1);
 
     // The test parcel for the route
