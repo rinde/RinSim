@@ -45,14 +45,14 @@ import com.github.rinde.rinsim.core.model.pdp.PDPModel.VehicleParcelActionInfo;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.road.GraphRoadModel;
+import com.github.rinde.rinsim.core.model.road.RoadPath;
 import com.github.rinde.rinsim.core.model.road.RoadModelSnapshot;
 import com.github.rinde.rinsim.core.model.time.Clock;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.ConnectionData;
-import com.github.rinde.rinsim.geom.GraphHeuristics;
-import com.github.rinde.rinsim.geom.Graphs.Heuristic;
-import com.github.rinde.rinsim.geom.HeuristicPath;
+import com.github.rinde.rinsim.geom.GeomHeuristics;
+import com.github.rinde.rinsim.geom.GeomHeuristic;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
@@ -102,7 +102,7 @@ public final class Solvers {
    * statistics describe only a partial simulation. As a result
    * {@link StatisticsDTO#totalDeliveries} does not necessarily equal
    * {@link StatisticsDTO#totalPickups}. The travel times and distance are
-   * computed using {@link GraphHeuristics#euclidean()}.
+   * computed using {@link GeomHeuristics#euclidean()}.
    * @param state The state which represents a simulation.
    * @param routes Specifies the route the vehicles are currently following,
    *          must be of same size as the number of vehicles (one route per
@@ -114,7 +114,7 @@ public final class Solvers {
    */
   public static ExtendedStats computeStats(GlobalStateObject state,
       @Nullable ImmutableList<ImmutableList<Parcel>> routes) {
-    return computeStats(state, routes, GraphHeuristics.euclidean());
+    return computeStats(state, routes, GeomHeuristics.euclidean());
   }
 
   /**
@@ -141,7 +141,7 @@ public final class Solvers {
    */
   public static ExtendedStats computeStats(GlobalStateObject state,
       @Nullable ImmutableList<ImmutableList<Parcel>> routes,
-      Heuristic heuristic) {
+      GeomHeuristic heuristic) {
     final Optional<ImmutableList<ImmutableList<Parcel>>> r = Optional
       .fromNullable(routes);
 
@@ -167,7 +167,7 @@ public final class Solvers {
 
   private static void calculateStatsForVehicle(MutableStats stats,
       GlobalStateObject state, int vehicleIndex,
-      Optional<ImmutableList<ImmutableList<Parcel>>> r, Heuristic heuristic) {
+      Optional<ImmutableList<ImmutableList<Parcel>>> r, GeomHeuristic heuristic) {
 
     final Set<Parcel> parcels = new HashSet<>();
     final VehicleStateObject vso = state.getVehicles().get(vehicleIndex);
@@ -236,7 +236,7 @@ public final class Solvers {
         // vehicle is not there yet, go there first, then service
         final Point nextLoc = inCargo ? cur.getDeliveryLocation()
           : cur.getPickupLocation();
-        final HeuristicPath hp =
+        final RoadPath hp =
           snapshot.getPathTo(vehicleLocation, nextLoc, state.getTimeUnit(),
             maxSpeed, heuristic);
         final Measure<Double, Length> distance =
@@ -282,7 +282,7 @@ public final class Solvers {
     }
 
     // go to depot
-    final HeuristicPath hp =
+    final RoadPath hp =
       snapshot.getPathTo(vehicleLocation, vso.getDto().getStartPosition(),
         state.getTimeUnit(),
         maxSpeed, heuristic);

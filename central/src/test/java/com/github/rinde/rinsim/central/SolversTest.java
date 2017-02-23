@@ -69,7 +69,7 @@ import com.github.rinde.rinsim.core.model.time.TimeLapseFactory;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.Graphs;
-import com.github.rinde.rinsim.geom.Graphs.Heuristic;
+import com.github.rinde.rinsim.geom.GeomHeuristic;
 import com.github.rinde.rinsim.geom.LengthData;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.geom.TableGraph;
@@ -530,7 +530,7 @@ public class SolversTest {
    * to the depot from the starting position. Similar if a parcel is at the same
    * location as the vehicle, the distance to this parcel is zero. These paths
    * have only one element (when calculated with
-   * {@link Graphs#shortestPath(Graph, Point, Point, Heuristic)}) and the
+   * {@link Graphs#shortestPath(Graph, Point, Point, GeomHeuristic)}) and the
    * distance should be correctly interpreted as zero.
    */
   @Test

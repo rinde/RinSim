@@ -163,7 +163,7 @@ public class GraphsTest {
       MultiAttributeData.builder().setMaxSpeed(1).build());
 
     assertEquals(asList(A, B, C),
-      Graphs.shortestPath(attributeGraph, A, C, GraphHeuristics.time(50d)));
+      Graphs.shortestPath(attributeGraph, A, C, GeomHeuristics.time(50d)));
 
     attributeGraph.setConnectionData(A, D,
       MultiAttributeData.builder().setMaxSpeed(10).build());
@@ -171,7 +171,7 @@ public class GraphsTest {
       MultiAttributeData.builder().setMaxSpeed(10).build());
 
     assertEquals(asList(A, D, C),
-      Graphs.shortestPath(attributeGraph, A, C, GraphHeuristics.time(50d)));
+      Graphs.shortestPath(attributeGraph, A, C, GeomHeuristics.time(50d)));
   }
 
   @Test(expected = IllegalArgumentException.class)

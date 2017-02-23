@@ -21,8 +21,7 @@ import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
-import com.github.rinde.rinsim.geom.Graphs;
-import com.github.rinde.rinsim.geom.HeuristicPath;
+import com.github.rinde.rinsim.geom.GeomHeuristic;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.auto.value.AutoValue;
 
@@ -39,8 +38,8 @@ abstract class PlaneRoadModelSnapshot
   public abstract PlaneRoadModel getModel();
 
   @Override
-  public HeuristicPath getPathTo(Point from, Point to, Unit<Duration> timeUnit,
-      Measure<Double, Velocity> speed, Graphs.Heuristic heuristic) {
+  public RoadPath getPathTo(Point from, Point to, Unit<Duration> timeUnit,
+      Measure<Double, Velocity> speed, GeomHeuristic heuristic) {
     return getModel().getPathTo(from, to, timeUnit, speed, heuristic);
   }
 

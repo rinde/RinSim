@@ -21,9 +21,7 @@ import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
-import com.github.rinde.rinsim.geom.Graphs;
-import com.github.rinde.rinsim.geom.Graphs.Heuristic;
-import com.github.rinde.rinsim.geom.HeuristicPath;
+import com.github.rinde.rinsim.geom.GeomHeuristic;
 import com.github.rinde.rinsim.geom.Point;
 
 /**
@@ -35,9 +33,9 @@ import com.github.rinde.rinsim.geom.Point;
 public interface RoadModelSnapshot {
 
   /**
-   * Similar to
-   * {@link RoadModel#getPathTo(Point, Point, Unit, Measure, Heuristic)}, but on
-   * a static view of the {@link RoadModel}.
+   * Similar to *
+   * {@link RoadModel#getPathTo(Point, Point, Unit, Measure, GeomHeuristic)},
+   * but on a static view of the {@link RoadModel}.
    * @param from The starting point.
    * @param to The ending point.
    * @param timeUnit The unit of time.
@@ -45,10 +43,10 @@ public interface RoadModelSnapshot {
    *          this path.
    * @param heuristic The heuristic to use for finding an optimal path.
    * @return A path decorated with the heuristic value and travel time resulting
-   *         from the given {@link Heuristic}.
+   *         from the given {@link GeomHeuristic}.
    */
-  HeuristicPath getPathTo(Point from, Point to, Unit<Duration> timeUnit,
-      Measure<Double, Velocity> speed, Graphs.Heuristic heuristic);
+  RoadPath getPathTo(Point from, Point to, Unit<Duration> timeUnit,
+      Measure<Double, Velocity> speed, GeomHeuristic heuristic);
 
   /**
    * Similar to {@link RoadModel#getDistanceOfPath(Iterable)}, but on a static

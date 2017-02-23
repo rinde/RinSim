@@ -26,16 +26,16 @@ import javax.measure.unit.Unit;
 import com.google.common.base.Optional;
 
 /**
- * Default {@link Graphs.Heuristic} implementations.
+ * Default {@link GeomHeuristic} implementations.
  * @author Rinde van Lon
  */
-public final class GraphHeuristics {
-  private GraphHeuristics() {}
+public final class GeomHeuristics {
+  private GeomHeuristics() {}
 
   /**
    * @return Euclidean distance implementation.
    */
-  public static Graphs.Heuristic euclidean() {
+  public static GeomHeuristic euclidean() {
     return StaticHeuristics.EUCLIDEAN;
   }
 
@@ -45,7 +45,7 @@ public final class GraphHeuristics {
    *          case a connection doesn't specify a speed.
    * @return A new instance.
    */
-  public static Graphs.Heuristic time(double defaultMaxSpeed) {
+  public static GeomHeuristic time(double defaultMaxSpeed) {
     return new TimeGraphHeuristic(defaultMaxSpeed);
   }
 
@@ -55,11 +55,11 @@ public final class GraphHeuristics {
    *          case a connection doesn't specify a speed.
    * @return A new instance.
    */
-  public static Graphs.Heuristic theoreticalTime(double defaultMaxSpeed) {
+  public static GeomHeuristic theoreticalTime(double defaultMaxSpeed) {
     return new TheoreticalTimeGraphHeuristic(defaultMaxSpeed);
   }
 
-  enum StaticHeuristics implements Graphs.Heuristic {
+  enum StaticHeuristics implements GeomHeuristic {
 
     EUCLIDEAN {
       @Override
@@ -74,7 +74,7 @@ public final class GraphHeuristics {
 
       @Override
       public String toString() {
-        return GraphHeuristics.class.getSimpleName() + ".euclidean()";
+        return GeomHeuristics.class.getSimpleName() + ".euclidean()";
       }
 
       @Override
@@ -95,7 +95,7 @@ public final class GraphHeuristics {
     }
   }
 
-  abstract static class AbstractMadGraphHeuristic implements Graphs.Heuristic {
+  abstract static class AbstractMadGraphHeuristic implements GeomHeuristic {
     static final String R_BRACE = ")";
 
     @Nullable
@@ -182,7 +182,7 @@ public final class GraphHeuristics {
 
     @Override
     public String toString() {
-      return GraphHeuristics.class.getSimpleName() + ".time(" + defaultMaxSpeed
+      return GeomHeuristics.class.getSimpleName() + ".time(" + defaultMaxSpeed
         + R_BRACE;
     }
   }
@@ -208,7 +208,7 @@ public final class GraphHeuristics {
 
     @Override
     public String toString() {
-      return GraphHeuristics.class.getSimpleName() + ".theoreticalTime("
+      return GeomHeuristics.class.getSimpleName() + ".theoreticalTime("
         + defaultMaxSpeed + R_BRACE;
     }
   }

@@ -28,8 +28,7 @@ import javax.measure.unit.Unit;
 
 import com.github.rinde.rinsim.geom.ConnectionData;
 import com.github.rinde.rinsim.geom.Graphs;
-import com.github.rinde.rinsim.geom.Graphs.Heuristic;
-import com.github.rinde.rinsim.geom.HeuristicPath;
+import com.github.rinde.rinsim.geom.GeomHeuristic;
 import com.github.rinde.rinsim.geom.ImmutableGraph;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.auto.value.AutoValue;
@@ -51,8 +50,8 @@ abstract class GraphRoadModelSnapshot
   public abstract Unit<Length> getModelDistanceUnit();
 
   @Override
-  public HeuristicPath getPathTo(Point from, Point to, Unit<Duration> timeUnit,
-      Measure<Double, Velocity> speed, Heuristic heuristic) {
+  public RoadPath getPathTo(Point from, Point to, Unit<Duration> timeUnit,
+      Measure<Double, Velocity> speed, GeomHeuristic heuristic) {
     final List<Point> path =
       Graphs.shortestPath(getGraph(), from, to, heuristic);
 
@@ -68,7 +67,7 @@ abstract class GraphRoadModelSnapshot
         getModelDistanceUnit(), speed, timeUnit);
       prev = cur;
     }
-    return HeuristicPath.create(path, cost, travelTime);
+    return RoadPath.create(path, cost, travelTime);
   }
 
   @Override

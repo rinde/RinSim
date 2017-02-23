@@ -35,11 +35,6 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import javax.annotation.Nullable;
-import javax.measure.Measure;
-import javax.measure.quantity.Duration;
-import javax.measure.quantity.Length;
-import javax.measure.quantity.Velocity;
-import javax.measure.unit.Unit;
 
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
@@ -165,7 +160,7 @@ public final class Graphs {
    */
   public static <E extends ConnectionData> List<Point> shortestPathEuclideanDistance(
       Graph<E> graph, final Point from, final Point to) {
-    return Graphs.shortestPath(graph, from, to, GraphHeuristics.euclidean());
+    return Graphs.shortestPath(graph, from, to, GeomHeuristics.euclidean());
   }
 
   /**
@@ -178,7 +173,7 @@ public final class Graphs {
    *          <code>to</code>.
    * @param from The start position
    * @param to The end position
-   * @param h The {@link Heuristic} used in the A* implementation.
+   * @param h The {@link GeomHeuristic} used in the A* implementation.
    * @param <E> The type of connection data.
    * @return The shortest path from <code>from</code> to <code>to</code> if it
    *         exists, otherwise a {@link PathNotFoundException} is thrown.
@@ -186,7 +181,7 @@ public final class Graphs {
    *           <code>from</code> and <code>to</code>.
    */
   public static <E extends ConnectionData> List<Point> shortestPath(
-      Graph<E> graph, final Point from, final Point to, Graphs.Heuristic h) {
+      Graph<E> graph, final Point from, final Point to, GeomHeuristic h) {
     if (!graph.containsNode(from)) {
       throw new IllegalArgumentException("from should be valid node. " + from);
     }
@@ -360,37 +355,6 @@ public final class Graphs {
     }
 
     return new LinkedList<>();
-  }
-
-  /**
-   * A heuristic can be used to direct the {@link #shortestPath} algorithm, it
-   * determines the cost of traveling which should be minimized.
-   * @author Rinde van Lon
-   * @see GraphHeuristics
-   */
-  public interface Heuristic {
-    /**
-     * Can be used to estimate the cost of traveling a distance.
-     * @param graph The graph.
-     * @param from Start point of a connection.
-     * @param to End point of a connection.
-     * @return The estimate of the cost.
-     */
-    double estimateCost(Graph<?> graph, Point from, Point to);
-
-    /**
-     * Computes the cost of traveling over the connection as specified by the
-     * provided points.
-     * @param graph The graph.
-     * @param from Start point of a connection.
-     * @param to End point of a connection.
-     * @return The cost of traveling.
-     */
-    double calculateCost(Graph<?> graph, Point from, Point to);
-
-    double calculateTravelTime(Graph<?> graph, Point from, Point to,
-        Unit<Length> distanceUnit,
-        Measure<Double, Velocity> speed, Unit<Duration> outputTimeUnit);
   }
 
   // Equals is not consistent with compareTo!

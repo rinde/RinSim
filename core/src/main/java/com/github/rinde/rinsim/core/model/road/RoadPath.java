@@ -13,20 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.geom;
+package com.github.rinde.rinsim.core.model.road;
 
 import java.util.List;
 
+import com.github.rinde.rinsim.geom.GeomHeuristic;
+import com.github.rinde.rinsim.geom.Point;
 import com.google.auto.value.AutoValue;
 
 /**
  * An immutable class containing a path with a certain heuristic value and
  * travel time. The heuristic value is the result of determining the value of
- * the path by a {@link Graphs.Heuristic}.
+ * the path by a {@link GeomHeuristic}.
  * @author Vincent Van Gestel
  */
 @AutoValue
-public abstract class HeuristicPath {
+public abstract class RoadPath {
 
   /**
    * @return The actual path.
@@ -52,11 +54,11 @@ public abstract class HeuristicPath {
    *          calculated by the heuristic.
    * @return The annotated heuristic path.
    */
-  public static HeuristicPath create(
+  public static RoadPath create(
       List<Point> path,
       double value,
       double travelTime) {
-    return new AutoValue_HeuristicPath(path, value, travelTime);
+    return new AutoValue_RoadPath(path, value, travelTime);
   }
 
 }

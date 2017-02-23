@@ -33,8 +33,7 @@ import org.apache.commons.math3.random.RandomGenerator;
 import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.EventAPI;
-import com.github.rinde.rinsim.geom.Graphs.Heuristic;
-import com.github.rinde.rinsim.geom.HeuristicPath;
+import com.github.rinde.rinsim.geom.GeomHeuristic;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
@@ -355,7 +354,7 @@ public interface RoadModel extends Model<RoadUser> {
   List<Point> getShortestPathTo(Point from, Point to);
 
   /**
-   * Finds a path that is optimal according to the given {@link Heuristic}
+   * Finds a path that is optimal according to the given {@link GeomHeuristic}
    * between the points <code>from</code> and <code>to</code>.
    * @param from The starting point.
    * @param to The ending point.
@@ -366,8 +365,8 @@ public interface RoadModel extends Model<RoadUser> {
    *         for the path as well as its travel time with the given speed in the
    *         given time unit.
    */
-  HeuristicPath getPathTo(Point from, Point to, Unit<Duration> timeUnit,
-      Measure<Double, Velocity> maxSpeed, Heuristic heuristic);
+  RoadPath getPathTo(Point from, Point to, Unit<Duration> timeUnit,
+      Measure<Double, Velocity> maxSpeed, GeomHeuristic heuristic);
 
   /**
    * Determines the distance of the given path, indicated by a list of

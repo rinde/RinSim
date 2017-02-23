@@ -33,8 +33,7 @@ import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.ConnectionData;
 import com.github.rinde.rinsim.geom.Graph;
-import com.github.rinde.rinsim.geom.Graphs;
-import com.github.rinde.rinsim.geom.HeuristicPath;
+import com.github.rinde.rinsim.geom.GeomHeuristic;
 import com.github.rinde.rinsim.geom.ImmutableGraph;
 import com.github.rinde.rinsim.geom.ListenableGraph;
 import com.github.rinde.rinsim.geom.ListenableGraph.EventTypes;
@@ -231,8 +230,8 @@ public class DynamicGraphRoadModelImpl
   }
 
   @Override
-  public HeuristicPath getPathTo(Point from, Point to, Unit<Duration> timeUnit,
-      Measure<Double, Velocity> speed, Graphs.Heuristic heuristic) {
+  public RoadPath getPathTo(Point from, Point to, Unit<Duration> timeUnit,
+      Measure<Double, Velocity> speed, GeomHeuristic heuristic) {
     if (!snapshot.isPresent()) {
       updateSnapshot();
     }

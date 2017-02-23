@@ -35,8 +35,7 @@ import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.EventAPI;
-import com.github.rinde.rinsim.geom.Graphs;
-import com.github.rinde.rinsim.geom.HeuristicPath;
+import com.github.rinde.rinsim.geom.GeomHeuristic;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
@@ -204,8 +203,8 @@ public class ForwardingRoadModel<T extends GenericRoadModel>
   }
 
   @Override
-  public HeuristicPath getPathTo(Point from, Point to, Unit<Duration> timeUnit,
-      Measure<Double, Velocity> speed, Graphs.Heuristic heuristic) {
+  public RoadPath getPathTo(Point from, Point to, Unit<Duration> timeUnit,
+      Measure<Double, Velocity> speed, GeomHeuristic heuristic) {
     return delegate().getPathTo(from, to, timeUnit, speed, heuristic);
   }
 
