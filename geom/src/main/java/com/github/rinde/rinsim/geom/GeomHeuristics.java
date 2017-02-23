@@ -15,6 +15,8 @@
  */
 package com.github.rinde.rinsim.geom;
 
+import java.io.Serializable;
+
 import javax.annotation.Nullable;
 import javax.measure.Measure;
 import javax.measure.quantity.Duration;
@@ -95,8 +97,10 @@ public final class GeomHeuristics {
     }
   }
 
-  abstract static class AbstractMadGraphHeuristic implements GeomHeuristic {
+  abstract static class AbstractMadGraphHeuristic
+      implements GeomHeuristic, Serializable {
     static final String R_BRACE = ")";
+    private static final long serialVersionUID = -7111352777954197889L;
 
     @Nullable
     private Graph<?> lastGraph;
@@ -162,6 +166,7 @@ public final class GeomHeuristics {
   }
 
   static class TimeGraphHeuristic extends AbstractMadGraphHeuristic {
+    private static final long serialVersionUID = -6345403509228982348L;
     private final double defaultMaxSpeed;
 
     TimeGraphHeuristic(double defaultMxSpeed) {
@@ -188,6 +193,7 @@ public final class GeomHeuristics {
   }
 
   static class TheoreticalTimeGraphHeuristic extends AbstractMadGraphHeuristic {
+    private static final long serialVersionUID = -6217012477994541697L;
     private final double defaultMaxSpeed;
 
     TheoreticalTimeGraphHeuristic(double speed) {
