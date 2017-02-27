@@ -7,27 +7,22 @@ Are you having trouble with running RinSim? See the [troubleshooting tips](#trou
 
 ##Instructions:
 
-1. Open IntelliJ IDEA, choose ``Create New Project`` <br/>
-![New](tutorial_intellij/1.png)
-<br/><br/> 
+1. Open IntelliJ IDEA, choose ``Create New Project``
+<img src="tutorial_intellij/1.png" width="400">
 
-2. Choose ``Maven`` on the left and click ``Next >``<br/>
-![New](tutorial_intellij/2.png)
-<br/><br/>
+2. Choose ``Maven`` on the left and click ``Next >``
+<img src="tutorial_intellij/2.png" width="800">
 
 3. For ``Group Id:`` choose a unique _personal_ identifier, often a reversed Internet domain name is used for this. For ``Artifact Id:`` choose an identifier for your project.<br/>
-Click ``Next``<br/>
-![New](tutorial_intellij/3.png)
-<br/><br/>
+Click ``Next``
+<img src="tutorial_intellij/3.png" width="800">
 
 4. Choose a name and a location for your project.<br/>
-Click ``Finish``<br/>
-![New](tutorial_intellij/4.png)
-<br/><br/>
+Click ``Finish``
+<img src="tutorial_intellij/4.png" width="800">
 
-5. In your ``Package Explorer`` you should see the following: <br/>
-![New](tutorial_intellij/5.png)
-<br/>
+5. In your ``Package Explorer`` you should see the following:
+<img src="tutorial_intellij/5.png" width="300">
 Note that by default Maven uses (the ancient) Java 1.5. Since RinSim requires at least Java 1.7 we will change this in the next steps.
 
 6. Open the ``pom.xml`` file.
@@ -54,25 +49,21 @@ Note that by default Maven uses (the ancient) Java 1.5. Since RinSim requires at
 				</configuration>
 			</plugin>
 		</plugins>
-	</build> 
-    ``` 
+	</build>
+    ```
 
-8. Replace ``x.y.z`` with the current latest version (the latest version is shown [here](https://github.com/rinde/RinSim/)). The pom file should now look similar to this: <br/>
-![New](tutorial_intellij/6.png)
-<br/><br/>
+8. Replace ``x.y.z`` with the current latest version (the latest version is shown [here](https://github.com/rinde/RinSim/)). The pom file should now look similar to this:
+<img src="tutorial_intellij/6.png" width="800">
  Check that the ``JRE System Library`` as shown by Eclipse is version 1.7 (or higher), if this isn't the case it often helps to force Maven to update the project: right click on your project -> ``Maven`` -> ``Update Project..``. If that doesn't work it may be that Eclipse can't find a correct Java version in which case you need to update your Eclipse settings.
 
-9. Maven will now start downloading the dependencies. When it is done, make sure your can find the ``rinsim-example-x.y.z.jar`` in your ``Project Explorer``:<br/>
-![New](tutorial_intellij/7.png)
-<br/><br/>
+9. Maven will now start downloading the dependencies. When it is done, make sure your can find the ``rinsim-example-x.y.z.jar`` in your ``Project Explorer``:
+<img src="tutorial_intellij/7.png" width="300">
 
-10. Open ``rinsim-example-x.y.z.jar`` -> Find ``SimpleExample`` -> Right click -> ``Run 'SimpleExample.main()'`` <br/>
-![New](tutorial_intellij/8.png)
-<br/><br/>
+10. Open ``rinsim-example-x.y.z.jar`` -> Find ``SimpleExample`` -> Right click -> ``Run 'SimpleExample.main()'``
+<img src="tutorial_intellij/8.png" width="500">
 
-11. You will see the following window, add ``-XstartOnFirstThread`` to ``VM options`` and select your project in ``Use classpath of module``. Click ``Apply`` and then ``Run``<br/>
-![New](tutorial_intellij/9.png)
-<br/><br/>
+11. You will see the following window, add ``-XstartOnFirstThread`` to ``VM options`` and select your project in ``Use classpath of module``. Click ``Apply`` and then ``Run``
+<img src="tutorial_intellij/9.png" width="500">
 
 12. You should now see the following window:<br/>
 ![New](tutorial/5e.png)<br/>
