@@ -1,38 +1,36 @@
 # How to run RinSim examples
 
 Are you having trouble with running RinSim? See the [troubleshooting tips](#troubleshooting).
-This tutorial is for Eclipse users. Tutorial for IntelliJ users can be found [here](howtorun_intellij.md)
 ##Prerequisites: 
 
-- __installed__ [Eclipse 4.2 or later](http://www.eclipse.org/)
-- __installed__ [Maven plugin for Eclipse](http://www.eclipse.org/m2e/)
+- __installed__ [IntelliJ IDEA](https://www.jetbrains.com/idea/)
 
 ##Instructions:
 
-1. Open Eclipse, choose ``File`` -> ``New`` -> ``Project...`` <br/> 
-![New](tutorial/1a.png) ![Project](tutorial/1b.png)
+1. Open IntelliJ IDEA, choose ``Create New Project`` <br/>
+![New](tutorial_intellij/1.png)
 <br/><br/> 
 
-2. Choose ``Maven Project`` and click ``Next >``<br/> 
-![New](tutorial/2a.png)
+2. Choose ``Maven`` on the left and click ``Next >``<br/>
+![New](tutorial_intellij/2.png)
 <br/><br/>
 
-3. Check ``Create a simple project (skip archetype selection)`` and click ``Next >``  ![New](tutorial/2b.png) 
-<br/><br/> 
+3. For ``Group Id:`` choose a unique _personal_ identifier, often a reversed Internet domain name is used for this. For ``Artifact Id:`` choose an identifier for your project.<br/>
+Click ``Next``<br/>
+![New](tutorial_intellij/3.png)
+<br/><br/>
 
-4. For ``Group Id:`` choose a unique _personal_ identifier, often a reversed Internet domain name is used for this. For ``Artifact Id:`` choose an identifier for your project.<br/>
+4. Choose a name and a location for your project.<br/>
 Click ``Finish``<br/>
-![New](tutorial/2c.png)
-<br/><br/> 
+![New](tutorial_intellij/4.png)
+<br/><br/>
 
 5. In your ``Package Explorer`` you should see the following: <br/>
-![New](tutorial/3.png)
+![New](tutorial_intellij/5.png)
 <br/>
 Note that by default Maven uses (the ancient) Java 1.5. Since RinSim requires at least Java 1.7 we will change this in the next steps.
 
-6. Open the ``pom.xml`` file with the ``Maven POM Editor``. Choose the ``pom.xml`` tab in the bottom. <br/>
-![New](tutorial/4a.png)
-<br/>
+6. Open the ``pom.xml`` file.
 
 7. You will see an XML view of the file. Add (paste) the following XML code between the ``project`` tags. Make sure to not overwrite the existing XML tags.
     ```xml
@@ -60,32 +58,32 @@ Note that by default Maven uses (the ancient) Java 1.5. Since RinSim requires at
     ``` 
 
 8. Replace ``x.y.z`` with the current latest version (the latest version is shown [here](https://github.com/rinde/RinSim/)). The pom file should now look similar to this: <br/>
-![New](tutorial/4b.png)
+![New](tutorial_intellij/6.png)
 <br/><br/>
-Check that the ``JRE System Library`` as shown by Eclipse is version 1.7 (or higher), if this isn't the case it often helps to force Maven to update the project: right click on your project -> ``Maven`` -> ``Update Project..``. If that doesn't work it may be that Eclipse can't find a correct Java version in which case you need to update your Eclipse settings.
+ Check that the ``JRE System Library`` as shown by Eclipse is version 1.7 (or higher), if this isn't the case it often helps to force Maven to update the project: right click on your project -> ``Maven`` -> ``Update Project..``. If that doesn't work it may be that Eclipse can't find a correct Java version in which case you need to update your Eclipse settings.
 
-8. Maven will now start downloading the dependencies. When it is done, make sure your can find the ``rinsim-example-x.y.z.jar`` in your ``Package Explorer``:<br/>
-![New](tutorial/5a.png)
-<br/><br/>
-
-9. Right click ``rinsim-example-x.y.z.jar`` -> ``Run As`` -> ``Java Application``<br/>
-![New](tutorial/5b.png)![New](tutorial/5c.png)
+9. Maven will now start downloading the dependencies. When it is done, make sure your can find the ``rinsim-example-x.y.z.jar`` in your ``Project Explorer``:<br/>
+![New](tutorial_intellij/7.png)
 <br/><br/>
 
-10. You will see the following window, select ``SimpleExample`` and click ``Ok``<br/>
-![New](tutorial/5d.png)
+10. Open ``rinsim-example-x.y.z.jar`` -> Find ``SimpleExample`` -> Right click -> ``Run 'SimpleExample.main()'`` <br/>
+![New](tutorial_intellij/8.png)
 <br/><br/>
 
-11. You should now see the following window:<br/>
+11. You will see the following window, add ``-XstartOnFirstThread`` to ``VM options`` and select your project in ``Use classpath of module``. Click ``Apply`` and then ``Run``<br/>
+![New](tutorial_intellij/9.png)
+<br/><br/>
+
+12. You should now see the following window:<br/>
 ![New](tutorial/5e.png)<br/>
 Congratualations, Your setup is complete, you can start working with RinSim!
 Click ``Control`` -> ``Play`` to start the simulation. For more information about the other available examples, click [here](../example/README.md).
 
-__Protip__: you can download the sources of RinSim and all other dependencies by right clicking your project -> ``Maven`` -> ``Download Sources``
+__Protip__: you can download the sources of RinSim and all other dependencies by right clicking your project -> ``Maven`` -> ``Download Sources and Documentation``
 
 ## Troubleshooting
 
-- When Maven is complaining and you are sure you followed all instructions, force the Maven plugin to update. Right click on your project -> ``Maven`` -> ``Update Project..``.
+- When Maven is complaining and you are sure you followed all instructions, force the Maven plugin to update. Right click on your project -> ``Maven`` -> ``Reimport``.
 
 - When Maven says it cannot find one of your dependencies and you are sure that you have configured your pom file correctly you can inspect your local Maven repository. The local maven repository is stored in your user folder: ``~/.m2/``. You can choose to delete the entire repository or only the dependencies that cause trouble. As soon as Maven detects that some dependencies are gone it will attempt to redownload them.
 
