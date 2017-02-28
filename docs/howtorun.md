@@ -84,6 +84,14 @@ __Protip__: you can download the sources of RinSim and all other dependencies by
 
 ## Troubleshooting
 
+- You might see this message in the console:
+  ```
+  SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
+  SLF4J: Defaulting to no-operation (NOP) logger implementation
+  SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
+  ```
+  This is not a critical error, what it means is that [SLF4J](https://www.slf4j.org/), the logging framework used by RinSim, can't find an implementation at runtime. This means that logging is disabled unless you include an implementation of the SLF4J framework.
+
 - When Maven is complaining and you are sure you followed all instructions, force the Maven plugin to update. Right click on your project -> ``Maven`` -> ``Update Project..``.
 
 - When Maven says it cannot find one of your dependencies and you are sure that you have configured your pom file correctly you can inspect your local Maven repository. The local maven repository is stored in your user folder: ``~/.m2/``. You can choose to delete the entire repository or only the dependencies that cause trouble. As soon as Maven detects that some dependencies are gone it will attempt to redownload them.
