@@ -30,12 +30,12 @@ import javax.measure.unit.SI;
 
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Monitor;
 
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
+import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.Listener;
@@ -43,6 +43,7 @@ import com.github.rinde.rinsim.examples.demo.swarm.SwarmDemo;
 import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.Graphs;
 import com.github.rinde.rinsim.geom.LengthData;
+import com.github.rinde.rinsim.geom.ListenableGraph;
 import com.github.rinde.rinsim.geom.MultimapGraph;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.ui.View;
@@ -107,27 +108,7 @@ public final class FactoryExample {
   public static Simulator run(final long endTime, Display display,
       @Nullable Monitor m, @Nullable Listener list) {
 
-    final Rectangle rect;
-    if (m != null) {
-      if (list != null) {
-        rect = m.getClientArea();
-      } else {
-        // full screen
-        rect = m.getBounds();
-      }
-    } else {
-      rect = display.getPrimaryMonitor().getClientArea();
-    }
-
-    List<String> words = asList(" BioCo3 \nDistriNet");
-    // spacing between vertical lines in line units
-
-    // screen
-    if (rect.width == FULL_HD_W) {
-      // AgentWise\nKU Leuven", "iMinds\nDistriNet"
-      // " Agent \n Wise ", " Distri \n Net "
-      words = asList(" iMinds \nDistriNet");
-    }
+    final List<String> words = asList("KU Leuven\nDistriNet");
 
     final ImmutableList<ImmutableList<Point>> points = createPoints(words);
     final Graph<?> g = createGraph(points);
@@ -165,12 +146,11 @@ public final class FactoryExample {
     final Simulator simulator = Simulator
       .builder()
       .setRandomGenerator(rng)
-      .addModel(
-        BlockingGraphRoadModel.blockingBuilder(g)
-          .withDistanceUnit(SI.METER)
-          .withSpeedUnit(NonSI.KILOMETERS_PER_HOUR))
-      .addModel(
-        DefaultPDPModel.builder())
+      .addModel(RoadModelBuilders.dynamicGraph(new ListenableGraph<>(g))
+        .withDistanceUnit(SI.METER)
+        .withSpeedUnit(NonSI.KILOMETERS_PER_HOUR)
+        .withCollisionAvoidance())
+      .addModel(DefaultPDPModel.builder())
       .addModel(
         AgvModel.builder().withPoints(
           ImmutableList.<ImmutableList<Point>>builder()

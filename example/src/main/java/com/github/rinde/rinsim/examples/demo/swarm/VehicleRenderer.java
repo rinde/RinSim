@@ -62,8 +62,10 @@ final class VehicleRenderer extends AbstractCanvasRenderer {
   }
 
   @AutoValue
-  abstract static class Builder extends
-      AbstractModelBuilder<VehicleRenderer, Void> {
+  abstract static class Builder
+      extends AbstractModelBuilder<VehicleRenderer, Void> {
+    private static final long serialVersionUID = -5497962300581400051L;
+
     Builder() {
       setDependencies(RoadModel.class);
     }

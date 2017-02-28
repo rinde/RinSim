@@ -22,6 +22,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
@@ -113,12 +115,17 @@ class BoxRenderer extends AbstractCanvasRenderer {
     }
   }
 
+  @SuppressWarnings("unused")
   void drawBox(Parcel p, GC gc, ViewPort vp, long time, Image image,
       Map<Parcel, Vehicle> mapping) {
     float rotation = AT_SITE_ROTATION;
     int offsetX = 0;
     int offsetY = 0;
+    @Nullable
     final ParcelState ps = pdpModel.getParcelState(p);
+    if (ps == null) {
+      return;
+    }
     if (ps == ParcelState.AVAILABLE) {
       final Point pos = roadModel.getPosition(p);
       final int x = vp.toCoordX(pos.x);

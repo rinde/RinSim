@@ -48,7 +48,7 @@ import com.google.auto.value.AutoValue;
 
 class DemoPanel extends AbstractModel<Void>
     implements PanelRenderer, Listener {
-  static final int PREFERRED_SIZE = 30;
+  static final int PREFERRED_SIZE = 60;
   static final double SPACING = 30d;
   static final int CHARS = 30;
 
@@ -136,6 +136,7 @@ class DemoPanel extends AbstractModel<Void>
 
   @AutoValue
   abstract static class Builder extends AbstractModelBuilder<DemoPanel, Void> {
+    private static final long serialVersionUID = -8886596136398574470L;
 
     Builder() {
       setDependencies(RoadModel.class, RandomProvider.class);

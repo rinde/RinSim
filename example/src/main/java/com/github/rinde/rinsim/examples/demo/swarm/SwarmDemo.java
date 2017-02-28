@@ -49,12 +49,12 @@ import com.google.common.collect.ImmutableList;
  */
 public final class SwarmDemo {
 
-  static final int FONT_SIZE = 12;
+  static final int FONT_SIZE = 24;
   static final double FONT_SPACING = 30d;
   static final long RANDOM_SEED = 123L;
   static final int SPEED_UP = 8;
   static final Point MIN_POINT = new Point(0, 0);
-  static final Point MAX_POINT = new Point(4500, 1200);
+  static final Point MAX_POINT = new Point(6000, 1000);
   static final double MAX_SPEED = 1000d;
   static final int WHITE_THRESHOLD = (int) Math.pow(2, 24) / 2 - 1;
 
@@ -67,15 +67,25 @@ public final class SwarmDemo {
    * @param args No args.
    */
   public static void main(String[] args) {
-    final String string = "AgentWise";
+    final String string =
+      "KU Leuven Computer Science\nimec-DistriNet AgentWise";
     final List<Point> points =
       measureString(string, FONT_SIZE, FONT_SPACING, 0);
+
+    double maxX = MAX_POINT.x;
+    double maxY = MAX_POINT.y;
+
+    for (final Point p : points) {
+      maxX = Math.max(p.x, maxX);
+      maxY = Math.max(p.y, maxY);
+    }
+    final Point max = new Point(maxX, maxY);
 
     final RandomGenerator rng = new MersenneTwister(RANDOM_SEED);
     final Simulator sim = Simulator.builder()
       .addModel(RoadModelBuilders.plane()
         .withMinPoint(MIN_POINT)
-        .withMaxPoint(MAX_POINT)
+        .withMaxPoint(max)
         .withDistanceUnit(SI.METER)
         .withSpeedUnit(NonSI.KILOMETERS_PER_HOUR)
         .withMaxSpeed(MAX_SPEED))
