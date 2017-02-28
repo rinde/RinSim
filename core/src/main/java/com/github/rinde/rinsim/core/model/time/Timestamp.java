@@ -15,6 +15,8 @@
  */
 package com.github.rinde.rinsim.core.model.time;
 
+import java.io.Serializable;
+
 import com.google.auto.value.AutoValue;
 
 /**
@@ -22,7 +24,8 @@ import com.google.auto.value.AutoValue;
  * @author Rinde van Lon
  */
 @AutoValue
-public abstract class Timestamp {
+public abstract class Timestamp implements Serializable {
+  private static final long serialVersionUID = 4952394924947361518L;
 
   Timestamp() {}
 

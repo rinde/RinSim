@@ -17,6 +17,8 @@ package com.github.rinde.rinsim.core.model.time;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import java.io.Serializable;
+
 import com.google.auto.value.AutoValue;
 
 /**
@@ -26,7 +28,8 @@ import com.google.auto.value.AutoValue;
  * @author Rinde van Lon
  */
 @AutoValue
-public abstract class RealtimeTickInfo {
+public abstract class RealtimeTickInfo implements Serializable {
+  private static final long serialVersionUID = -5816920529507582235L;
 
   RealtimeTickInfo() {}
 
