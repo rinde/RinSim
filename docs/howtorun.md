@@ -1,6 +1,8 @@
 # How to run RinSim examples
 
 Are you having trouble with running RinSim? See the [troubleshooting tips](#troubleshooting).
+
+This tutorial is for Eclipse users. Tutorial for IntelliJ users can be found [here](howtorun_intellij.md).
 ##Prerequisites: 
 
 - __installed__ [Eclipse 4.2 or later](http://www.eclipse.org/)
