@@ -1,0 +1,10 @@
+_site/
+.sass-cache/
+.jekyll-metadata
+_pdf
+.idea/
+.DS_Store
+vendor/
+pdf/
+pdfconfigs/
+licenses/
