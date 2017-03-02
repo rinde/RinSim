@@ -3,7 +3,7 @@ title: Installation troubleshooting
 keywords: [installation, eclipse]
 sidebar: installation_sidebar
 toc: false
-permalink: installation_troubleshooting.html
+permalink: /installation/troubleshooting/
 folder: installation
 ---
 

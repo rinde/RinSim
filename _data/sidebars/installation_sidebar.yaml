@@ -11,17 +11,17 @@ entries:
     output: web, pdf
     folderitems:
       - title: Quick installation
-        url: /installation.html
+        url: /installation/
         output: web, pdf
       - title: Eclipse
-        url: /installation_eclipse.html
+        url: /installation/eclipse/
         output: web, pdf
 
       - title: IntelliJ
-        url: /installation_intellij.html
+        url: /installation/intellij/
         output: web, pdf
       - title: Troubleshooting
-        url: /installation_troubleshooting.html
+        url: /installation/troubleshooting/
         output: web, pdf
 
   # - title: Getting Started
