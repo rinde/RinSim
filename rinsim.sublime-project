@@ -1,0 +1,11 @@
+{
+	"folders":
+    [
+        {
+            "path": ".",
+            "name": "RinSim documentation",
+            "folder_exclude_patterns": ["vendor"]
+        }
+    ],
+}
+

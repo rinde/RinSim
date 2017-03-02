@@ -16,6 +16,3 @@ toc: false
 
 RinSim is an extensible logistics simulator with support for (de)centralized algorithms for pickup and delivery problems and AGV routing. The simulator focuses on __simplicity__ and __consistency__ making it ideal for performing scientific simulations. Further, software quality is a priority resulting in an ever improving test suite and documentation.
 
-
-
-<!-- ![PDPModel](docs/topbar.png) -->
