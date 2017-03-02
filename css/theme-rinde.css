@@ -14,18 +14,24 @@ body {
 
 :root{
     --foreground:#333333;
-    --foreground2:#666666;
+    --foreground2:#BC534B;
 }
-
+/* http://paletton.com/#uid=32I1a0kt+lZlOstrKqzzSiaJidt */
+/* http://paletton.com/#uid=7030u0k006qjenBjenB006q006q */
 
 h3 {color: #E50E51; }
 h4 {color: #808080; }
+
+.nav a:hover, .nav li.active > a {
+    background-color: #BC534B;
+    color: #f5f5f5;
+}
 
 .navbar-inverse .navbar-nav > .active > a,
 .navbar-inverse .navbar-nav > .active > a:hover,
 .navbar-inverse .navbar-nav > .active > a:focus {
   color: #ffffff;
-  background-color: #dca92e;
+  background-color: #BC534B;
 }
 
 .nav-tabs > li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus {

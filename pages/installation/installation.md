@@ -7,7 +7,7 @@ permalink: /installation/
 folder: installation
 ---
 
-RinSim uses [Maven](http://maven.apache.org/) for managing its dependencies. The core module of RinSim can be added to your Maven project by including the following in your pom file, where x, y, and z represents the preferred version number. More detailed instructions are available for [Eclipse](installation_eclipse.html) and [IntelliJ](installation_intellij.html).
+RinSim uses [Maven](http://maven.apache.org/) for managing its dependencies. The core module of RinSim can be added to your Maven project by including the following in your pom file, where x, y, and z represents the preferred version number. More detailed instructions are available for [Eclipse](/installation/eclipse/) and [IntelliJ](/installation/intellij/).
 
 ```xml
 <dependency>
