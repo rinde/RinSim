@@ -2,7 +2,7 @@
 title: RinSim
 keywords: home
 tags: 
-permalink: index.html
+permalink: /
 sidebar:
 toc: false
 ---

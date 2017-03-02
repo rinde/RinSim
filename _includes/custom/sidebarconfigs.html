@@ -4,15 +4,8 @@
 {% elsif page.sidebar == "installation_sidebar" %}
 {% assign sidebar = site.data.sidebars.installation_sidebar.entries %}
 
-
-{% elsif page.sidebar == "product1_sidebar" %}
-{% assign sidebar = site.data.sidebars.product1_sidebar.entries %}
-
-{% elsif page.sidebar == "product2_sidebar" %}
-{% assign sidebar = site.data.sidebars.product2_sidebar.entries %}
-
-{% elsif page.sidebar == "mydoc_sidebar" %}
-{% assign sidebar = site.data.sidebars.mydoc_sidebar.entries %}
+{% elsif page.sidebar == "about_sidebar" %}
+{% assign sidebar = site.data.sidebars.about_sidebar.entries %}
 
 {% else %}
 {% assign sidebar = site.data.sidebars.home_sidebar.entries %}

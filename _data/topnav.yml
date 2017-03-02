@@ -4,17 +4,17 @@ topnav:
 - title: Topnav
   items:
     - title: About
-      url: /about_index.html
+      url: /about/
     - title: Installation
-      url: /installation_index.html
+      url: /installation/
     - title: Design
-      url: /design
+      url: /design/
     # - title: JavaDoc
     #   external_url: https://javadoc.io/doc/com.github.rinde/rinsim-core
     - title: Tutorials
-      url: /tutorials
+      url: /tutorials/
     - title: Examples
-      url: /examples
+      url: /examples/
 
 
 # Topnav dropdowns

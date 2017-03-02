@@ -11,7 +11,7 @@ entries:
     output: web, pdf
     folderitems:
       - title: Quick installation
-        url: /installation_index.html
+        url: /installation.html
         output: web, pdf
       - title: Eclipse
         url: /installation_eclipse.html

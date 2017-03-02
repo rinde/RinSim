@@ -18,6 +18,8 @@ company_name: Rinde van Lon
 # disqus_shortname: idrbwjekyll
 # if you're using disqus for comments, add the shortname here. if not, leave this value blank.
 
+permalink: pretty
+
 host: 127.0.0.1
 # the preview server used. Leave as is.
 
