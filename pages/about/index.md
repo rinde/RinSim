@@ -11,6 +11,10 @@ RinSim is developed at [AgentWise](http://distrinet.cs.kuleuven.be/research/task
 
 RinSim is used in both research and education. Several publications rely on RinSim for their experiments and RinSim is used in a course on multi-agent systems as a testbed for students.
 
+## How to cite RinSim
+
+TODO
+
 ## License
 
 ```

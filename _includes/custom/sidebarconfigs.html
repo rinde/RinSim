@@ -1,11 +1,20 @@
 {% if page.sidebar == "home_sidebar" %}
 {% assign sidebar = site.data.sidebars.home_sidebar.entries %}
 
+{% elsif page.sidebar == "about_sidebar" %}
+{% assign sidebar = site.data.sidebars.about_sidebar.entries %}
+
 {% elsif page.sidebar == "installation_sidebar" %}
 {% assign sidebar = site.data.sidebars.installation_sidebar.entries %}
 
-{% elsif page.sidebar == "about_sidebar" %}
-{% assign sidebar = site.data.sidebars.about_sidebar.entries %}
+{% elsif page.sidebar == "design_sidebar" %}
+{% assign sidebar = site.data.sidebars.design_sidebar.entries %}
+
+{% elsif page.sidebar == "tutorials_sidebar" %}
+{% assign sidebar = site.data.sidebars.tutorials_sidebar.entries %}
+
+{% elsif page.sidebar == "examples_sidebar" %}
+{% assign sidebar = site.data.sidebars.examples_sidebar.entries %}
 
 {% else %}
 {% assign sidebar = site.data.sidebars.home_sidebar.entries %}

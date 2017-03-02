@@ -15,3 +15,9 @@ entries:
       - title: Contributors
         url: /about/contributors/
         output: web, pdf
+      - title: Papers about RinSim
+        url: /about/papers/
+        output: web, pdf
+      - title: Papers using RinSim
+        url: /about/citations/
+        output: web, pdf

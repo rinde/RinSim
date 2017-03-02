@@ -1,0 +1,37 @@
+# This is your sidebar TOC. The sidebar code loops through sections here and provides the appropriate formatting.
+
+entries:
+- title: Examples
+  product:
+  version:
+  folders:
+
+  - title: Examples
+    output: web, pdf
+    folderitems:
+      - title: Overview
+        url: /examples/
+        output: web, pdf
+
+  - title: Core examples
+    output: web, pdf
+    folderitems:
+      - title: Simple
+        url: /examples/core/simple/
+        output: web, pdf
+      - title: Agent communication
+        url: /examples/core/agentcommunication/
+        output: web, pdf
+      - title: Taxi
+        url: /examples/core/taxi/
+        output: web, pdf
+      - title: Warehouse
+        url: /examples/core/warehouse/
+        output: web, pdf
+  - title: Problem examples
+    output: web, pdf
+    folderitems:
+      - title: Gradient field
+        url: /examples/problem/gradientfield/
+        output: web, pdf
+
