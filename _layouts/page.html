@@ -39,11 +39,7 @@ layout: default
     {% endunless %}
 
 
-    {% if site.github_editme_path %}
-
-    <a target="_blank" href="https://github.com/{{site.github_editme_path}}{% unless page.url contains "index.html" %}pages/{% endunless %}{{page.folder}}{{page.url | remove: ".html" | append: ".md"}}" class="btn btn-default githubEditButton" role="button"><i class="fa fa-github fa-lg"></i> Edit me</a>
-
-    {% endif %}
+    
 
   {{content}}
 
@@ -65,6 +61,6 @@ layout: default
 
 </div>
 
-{{site.data.alerts.hr_shaded}}
+<!-- {{site.data.alerts.hr_shaded}} -->
 
 {% include footer.html %}

@@ -4,6 +4,7 @@ keywords: [about]
 sidebar: about_sidebar
 toc: false
 permalink: /about/
+folder: about
 ---
 
 RinSim is developed at [AgentWise](http://distrinet.cs.kuleuven.be/research/taskforces/agentwise) in the [imec-DistriNet group](http://distrinet.cs.kuleuven.be/) at the [Department of Computer Science, KU Leuven, Belgium](http://www.cs.kuleuven.be/). The lead developer is [Rinde van Lon](http://distrinet.cs.kuleuven.be/people/rinde). Valuable contributions were made by Bartosz Michalik and Robrecht Haesevoets.
