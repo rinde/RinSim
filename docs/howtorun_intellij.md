@@ -62,7 +62,7 @@ Note that by default Maven uses (the ancient) Java 1.5. Since RinSim requires at
 10. Open ``rinsim-example-x.y.z.jar`` -> Find ``SimpleExample`` -> Right click -> ``Run 'SimpleExample.main()'``<br/>
 <img src="tutorial_intellij/8.png" width="500">
 
-11. You will see the following window, add ``-XstartOnFirstThread`` to ``VM options`` and select your project in ``Use classpath of module``. Click ``Apply`` and then ``Run``<br/>
+11. You will see the following window. Select your project in ``Use classpath of module``. (If you are a Mac user, add ``-XstartOnFirstThread`` to ``VM options``, otherwise, just leave ``VM options`` empty) Click ``Apply`` and then ``Run``<br/>
 <img src="tutorial_intellij/9.png" width="500">
 
 12. You should now see the following window:<br/>
