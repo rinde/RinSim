@@ -7,8 +7,6 @@
 {% elsif page.sidebar == "installation_sidebar" %}
 {% assign sidebar = site.data.sidebars.installation_sidebar.entries %}
 
-{% elsif page.sidebar == "design_sidebar" %}
-{% assign sidebar = site.data.sidebars.design_sidebar.entries %}
 
 {% elsif page.sidebar == "tutorials_sidebar" %}
 {% assign sidebar = site.data.sidebars.tutorials_sidebar.entries %}
@@ -17,7 +15,7 @@
 {% assign sidebar = site.data.sidebars.examples_sidebar.entries %}
 
 {% else %}
-{% assign sidebar = site.data.sidebars.home_sidebar.entries %}
+{% assign sidebar = nil %}
 {% endif %}
 
 

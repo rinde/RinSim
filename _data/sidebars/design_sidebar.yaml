@@ -1,0 +1,32 @@
+# This is your sidebar TOC. The sidebar code loops through sections here and provides the appropriate formatting.
+
+entries:
+- title: Design
+  product:
+  version:
+  folders:
+
+  - title: Overview
+    output: web, pdf
+    folderitems:
+      - title: Overview
+        url: /design/
+        output: web, pdf
+  - title: Core module
+    output: web, pdf
+    folderitems:
+      - title: Overview
+        url: /design/core/
+        output: web, pdf
+      - title: TimeModel
+        url: /design/core/timemodel/
+        output: web, pdf
+      - title: RoadModel
+        url: /design/core/roadmodel/
+        output: web, pdf
+  - title: User interface
+    output: web, pdf
+    folderitems:
+  - title: Cli
+    output: web, pdf
+    folderitems:

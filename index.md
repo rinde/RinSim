@@ -25,7 +25,7 @@ RinSim is an extensible logistics simulator with support for (de)centralized alg
  - <span class="glyphicon glyphicon-stats"></span> Support for statistics gathering.
  - <i class="fa fa-history"></i> Supports saving and loading problem scenarios, a scenario constitutes a sequence of (dynamic) events. There is a flexible API for creating scenarios based on probability distributions. 
  - <i class="fa fa-cubes"></i> Support for centralized and decentralized algorithms.
- - <i class="fa fa-coffee"></i> Supports Java 7 and higher, is on Maven Central.
+ - <i class="fa fa-coffee"></i> Supports Java 7 and higher, available on Maven Central.
 
 
 ### Problem domains 
