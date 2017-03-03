@@ -8,22 +8,18 @@ body {
     background-color: #DDDDDD;
 }
 
-/*active {
-    background-color: yellow;
-}*/
-
 :root{
     --foreground:#333333;
-    --foreground2:#BC534B;
+    --foreground2:#e96a2a;
 }
 /* http://paletton.com/#uid=32I1a0kt+lZlOstrKqzzSiaJidt */
 /* http://paletton.com/#uid=7030u0k006qjenBjenB006q006q */
 
-h3 {color: #E50E51; }
+h3 {color: #222222 }
 h4 {color: #808080; }
 
 .nav a:hover, .nav li.active > a {
-    background-color: #BC534B;
+    background-color: var(--foreground2);
     color: #f5f5f5;
 }
 
@@ -31,7 +27,7 @@ h4 {color: #808080; }
 .navbar-inverse .navbar-nav > .active > a:hover,
 .navbar-inverse .navbar-nav > .active > a:focus {
   color: #ffffff;
-  background-color: #BC534B;
+  background-color: var(--foreground2);
 }
 
 .nav-tabs > li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus {
