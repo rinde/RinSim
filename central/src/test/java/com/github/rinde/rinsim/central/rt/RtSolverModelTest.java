@@ -30,6 +30,7 @@ import javax.measure.unit.SI;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import com.github.rinde.rinsim.central.GlobalStateObject;
 import com.github.rinde.rinsim.central.Solver;
@@ -51,6 +52,7 @@ import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
+import com.github.rinde.rinsim.testutil.RealtimeTests;
 import com.github.rinde.rinsim.testutil.TestUtil;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -60,6 +62,7 @@ import com.google.common.collect.ImmutableSet;
  * Test for {@link RtSolverModel}.
  * @author Rinde van Lon
  */
+@Category(RealtimeTests.class)
 public class RtSolverModelTest {
 
   @SuppressWarnings("null")
