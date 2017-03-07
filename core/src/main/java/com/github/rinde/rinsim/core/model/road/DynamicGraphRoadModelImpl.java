@@ -32,8 +32,8 @@ import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.ConnectionData;
-import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.GeomHeuristic;
+import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.ImmutableGraph;
 import com.github.rinde.rinsim.geom.ListenableGraph;
 import com.github.rinde.rinsim.geom.ListenableGraph.EventTypes;
@@ -83,7 +83,8 @@ public class DynamicGraphRoadModelImpl
   protected DynamicGraphRoadModelImpl(ListenableGraph<?> g,
       RoadModelBuilders.AbstractDynamicGraphRMB<?, ?> b) {
     super(g, b);
-    getGraph().getEventAPI().addListener(new GraphModificationChecker(this));
+    getGraph().getEventAPI()
+      .addListener(new GraphModificationChecker(this, b.isModCheckEnabled()));
     connMap = LinkedHashMultimap.create();
     posMap = LinkedHashMultimap.create();
     snapshot = Optional.absent();
@@ -258,9 +259,12 @@ public class DynamicGraphRoadModelImpl
       + "changed or removed: %s.";
 
     private final DynamicGraphRoadModelImpl model;
+    private final boolean isCheckingEnabled;
 
-    GraphModificationChecker(DynamicGraphRoadModelImpl pModel) {
+    GraphModificationChecker(DynamicGraphRoadModelImpl pModel,
+        boolean enabled) {
       model = pModel;
+      isCheckingEnabled = enabled;
     }
 
     @Override
@@ -268,8 +272,9 @@ public class DynamicGraphRoadModelImpl
       verify(e instanceof GraphEvent);
       model.snapshot = Optional.absent();
       final GraphEvent ge = (GraphEvent) e;
-      if (ge.getEventType() == EventTypes.REMOVE_CONNECTION
-        || ge.getEventType() == EventTypes.CHANGE_CONNECTION_DATA) {
+      if (isCheckingEnabled
+        && (ge.getEventType() == EventTypes.REMOVE_CONNECTION
+          || ge.getEventType() == EventTypes.CHANGE_CONNECTION_DATA)) {
 
         final Connection<?> conn = ge.getConnection();
         checkState(
@@ -278,11 +283,13 @@ public class DynamicGraphRoadModelImpl
             + " or removed: %s.",
           conn.from(), conn.to(), model.connMap.get(conn), ge.getEventType());
 
+        // check if this is the last connection connected to from()
         if (model.posMap.containsKey(conn.from())) {
           checkState(
             ge.getGraph().containsNode(conn.from()), UNMODIFIABLE_MSG,
             conn.from(), conn.from(), conn.to(), ge.getEventType());
         }
+        // check if this is the last connection connected to to()
         if (model.posMap.containsKey(conn.to())) {
           checkState(
             ge.getGraph().containsNode(conn.to()), UNMODIFIABLE_MSG,

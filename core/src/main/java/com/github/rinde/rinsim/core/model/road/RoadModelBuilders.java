@@ -199,11 +199,36 @@ public final class RoadModelBuilders {
    */
   public abstract static class AbstractDynamicGraphRMB<T extends DynamicGraphRoadModel, S>
       extends AbstractGraphRMB<T, S, ListenableGraph<?>> {
+    static final boolean DEFAULT_MOD_CHECK = true;
+    private static final long serialVersionUID = 3364846541093473765L;
 
     /**
-     *
+     * Allows to enable or disable graph modification checking. When graph
+     * modification checking is enabled, modifications of the
+     * {@link ListenableGraph} are checked to prevent inconsistent state in the
+     * model. An example of an invalid modification is the removal (or change of
+     * connection data) of a connection with a road user on it. It is the
+     * responsibility of the user to ensure that graph modifications are
+     * consistent, the modification check merely throws an
+     * {@link IllegalStateException} when such an inconsistency is detected.
+     * Adding a custom modification checker can be done by adding a listener to
+     * the specified {@link ListenableGraph}.
+     * <p>
+     * <b>Warning:</b> disabling this check may result in an inconsistent model,
+     * <i>without any exception thrown to indicate so</i>.
+     * @param enabled <code>true</code> means enabled, <code>false</code> means
+     *          disabled. Default: <code>true</code>.
+     * @return A new builder instance.
      */
-    private static final long serialVersionUID = 5715632391773718598L;
+    public abstract S withModificationCheck(boolean enabled);
+
+    @Override
+    protected abstract Supplier<ListenableGraph<?>> getGraphSupplier();
+
+    /**
+     * @return Whether the graph modification checker is enabled.
+     */
+    protected abstract boolean isModCheckEnabled();
   }
 
   /**
@@ -381,9 +406,6 @@ public final class RoadModelBuilders {
 
     private static final long serialVersionUID = 7269626100558413212L;
 
-    @Override
-    protected abstract Supplier<ListenableGraph<?>> getGraphSupplier();
-
     /**
      * Will return a new builder that constructs {@link CollisionGraphRoadModel}
      * instances instead of {@link DynamicGraphRoadModel} instances. Note that
@@ -398,13 +420,21 @@ public final class RoadModelBuilders {
     }
 
     @Override
+    public DynamicGraphRMB withModificationCheck(boolean enabled) {
+      return create(getDistanceUnit(), getSpeedUnit(), getGraphSupplier(),
+        enabled);
+    }
+
+    @Override
     public DynamicGraphRMB withDistanceUnit(Unit<Length> unit) {
-      return create(unit, getSpeedUnit(), getGraphSupplier());
+      return create(unit, getSpeedUnit(), getGraphSupplier(),
+        isModCheckEnabled());
     }
 
     @Override
     public DynamicGraphRMB withSpeedUnit(Unit<Velocity> unit) {
-      return create(getDistanceUnit(), unit, getGraphSupplier());
+      return create(getDistanceUnit(), unit, getGraphSupplier(),
+        isModCheckEnabled());
     }
 
     @Override
@@ -420,15 +450,17 @@ public final class RoadModelBuilders {
 
     static DynamicGraphRMB create(
         Supplier<? extends ListenableGraph<?>> graphSupplier) {
-      return create(DEFAULT_DISTANCE_UNIT, DEFAULT_SPEED_UNIT, graphSupplier);
+      return create(DEFAULT_DISTANCE_UNIT, DEFAULT_SPEED_UNIT, graphSupplier,
+        DEFAULT_MOD_CHECK);
     }
 
     @SuppressWarnings("unchecked")
     static DynamicGraphRMB create(Unit<Length> distanceUnit,
         Unit<Velocity> speedUnit,
-        Supplier<? extends ListenableGraph<?>> graphSupplier) {
+        Supplier<? extends ListenableGraph<?>> graphSupplier,
+        boolean isGmcEnabled) {
       return new AutoValue_RoadModelBuilders_DynamicGraphRMB(distanceUnit,
-        speedUnit, (Supplier<ListenableGraph<?>>) graphSupplier);
+        speedUnit, (Supplier<ListenableGraph<?>>) graphSupplier, isGmcEnabled);
     }
   }
 
@@ -500,9 +532,6 @@ public final class RoadModelBuilders {
         DynamicGraphRoadModel.class, CollisionGraphRoadModel.class);
     }
 
-    @Override
-    protected abstract Supplier<ListenableGraph<?>> getGraphSupplier();
-
     abstract double getVehicleLength();
 
     abstract double getMinDistance();
@@ -524,7 +553,13 @@ public final class RoadModelBuilders {
       checkArgument(Doubles.isFinite(length),
         "%s is not a valid vehicle length.", length);
       return create(getDistanceUnit(), getSpeedUnit(), getGraphSupplier(),
-        length, getMinDistance());
+        isModCheckEnabled(), length, getMinDistance());
+    }
+
+    @Override
+    public CollisionGraphRMB withModificationCheck(boolean enabled) {
+      return create(getDistanceUnit(), getSpeedUnit(), getGraphSupplier(),
+        enabled, getVehicleLength(), getMinDistance());
     }
 
     /**
@@ -540,19 +575,19 @@ public final class RoadModelBuilders {
     public CollisionGraphRMB withMinDistance(double dist) {
       checkArgument(dist >= 0d);
       return create(getDistanceUnit(), getSpeedUnit(), getGraphSupplier(),
-        getVehicleLength(), dist);
+        isModCheckEnabled(), getVehicleLength(), dist);
     }
 
     @Override
     public CollisionGraphRMB withDistanceUnit(Unit<Length> unit) {
       return create(unit, getSpeedUnit(), getGraphSupplier(),
-        getVehicleLength(), getMinDistance());
+        isModCheckEnabled(), getVehicleLength(), getMinDistance());
     }
 
     @Override
     public CollisionGraphRMB withSpeedUnit(Unit<Velocity> unit) {
       return create(getDistanceUnit(), unit, getGraphSupplier(),
-        getVehicleLength(), getMinDistance());
+        isModCheckEnabled(), getVehicleLength(), getMinDistance());
     }
 
     @Override
@@ -565,8 +600,7 @@ public final class RoadModelBuilders {
       final double minConnectionLength = getVehicleLength();
       checkArgument(
         getMinDistance() <= minConnectionLength,
-        "Min distance must be smaller than 2 * vehicle length (%s), but is "
-          + "%s.",
+        "Min distance must be smaller than 2 * vehicle length (%s), but is %s.",
         getVehicleLength(), getMinDistance());
       final ListenableGraph<?> graph = getGraph();
 
@@ -585,17 +619,18 @@ public final class RoadModelBuilders {
 
     static CollisionGraphRMB create(DynamicGraphRMB builder) {
       return create(builder.getDistanceUnit(), builder.getSpeedUnit(),
-        builder.getGraphSupplier(), DEFAULT_VEHICLE_LENGTH,
-        DEFAULT_MIN_DISTANCE);
+        builder.getGraphSupplier(), builder.isModCheckEnabled(),
+        DEFAULT_VEHICLE_LENGTH, DEFAULT_MIN_DISTANCE);
     }
 
     static CollisionGraphRMB create(Unit<Length> distanceUnit,
         Unit<Velocity> speedUnit,
         Supplier<ListenableGraph<?>> graphSupplier,
+        boolean isGmcEnabled,
         double vehicleLength,
         double minDistance) {
       return new AutoValue_RoadModelBuilders_CollisionGraphRMB(distanceUnit,
-        speedUnit, graphSupplier, vehicleLength, minDistance);
+        speedUnit, graphSupplier, isGmcEnabled, vehicleLength, minDistance);
     }
   }
 }
