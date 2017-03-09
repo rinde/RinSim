@@ -21,10 +21,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newLinkedHashMap;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -51,12 +48,12 @@ import com.google.common.collect.Sets;
  *          object locations. This location representation should only be used
  *          internally in the model.
  */
-public abstract class AbstractRoadModel<T> extends GenericRoadModel {
+public abstract class AbstractRoadModel extends GenericRoadModel {
 
   /**
    * A mapping of {@link RoadUser} to location.
    */
-  protected volatile Map<RoadUser, T> objLocs;
+  // protected volatile SpatialRegistry objLocs;
 
   /**
    * A mapping of {@link MovingRoadUser}s to {@link DestinationPath}s.
@@ -78,9 +75,11 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
       Unit<Velocity> speedUnit) {
     super();
     unitConversion = new RoadUnits(distanceUnit, speedUnit);
-    objLocs = Collections.synchronizedMap(new LinkedHashMap<RoadUser, T>());
+    // objLocs = new MapSpatialRegistry();
     objDestinations = newLinkedHashMap();
   }
+
+  protected abstract SpatialRegistry registry();
 
   /**
    * A function for converting the location representation to a {@link Point}.
@@ -88,7 +87,7 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
    * @return A {@link Point} indicating the position as represented by the
    *         specified location.
    */
-  protected abstract Point locObj2point(T locObj);
+  // protected abstract Point locObj2point(T locObj);
 
   /**
    * A function for converting a {@link Point} to the location representation of
@@ -96,12 +95,12 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
    * @param point The {@link Point} to be converted.
    * @return The location.
    */
-  protected abstract T point2LocObj(Point point);
+  // protected abstract T point2LocObj(Point point);
 
   @Override
   public MoveProgress followPath(MovingRoadUser object, Queue<Point> path,
       TimeLapse time) {
-    checkArgument(objLocs.containsKey(object),
+    checkArgument(registry().containsObject(object),
       "Object: %s must have a location.", object);
     checkArgument(!path.isEmpty(),
       "Path can not be empty, found empty path for %s.", object);
@@ -160,29 +159,29 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
 
   @Override
   public void addObjectAt(RoadUser newObj, Point pos) {
-    checkArgument(!objLocs.containsKey(newObj), "Object is already added: %s.",
-      newObj);
-    objLocs.put(newObj, point2LocObj(pos));
+    checkArgument(!registry().containsObject(newObj),
+      "Object is already added: %s.", newObj);
+    registry().addAt(newObj, pos);
     eventDispatcher.dispatchEvent(new RoadModelEvent(
       RoadEventType.ADD_ROAD_USER, this, newObj));
   }
 
   @Override
   public void addObjectAtSamePosition(RoadUser newObj, RoadUser existingObj) {
-    checkArgument(!objLocs.containsKey(newObj), "Object %s is already added.",
-      newObj);
-    checkArgument(objLocs.containsKey(existingObj),
+    checkArgument(!registry().containsObject(newObj), "Object %s is already "
+      + "added.", newObj);
+    checkArgument(registry().containsObject(existingObj),
       "Object %s does not exist.", existingObj);
-    objLocs.put(newObj, objLocs.get(existingObj));
+    registry().addAt(newObj, registry().getPosition(existingObj));
     eventDispatcher.dispatchEvent(new RoadModelEvent(
       RoadEventType.ADD_ROAD_USER, this, newObj));
   }
 
   @Override
   public void removeObject(RoadUser roadUser) {
-    checkArgument(objLocs.containsKey(roadUser),
+    checkArgument(registry().containsObject(roadUser),
       "RoadUser: %s does not exist.", roadUser);
-    objLocs.remove(roadUser);
+    registry().removeObject(roadUser);
     objDestinations.remove(roadUser);
     eventDispatcher.dispatchEvent(new RoadModelEvent(
       RoadEventType.REMOVE_ROAD_USER, this, roadUser));
@@ -190,19 +189,19 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
 
   @Override
   public void clear() {
-    objLocs.clear();
+    registry().clear();
     objDestinations.clear();
   }
 
   @Override
   public boolean containsObject(RoadUser obj) {
-    return objLocs.containsKey(obj);
+    return registry().containsObject(obj);
   }
 
   @Override
   public boolean containsObjectAt(RoadUser obj, Point p) {
     if (containsObject(obj)) {
-      return objLocs.get(obj).equals(p);
+      return registry().getPosition(obj).equals(p);
     }
     return false;
   }
@@ -215,25 +214,27 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
 
   @Override
   public Map<RoadUser, Point> getObjectsAndPositions() {
-    final Map<RoadUser, T> copiedMap;
-    synchronized (objLocs) {
-      copiedMap = new LinkedHashMap<>();
-      copiedMap.putAll(objLocs);
-      // it is save to release the lock now
-    }
-
-    final Map<RoadUser, Point> theMap = new LinkedHashMap<>();
-    for (final java.util.Map.Entry<RoadUser, T> entry : copiedMap.entrySet()) {
-      theMap.put(entry.getKey(), locObj2point(entry.getValue()));
-    }
-    return theMap;
+    // final Map<RoadUser, T> copiedMap;
+    // synchronized (registry()) {
+    // copiedMap = new LinkedHashMap<>();
+    // copiedMap.putAll(registry());
+    // // it is save to release the lock now
+    // }
+    //
+    // final Map<RoadUser, Point> theMap = new LinkedHashMap<>();
+    // for (final java.util.Map.Entry<RoadUser, T> entry : copiedMap.entrySet())
+    // {
+    // theMap.put(entry.getKey(), locObj2point(entry.getValue()));
+    // }
+    // return theMap;
+    return registry().getObjectsAndPositions();
   }
 
   @Override
   public Point getPosition(RoadUser roadUser) {
     checkArgument(containsObject(roadUser), "RoadUser does not exist: %s.",
       roadUser);
-    return locObj2point(objLocs.get(roadUser));
+    return registry().getPosition(roadUser);
   }
 
   @Override
@@ -243,11 +244,12 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
 
   @Override
   public Set<RoadUser> getObjects() {
-    synchronized (objLocs) {
-      final Set<RoadUser> copy = new LinkedHashSet<>();
-      copy.addAll(objLocs.keySet());
-      return copy;
-    }
+    // synchronized (registry()) {
+    // final Set<RoadUser> copy = new LinkedHashSet<>();
+    // copy.addAll(registry().keySet());
+    // return copy;
+    // }
+    return registry().getObjects();
   }
 
   @Override
@@ -280,14 +282,14 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
 
   @Override
   public List<Point> getShortestPathTo(RoadUser fromObj, RoadUser toObj) {
-    checkArgument(objLocs.containsKey(toObj),
+    checkArgument(registry().containsObject(toObj),
       "To object (%s) should be in RoadModel.", toObj);
     return getShortestPathTo(fromObj, getPosition(toObj));
   }
 
   @Override
   public List<Point> getShortestPathTo(RoadUser fromObj, Point to) {
-    checkArgument(objLocs.containsKey(fromObj),
+    checkArgument(registry().containsObject(fromObj),
       "From object (%s) should be in RoadModel.", fromObj);
     return getShortestPathTo(getPosition(fromObj), to);
   }
@@ -310,6 +312,10 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
     return false;
   }
 
+  /**
+   * See {@link GenericRoadModel.RoadEventType} for the list of available event
+   * types. {@inheritDoc}
+   */
   @Override
   public final EventAPI getEventAPI() {
     return eventDispatcher.getPublicEventAPI();

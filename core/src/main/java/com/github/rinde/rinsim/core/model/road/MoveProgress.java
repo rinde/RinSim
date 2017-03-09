@@ -25,7 +25,6 @@ import javax.measure.Measure;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
 
-import com.github.rinde.rinsim.core.model.road.GraphRoadModelImpl.Loc;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.auto.value.AutoValue;
@@ -109,9 +108,7 @@ public abstract class MoveProgress {
      * @return This, as per the builder pattern.
      */
     public Builder addNode(Point node) {
-      if (!(node instanceof Loc) || !((Loc) node).isOnConnection()) {
-        traveledNodes.add(node);
-      }
+      traveledNodes.add(node);
       return this;
     }
 

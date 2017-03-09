@@ -579,6 +579,11 @@ class SpeedyRoadUser implements MovingRoadUser {
     return speed;
   }
 
+  @Override
+  public String toString() {
+    return getClass().getSimpleName() + "(" + speed + ")";
+  }
+
 }
 
 class TestRoadUser extends TrivialRoadUser {

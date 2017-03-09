@@ -19,15 +19,12 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Verify.verify;
 
-import java.util.Queue;
-
 import javax.measure.Measure;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
-import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.geom.Connection;
@@ -41,8 +38,6 @@ import com.github.rinde.rinsim.geom.ListenableGraph.GraphEvent;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Multimap;
 
 /**
  * {@link GraphRoadModelImpl} that allows adding and removing connections and
@@ -72,9 +67,6 @@ public class DynamicGraphRoadModelImpl
    */
   protected Optional<GraphRoadModelSnapshot> snapshot;
 
-  final Multimap<Connection<?>, RoadUser> connMap;
-  final Multimap<Point, RoadUser> posMap;
-
   /**
    * Creates a new instance.
    * @param g The graph to use.
@@ -85,65 +77,59 @@ public class DynamicGraphRoadModelImpl
     super(g, b);
     getGraph().getEventAPI()
       .addListener(new GraphModificationChecker(this, b.isModCheckEnabled()));
-    connMap = LinkedHashMultimap.create();
-    posMap = LinkedHashMultimap.create();
     snapshot = Optional.absent();
   }
 
-  @Override
-  public void addObjectAt(RoadUser newObj, Point pos) {
-    posMap.put(pos, newObj);
-    super.addObjectAt(newObj, pos);
-  }
+  // @Override
+  // public void addObjectAtSamePosition(RoadUser newObj, RoadUser existingObj)
+  // {
+  // super.addObjectAtSamePosition(newObj, existingObj);
+  // final Loc loc = objLocs.getPosition(newObj);
+  // if (loc.isOnConnection()) {
+  // final Connection<? extends ConnectionData> conn = loc.conn.get();
+  // connMap.put(conn, newObj);
+  // } else {
+  // posMap.put(loc, newObj);
+  // }
+  // }
 
-  @Override
-  public void addObjectAtSamePosition(RoadUser newObj, RoadUser existingObj) {
-    super.addObjectAtSamePosition(newObj, existingObj);
-    final Loc loc = objLocs.get(newObj);
-    if (loc.isOnConnection()) {
-      final Connection<? extends ConnectionData> conn = loc.conn.get();
-      connMap.put(conn, newObj);
-    } else {
-      posMap.put(loc, newObj);
-    }
-  }
-
-  @Override
-  public void clear() {
-    super.clear();
-    connMap.clear();
-    posMap.clear();
-  }
+  // @Override
+  // public void clear() {
+  // super.clear();
+  // connMap.clear();
+  // posMap.clear();
+  // }
 
   @Override
   public ListenableGraph<?> getGraph() {
     return (ListenableGraph<? extends ConnectionData>) graph;
   }
 
-  @Override
-  protected MoveProgress doFollowPath(MovingRoadUser object, Queue<Point> path,
-      TimeLapse time) {
-    final Loc prevLoc = objLocs.get(object);
-    if (prevLoc.isOnConnection()) {
-      connMap.remove(prevLoc.conn.get(), object);
-    } else {
-      posMap.remove(prevLoc, object);
-    }
-    final MoveProgress mp;
-    try {
-      mp = super.doFollowPath(object, path, time);
-    } catch (final IllegalArgumentException e) {
-      throw e;
-    } finally {
-      final Loc newLoc = objLocs.get(object);
-      if (newLoc.isOnConnection()) {
-        connMap.put(newLoc.conn.get(), object);
-      } else {
-        posMap.put(newLoc, object);
-      }
-    }
-    return mp;
-  }
+  // @Override
+  // protected MoveProgress doFollowPath(MovingRoadUser object, Queue<Point>
+  // path,
+  // TimeLapse time) {
+  // final Point prevLoc = registry().getPosition(object);
+  // if (registry().isOnConnection(object)) {
+  // connMap.remove(prevLoc.conn.get(), object);
+  // } else {
+  // posMap.remove(prevLoc, object);
+  // }
+  // final MoveProgress mp;
+  // try {
+  // mp = super.doFollowPath(object, path, time);
+  // } catch (final IllegalArgumentException e) {
+  // throw e;
+  // } finally {
+  // final Loc newLoc = objLocs.getPosition(object);
+  // if (newLoc.isOnConnection()) {
+  // connMap.put(newLoc.conn.get(), object);
+  // } else {
+  // posMap.put(newLoc, object);
+  // }
+  // }
+  // return mp;
+  // }
 
   /**
    * Checks whether there is a {@link RoadUser} on the connection between
@@ -160,8 +146,9 @@ public class DynamicGraphRoadModelImpl
   @Override
   public boolean hasRoadUserOn(Point from, Point to) {
     checkConnectionsExists(from, to);
-    return connMap.containsKey(graph.getConnection(from, to))
-      || posMap.containsKey(from) || posMap.containsKey(to);
+    return registry().hasRoadUserOn(graph.getConnection(from, to))
+      || registry().hasRoadUserOn(from)
+      || registry().hasRoadUserOn(to);
   }
 
   /**
@@ -178,18 +165,12 @@ public class DynamicGraphRoadModelImpl
   @Override
   public ImmutableSet<RoadUser> getRoadUsersOn(Point from, Point to) {
     checkConnectionsExists(from, to);
-    final ImmutableSet.Builder<RoadUser> builder = ImmutableSet.builder();
     final Connection<?> conn = graph.getConnection(from, to);
-    if (connMap.containsKey(conn)) {
-      builder.addAll(connMap.get(conn));
-    }
-    if (posMap.containsKey(from)) {
-      builder.addAll(posMap.get(from));
-    }
-    if (posMap.containsKey(to)) {
-      builder.addAll(posMap.get(to));
-    }
-    return builder.build();
+    return ImmutableSet.<RoadUser>builder()
+      .addAll(registry().getRoadUsersOn(conn))
+      .addAll(registry().getRoadUsersOn(from))
+      .addAll(registry().getRoadUsersOn(to))
+      .build();
   }
 
   /**
@@ -205,10 +186,7 @@ public class DynamicGraphRoadModelImpl
   public ImmutableSet<RoadUser> getRoadUsersOnNode(Point node) {
     checkArgument(graph.containsNode(node),
       "The specified point (%s) is not a node in the graph.", node);
-    if (posMap.containsKey(node)) {
-      return ImmutableSet.copyOf(posMap.get(node));
-    }
-    return ImmutableSet.of();
+    return ImmutableSet.copyOf(registry().getRoadUsersOn(node));
   }
 
   void checkConnectionsExists(Point from, Point to) {
@@ -216,19 +194,19 @@ public class DynamicGraphRoadModelImpl
       "There is no connection between %s and %s.", from, to);
   }
 
-  @Override
-  public void removeObject(RoadUser object) {
-    checkArgument(objLocs.containsKey(object),
-      "RoadUser: %s does not exist.", object);
-    final Loc prevLoc = objLocs.get(object);
-    if (prevLoc.isOnConnection()) {
-      final Connection<? extends ConnectionData> conn = prevLoc.conn.get();
-      connMap.remove(conn, object);
-    } else {
-      posMap.remove(prevLoc, object);
-    }
-    super.removeObject(object);
-  }
+  // @Override
+  // public void removeObject(RoadUser object) {
+  // checkArgument(objLocs.containsObject(object),
+  // "RoadUser: %s does not exist.", object);
+  // final Loc prevLoc = objLocs.getPosition(object);
+  // if (prevLoc.isOnConnection()) {
+  // final Connection<? extends ConnectionData> conn = prevLoc.conn.get();
+  // connMap.remove(conn, object);
+  // } else {
+  // posMap.remove(prevLoc, object);
+  // }
+  // super.removeObject(object);
+  // }
 
   @Override
   public RoadPath getPathTo(Point from, Point to, Unit<Duration> timeUnit,
@@ -278,19 +256,22 @@ public class DynamicGraphRoadModelImpl
 
         final Connection<?> conn = ge.getConnection();
         checkState(
-          !model.connMap.containsKey(conn),
+          !model.registry().hasRoadUserOn(conn),
           "A connection (%s->%s) with an object (%s) on it can not be changed"
             + " or removed: %s.",
-          conn.from(), conn.to(), model.connMap.get(conn), ge.getEventType());
+          conn.from(), conn.to(), model.registry().getRoadUsersOn(conn),
+          ge.getEventType());
 
-        // check if this is the last connection connected to from()
-        if (model.posMap.containsKey(conn.from())) {
+        // if from() is occupied, check if this is the last connection connected
+        // to from()
+        if (model.registry().hasRoadUserOn(conn.from())) {
           checkState(
             ge.getGraph().containsNode(conn.from()), UNMODIFIABLE_MSG,
             conn.from(), conn.from(), conn.to(), ge.getEventType());
         }
-        // check if this is the last connection connected to to()
-        if (model.posMap.containsKey(conn.to())) {
+        // if to() is occupied, check if this is the last connection connected
+        // to to()
+        if (model.registry().hasRoadUserOn(conn.to())) {
           checkState(
             ge.getGraph().containsNode(conn.to()), UNMODIFIABLE_MSG,
             conn.to(), conn.from(), conn.to(), ge.getEventType());

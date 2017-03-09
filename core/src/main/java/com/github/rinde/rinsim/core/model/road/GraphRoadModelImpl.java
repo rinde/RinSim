@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Queue;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.measure.Measure;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
@@ -36,12 +35,11 @@ import javax.measure.unit.Unit;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
-import com.github.rinde.rinsim.core.model.road.GraphRoadModelImpl.Loc;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.ConnectionData;
-import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.GeomHeuristic;
+import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.ImmutableGraph;
 import com.github.rinde.rinsim.geom.MultiAttributeData;
 import com.github.rinde.rinsim.geom.Point;
@@ -61,7 +59,7 @@ import com.google.common.math.DoubleMath;
  * @author Rinde van Lon
  * @author Bartosz Michalik changes wrt. models infrastructure
  */
-public class GraphRoadModelImpl extends AbstractRoadModel<Loc>
+public class GraphRoadModelImpl extends AbstractRoadModel
     implements GraphRoadModel {
 
   /**
@@ -79,6 +77,8 @@ public class GraphRoadModelImpl extends AbstractRoadModel<Loc>
    */
   private final RoadModelSnapshot snapshot;
 
+  private final GraphSpatialRegistry registry;
+
   /**
    * Creates a new instance using the specified {@link Graph} as road structure.
    * The default units are used as defined by {@link AbstractRoadModel}.
@@ -91,13 +91,20 @@ public class GraphRoadModelImpl extends AbstractRoadModel<Loc>
     graph = g;
     snapshot = GraphRoadModelSnapshot.create(
       ImmutableGraph.copyOf(graph), b.getDistanceUnit());
+
+    registry = new GraphSpatialRegistry(new MapSpatialRegistry());
+  }
+
+  @Override
+  protected GraphSpatialRegistry registry() {
+    return registry;
   }
 
   @Override
   public void addObjectAt(RoadUser newObj, Point pos) {
     checkArgument(graph.containsNode(pos),
       "Object must be initiated on a crossroad.");
-    super.addObjectAt(newObj, asLoc(pos));
+    super.addObjectAt(newObj, pos);
   }
 
   /**
@@ -127,8 +134,8 @@ public class GraphRoadModelImpl extends AbstractRoadModel<Loc>
    * @param timeUnit Unit in which <code>timeLeft</code> is expressed.
    * @return The distance that can be traveled, must be &ge; 0.
    */
-  protected double computeTravelableDistance(Loc from, Point to, double speed,
-      long timeLeft, Unit<Duration> timeUnit) {
+  protected double computeTravelableDistance(Point from, Point to,
+      double speed, long timeLeft, Unit<Duration> timeUnit) {
     return speed * unitConversion.toInTime(timeLeft, timeUnit);
   }
 
@@ -142,15 +149,16 @@ public class GraphRoadModelImpl extends AbstractRoadModel<Loc>
    * @return <code>true</code> if the object should keep moving,
    *         <code>false</code> otherwise.
    */
-  protected boolean keepMoving(Loc curLoc, Queue<Point> path, TimeLapse time) {
+  protected boolean keepMoving(Point curLoc, Queue<Point> path,
+      TimeLapse time) {
     return time.hasTimeLeft() && !path.isEmpty();
   }
 
   @Override
   protected MoveProgress doFollowPath(MovingRoadUser object, Queue<Point> path,
       TimeLapse time) {
-    final Loc objLoc = verifyLocation(objLocs.get(object));
-    Loc tempLoc = objLoc;
+    final Point objLoc = verifyLocation(registry().getPosition(object));
+    Point tempLoc = objLoc;
     final MoveProgress.Builder mpBuilder = MoveProgress.builder(unitConversion,
       time);
 
@@ -158,21 +166,23 @@ public class GraphRoadModelImpl extends AbstractRoadModel<Loc>
     long timeLeft = time.getTimeLeft();
     while (timeLeft > 0 && !path.isEmpty() && cont) {
       checkMoveValidity(tempLoc, path.peek());
+
+      final Point peekLoc = path.peek();
       // speed in internal speed unit
-      final double speed = getMaxSpeed(object, tempLoc, path.peek());
+      final double speed = getMaxSpeed(object, tempLoc, peekLoc);
       checkState(speed >= 0,
         "Found a bug in getMaxSpeed, return value must be >= 0, but is %s.",
         speed);
       // distance that can be traveled in current conn with timeleft
       final double travelableDistance = computeTravelableDistance(tempLoc,
-        path.peek(), speed, timeLeft, time.getTimeUnit());
+        peekLoc, speed, timeLeft, time.getTimeUnit());
       checkState(
         travelableDistance >= 0d,
         "Found a bug in computeTravelableDistance, return value must be >= 0,"
           + " but is %s.",
         travelableDistance);
       final double connLength = unitConversion.toInDist(
-        computeDistanceOnConnection(tempLoc, path.peek()));
+        computeDistanceOnConnection(tempLoc, peekLoc));
       checkState(
         connLength >= 0d,
         "Found a bug in computeDistanceOnConnection, return value must be "
@@ -183,27 +193,31 @@ public class GraphRoadModelImpl extends AbstractRoadModel<Loc>
       if (travelableDistance >= connLength) {
         // jump to next node in path (this may be a node or a point on a
         // connection)
-        tempLoc = verifyLocation(asLoc(path.remove()));
+        tempLoc = verifyLocation(path.remove());
         traveledDistance = connLength;
-        mpBuilder.addNode(tempLoc);
+
+        if (!registry().isOnConnection(tempLoc)) {
+          mpBuilder.addNode(tempLoc);
+        }
+        registry().addAt(object, tempLoc);
       } else {
         // travelableDistance < connLength
         cont = false;
         traveledDistance = travelableDistance;
-        final Connection<?> conn = getConnection(tempLoc, path.peek());
-        tempLoc = verifyLocation(newLoc(conn, tempLoc.relativePos
-          + unitConversion.toExDist(travelableDistance)));
+        final Connection<?> conn = getConnection(tempLoc, peekLoc);
+
+        final double relPos = registry().getRelativePosition(tempLoc)
+          + unitConversion.toExDist(travelableDistance);
+        tempLoc = registry().addAt(object, conn, relPos, DELTA);
       }
       mpBuilder.addDistance(traveledDistance);
       final long timeSpent = DoubleMath.roundToLong(
-        unitConversion.toExTime(traveledDistance / speed,
-          time.getTimeUnit()),
+        unitConversion.toExTime(traveledDistance / speed, time.getTimeUnit()),
         RoundingMode.HALF_DOWN);
       timeLeft -= timeSpent;
     }
     time.consume(time.getTimeLeft() - timeLeft);
-    // update location and construct a MoveProgress object
-    objLocs.put(object, tempLoc);
+    // Construct a MoveProgress object
     return mpBuilder.build();
   }
 
@@ -214,38 +228,47 @@ public class GraphRoadModelImpl extends AbstractRoadModel<Loc>
    * @param nextHop The destination node.
    * @throws IllegalArgumentException if it the proposed move is invalid.
    */
-  protected void checkMoveValidity(Loc objLoc, Point nextHop) {
-    // in case we start from an conn and our next destination is to go to
+  protected void checkMoveValidity(Point objLoc, Point nextHop) {
+    // in case we start from a conn and our next destination is to go to
     // the end of the current conn then its ok. Otherwise more checks are
     // required..
-    if (objLoc.isOnConnection() && !nextHop.equals(objLoc.conn.get().to())) {
-      // check if next destination is a MidPoint
+    final boolean objIsOnConn = registry().isOnConnection(objLoc);
+
+    if (objIsOnConn
+      && !nextHop.equals(registry().getConnection(objLoc).to())) {
+      // check if next destination is on a connection
       checkArgument(
-        nextHop instanceof Loc,
+        registry().isOnConnection(nextHop),
         "Illegal path for this object, from a position on a connection we can"
           + " not jump to another connection or go back. From %s, to %s.",
         objLoc, nextHop);
-      final Loc dest = (Loc) nextHop;
+
       // check for same conn
-      checkArgument(
-        objLoc.isOnSameConnection(dest),
+      final Connection<?> objConn = registry().getConnection(objLoc);
+      final Connection<?> nextConn = registry().getConnection(nextHop);
+      checkArgument(objConn.equals(nextConn),
         "Illegal path for this object, first point is not on the same "
           + "connection as the object.");
+
       // check for relative position
-      checkArgument(objLoc.relativePos <= dest.relativePos,
+      final double objRelPos = registry().getRelativePosition(objLoc);
+      final double nextRelPos = registry().getRelativePosition(nextHop);
+      checkArgument(objRelPos <= nextRelPos,
         "Illegal path for this object, can not move backward over an "
           + "connection.");
-    } else if (!objLoc.isOnConnection() && !nextHop.equals(objLoc)
+
+    } else if (!objIsOnConn && !nextHop.equals(objLoc)
       && !graph.hasConnection(objLoc, nextHop)) {
       // in case we start from a node and we are not going to another node
-      checkArgument(nextHop instanceof Loc,
+      checkArgument(registry().isOnConnection(nextHop),
         "Illegal path, first point should be directly connected to object "
           + "location.");
-      final Loc dest = (Loc) nextHop;
-      checkArgument(graph.hasConnection(objLoc, dest.conn.get().to()),
+      final Connection<?> nextConn = registry().getConnection(nextHop);
+      checkArgument(
+        graph.hasConnection(objLoc, nextConn.to()),
         "Illegal path, first point is on an connection not connected to "
           + "object location. ");
-      checkArgument(objLoc.equals(dest.conn.get().from()),
+      checkArgument(objLoc.equals(nextConn.from()),
         "Illegal path, first point is on a different connection.");
     }
   }
@@ -265,59 +288,48 @@ public class GraphRoadModelImpl extends AbstractRoadModel<Loc>
     if (from.equals(to)) {
       return 0;
     }
+    final boolean fromIsOnConn = registry().isOnConnection(from);
+    final boolean toIsOnConn = registry().isOnConnection(to);
     final Connection<?> conn = getConnection(from, to);
-    if (isOnConnection(from) && isOnConnection(to)) {
-      return Math.abs(((Loc) from).relativePos - ((Loc) to).relativePos);
-    } else if (isOnConnection(from)) {
-      return conn.getLength() - ((Loc) from).relativePos;
-    } else if (isOnConnection(to)) {
-      return ((Loc) to).relativePos;
+    if (fromIsOnConn && toIsOnConn) {
+      return Math.abs(registry().getRelativePosition(from)
+        - registry().getRelativePosition(to));
+    } else if (fromIsOnConn) {
+      return conn.getLength() - registry().getRelativePosition(from);
+    } else if (toIsOnConn) {
+      return registry().getRelativePosition(to);
     }
     return conn.getLength();
   }
 
   /**
-   * Checks if the point is on a connection.
-   * @param p The point to check.
-   * @return <code>true</code> if the point is on a connection,
-   *         <code>false</code> otherwise.
-   */
-  protected static boolean isOnConnection(Point p) {
-    return p instanceof Loc && ((Loc) p).isOnConnection();
-  }
-
-  /**
    * Checks whether the specified location is valid.
-   * @param l The location to check.
+   * @param p The location to check.
    * @return The location if it is valid.
    * @throws VerifyException if the location is not valid.
    */
-  protected Loc verifyLocation(Loc l) {
-    verify(l.isOnConnection() || graph.containsNode(l),
-      "Location points to non-existing node: %s.", l);
-    verify(!l.isOnConnection()
-      || graph.hasConnection(l.conn.get().from(), l.conn.get().to()),
-      "Location points to non-existing connection: %s.", l.conn);
-    return l;
+  protected Point verifyLocation(Point p) {
+    verify(graph.containsNode(p) || registry().isOnConnection(p),
+      "Location points to non-existing node: %s.", p);
+    return p;
   }
 
   /**
    * Compute speed of the object taking into account the speed limits of the
    * object.
    * @param object traveling object
-   * @param from the point on the graph object is located
-   * @param to the next point on the path it want to reach
+   * @param from The point on the graph the object is located
+   * @param to The next point on the path it wants to reach
    * @return The maximum speed in the internal unit, must be &ge; 0.
    */
-  protected double getMaxSpeed(MovingRoadUser object, Point from, Point to) {
+  protected double getMaxSpeed(MovingRoadUser object, Point from,
+      Point to) {
     final double objSpeed = unitConversion.toInSpeed(object.getSpeed());
     if (!from.equals(to)) {
       final Connection<?> conn = getConnection(from, to);
       if (conn.data().isPresent()
         && conn.data().get() instanceof MultiAttributeData) {
-        final MultiAttributeData maed = (MultiAttributeData) conn.data()
-          .get();
-
+        final MultiAttributeData maed = (MultiAttributeData) conn.data().get();
         if (maed.getMaxSpeed().isPresent()) {
           return Math.min(unitConversion.toInSpeed(maed.getMaxSpeed().get()),
             objSpeed);
@@ -337,24 +349,30 @@ public class GraphRoadModelImpl extends AbstractRoadModel<Loc>
    * @return The {@link Connection} shared by the points.
    */
   protected Connection<?> getConnection(Point from, Point to) {
-    final boolean fromIsOnConn = isOnConnection(from);
-    final boolean toIsOnConn = isOnConnection(to);
+    final boolean fromIsOnConn = registry().isOnConnection(from);
+    final boolean toIsOnConn = registry().isOnConnection(to);
+
+    final Optional<Connection<?>> fromConn = fromIsOnConn
+      ? Optional.<Connection<?>>of(registry().getConnection(from))
+      : Optional.<Connection<?>>absent();
+    final Optional<Connection<?>> toConn = toIsOnConn
+      ? Optional.<Connection<?>>of(registry().getConnection(to))
+      : Optional.<Connection<?>>absent();
+
     final Connection<?> conn;
     final String errorMsg =
       "The specified points must be part of the same connection.";
     if (fromIsOnConn) {
-      final Loc start = (Loc) from;
-      if (toIsOnConn) {
-        checkArgument(start.isOnSameConnection((Loc) to), errorMsg);
-      } else {
-        checkArgument(start.conn.get().to().equals(to), errorMsg);
-      }
-      conn = start.conn.get();
 
+      if (toIsOnConn) {
+        checkArgument(fromConn.equals(toConn), errorMsg);
+      } else {
+        checkArgument(fromConn.get().to().equals(to), errorMsg);
+      }
+      conn = fromConn.get();
     } else if (toIsOnConn) {
-      final Loc end = (Loc) to;
-      checkArgument(end.conn.get().from().equals(from), errorMsg);
-      conn = end.conn.get();
+      checkArgument(toConn.get().from().equals(from), errorMsg);
+      conn = toConn.get();
     } else {
       checkArgument(
         graph.hasConnection(from, to),
@@ -370,17 +388,18 @@ public class GraphRoadModelImpl extends AbstractRoadModel<Loc>
   public List<Point> getShortestPathTo(Point from, Point to) {
     final List<Point> path = new ArrayList<>();
     Point start = from;
-    if (isOnConnection(from)) {
-      start = asLoc(from).conn.get().to();
+    if (registry().isOnConnection(from)) {
+      start = registry().getConnection(from).to();
       path.add(from);
     }
 
     Point end = to;
-    if (isOnConnection(to)) {
-      end = asLoc(to).conn.get().from();
+    final boolean toIsOnConn = registry().isOnConnection(to);
+    if (toIsOnConn) {
+      end = registry().getConnection(to).from();
     }
     path.addAll(doGetShortestPathTo(start, end));
-    if (isOnConnection(to)) {
+    if (toIsOnConn) {
       path.add(to);
     }
     return path;
@@ -428,58 +447,10 @@ public class GraphRoadModelImpl extends AbstractRoadModel<Loc>
    */
   @Override
   public Optional<? extends Connection<?>> getConnection(RoadUser obj) {
-    final Loc point = objLocs.get(obj);
-    if (isOnConnection(point)) {
-      return Optional.of(graph
-        .getConnection(point.conn.get().from(), point.conn.get().to()));
+    if (registry().isOnConnection(obj)) {
+      return Optional.of(registry.getConnection(obj));
     }
     return Optional.absent();
-  }
-
-  /**
-   * Creates a new {@link Loc} based on the provided {@link Point}.
-   * @param p The point used as input.
-   * @return A {@link Loc} with identical position as the specified
-   *         {@link Point}.
-   */
-  protected static Loc asLoc(Point p) {
-    if (p instanceof Loc) {
-      return (Loc) p;
-    }
-    return new Loc(p.x, p.y, null, -1, 0);
-  }
-
-  /**
-   * Creates a new {@link Loc} based on the provided {@link Connection} and the
-   * relative position. The new {@link Loc} will be placed on the connection
-   * with a distance of <code>relativePos</code> to the start of the connection.
-   * @param conn The {@link Connection} to use.
-   * @param relativePos The relative position measured from the start of the
-   *          {@link Connection}.
-   * @return A new {@link Loc}
-   */
-  protected static Loc newLoc(Connection<? extends ConnectionData> conn,
-      double relativePos) {
-    final Point diff = Point.diff(conn.to(), conn.from());
-    final double roadLength = conn.getLength();
-
-    final double perc = relativePos / roadLength;
-    if (perc + DELTA >= 1) {
-      return new Loc(conn.to().x, conn.to().y, null, -1, 0);
-    }
-    return new Loc(conn.from().x + perc * diff.x,
-      conn.from().y + perc * diff.y,
-      conn, roadLength, relativePos);
-  }
-
-  @Override
-  protected Point locObj2point(Loc locObj) {
-    return locObj;
-  }
-
-  @Override
-  protected Loc point2LocObj(Point point) {
-    return asLoc(point);
   }
 
   @Override
@@ -502,54 +473,5 @@ public class GraphRoadModelImpl extends AbstractRoadModel<Loc>
   @Override
   public RoadModelSnapshot getSnapshot() {
     return snapshot;
-  }
-
-  /**
-   * Location representation in a {@link Graph} for the
-   * {@link GraphRoadModelImpl}.
-   * @author Rinde van Lon
-   */
-  protected static final class Loc extends Point {
-    private static final long serialVersionUID = 7070585967590832300L;
-    /**
-     * The length of the current connection.
-     */
-    public final double connLength;
-    /**
-     * The relative position of this instance compared to the start of the
-     * connection.
-     */
-    public final double relativePos;
-    /**
-     * The {@link Connection} which this position is on if present.
-     */
-    public final Optional<? extends Connection<?>> conn;
-
-    Loc(double pX, double pY,
-        @Nullable Connection<? extends ConnectionData> pConn,
-        double pConnLength, double pRelativePos) {
-      super(pX, pY);
-      connLength = pConnLength;
-      relativePos = pRelativePos;
-      conn = Optional.fromNullable(pConn);
-    }
-
-    /**
-     * @return <code>true</code> if the position is on a connection.
-     */
-    public boolean isOnConnection() {
-      return conn.isPresent();
-    }
-
-    /**
-     * Check if this position is on the same connection as the provided
-     * location.
-     * @param l The location to compare with.
-     * @return <code>true</code> if both {@link Loc}s are on the same
-     *         connection, <code>false</code> otherwise.
-     */
-    public boolean isOnSameConnection(Loc l) {
-      return conn.equals(l.conn);
-    }
   }
 }

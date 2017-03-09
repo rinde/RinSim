@@ -40,8 +40,8 @@ import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.AbstractGraph;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.ConnectionData;
-import com.github.rinde.rinsim.geom.Graphs;
 import com.github.rinde.rinsim.geom.GeomHeuristic;
+import com.github.rinde.rinsim.geom.Graphs;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -56,7 +56,7 @@ import com.google.common.math.DoubleMath;
  *
  * @author Rinde van Lon
  */
-public class PlaneRoadModel extends AbstractRoadModel<Point> {
+public class PlaneRoadModel extends AbstractRoadModel {
 
   /**
    * The minimum travelable distance.
@@ -88,6 +88,7 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
   private final RoadModelSnapshot snapshot;
 
   private final PlaneGraph<ConnectionData> planeGraph;
+  private final SpatialRegistry registry;
 
   PlaneRoadModel(RoadModelBuilders.PlaneRMB b) {
     super(b.getDistanceUnit(), b.getSpeedUnit());
@@ -98,6 +99,12 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
     maxSpeed = unitConversion.toInSpeed(b.getMaxSpeed());
     snapshot = PlaneRoadModelSnapshot.create(this);
     planeGraph = new PlaneGraph<>();
+    registry = new MapSpatialRegistry();
+  }
+
+  @Override
+  protected SpatialRegistry registry() {
+    return registry;
   }
 
   @Override
@@ -120,7 +127,7 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
   protected MoveProgress doFollowPath(MovingRoadUser object, Queue<Point> path,
       TimeLapse time) {
     final long startTimeConsumed = time.getTimeConsumed();
-    Point loc = objLocs.get(object);
+    Point loc = registry().getPosition(object);
 
     double traveled = 0;
     final double speed = min(unitConversion.toInSpeed(object.getSpeed()),
@@ -172,7 +179,7 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
 
       }
     }
-    objLocs.put(object, loc);
+    registry().addAt(object, loc);
 
     // convert to external units
     final Measure<Double, Length> distTraveled = unitConversion
@@ -215,16 +222,6 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
       "Cannot evaluate the distance of a path with less than two points.");
     return Measure.valueOf(Graphs.pathLength(pathAsList),
       getDistanceUnit());
-  }
-
-  @Override
-  protected Point locObj2point(Point locObj) {
-    return locObj;
-  }
-
-  @Override
-  protected Point point2LocObj(Point point) {
-    return point;
   }
 
   /**
