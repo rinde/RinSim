@@ -23,8 +23,14 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.geom.Graphs;
@@ -37,13 +43,30 @@ import com.github.rinde.rinsim.geom.TableGraph;
  * Tests for {@link DynamicGraphRoadModelImpl}.
  * @author Rinde van Lon
  */
+@RunWith(Parameterized.class)
 public class DynamicGraphRoadModelTest {
-  @SuppressWarnings("null")
   Point SW, SE, NE, NW;
-  @SuppressWarnings("null")
   ListenableGraph<LengthData> graph;
-  @SuppressWarnings("null")
   DynamicGraphRoadModelImpl model;
+
+  final boolean isGraphModCheckEnabled;
+
+  /**
+   * @return The configs to test.
+   */
+  @Parameters
+  public static Collection<Object[]> configs() {
+    return Arrays.asList(new Object[][] {{true}, {false}});
+  }
+
+  /**
+   * Initializes test case either with mod checking or without.
+   * @param enabled True is enabled, false is disabled.
+   */
+  @SuppressWarnings("null")
+  public DynamicGraphRoadModelTest(boolean enabled) {
+    isGraphModCheckEnabled = enabled;
+  }
 
   /**
    * Set up a simple squared graph.
@@ -51,8 +74,9 @@ public class DynamicGraphRoadModelTest {
   @Before
   public void setUp() {
     graph = new ListenableGraph<>(new TableGraph<LengthData>());
-    model = RoadModelBuilders.dynamicGraph(graph).build(
-      mock(DependencyProvider.class));
+    model = RoadModelBuilders.dynamicGraph(graph)
+      .withModificationCheck(isGraphModCheckEnabled)
+      .build(mock(DependencyProvider.class));
     SW = new Point(0, 0);
     SE = new Point(10, 0);
     NE = new Point(10, 10);
@@ -134,7 +158,7 @@ public class DynamicGraphRoadModelTest {
       // repair
       model.getGraph().addConnection(NW, SW);
     }
-    assertTrue(fail);
+    assertThat(fail).isEqualTo(isGraphModCheckEnabled);
     fail = false;
     try {
       model.getGraph().removeNode(NW);
@@ -143,7 +167,7 @@ public class DynamicGraphRoadModelTest {
       model.getGraph().addConnection(NW, SW);
       fail = true;
     }
-    assertTrue(fail);
+    assertThat(fail).isEqualTo(isGraphModCheckEnabled);
 
     // add another connection
     model.getGraph().addConnection(SW, NE);
@@ -174,7 +198,7 @@ public class DynamicGraphRoadModelTest {
     } catch (final IllegalStateException e) {
       fail = true;
     }
-    assertTrue(fail);
+    assertThat(fail).isEqualTo(isGraphModCheckEnabled);
   }
 
   /**
