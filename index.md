@@ -38,6 +38,6 @@ RinSim is an extensible logistics simulator with support for (de)centralized alg
  - <i class="fa fa-book"></i> Well documented
  - <i class="fa fa-flask"></i> Emphasis on scientific correctness, focus on internal consistency 
  - <i class="fa fa-puzzle-piece"></i> Modular 
- - <span class="glyphicon glyphicon-cog"></span> Configurable
+ - <span class="fa fa-sliders"></span> Configurable
  - <i class="fa fa-github"></i> [Open source](https://github.com/rinde/RinSim/)
 
