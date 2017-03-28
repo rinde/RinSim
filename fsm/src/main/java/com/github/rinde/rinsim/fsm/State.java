@@ -35,11 +35,11 @@ public interface State<T, C> {
    * the trigger.
    * @param trigger The trigger that should be handled.
    * @param context The context of the state.
-   * @return An trigger or <code>null</code>. If <code>null</code> is returned
-   *         there will be no state transition. If the returned trigger is not
-   *         supported by this state (as defined by the {@link StateMachine}) a
-   *         {@link RuntimeException} will be thrown by the {@link StateMachine}
-   *         .
+   * @return A trigger or <code>null</code>. If <code>null</code> is returned
+   *         there will be no state transition. If the returned trigger (except
+   *         <code>null</code>) is not supported by this state (as defined by
+   *         the {@link StateMachine}) a {@link IllegalArgumentException} will
+   *         be thrown by the {@link StateMachine} .
    */
   @Nullable
   T handle(@Nullable T trigger, C context);

@@ -36,9 +36,9 @@ import com.google.common.collect.ImmutableTable;
  * a state by means of the {@link State#handle(Object, Object)} method or from
  * outside the state machine by means of the {@link #handle(Object, Object)}. An
  * attempt to perform a transition not present in the transition table results
- * in a {@link RuntimeException}. Note that the transition table is immutable.
- * StateMachine instances can only be created using its builder via the
- * {@link #create(State)} method.
+ * in a {@link IllegalArgumentException}. Note that the transition table is
+ * immutable. StateMachine instances can only be created using its builder via
+ * the {@link #create(State)} method.
  * @author Rinde van Lon
  * @param <T> The trigger type. Concrete trigger objects that describe the same
  *          event should be <i>equal</i> (according to {@link #equals(Object)} )
@@ -318,7 +318,7 @@ public class StateMachine<T, C> {
     }
 
     /**
-     * Enables explicit recursive transitions, this means that when an recursive
+     * Enables explicit recursive transitions, this means that when a recursive
      * transition is attempted the {@link State#onExit(Object, Object)} and
      * {@link State#onEntry(Object, Object)} are called on that state and a
      * {@link StateMachine.StateTransitionEvent} is dispatched. By default
