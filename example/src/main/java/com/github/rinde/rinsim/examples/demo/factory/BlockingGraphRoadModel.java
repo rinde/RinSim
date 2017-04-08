@@ -29,6 +29,7 @@ import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
+import com.github.rinde.rinsim.core.model.road.GraphRoadModel;
 import com.github.rinde.rinsim.core.model.road.GraphRoadModelImpl;
 import com.github.rinde.rinsim.core.model.road.MoveProgress;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
@@ -110,7 +111,7 @@ public class BlockingGraphRoadModel extends GraphRoadModelImpl {
     private static final long serialVersionUID = -8663781587611642451L;
 
     Builder() {
-      setProvidingTypes(RoadModel.class, GraphRoadModelImpl.class,
+      setProvidingTypes(RoadModel.class, GraphRoadModelImpl.class, GraphRoadModel.class,
         BlockingGraphRoadModel.class);
     }
 
