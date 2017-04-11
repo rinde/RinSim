@@ -17,6 +17,7 @@ package com.github.rinde.rinsim.scenario.generator;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -35,6 +36,7 @@ import com.github.rinde.rinsim.scenario.generator.DynamicSpeeds.DynamicSpeedGene
 import com.github.rinde.rinsim.util.StochasticSuppliers;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Ordering;
 
 /**
  * Test for {@link DynamicSpeeds}.
@@ -94,9 +96,20 @@ public class DynamicSpeedsTest {
     new Function<Long, Double>() {
       @Override
       public Double apply(@Nonnull Long input) {
-        return Math.max(0,
-          TEN_KM_H_IN_M_MILLIS / 2
-            - TEN_KM_H_IN_M_MILLIS / 2 * input / (6 * MINUTE));
+        return Math.max(0, TEN_KM_H_IN_M_MILLIS / 2
+          - TEN_KM_H_IN_M_MILLIS / 2 * input / (6 * MINUTE));
+      }
+    };
+
+  final Comparator<ChangeConnectionSpeedEvent> EVENT_COMPARATOR =
+    new Comparator<ChangeConnectionSpeedEvent>() {
+      @Override
+      public int compare(ChangeConnectionSpeedEvent left,
+          ChangeConnectionSpeedEvent right) {
+        if (left.getTime() <= right.getTime()) {
+          return -1;
+        }
+        return 1;
       }
     };
 
@@ -137,7 +150,8 @@ public class DynamicSpeedsTest {
 
     final DynamicSpeedGenerator gen = builder.withGraph(graph)
       .startConnections(StochasticSuppliers.constant(connD))
-      .shockwaveDurations(StochasticSuppliers.constant(10 * MINUTE))
+      .shockwaveWaitForRecedeDurations(
+        StochasticSuppliers.constant(10 * MINUTE))
       .shockwaveBehaviour(StochasticSuppliers.constant(HALF))
       .shockwaveExpandingSpeed(StochasticSuppliers.constant(TEN_KM_H))
       .shockwaveRecedingSpeed(StochasticSuppliers.constant(TEN_KM_H))
@@ -145,6 +159,8 @@ public class DynamicSpeedsTest {
 
     final List<ChangeConnectionSpeedEvent> events = Lists.newArrayList(
       gen.generate(123, scenarioLength));
+
+    events.sort(EVENT_COMPARATOR);
 
     assertEquals(8, events.size());
 
@@ -213,7 +229,8 @@ public class DynamicSpeedsTest {
 
     final DynamicSpeedGenerator gen = builder.withGraph(graph)
       .startConnections(StochasticSuppliers.constant(connE))
-      .shockwaveDurations(StochasticSuppliers.constant(10 * MINUTE))
+      .shockwaveWaitForRecedeDurations(
+        StochasticSuppliers.constant(10 * MINUTE))
       .shockwaveBehaviour(StochasticSuppliers.constant(LINEAR_DESCENDING))
       .shockwaveExpandingSpeed(StochasticSuppliers.constant(TEN_KM_H))
       .shockwaveRecedingSpeed(StochasticSuppliers.constant(TEN_KM_H))
@@ -221,6 +238,7 @@ public class DynamicSpeedsTest {
 
     final List<ChangeConnectionSpeedEvent> events = Lists.newArrayList(
       gen.generate(123, scenarioLength));
+    events.sort(EVENT_COMPARATOR);
 
     assertEquals(8, events.size());
 
@@ -280,7 +298,8 @@ public class DynamicSpeedsTest {
 
     final DynamicSpeedGenerator gen = builder.withGraph(graph)
       .startConnections(StochasticSuppliers.constant(connD))
-      .shockwaveDurations(StochasticSuppliers.constant(10 * MINUTE))
+      .shockwaveWaitForRecedeDurations(
+        StochasticSuppliers.constant(10 * MINUTE))
       .shockwaveBehaviour(StochasticSuppliers.constant(HALF))
       .shockwaveExpandingSpeed(
         StochasticSuppliers.constant(FROM_TEN_KM_H_DESCENDING))
@@ -290,6 +309,7 @@ public class DynamicSpeedsTest {
 
     final List<ChangeConnectionSpeedEvent> events = Lists.newArrayList(
       gen.generate(123, scenarioLength));
+    events.sort(EVENT_COMPARATOR);
 
     assertEquals(5, events.size());
 
@@ -297,7 +317,7 @@ public class DynamicSpeedsTest {
      * Shockwave speed starts at 10 Km/h and decreases linearly to 0 after 6
      * minutes, receding speed starts at 5 Km/h. Both wouldn't have enough speed
      * left to complete their final connection, but due to discretization, they
-     * can
+     * can.
      */
     final long[] timings =
       new long[] {(long) (1.5 * MINUTE), (long) (3.5 * MINUTE),
@@ -323,7 +343,7 @@ public class DynamicSpeedsTest {
   }
 
   /**
-   * Tests timing related boundaries (shockwave duration/scenario boundary)
+   * Tests timing related boundaries (shockwave duration)
    */
   @SuppressWarnings("unchecked")
   @Test
@@ -349,7 +369,9 @@ public class DynamicSpeedsTest {
 
     final DynamicSpeedGenerator gen = builder.withGraph(graph)
       .startConnections(StochasticSuppliers.constant(connD))
-      .shockwaveDurations(StochasticSuppliers.constant(5 * MINUTE))
+      .shockwaveWaitForRecedeDurations(
+        StochasticSuppliers.constant(5 * MINUTE))
+      .shockwaveEventDurations(StochasticSuppliers.constant(5 * MINUTE))
       .shockwaveBehaviour(StochasticSuppliers.constant(HALF))
       .shockwaveExpandingSpeed(
         StochasticSuppliers.constant(TEN_KM_H))
@@ -361,12 +383,13 @@ public class DynamicSpeedsTest {
 
     final List<ChangeConnectionSpeedEvent> events = Lists.newArrayList(
       gen.generate(123, scenarioLength));
+    events.sort(EVENT_COMPARATOR);
 
     assertEquals(6, events.size());
 
     /**
      * Shockwave speed remains at 10 Km/h, but duration limits shockwave to 5
-     * minutes and total scenario limits receding shockwave to 10 minutes
+     * minutes
      */
     final long[] timings = new long[] {(long) (1.5 * MINUTE), 3 * MINUTE,
       (long) (4.5 * MINUTE),
@@ -428,7 +451,8 @@ public class DynamicSpeedsTest {
 
     final DynamicSpeedGenerator gen = builder.withGraph(graph)
       .startConnections(StochasticSuppliers.constant(connD))
-      .shockwaveDurations(StochasticSuppliers.constant(10 * MINUTE))
+      .shockwaveWaitForRecedeDurations(
+        StochasticSuppliers.constant(10 * MINUTE))
       .shockwaveBehaviour(StochasticSuppliers.constant(HALF))
       .shockwaveExpandingSpeed(StochasticSuppliers.constant(TEN_KM_H))
       .shockwaveRecedingSpeed(StochasticSuppliers.constant(TEN_KM_H))
@@ -436,6 +460,7 @@ public class DynamicSpeedsTest {
 
     final List<ChangeConnectionSpeedEvent> events = Lists.newArrayList(
       gen.generate(123, scenarioLength));
+    events.sort(EVENT_COMPARATOR);
 
     assertEquals(14, events.size());
 
@@ -482,7 +507,8 @@ public class DynamicSpeedsTest {
 
     final DynamicSpeedGenerator gen = builder.withGraph(graph)
       .startConnections(StochasticSuppliers.constant(connA))
-      .shockwaveDurations(StochasticSuppliers.constant(10 * MINUTE))
+      .shockwaveWaitForRecedeDurations(
+        StochasticSuppliers.constant(10 * MINUTE))
       .shockwaveBehaviour(StochasticSuppliers.constant(HALF))
       .shockwaveExpandingSpeed(StochasticSuppliers.constant(TEN_KM_H))
       .shockwaveRecedingSpeed(StochasticSuppliers.constant(TEN_KM_H))
@@ -490,6 +516,7 @@ public class DynamicSpeedsTest {
 
     final List<ChangeConnectionSpeedEvent> events = Lists.newArrayList(
       gen.generate(123, scenarioLength));
+    events.sort(EVENT_COMPARATOR);
 
     assertEquals(2, events.size());
 
@@ -515,5 +542,27 @@ public class DynamicSpeedsTest {
       assertEquals(factors[i], event.getFactor(), DELTA);
     }
   }
+
+  @Test
+  public void shockwaveTrafficLightTest() {
+    // TODO
+  }
+
+  @Test
+  public void shockwaveSlipTest() {
+    // TODO
+  }
+
+  final class TimingComparator extends Ordering<ChangeConnectionSpeedEvent> {
+    @Override
+    public int compare(@Nonnull ChangeConnectionSpeedEvent left,
+        @Nonnull ChangeConnectionSpeedEvent right) {
+      if (left.getTime() < right.getTime()) {
+        return -1;
+      } else {
+        return 1;
+      }
+    }
+  };
 
 }

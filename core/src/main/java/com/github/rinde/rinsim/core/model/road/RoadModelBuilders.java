@@ -233,7 +233,7 @@ public final class RoadModelBuilders {
     /**
      * @return Whether the graph modification checker is enabled.
      */
-    protected abstract boolean isModCheckEnabled();
+    public abstract boolean isModCheckEnabled();
   }
 
   /**
