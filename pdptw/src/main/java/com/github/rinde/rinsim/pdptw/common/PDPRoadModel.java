@@ -81,7 +81,7 @@ public class PDPRoadModel extends ForwardingRoadModel<GenericRoadModel>
   final boolean allowDiversion;
   Optional<PDPModel> pdpModel;
 
-  PDPRoadModel(AbstractRoadModel<?> rm, boolean diversion) {
+  PDPRoadModel(AbstractRoadModel rm, boolean diversion) {
     super(rm);
     allowDiversion = diversion;
     destinations = newHashMap();
@@ -342,7 +342,7 @@ public class PDPRoadModel extends ForwardingRoadModel<GenericRoadModel>
     @Override
     public PDPRoadModel build(DependencyProvider dependencyProvider) {
       return new PDPRoadModel(
-        (AbstractRoadModel<?>) getDelegateModelBuilder()
+        (AbstractRoadModel) getDelegateModelBuilder()
           .build(dependencyProvider),
         getAllowVehicleDiversion());
     }

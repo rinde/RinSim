@@ -44,9 +44,6 @@ import com.google.common.collect.Sets;
  * data structure for managing objects and locations and checks many
  * preconditions as defined in {@link RoadModel}.
  * @author Rinde van Lon
- * @param <T> The type of the location representation that is used for storing
- *          object locations. This location representation should only be used
- *          internally in the model.
  */
 public abstract class AbstractRoadModel extends GenericRoadModel {
 
@@ -80,22 +77,6 @@ public abstract class AbstractRoadModel extends GenericRoadModel {
   }
 
   protected abstract SpatialRegistry registry();
-
-  /**
-   * A function for converting the location representation to a {@link Point}.
-   * @param locObj The location to be converted.
-   * @return A {@link Point} indicating the position as represented by the
-   *         specified location.
-   */
-  // protected abstract Point locObj2point(T locObj);
-
-  /**
-   * A function for converting a {@link Point} to the location representation of
-   * this model.
-   * @param point The {@link Point} to be converted.
-   * @return The location.
-   */
-  // protected abstract T point2LocObj(Point point);
 
   @Override
   public MoveProgress followPath(MovingRoadUser object, Queue<Point> path,
