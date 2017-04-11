@@ -147,7 +147,8 @@ public class CollisionGraphRoadModelImpl
     if (!objLoc.equals(nextHop)) {
       final Connection<?> conn = getConnection(objLoc, nextHop);
       if (graph.hasConnection(conn.to(), conn.from())
-        && registry().hasRoadUserOn(conn.to(), conn.from())) {
+        && registry()
+          .hasRoadUserOn(Connection.create(conn.to(), conn.from()))) {
         throw new DeadlockException(conn);
       }
     }
