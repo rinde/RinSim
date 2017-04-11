@@ -30,6 +30,9 @@ import java.util.Collection;
 import java.util.List;
 
 import javax.annotation.Nullable;
+import javax.measure.Measure;
+import javax.measure.unit.NonSI;
+import javax.measure.unit.SI;
 
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
@@ -120,6 +123,30 @@ public class GraphsTest {
       prevPath = newPath;
     }
   }
+  
+  @Test
+  public void fastestPathSpeedLimitationTest() {
+      final Graph<MultiAttributeData> attributeGraph =
+        new TableGraph<>();
+      Point A, B, C;
+      A = new Point(0, 0);
+      B = new Point(0, 1);
+      C = new Point(1, 0);
+      attributeGraph.addConnection(A, B,
+        MultiAttributeData.builder().setMaxSpeed(1).build());
+      attributeGraph.addConnection(A, C,
+        MultiAttributeData.builder().setMaxSpeed(3).build());
+      final GeomHeuristic heuristic = GeomHeuristics.time(0d);
+
+      assertEquals(1d,
+        heuristic.calculateTravelTime(attributeGraph, A, B, SI.KILOMETER,
+          Measure.valueOf(2d, NonSI.KILOMETERS_PER_HOUR), NonSI.HOUR),
+        DELTA);
+      assertEquals(0.5d,
+        heuristic.calculateTravelTime(attributeGraph, A, C, SI.KILOMETER,
+          Measure.valueOf(2d, NonSI.KILOMETERS_PER_HOUR), NonSI.HOUR),
+        DELTA);
+    }
 
   /**
    * The shortest path changes based on the connection data.

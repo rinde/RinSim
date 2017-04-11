@@ -128,7 +128,7 @@ public final class GeomHeuristics {
         Measure<Double, Velocity> speed, Unit<Duration> outputTimeUnit) {
       final Measure<Double, Length> distance =
         Measure.valueOf(graph.connectionLength(from, to), distanceUnit);
-      return Math.min(doCalculateTravelTime(speed, distance, outputTimeUnit),
+      return Math.max(doCalculateTravelTime(speed, distance, outputTimeUnit),
         doCalculateTravelTime(
           Measure.valueOf(getSpeed(graph, from, to), speed.getUnit()), distance,
           outputTimeUnit));

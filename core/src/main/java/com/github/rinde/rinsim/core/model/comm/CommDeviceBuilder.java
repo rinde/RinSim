@@ -21,7 +21,8 @@ import com.google.common.base.Optional;
 
 /**
  * A builder for creating {@link CommDevice} instances. This builder is injected
- * in implementors of the {@link CommUser} interface.
+ * in implementors of the {@link CommUser} interface, it can not be constructed
+ * manually.
  *
  * @author Rinde van Lon
  */

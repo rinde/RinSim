@@ -18,7 +18,6 @@ package com.github.rinde.rinsim.core.model.comm;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
-import java.io.Serializable;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -46,8 +45,10 @@ import com.google.common.collect.Maps;
 
 /**
  * This model supports sending messages between {@link CommUser}s. A
- * {@link CommUser} can use a {@link CommDevice} to communicate. Instances can
- * be obtained via {@link #builder()}.
+ * {@link CommUser} can use a {@link CommDevice} to communicate.
+ * {@link CommModel} instances can be obtained via {@link #builder()}. Instances
+ * of {@link CommDevice} can be obtained by adding an object that implements
+ * {@link CommUser} to a simulator that is configured with a {@link CommModel}.
  * <p>
  * <b>Model properties</b>
  * <ul>
@@ -271,8 +272,7 @@ public final class CommModel extends AbstractModel<CommUser>
    */
   @AutoValue
   public abstract static class Builder
-      extends AbstractModelBuilder<CommModel, CommUser>
-      implements Serializable {
+      extends AbstractModelBuilder<CommModel, CommUser> {
     private static final long serialVersionUID = -6598454973114403967L;
     private static final double DEFAULT_RELIABILITY = 1d;
 
