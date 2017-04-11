@@ -152,6 +152,10 @@ public class GraphSpatialRegistry extends ForwardingSpatialRegistry {
     return connMap.containsKey(conn);
   }
 
+  public boolean hasRoadUserOn(Point from, Point to) {
+    return connMap.containsEntry(from, to);
+  }
+
   public boolean hasRoadUserOn(Point pos) {
     return posMap.containsKey(pos);
   }
