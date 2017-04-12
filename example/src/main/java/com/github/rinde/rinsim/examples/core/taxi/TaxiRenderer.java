@@ -17,7 +17,6 @@ package com.github.rinde.rinsim.examples.core.taxi;
 
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
@@ -83,42 +82,40 @@ public class TaxiRenderer extends AbstractCanvasRenderer {
 
   @Override
   public void renderDynamic(GC gc, ViewPort vp, long time) {
-    final Set<Taxi> taxis = roadModel.getObjectsOfType(Taxi.class);
+    // final Set<Taxi> taxis = roadModel.getObjectsOfType(Taxi.class);
 
     final Map<RoadUser, Point> map =
       Maps.filterEntries(roadModel.getObjectsAndPositions(), Pred.INSTANCE);
 
-    synchronized (taxis) {
-      for (final Entry<RoadUser, Point> entry : map.entrySet()) {
-        final Taxi t = (Taxi) entry.getKey();
-        final Point p = entry.getValue();
-        final int x = vp.toCoordX(p.x) + X_OFFSET;
-        final int y = vp.toCoordY(p.y) + Y_OFFSET;
+    for (final Entry<RoadUser, Point> entry : map.entrySet()) {
+      final Taxi t = (Taxi) entry.getKey();
+      final Point p = entry.getValue();
+      final int x = vp.toCoordX(p.x) + X_OFFSET;
+      final int y = vp.toCoordY(p.y) + Y_OFFSET;
 
-        final VehicleState vs = pdpModel.getVehicleState(t);
+      final VehicleState vs = pdpModel.getVehicleState(t);
 
-        String text = null;
-        final int size = (int) pdpModel.getContentsSize(t);
-        if (vs == VehicleState.DELIVERING) {
-          text = lang.disembark;
-        } else if (vs == VehicleState.PICKING_UP) {
-          text = lang.embark;
-        } else if (size > 0) {
-          text = Integer.toString(size);
-        }
+      String text = null;
+      final int size = (int) pdpModel.getContentsSize(t);
+      if (vs == VehicleState.DELIVERING) {
+        text = lang.disembark;
+      } else if (vs == VehicleState.PICKING_UP) {
+        text = lang.embark;
+      } else if (size > 0) {
+        text = Integer.toString(size);
+      }
 
-        if (text != null) {
-          final org.eclipse.swt.graphics.Point extent = gc.textExtent(text);
+      if (text != null) {
+        final org.eclipse.swt.graphics.Point extent = gc.textExtent(text);
 
-          gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_DARK_BLUE));
-          gc.fillRoundRectangle(x - extent.x / 2, y - extent.y / 2,
-            extent.x + 2, extent.y + 2, ROUND_RECT_ARC_HEIGHT,
-            ROUND_RECT_ARC_HEIGHT);
-          gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_WHITE));
+        gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_DARK_BLUE));
+        gc.fillRoundRectangle(x - extent.x / 2, y - extent.y / 2,
+          extent.x + 2, extent.y + 2, ROUND_RECT_ARC_HEIGHT,
+          ROUND_RECT_ARC_HEIGHT);
+        gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_WHITE));
 
-          gc.drawText(text, x - extent.x / 2 + 1, y - extent.y / 2 + 1,
-            true);
-        }
+        gc.drawText(text, x - extent.x / 2 + 1, y - extent.y / 2 + 1,
+          true);
       }
     }
   }
