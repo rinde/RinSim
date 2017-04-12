@@ -15,6 +15,8 @@
  */
 package com.github.rinde.rinsim.examples.core.taxi;
 
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.eclipse.swt.SWT;
@@ -25,10 +27,13 @@ import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.VehicleState;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
+import com.github.rinde.rinsim.core.model.road.RoadUser;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.ui.renderers.CanvasRenderer.AbstractCanvasRenderer;
 import com.github.rinde.rinsim.ui.renderers.ViewPort;
 import com.google.auto.value.AutoValue;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Maps;
 
 /**
  * @author Rinde van Lon
@@ -65,12 +70,28 @@ public class TaxiRenderer extends AbstractCanvasRenderer {
   @Override
   public void renderStatic(GC gc, ViewPort vp) {}
 
+  enum Pred implements Predicate<Entry<RoadUser, Point>> {
+    INSTANCE {
+
+      @Override
+      public boolean apply(Entry<RoadUser, Point> input) {
+        return input.getKey() instanceof Taxi;
+      }
+
+    }
+  }
+
   @Override
   public void renderDynamic(GC gc, ViewPort vp, long time) {
     final Set<Taxi> taxis = roadModel.getObjectsOfType(Taxi.class);
+
+    final Map<RoadUser, Point> map =
+      Maps.filterEntries(roadModel.getObjectsAndPositions(), Pred.INSTANCE);
+
     synchronized (taxis) {
-      for (final Taxi t : taxis) {
-        final Point p = roadModel.getPosition(t);
+      for (final Entry<RoadUser, Point> entry : map.entrySet()) {
+        final Taxi t = (Taxi) entry.getKey();
+        final Point p = entry.getValue();
         final int x = vp.toCoordX(p.x) + X_OFFSET;
         final int y = vp.toCoordY(p.y) + Y_OFFSET;
 
