@@ -93,8 +93,9 @@ public final class AGVRenderer
   public void renderDynamic(GC gc, ViewPort vp, long time) {
     helper.adapt(gc, vp);
     synchronized (vehicles) {
+      final Map<RoadUser, Point> objMap = model.getObjectsAndPositions();
       for (final VehicleUI v : vehicles.values()) {
-        v.update(gc, vp, helper);
+        v.update(gc, vp, helper, objMap);
       }
     }
   }
@@ -282,13 +283,15 @@ public final class AGVRenderer
       return img;
     }
 
-    void update(GC gc, ViewPort vp, RenderHelper helper) {
-      if (!model.containsObject(vehicle)) {
+    void update(GC gc, ViewPort vp, RenderHelper helper,
+        Map<RoadUser, Point> objMap) {
+      if (!objMap.containsKey(vehicle)) {
         return;
       }
-      position = model.getPosition(vehicle);
-      final Optional<? extends Connection<?>> conn = model
-        .getConnection(vehicle);
+      position = objMap.get(vehicle);
+
+      final Optional<? extends Connection<?>> conn =
+        model.getConnection(vehicle);
 
       if (!image.isPresent() || scale != vp.scale) {
         scale = vp.scale;

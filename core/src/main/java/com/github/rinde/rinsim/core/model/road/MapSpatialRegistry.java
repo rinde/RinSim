@@ -15,6 +15,9 @@
  */
 package com.github.rinde.rinsim.core.model.road;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -48,11 +51,16 @@ public final class MapSpatialRegistry implements SpatialRegistry {
 
   @Override
   public Point getPosition(RoadUser object) {
-    return objLocs.get(object);
+    synchronized (objLocs) {
+      checkArgument(containsObject(object), "RoadUser does not exist: %s.",
+        object);
+      return objLocs.get(object);
+    }
   }
 
   @Override
   public void addAt(RoadUser object, Point position) {
+    checkNotNull(position);
     objLocs.put(object, position);
   }
 

@@ -46,6 +46,7 @@ public interface SpatialRegistry {
 
   void addAt(RoadUser object, Point position);
 
+  // creates snapshots
   ImmutableMap<RoadUser, Point> getObjectsAndPositions();
 
   ImmutableSet<RoadUser> getObjects();

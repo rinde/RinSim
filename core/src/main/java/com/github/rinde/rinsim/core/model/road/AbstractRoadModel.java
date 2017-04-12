@@ -213,8 +213,6 @@ public abstract class AbstractRoadModel extends GenericRoadModel {
 
   @Override
   public Point getPosition(RoadUser roadUser) {
-    checkArgument(containsObject(roadUser), "RoadUser does not exist: %s.",
-      roadUser);
     return registry().getPosition(roadUser);
   }
 

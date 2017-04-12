@@ -309,7 +309,7 @@ public class GraphRoadModelImpl extends AbstractRoadModel
    * @throws VerifyException if the location is not valid.
    */
   protected Point verifyLocation(Point p) {
-    verify(graph.containsNode(p) || registry().isOnConnection(p),
+    verify(registry().isOnConnection(p) || graph.containsNode(p),
       "Location points to non-existing node: %s.", p);
     return p;
   }
