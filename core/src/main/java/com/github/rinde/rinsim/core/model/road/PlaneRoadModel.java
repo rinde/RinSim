@@ -86,11 +86,10 @@ public class PlaneRoadModel extends AbstractRoadModel {
   public final double maxSpeed;
 
   private final RoadModelSnapshot snapshot;
-
   private final PlaneGraph<ConnectionData> planeGraph;
-  private final SpatialRegistry registry;
+  private final SpatialRegistry<RoadUser> registry;
 
-  PlaneRoadModel(RoadModelBuilders.PlaneRMB b) {
+  PlaneRoadModel(RoadModelBuilders.AbstractPlaneRMB<?, ?> b) {
     super(b.getDistanceUnit(), b.getSpeedUnit());
     min = b.getMin();
     max = b.getMax();
@@ -103,7 +102,7 @@ public class PlaneRoadModel extends AbstractRoadModel {
   }
 
   @Override
-  protected SpatialRegistry registry() {
+  protected SpatialRegistry<RoadUser> registry() {
     return registry;
   }
 

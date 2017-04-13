@@ -26,6 +26,7 @@ import javax.measure.unit.Unit;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
+import com.github.rinde.rinsim.core.model.time.Clock;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.ListenableGraph;
@@ -231,22 +232,11 @@ public final class RoadModelBuilders {
     protected abstract boolean isModCheckEnabled();
   }
 
-  /**
-   * A builder for {@link PlaneRoadModel}. Instances can be obtained via
-   * {@link #plane()}.
-   * @author Rinde van Lon
-   */
-  @AutoValue
-  public abstract static class PlaneRMB
-      extends AbstractRMB<PlaneRoadModel, PlaneRMB> {
+  public abstract static class AbstractPlaneRMB<T extends PlaneRoadModel, S>
+      extends AbstractRMB<T, S> {
     static final double DEFAULT_MAX_SPEED = 50d;
     static final Point DEFAULT_MIN_POINT = new Point(0, 0);
     static final Point DEFAULT_MAX_POINT = new Point(10, 10);
-    private static final long serialVersionUID = 8160700332762443917L;
-
-    PlaneRMB() {
-      setProvidingTypes(RoadModel.class, PlaneRoadModel.class);
-    }
 
     abstract Point getMin();
 
@@ -262,10 +252,7 @@ public final class RoadModelBuilders {
      * @return A new builder instance.
      */
     @CheckReturnValue
-    public PlaneRMB withMinPoint(Point minPoint) {
-      return create(getDistanceUnit(), getSpeedUnit(), minPoint, getMax(),
-        getMaxSpeed());
-    }
+    public abstract S withMinPoint(Point minPoint);
 
     /**
      * Returns a copy of this builder with the specified max point. The max
@@ -275,10 +262,7 @@ public final class RoadModelBuilders {
      * @return A new builder instance.
      */
     @CheckReturnValue
-    public PlaneRMB withMaxPoint(Point maxPoint) {
-      return create(getDistanceUnit(), getSpeedUnit(), getMin(), maxPoint,
-        getMaxSpeed());
-    }
+    public abstract S withMaxPoint(Point maxPoint);
 
     /**
      * Returns a copy of this builder with the specified maximum speed. The
@@ -288,10 +272,45 @@ public final class RoadModelBuilders {
      * @return A new builder instance.
      */
     @CheckReturnValue
-    public PlaneRMB withMaxSpeed(double maxSpeed) {
+    public abstract S withMaxSpeed(double maxSpeed);
+
+    void checkMaxSpeed(double maxSpeed) {
       checkArgument(maxSpeed > 0d,
         "Max speed must be strictly positive but is %s.",
         maxSpeed);
+    }
+  }
+
+  /**
+   * A builder for {@link PlaneRoadModel}. Instances can be obtained via
+   * {@link #plane()}.
+   * @author Rinde van Lon
+   */
+  @AutoValue
+  public abstract static class PlaneRMB
+      extends AbstractPlaneRMB<PlaneRoadModel, PlaneRMB> {
+
+    private static final long serialVersionUID = 8160700332762443917L;
+
+    PlaneRMB() {
+      setProvidingTypes(RoadModel.class, PlaneRoadModel.class);
+    }
+
+    @Override
+    public PlaneRMB withMinPoint(Point minPoint) {
+      return create(getDistanceUnit(), getSpeedUnit(), minPoint, getMax(),
+        getMaxSpeed());
+    }
+
+    @Override
+    public PlaneRMB withMaxPoint(Point maxPoint) {
+      return create(getDistanceUnit(), getSpeedUnit(), getMin(), maxPoint,
+        getMaxSpeed());
+    }
+
+    @Override
+    public PlaneRMB withMaxSpeed(double maxSpeed) {
+      checkMaxSpeed(maxSpeed);
       return create(getDistanceUnit(), getSpeedUnit(), getMin(), getMax(),
         maxSpeed);
     }
@@ -330,6 +349,75 @@ public final class RoadModelBuilders {
         Point min, Point max, double maxSpeed) {
       return new AutoValue_RoadModelBuilders_PlaneRMB(distanceUnit, speedUnit,
         min, max, maxSpeed);
+    }
+  }
+
+  @AutoValue
+  public abstract static class AerialRMB
+      extends AbstractPlaneRMB<AerialModel, AerialRMB> {
+
+    static final double DEFAULT_UAV_RADIUS = -1d;
+
+    AerialRMB() {
+      setProvidingTypes(RoadModel.class, PlaneRoadModel.class,
+        AerialModel.class);
+      setDependencies(Clock.class);
+    }
+
+    abstract double getUavRadius();
+
+    @Override
+    public AerialRMB withMinPoint(Point minPoint) {
+      return create(getDistanceUnit(), getSpeedUnit(), minPoint, getMax(),
+        getMaxSpeed(), getUavRadius());
+    }
+
+    @Override
+    public AerialRMB withMaxPoint(Point maxPoint) {
+      return create(getDistanceUnit(), getSpeedUnit(), getMin(), maxPoint,
+        getMaxSpeed(), getUavRadius());
+    }
+
+    @Override
+    public AerialRMB withMaxSpeed(double maxSpeed) {
+      checkMaxSpeed(maxSpeed);
+      return create(getDistanceUnit(), getSpeedUnit(), getMin(), getMax(),
+        maxSpeed, getUavRadius());
+    }
+
+    @Override
+    public AerialRMB withDistanceUnit(Unit<Length> unit) {
+      return create(unit, getSpeedUnit(), getMin(), getMax(), getMaxSpeed(),
+        getUavRadius());
+    }
+
+    @Override
+    public AerialRMB withSpeedUnit(Unit<Velocity> unit) {
+      return create(getDistanceUnit(), unit, getMin(), getMax(), getMaxSpeed(),
+        getUavRadius());
+    }
+
+    public AerialRMB withUavRadius(double radius) {
+      return create(getDistanceUnit(), getSpeedUnit(), getMin(), getMax(),
+        getMaxSpeed(), radius);
+    }
+
+    @Override
+    public AerialModel build(DependencyProvider dependencyProvider) {
+      final Clock clock = dependencyProvider.get(Clock.class);
+      return new AerialModel(this, clock);
+    }
+
+    static AerialRMB create() {
+      return create(DEFAULT_DISTANCE_UNIT, DEFAULT_SPEED_UNIT,
+        DEFAULT_MIN_POINT, DEFAULT_MAX_POINT, DEFAULT_MAX_SPEED,
+        DEFAULT_UAV_RADIUS);
+    }
+
+    static AerialRMB create(Unit<Length> distanceUnit, Unit<Velocity> speedUnit,
+        Point min, Point max, double maxSpeed, double radius) {
+      return new AutoValue_RoadModelBuilders_AerialRMB(distanceUnit, speedUnit,
+        min, max, maxSpeed, radius);
     }
   }
 

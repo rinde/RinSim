@@ -97,7 +97,7 @@ public class GraphRoadModelImpl extends AbstractRoadModel
   }
 
   @Override
-  protected GraphSpatialRegistry registry() {
+  protected GraphSpatialRegistry<RoadUser> registry() {
     return registry;
   }
 

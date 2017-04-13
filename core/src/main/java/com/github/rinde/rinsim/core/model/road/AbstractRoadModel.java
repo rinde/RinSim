@@ -48,11 +48,6 @@ import com.google.common.collect.Sets;
 public abstract class AbstractRoadModel extends GenericRoadModel {
 
   /**
-   * A mapping of {@link RoadUser} to location.
-   */
-  // protected volatile SpatialRegistry objLocs;
-
-  /**
    * A mapping of {@link MovingRoadUser}s to {@link DestinationPath}s.
    */
   protected Map<MovingRoadUser, DestinationPath> objDestinations;
@@ -72,11 +67,13 @@ public abstract class AbstractRoadModel extends GenericRoadModel {
       Unit<Velocity> speedUnit) {
     super();
     unitConversion = new RoadUnits(distanceUnit, speedUnit);
-    // objLocs = new MapSpatialRegistry();
     objDestinations = newLinkedHashMap();
   }
 
-  protected abstract SpatialRegistry registry();
+  /**
+   * @return A mapping of {@link RoadUser} to location.
+   */
+  protected abstract SpatialRegistry<RoadUser> registry();
 
   @Override
   public MoveProgress followPath(MovingRoadUser object, Queue<Point> path,
@@ -195,19 +192,6 @@ public abstract class AbstractRoadModel extends GenericRoadModel {
 
   @Override
   public Map<RoadUser, Point> getObjectsAndPositions() {
-    // final Map<RoadUser, T> copiedMap;
-    // synchronized (registry()) {
-    // copiedMap = new LinkedHashMap<>();
-    // copiedMap.putAll(registry());
-    // // it is save to release the lock now
-    // }
-    //
-    // final Map<RoadUser, Point> theMap = new LinkedHashMap<>();
-    // for (final java.util.Map.Entry<RoadUser, T> entry : copiedMap.entrySet())
-    // {
-    // theMap.put(entry.getKey(), locObj2point(entry.getValue()));
-    // }
-    // return theMap;
     return registry().getObjectsAndPositions();
   }
 
@@ -223,11 +207,6 @@ public abstract class AbstractRoadModel extends GenericRoadModel {
 
   @Override
   public Set<RoadUser> getObjects() {
-    // synchronized (registry()) {
-    // final Set<RoadUser> copy = new LinkedHashSet<>();
-    // copy.addAll(registry().keySet());
-    // return copy;
-    // }
     return registry().getObjects();
   }
 
