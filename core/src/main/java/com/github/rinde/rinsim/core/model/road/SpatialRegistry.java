@@ -19,36 +19,27 @@ import com.github.rinde.rinsim.geom.Point;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
-public interface SpatialRegistry {
+public interface SpatialRegistry<T> {
 
-  // idea:
-  // wrap point in Container { pos, data }
-  // data would only contain connection and rel pos etc
-  // disadvantage: creating a container for every position, even if not needed
-  // can this be done optionally?
+  boolean containsObject(T object);
 
-  // disadvantage: no lookup by point, is needed for finding shortest path to
-  // another RU, is it?
-
-  // use a separate map for data: RU -> Data
-  // RU -> Point
-  // Point -> RU
-
-  // use decorator to add extra data
-
-  boolean containsObject(RoadUser object);
-
-  void removeObject(RoadUser object);
+  void removeObject(T object);
 
   void clear();
 
-  Point getPosition(RoadUser object);
+  Point getPosition(T object);
 
-  void addAt(RoadUser object, Point position);
+  void addAt(T object, Point position);
 
   // creates snapshots
-  ImmutableMap<RoadUser, Point> getObjectsAndPositions();
+  ImmutableMap<T, Point> getObjectsAndPositions();
 
-  ImmutableSet<RoadUser> getObjects();
+  ImmutableSet<T> getObjects();
+
+  ImmutableSet<T> findObjectsWithinRadius(Point position, double radius);
+
+  ImmutableSet<T> findObjectsInRect(Point min, Point max);
+
+  ImmutableSet<T> findNearestObjects(Point position, int n);
 
 }

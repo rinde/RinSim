@@ -29,14 +29,14 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.SetMultimap;
 
 // adapter that includes graph specific info
-public class GraphSpatialRegistry extends ForwardingSpatialRegistry {
+public class GraphSpatialRegistry<T> extends ForwardingSpatialRegistry<T> {
   // contains map: RoadUser -> Point
-  final SpatialRegistry delegate;
-  final Map<RoadUser, ConnLoc> connLocMap;
-  final SetMultimap<Point, RoadUser> posMap;
-  final SetMultimap<Connection<?>, RoadUser> connMap;
+  final SpatialRegistry<T> delegate;
+  final Map<T, ConnLoc> connLocMap;
+  final SetMultimap<Point, T> posMap;
+  final SetMultimap<Connection<?>, T> connMap;
 
-  GraphSpatialRegistry(SpatialRegistry deleg) {
+  GraphSpatialRegistry(SpatialRegistry<T> deleg) {
     delegate = deleg;
     connMap = LinkedHashMultimap.create();
     posMap = LinkedHashMultimap.create();
@@ -44,16 +44,16 @@ public class GraphSpatialRegistry extends ForwardingSpatialRegistry {
   }
 
   @Override
-  SpatialRegistry delegate() {
+  SpatialRegistry<T> delegate() {
     return delegate;
   }
 
   @Override
-  public void addAt(RoadUser object, Point position) {
-    addAt(object, position, null);
+  public void addAt(T obj, Point position) {
+    addAt(obj, position, null);
   }
 
-  public Point addAt(RoadUser object, Connection<?> conn, double relPos,
+  public Point addAt(T obj, Connection<?> conn, double relPos,
       double precision) {
     final Point diff = Point.diff(conn.to(), conn.from());
     final double perc = relPos / conn.getLength();
@@ -68,11 +68,11 @@ public class GraphSpatialRegistry extends ForwardingSpatialRegistry {
         conn.from().y + perc * diff.y);
       connLoc = ConnLoc.create(pos, conn, relPos);
     }
-    addAt(object, pos, connLoc);
+    addAt(obj, pos, connLoc);
     return pos;
   }
 
-  void addAt(RoadUser ru, Point position, @Nullable ConnLoc connLoc) {
+  void addAt(T obj, Point position, @Nullable ConnLoc connLoc) {
     @Nullable
     ConnLoc cl = connLoc;
     // if no ConnLoc is provided but the position is known to be on a
@@ -82,20 +82,20 @@ public class GraphSpatialRegistry extends ForwardingSpatialRegistry {
     }
 
     // remove from old position
-    if (containsObject(ru)) {
-      removeObject(ru);
+    if (containsObject(obj)) {
+      removeObject(obj);
     }
 
-    delegate().addAt(ru, position);
-    posMap.put(position, ru);
+    delegate().addAt(obj, position);
+    posMap.put(position, obj);
     if (cl != null) {
-      connMap.put(cl.connection(), ru);
-      connLocMap.put(ru, cl);
+      connMap.put(cl.connection(), obj);
+      connLocMap.put(obj, cl);
     }
   }
 
   @Override
-  public void removeObject(RoadUser object) {
+  public void removeObject(T object) {
     final Point pos = getPosition(object);
     delegate.removeObject(object);
     posMap.remove(pos, object);
@@ -121,7 +121,7 @@ public class GraphSpatialRegistry extends ForwardingSpatialRegistry {
       && isOnConnection(posMap.get(p).iterator().next());
   }
 
-  public boolean isOnConnection(RoadUser ru) {
+  public boolean isOnConnection(T ru) {
     return connLocMap.containsKey(ru);
   }
 
@@ -129,7 +129,7 @@ public class GraphSpatialRegistry extends ForwardingSpatialRegistry {
     return getConnection(posMap.get(p).iterator().next());
   }
 
-  public Connection<?> getConnection(RoadUser ru) {
+  public Connection<?> getConnection(T ru) {
     return connLocMap.get(ru).connection();
   }
 
@@ -140,7 +140,7 @@ public class GraphSpatialRegistry extends ForwardingSpatialRegistry {
     return getRelativePosition(posMap.get(p).iterator().next());
   }
 
-  public double getRelativePosition(RoadUser ru) {
+  public double getRelativePosition(T ru) {
     if (!connLocMap.containsKey(ru)) {
       return 0d;
     }
@@ -148,20 +148,25 @@ public class GraphSpatialRegistry extends ForwardingSpatialRegistry {
   }
 
   // excluding from/to
-  public boolean hasRoadUserOn(Connection<?> conn) {
+  public boolean hasObjectOn(Connection<?> conn) {
     return connMap.containsKey(conn);
   }
 
-  public boolean hasRoadUserOn(Point pos) {
+  public boolean hasObjectOn(Point pos) {
     return posMap.containsKey(pos);
   }
 
-  public Set<RoadUser> getRoadUsersOn(Connection<?> conn) {
+  public Set<T> getObjectsOn(Connection<?> conn) {
     return Collections.unmodifiableSet(connMap.get(conn));
   }
 
-  public Set<RoadUser> getRoadUsersOn(Point pos) {
+  public Set<T> getObjectsOn(Point pos) {
     return Collections.unmodifiableSet(posMap.get(pos));
+  }
+
+  public static <T> GraphSpatialRegistry<T> create(
+      SpatialRegistry<T> delegate) {
+    return new GraphSpatialRegistry<>(delegate);
   }
 
   @AutoValue

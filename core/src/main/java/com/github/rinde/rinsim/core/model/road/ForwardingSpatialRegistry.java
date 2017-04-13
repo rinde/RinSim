@@ -19,17 +19,18 @@ import com.github.rinde.rinsim.geom.Point;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
-public abstract class ForwardingSpatialRegistry implements SpatialRegistry {
+public abstract class ForwardingSpatialRegistry<T>
+    implements SpatialRegistry<T> {
 
-  abstract SpatialRegistry delegate();
+  abstract SpatialRegistry<T> delegate();
 
   @Override
-  public boolean containsObject(RoadUser object) {
+  public boolean containsObject(T object) {
     return delegate().containsObject(object);
   }
 
   @Override
-  public void removeObject(RoadUser object) {
+  public void removeObject(T object) {
     delegate().removeObject(object);
   }
 
@@ -39,22 +40,39 @@ public abstract class ForwardingSpatialRegistry implements SpatialRegistry {
   }
 
   @Override
-  public Point getPosition(RoadUser object) {
+  public Point getPosition(T object) {
     return delegate().getPosition(object);
   }
 
   @Override
-  public void addAt(RoadUser object, Point position) {
+  public void addAt(T object, Point position) {
     delegate().addAt(object, position);
   }
 
   @Override
-  public ImmutableMap<RoadUser, Point> getObjectsAndPositions() {
+  public ImmutableMap<T, Point> getObjectsAndPositions() {
     return delegate().getObjectsAndPositions();
   }
 
   @Override
-  public ImmutableSet<RoadUser> getObjects() {
+  public ImmutableSet<T> getObjects() {
     return delegate().getObjects();
   }
+
+  @Override
+  public ImmutableSet<T> findObjectsWithinRadius(Point position,
+      double radius) {
+    return delegate().findObjectsWithinRadius(position, radius);
+  }
+
+  @Override
+  public ImmutableSet<T> findObjectsInRect(Point min, Point max) {
+    return delegate().findObjectsInRect(min, max);
+  }
+
+  @Override
+  public ImmutableSet<T> findNearestObjects(Point position, int n) {
+    return delegate().findNearestObjects(position, n);
+  }
+
 }

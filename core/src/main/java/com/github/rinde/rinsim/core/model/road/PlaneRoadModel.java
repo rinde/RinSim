@@ -99,7 +99,7 @@ public class PlaneRoadModel extends AbstractRoadModel {
     maxSpeed = unitConversion.toInSpeed(b.getMaxSpeed());
     snapshot = PlaneRoadModelSnapshot.create(this);
     planeGraph = new PlaneGraph<>();
-    registry = new MapSpatialRegistry();
+    registry = MapSpatialRegistry.create();
   }
 
   @Override

@@ -77,7 +77,7 @@ public class GraphRoadModelImpl extends AbstractRoadModel
    */
   private final RoadModelSnapshot snapshot;
 
-  private final GraphSpatialRegistry registry;
+  private final GraphSpatialRegistry<RoadUser> registry;
 
   /**
    * Creates a new instance using the specified {@link Graph} as road structure.
@@ -92,7 +92,8 @@ public class GraphRoadModelImpl extends AbstractRoadModel
     snapshot = GraphRoadModelSnapshot.create(
       ImmutableGraph.copyOf(graph), b.getDistanceUnit());
 
-    registry = new GraphSpatialRegistry(new MapSpatialRegistry());
+    registry =
+      GraphSpatialRegistry.create(MapSpatialRegistry.<RoadUser>create());
   }
 
   @Override

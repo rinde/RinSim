@@ -21,26 +21,30 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.PriorityQueue;
+import java.util.Queue;
 
 import com.github.rinde.rinsim.geom.Point;
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
-public final class MapSpatialRegistry implements SpatialRegistry {
+public final class MapSpatialRegistry<T> implements SpatialRegistry<T> {
 
-  volatile Map<RoadUser, Point> objLocs;
+  volatile Map<T, Point> objLocs;
 
-  MapSpatialRegistry() {
-    objLocs = Collections.synchronizedMap(new LinkedHashMap<RoadUser, Point>());
+  private MapSpatialRegistry() {
+    objLocs = Collections.synchronizedMap(new LinkedHashMap<T, Point>());
   }
 
   @Override
-  public boolean containsObject(RoadUser object) {
+  public boolean containsObject(T object) {
     return objLocs.containsKey(object);
   }
 
   @Override
-  public void removeObject(RoadUser object) {
+  public void removeObject(T object) {
     objLocs.remove(object);
   }
 
@@ -50,7 +54,7 @@ public final class MapSpatialRegistry implements SpatialRegistry {
   }
 
   @Override
-  public Point getPosition(RoadUser object) {
+  public Point getPosition(T object) {
     synchronized (objLocs) {
       checkArgument(containsObject(object), "RoadUser does not exist: %s.",
         object);
@@ -59,14 +63,14 @@ public final class MapSpatialRegistry implements SpatialRegistry {
   }
 
   @Override
-  public void addAt(RoadUser object, Point position) {
+  public void addAt(T object, Point position) {
     checkNotNull(position);
     objLocs.put(object, position);
   }
 
   @Override
-  public ImmutableMap<RoadUser, Point> getObjectsAndPositions() {
-    final ImmutableMap<RoadUser, Point> copy;
+  public ImmutableMap<T, Point> getObjectsAndPositions() {
+    final ImmutableMap<T, Point> copy;
     synchronized (objLocs) {
       copy = ImmutableMap.copyOf(objLocs);
     }
@@ -74,11 +78,100 @@ public final class MapSpatialRegistry implements SpatialRegistry {
   }
 
   @Override
-  public ImmutableSet<RoadUser> getObjects() {
-    final ImmutableSet<RoadUser> copy;
+  public ImmutableSet<T> getObjects() {
+    final ImmutableSet<T> copy;
     synchronized (objLocs) {
       copy = ImmutableSet.copyOf(objLocs.keySet());
     }
     return copy;
+  }
+
+  // excludes objects on border of radius
+  @Override
+  public ImmutableSet<T> findObjectsWithinRadius(Point position,
+      double radius) {
+    checkArgument(radius > 0, "radius should be strictly positive, found %s.",
+      radius);
+    final ImmutableSet.Builder<T> builder = ImmutableSet.builder();
+    synchronized (objLocs) {
+      for (final Entry<T, Point> entry : objLocs.entrySet()) {
+        if (Point.distance(position, entry.getValue()) < radius) {
+          builder.add(entry.getKey());
+        }
+      }
+    }
+    return builder.build();
+  }
+
+  // include objects on border of rect
+  @Override
+  public ImmutableSet<T> findObjectsInRect(Point min, Point max) {
+    checkArgument(min.x < max.x && min.y < max.y,
+      "Invalid rectangle, expected 'min' < 'max', found %s and %s.", min, max);
+    final ImmutableSet.Builder<T> builder = ImmutableSet.builder();
+    synchronized (objLocs) {
+      for (final Entry<T, Point> entry : objLocs.entrySet()) {
+        if (isInRect(min, max, entry.getValue())) {
+          builder.add(entry.getKey());
+        }
+      }
+    }
+    return builder.build();
+  }
+
+  // in case multiple objects with the same distance exist, the object that was
+  // added to the registry first is prioritized
+  @Override
+  public ImmutableSet<T> findNearestObjects(Point position, int n) {
+    checkArgument(n > 0, "n should be strictly positive, found %s.", n);
+    synchronized (objLocs) {
+      if (objLocs.isEmpty()) {
+        return ImmutableSet.of();
+      } else if (objLocs.size() <= n) {
+        return getObjects();
+      }
+
+      final Queue<ObjDist<T>> queue = new PriorityQueue<>(n);
+      for (final Entry<T, Point> entry : objLocs.entrySet()) {
+        final double dist = Point.distance(position, entry.getValue());
+        if (queue.size() < n) {
+          queue.add(ObjDist.create(entry.getKey(), dist));
+        } else if (queue.peek().dist() > dist) {
+          queue.remove();
+          queue.add(ObjDist.create(entry.getKey(), dist));
+        }
+      }
+
+      final ImmutableSet.Builder<T> objs = ImmutableSet.builder();
+      for (final ObjDist<T> od : queue) {
+        objs.add(od.obj());
+      }
+      return objs.build();
+    }
+  }
+
+  public static <T> SpatialRegistry<T> create() {
+    return new MapSpatialRegistry<>();
+  }
+
+  static boolean isInRect(Point min, Point max, Point p) {
+    return p.x >= min.x && p.x <= max.x && p.y >= min.y && p.y <= max.y;
+  }
+
+  @AutoValue
+  abstract static class ObjDist<T> implements Comparable<ObjDist<T>> {
+
+    abstract T obj();
+
+    abstract double dist();
+
+    @Override
+    public int compareTo(ObjDist<T> other) {
+      return Double.compare(other.dist(), dist());
+    }
+
+    static <T> ObjDist<T> create(T obj, double d) {
+      return new AutoValue_MapSpatialRegistry_ObjDist<>(obj, d);
+    }
   }
 }

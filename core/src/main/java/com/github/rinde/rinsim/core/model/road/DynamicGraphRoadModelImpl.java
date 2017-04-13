@@ -146,9 +146,9 @@ public class DynamicGraphRoadModelImpl
   @Override
   public boolean hasRoadUserOn(Point from, Point to) {
     checkConnectionsExists(from, to);
-    return registry().hasRoadUserOn(graph.getConnection(from, to))
-      || registry().hasRoadUserOn(from)
-      || registry().hasRoadUserOn(to);
+    return registry().hasObjectOn(graph.getConnection(from, to))
+      || registry().hasObjectOn(from)
+      || registry().hasObjectOn(to);
   }
 
   /**
@@ -167,9 +167,9 @@ public class DynamicGraphRoadModelImpl
     checkConnectionsExists(from, to);
     final Connection<?> conn = graph.getConnection(from, to);
     return ImmutableSet.<RoadUser>builder()
-      .addAll(registry().getRoadUsersOn(conn))
-      .addAll(registry().getRoadUsersOn(from))
-      .addAll(registry().getRoadUsersOn(to))
+      .addAll(registry().getObjectsOn(conn))
+      .addAll(registry().getObjectsOn(from))
+      .addAll(registry().getObjectsOn(to))
       .build();
   }
 
@@ -186,7 +186,7 @@ public class DynamicGraphRoadModelImpl
   public ImmutableSet<RoadUser> getRoadUsersOnNode(Point node) {
     checkArgument(graph.containsNode(node),
       "The specified point (%s) is not a node in the graph.", node);
-    return ImmutableSet.copyOf(registry().getRoadUsersOn(node));
+    return ImmutableSet.copyOf(registry().getObjectsOn(node));
   }
 
   void checkConnectionsExists(Point from, Point to) {
@@ -256,22 +256,22 @@ public class DynamicGraphRoadModelImpl
 
         final Connection<?> conn = ge.getConnection();
         checkState(
-          !model.registry().hasRoadUserOn(conn),
+          !model.registry().hasObjectOn(conn),
           "A connection (%s->%s) with an object (%s) on it can not be changed"
             + " or removed: %s.",
-          conn.from(), conn.to(), model.registry().getRoadUsersOn(conn),
+          conn.from(), conn.to(), model.registry().getObjectsOn(conn),
           ge.getEventType());
 
         // if from() is occupied, check if this is the last connection connected
         // to from()
-        if (model.registry().hasRoadUserOn(conn.from())) {
+        if (model.registry().hasObjectOn(conn.from())) {
           checkState(
             ge.getGraph().containsNode(conn.from()), UNMODIFIABLE_MSG,
             conn.from(), conn.from(), conn.to(), ge.getEventType());
         }
         // if to() is occupied, check if this is the last connection connected
         // to to()
-        if (model.registry().hasRoadUserOn(conn.to())) {
+        if (model.registry().hasObjectOn(conn.to())) {
           checkState(
             ge.getGraph().containsNode(conn.to()), UNMODIFIABLE_MSG,
             conn.to(), conn.from(), conn.to(), ge.getEventType());

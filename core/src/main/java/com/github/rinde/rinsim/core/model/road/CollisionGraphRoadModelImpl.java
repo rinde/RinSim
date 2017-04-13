@@ -116,10 +116,10 @@ public class CollisionGraphRoadModelImpl
           - vehicleLength - minDistance;
       }
       // check if there is an obstacle on the connection
-      if (registry().hasRoadUserOn(conn)) {
+      if (registry().hasObjectOn(conn)) {
         // if yes, how far is it from 'from'
         final Set<RoadUser> potentialObstacles =
-          registry().getRoadUsersOn(conn);
+          registry().getObjectsOn(conn);
         for (final RoadUser ru : potentialObstacles) {
           final Point loc = registry().getPosition(ru);
 
@@ -148,7 +148,7 @@ public class CollisionGraphRoadModelImpl
       final Connection<?> conn = getConnection(objLoc, nextHop);
       if (graph.hasConnection(conn.to(), conn.from())
         && registry()
-          .hasRoadUserOn(Connection.create(conn.to(), conn.from()))) {
+          .hasObjectOn(Connection.create(conn.to(), conn.from()))) {
         throw new DeadlockException(conn);
       }
     }
