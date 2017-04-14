@@ -1,6 +1,8 @@
 # How to run RinSim examples
 
 Are you having trouble with running RinSim? See the [troubleshooting tips](#troubleshooting).
+
+This tutorial is for Eclipse users. Tutorial for IntelliJ users can be found [here](howtorun_intellij.md).
 ##Prerequisites: 
 
 - __installed__ [Eclipse 4.2 or later](http://www.eclipse.org/)
@@ -83,6 +85,14 @@ Click ``Control`` -> ``Play`` to start the simulation. For more information abou
 __Protip__: you can download the sources of RinSim and all other dependencies by right clicking your project -> ``Maven`` -> ``Download Sources``
 
 ## Troubleshooting
+
+- You might see this message in the console:
+  ```
+  SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
+  SLF4J: Defaulting to no-operation (NOP) logger implementation
+  SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
+  ```
+  This is not a critical error, what it means is that [SLF4J](https://www.slf4j.org/), the logging framework used by RinSim, can't find an implementation at runtime. This means that logging is disabled unless you include an implementation of the SLF4J framework.
 
 - When Maven is complaining and you are sure you followed all instructions, force the Maven plugin to update. Right click on your project -> ``Maven`` -> ``Update Project..``.
 
