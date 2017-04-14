@@ -29,6 +29,9 @@ import org.eclipse.swt.graphics.GC;
 import java.util.Map;
 import java.util.Map.Entry;
 
+/**
+ * @author Hoang Tung Dinh
+ */
 final class UavRenderer extends AbstractCanvasRenderer {
   private static final int RED = 255;
   private final CollisionPlaneRoadModel rm;
