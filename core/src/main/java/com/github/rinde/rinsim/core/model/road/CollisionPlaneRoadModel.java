@@ -98,7 +98,6 @@ public class CollisionPlaneRoadModel extends PlaneRoadModel {
     // find intersection of line from <-> to with any MovingRoadUser in the set.
     final Set<Point> intersectionPoints = new LinkedHashSet<>();
     for (final MovingRoadUser ru : set) {
-      System.out.println(getPosition(ru));
       intersectionPoints
         .addAll(findIntersectionPoints(getPosition(ru), objRadius, from,
           destDuringTick));

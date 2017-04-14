@@ -22,12 +22,15 @@ import javax.measure.unit.SI;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.FakeDependencyProvider;
+import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.model.time.TimeLapseFactory;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.util.TrivialRoadUser;
+import com.google.common.base.Optional;
 
 public class CollisionPlaneRoadModelTest {
 
@@ -80,25 +83,120 @@ public class CollisionPlaneRoadModelTest {
     model.addObjectAt(ru2, new Point(2.5, 1));
 
     final MoveProgress mp = model.moveTo(ru1, new Point(2, 1), tick());
-
-    assertThat(Point.distance(model.getPosition(ru1), new Point(1.5, 1)))
+    assertThat(Point.distance(model.getPosition(ru1), new Point(1.25, 1)))
       .isAtMost(PlaneRoadModel.DELTA);
     assertThat(mp.distance().doubleValue(SI.METER))
-      .isWithin(PlaneRoadModel.DELTA).of(.5);
+      .isWithin(PlaneRoadModel.DELTA).of(.25);
+
+    final MoveProgress mp2 = model.moveTo(ru1, new Point(2, 1), tick());
+    assertThat(Point.distance(model.getPosition(ru1), new Point(1.5, 1)))
+      .isAtMost(PlaneRoadModel.DELTA);
+    assertThat(mp2.distance().doubleValue(SI.METER))
+      .isWithin(PlaneRoadModel.DELTA).of(.25);
 
     model.addObjectAt(ru3, new Point(3.5, 2));
     model.moveTo(ru3, new Point(2.5, 1), tick());
 
     assertThat(Point.distance(model.getPosition(ru3), model.getPosition(ru2)))
+      .isGreaterThan(1d);
+
+    model.moveTo(ru3, new Point(2.5, 1), tick());
+    assertThat(Point.distance(model.getPosition(ru3), model.getPosition(ru2)))
       .isWithin(PlaneRoadModel.DELTA).of(1d);
 
-    final MoveProgress mp2 = model.moveTo(ru3, new Point(2.5, 1), tick());
-    assertThat(mp2.distance().doubleValue(SI.METER))
+    final MoveProgress mp3 = model.moveTo(ru3, new Point(2.5, 1), tick());
+    assertThat(mp3.distance().doubleValue(SI.METER))
       .isWithin(PlaneRoadModel.DELTA).of(0d);
 
     assertThat(Point.distance(model.getPosition(ru3), model.getPosition(ru2)))
       .isWithin(PlaneRoadModel.DELTA).of(1d);
 
+  }
+
+  @Test
+  public void testCorrectMovement() {
+    final Simulator sim = Simulator.builder()
+      .addModel(RoadModelBuilders.plane()
+        .withCollisionAvoidance()
+        .withObjectRadius(1000)
+        .withMinPoint(new Point(0, 0))
+        .withMaxPoint(new Point(6000, 6000))
+        .withDistanceUnit(SI.METER)
+        .withSpeedUnit(SI.METERS_PER_SECOND)
+        .withMaxSpeed(1000d))
+      .addModel(TimeModel.builder().withTickLength(500))
+      .build();
+
+    final UavAgent firstUav =
+      new UavAgent(new Point(0, 0), new Point(3000, 3000));
+    final UavAgent secondUav =
+      new UavAgent(new Point(5000, 5000), new Point(3000, 3000));
+
+    sim.register(firstUav);
+    sim.register(secondUav);
+
+    final CollisionPlaneRoadModel model = sim.getModelProvider()
+      .getModel(CollisionPlaneRoadModel.class);
+
+    final double firstUavMaxDistancePerTick =
+      firstUav.getSpeed() * sim.getTimeStep() / 1.0e3;
+    final double secondUavMaxDistancePerTick =
+      secondUav.getSpeed() * sim.getTimeStep() / 1.0e3;
+
+    Point secondUavPositionBeforeTick = model.getPosition(secondUav);
+    Point firstUavPositionBeforeTick = model.getPosition(firstUav);
+
+    final double tolerance = 1.0e-6;
+
+    for (int i = 0; i < 340; i++) {
+      sim.tick();
+      final Point firstUavPositionAfterTick = model.getPosition(firstUav);
+      final Point secondUavPositionAfterTick = model.getPosition(secondUav);
+
+      assertThat(
+        Point.distance(firstUavPositionBeforeTick, firstUavPositionAfterTick))
+          .isLessThan(
+            firstUavMaxDistancePerTick + tolerance);
+
+      assertThat(
+        Point.distance(secondUavPositionBeforeTick, secondUavPositionAfterTick))
+          .isLessThan(
+            secondUavMaxDistancePerTick + tolerance);
+
+      firstUavPositionBeforeTick = firstUavPositionAfterTick;
+      secondUavPositionBeforeTick = secondUavPositionAfterTick;
+    }
+  }
+
+  static class UavAgent implements MovingRoadUser, TickListener {
+
+    private Optional<CollisionPlaneRoadModel> roadModel;
+    private final Point initialPosition;
+    private final Point destination;
+
+    UavAgent(Point initialPosition, Point destination) {
+      this.initialPosition = initialPosition;
+      this.destination = destination;
+    }
+
+    @Override
+    public void initRoadUser(RoadModel model) {
+      roadModel = Optional.of((CollisionPlaneRoadModel) model);
+      roadModel.get().addObjectAt(this, initialPosition);
+    }
+
+    @Override
+    public double getSpeed() {
+      return 5;
+    }
+
+    @Override
+    public void tick(TimeLapse timeLapse) {
+      roadModel.get().moveTo(this, destination, timeLapse);
+    }
+
+    @Override
+    public void afterTick(TimeLapse timeLapse) {}
   }
 
 }
