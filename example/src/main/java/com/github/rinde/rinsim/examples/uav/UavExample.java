@@ -15,13 +15,14 @@
  */
 package com.github.rinde.rinsim.examples.uav;
 
+import javax.measure.unit.SI;
+
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
+import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.ui.View;
 import com.github.rinde.rinsim.ui.renderers.PlaneRoadModelRenderer;
-
-import javax.measure.unit.SI;
 
 /**
  * @author Hoang Tung Dinh
@@ -38,19 +39,20 @@ public final class UavExample {
   public static void main(String[] args) {
 
     final Simulator sim = Simulator.builder()
-        .addModel(RoadModelBuilders.plane()
-            .withCollisionAvoidance()
-            .withObjectRadius(1000)
-            .withMinPoint(MIN_POINT)
-            .withMaxPoint(MAX_POINT)
-            .withDistanceUnit(SI.METER)
-            .withSpeedUnit(SI.METERS_PER_SECOND)
-            .withMaxSpeed(MAX_SPEED))
-        .addModel(View.builder()
-            .with(PlaneRoadModelRenderer.builder())
-            .with(UavRenderer.builder())
-            .withSpeedUp(SPEED_UP))
-        .build();
+      .addModel(TimeModel.builder().withTickLength(500))
+      .addModel(RoadModelBuilders.plane()
+        .withCollisionAvoidance()
+        .withObjectRadius(1000)
+        .withMinPoint(MIN_POINT)
+        .withMaxPoint(MAX_POINT)
+        .withDistanceUnit(SI.METER)
+        .withSpeedUnit(SI.METERS_PER_SECOND)
+        .withMaxSpeed(MAX_SPEED))
+      .addModel(View.builder()
+        .with(PlaneRoadModelRenderer.builder())
+        .with(UavRenderer.builder())
+        .withSpeedUp(SPEED_UP))
+      .build();
 
     sim.register(new UavAgent(new Point(0, 0), new Point(3000, 3000)));
     sim.register(new UavAgent(new Point(5000, 5000), new Point(3000, 3000)));

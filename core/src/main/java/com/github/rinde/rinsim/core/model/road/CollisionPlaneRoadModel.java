@@ -74,9 +74,7 @@ public class CollisionPlaneRoadModel extends PlaneRoadModel {
   protected MoveProgress doFollowPath(MovingRoadUser object, Queue<Point> path,
       TimeLapse time) {
     blockingRegistry.removeObject(object);
-
     final MoveProgress mp = super.doFollowPath(object, path, time);
-
     blockingRegistry.addAt(object, getPosition(object));
     return mp;
   }
@@ -84,18 +82,30 @@ public class CollisionPlaneRoadModel extends PlaneRoadModel {
   @Override
   protected double computeTravelableDistance(Point from, Point to, double speed,
       long tLeft, Unit<Duration> tUnit) {
+
+    final double travelableDistance =
+      super.computeTravelableDistance(from, to, speed, tLeft, tUnit);
+
+    final Point diff = Point.diff(to, from);
+    final double perc =
+      travelableDistance / unitConversion.toInDist(Point.distance(from, to));
+    final Point destDuringTick =
+      new Point(from.x + perc * diff.x, from.y + perc * diff.y);
+
     final ImmutableSet<MovingRoadUser> set =
-      blockingRegistry.findObjectsWithinRadius(to, 2 * objRadius);
+      blockingRegistry.findObjectsWithinRadius(destDuringTick, 2 * objRadius);
 
     // find intersection of line from <-> to with any MovingRoadUser in the set.
     final Set<Point> intersectionPoints = new LinkedHashSet<>();
     for (final MovingRoadUser ru : set) {
+      System.out.println(getPosition(ru));
       intersectionPoints
-        .addAll(findIntersectionPoints(getPosition(ru), objRadius, from, to));
+        .addAll(findIntersectionPoints(getPosition(ru), objRadius, from,
+          destDuringTick));
     }
 
     if (intersectionPoints.isEmpty()) {
-      return super.computeTravelableDistance(from, to, speed, tLeft, tUnit);
+      return travelableDistance;
     }
 
     // find closest intersection
@@ -107,7 +117,6 @@ public class CollisionPlaneRoadModel extends PlaneRoadModel {
         closestDist = dist;
       }
     }
-
     return Math.max(0, closestDist - objRadius);
   }
 

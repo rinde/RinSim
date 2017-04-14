@@ -15,16 +15,17 @@
  */
 package com.github.rinde.rinsim.examples.uav;
 
+import static com.google.common.truth.Truth.assertThat;
+
+import javax.measure.unit.SI;
+
+import org.junit.Test;
+
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.road.CollisionPlaneRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.geom.Point;
-import org.junit.Test;
-
-import javax.measure.unit.SI;
-
-import static com.google.common.truth.Truth.assertThat;
 
 /**
  * @author Hoang Tung Dinh
@@ -38,28 +39,32 @@ public class UavExampleTest {
   @Test
   public void testCorrectMovement() {
     final Simulator sim = Simulator.builder()
-        .addModel(RoadModelBuilders.plane()
-            .withCollisionAvoidance()
-            .withObjectRadius(1000)
-            .withMinPoint(MIN_POINT)
-            .withMaxPoint(MAX_POINT)
-            .withDistanceUnit(SI.METER)
-            .withSpeedUnit(SI.METERS_PER_SECOND)
-            .withMaxSpeed(MAX_SPEED))
-        .addModel(TimeModel.builder().withTickLength(500))
-        .build();
+      .addModel(RoadModelBuilders.plane()
+        .withCollisionAvoidance()
+        .withObjectRadius(1000)
+        .withMinPoint(MIN_POINT)
+        .withMaxPoint(MAX_POINT)
+        .withDistanceUnit(SI.METER)
+        .withSpeedUnit(SI.METERS_PER_SECOND)
+        .withMaxSpeed(MAX_SPEED))
+      .addModel(TimeModel.builder().withTickLength(500))
+      .build();
 
-    final UavAgent firstUav = new UavAgent(new Point(0, 0), new Point(3000, 3000));
-    final UavAgent secondUav = new UavAgent(new Point(5000, 5000), new Point(3000, 3000));
+    final UavAgent firstUav =
+      new UavAgent(new Point(0, 0), new Point(3000, 3000));
+    final UavAgent secondUav =
+      new UavAgent(new Point(5000, 5000), new Point(3000, 3000));
 
     sim.register(firstUav);
     sim.register(secondUav);
 
     final CollisionPlaneRoadModel model = sim.getModelProvider()
-        .getModel(CollisionPlaneRoadModel.class);
+      .getModel(CollisionPlaneRoadModel.class);
 
-    final double firstUavMaxDistancePerTick = firstUav.getSpeed() * sim.getTimeStep() / 1.0e3;
-    final double secondUavMaxDistancePerTick = secondUav.getSpeed() * sim.getTimeStep() / 1.0e3;
+    final double firstUavMaxDistancePerTick =
+      firstUav.getSpeed() * sim.getTimeStep() / 1.0e3;
+    final double secondUavMaxDistancePerTick =
+      secondUav.getSpeed() * sim.getTimeStep() / 1.0e3;
 
     Point secondUavPositionBeforeTick = model.getPosition(secondUav);
     Point firstUavPositionBeforeTick = model.getPosition(firstUav);
@@ -71,12 +76,15 @@ public class UavExampleTest {
       final Point firstUavPositionAfterTick = model.getPosition(firstUav);
       final Point secondUavPositionAfterTick = model.getPosition(secondUav);
 
-      assertThat(Point.distance(firstUavPositionBeforeTick, firstUavPositionAfterTick)).isLessThan(
-          firstUavMaxDistancePerTick + tolerance);
+      assertThat(
+        Point.distance(firstUavPositionBeforeTick, firstUavPositionAfterTick))
+          .isLessThan(
+            firstUavMaxDistancePerTick + tolerance);
 
       assertThat(
-          Point.distance(secondUavPositionBeforeTick, secondUavPositionAfterTick)).isLessThan(
-          secondUavMaxDistancePerTick + tolerance);
+        Point.distance(secondUavPositionBeforeTick, secondUavPositionAfterTick))
+          .isLessThan(
+            secondUavMaxDistancePerTick + tolerance);
 
       firstUavPositionBeforeTick = firstUavPositionAfterTick;
       secondUavPositionBeforeTick = secondUavPositionAfterTick;
