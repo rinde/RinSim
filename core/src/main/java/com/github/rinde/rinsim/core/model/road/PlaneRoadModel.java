@@ -210,7 +210,6 @@ public class PlaneRoadModel extends AbstractRoadModel {
    * <li><code>if travelableDistance &ge; distance(from,to)</code> then it is
    * possible to travel the whole distance at once.</li>
    * </ul>
-   *
    * @param from The start position for this travel.
    * @param to The destination position for this travel.
    * @param speed The travel speed.
@@ -218,8 +217,8 @@ public class PlaneRoadModel extends AbstractRoadModel {
    * @param timeUnit Unit in which <code>timeLeft</code> is expressed.
    * @return The distance that can be traveled, must be &ge; 0.
    */
-  protected double computeTravelableDistance(Point from, Point to,
-      double speed, long timeLeft, Unit<Duration> timeUnit) {
+  protected double computeTravelableDistance(Point from, Point to, double speed,
+      long timeLeft, Unit<Duration> timeUnit) {
     return speed * unitConversion.toInTime(timeLeft, timeUnit);
   }
 
