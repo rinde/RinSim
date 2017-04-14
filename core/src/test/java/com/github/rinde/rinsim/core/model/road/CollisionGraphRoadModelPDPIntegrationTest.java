@@ -81,12 +81,13 @@ public class CollisionGraphRoadModelPDPIntegrationTest {
       .addModel(DefaultPDPModel.builder())
       .build();
 
-    rm = simulator.getModelProvider().getModel(CollisionGraphRoadModelImpl.class);
+    rm =
+      simulator.getModelProvider().getModel(CollisionGraphRoadModelImpl.class);
     pm = simulator.getModelProvider().getModel(DefaultPDPModel.class);
   }
 
   /**
-   * Tests that a vehicle can move to the position of a parcel (i.e. as parcel
+   * Tests that a vehicle can move to the position of a parcel (i.e. a parcel
    * should be non blocking).
    */
   @Test
@@ -104,7 +105,6 @@ public class CollisionGraphRoadModelPDPIntegrationTest {
     assertEquals(NW, rm.getPosition(parcel1));
 
     assertFalse(rm.isOccupied(NW));
-
     for (int i = 0; i < 9; i++) {
       simulator.tick();
     }

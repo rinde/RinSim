@@ -82,6 +82,7 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
     return data.size();
   }
 
+  // note that this is not an efficient lookup
   @Override
   public boolean containsNode(Point node) {
     return data.containsRow(node) || data.containsColumn(node);

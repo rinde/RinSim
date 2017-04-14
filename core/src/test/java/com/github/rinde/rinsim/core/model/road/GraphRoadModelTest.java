@@ -41,7 +41,6 @@ import org.junit.runners.Parameterized.Parameters;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
-import com.github.rinde.rinsim.core.model.road.GraphRoadModelImpl.Loc;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.ConnectionData;
 import com.github.rinde.rinsim.geom.Graph;
@@ -59,14 +58,16 @@ import com.google.common.base.VerifyException;
  *
  */
 @RunWith(Parameterized.class)
-public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModelImpl> {
+public class GraphRoadModelTest
+    extends AbstractRoadModelTest<GraphRoadModelImpl> {
 
   protected Graph<? extends ConnectionData> graph;
   protected ModelBuilder<GraphRoadModelImpl, RoadUser> supplier;
 
   // TODO what about negative speeds? and what about negative speed limits?
 
-  public GraphRoadModelTest(ModelBuilder<GraphRoadModelImpl, RoadUser> supplier) {
+  public GraphRoadModelTest(
+      ModelBuilder<GraphRoadModelImpl, RoadUser> supplier) {
     this.supplier = supplier;
   }
 
@@ -614,54 +615,9 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModelImpl
     model.getShortestPathTo((RoadUser) null, (RoadUser) null);
   }
 
-  @SuppressWarnings("null")
-  @Test(expected = NullPointerException.class)
-  public void locationConstructorFail() {
-    GraphRoadModelImpl.asLoc(null);
-  }
-
-  @SuppressWarnings("unchecked")
-  @Test
-  public void locationIsOnSameConnection() {
-    ((Graph<MultiAttributeData>) graph).addConnection(SE, SW,
-      MultiAttributeData.builder().setLength(300).build());
-    ((Graph<MultiAttributeData>) graph).addConnection(NE, SW);
-
-    final Loc loc1 = GraphRoadModelImpl.newLoc(Connection.create(SW, SE), 3);
-    final Loc loc2 = GraphRoadModelImpl.newLoc(Connection.create(SW, SE), 1);
-    final Loc loc3 = GraphRoadModelImpl.newLoc(Connection.create(SE, NE), 9.999999);
-    final Loc loc4 = GraphRoadModelImpl.asLoc(SW);
-    final Loc loc5 = GraphRoadModelImpl.newLoc(Connection.create(SE, SW), 1);
-    final Loc loc6 = GraphRoadModelImpl.newLoc(Connection.create(NE, SW), 1);
-
-    assertEquals(NE, loc3);
-    assertTrue(loc1.isOnSameConnection(loc2));
-    assertTrue(loc2.isOnSameConnection(loc1));
-    assertFalse(loc1.isOnSameConnection(loc3));
-    assertFalse(loc3.isOnSameConnection(loc1));
-    assertFalse(loc4.isOnSameConnection(loc1));
-    assertFalse(loc1.isOnSameConnection(loc4));
-    assertFalse(loc3.isOnSameConnection(loc5));
-    assertFalse(loc3.isOnSameConnection(loc6));
-  }
-
-  @Test(expected = NullPointerException.class)
-  public void newLocationFail1() {
-    @SuppressWarnings({"null", "unused"})
-    final Loc l = GraphRoadModelImpl.asLoc(null);
-  }
-
   @Test(expected = VerifyException.class)
   public void checkLocationFail1() {
-    final Loc l = GraphRoadModelImpl.asLoc(new Point(-10, -10));
-    model.verifyLocation(l);
-  }
-
-  @Test(expected = VerifyException.class)
-  public void checkLocationFail2() {
-    final Loc l = GraphRoadModelImpl.newLoc(Connection.create(
-      new Point(-10, -10), new Point(100, 0)), 1);
-    model.verifyLocation(l);
+    model.verifyLocation(new Point(-10, -10));
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -767,51 +723,6 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModelImpl
     model.addObjectAt(agent2, new Point(1, 0));// this location is not a
     // crossroad
   }
-
-  // @Test
-  // public void followPathHalfway2() {
-  // RoadUser agent1 = new TestRoadUser();
-  // model.addObjectAt(agent1, SW);
-  // assertTrue(model.containsObjectAt(agent1, SW));
-  // assertFalse(model.containsObjectAt(agent1, SE));
-  // assertFalse(model.containsObjectAt(null, null));
-  // assertTrue(model.equalPosition(agent1, agent1));
-  //
-  // model.followPath(agent1, new LinkedList<Point>(asList(SW, SE)), 5);
-  // assertEquals(new Point(5, 0), model.getPosition(agent1));
-  //
-  // RoadUser agent2 = new TestRoadUser();
-  // model.addObjectAtSamePosition(agent2, agent1);
-  // assertEquals(new Point(5, 0), model.getPosition(agent2));
-  // assertTrue(model.equalPosition(agent1, agent2));
-  // assertFalse(model.equalPosition(null, agent1));
-  // assertFalse(model.equalPosition(agent1, null));
-  //
-  // // rs.followPath(agent2, new
-  // LinkedList<Point>(rs.getShortestPathTo(agent2, agent1)), 5);
-  // }
-  // @Test
-  // public void followPathHalfway2() {
-  // RoadUser agent1 = new TestRoadUser();
-  // model.addObjectAt(agent1, SW);
-  // assertTrue(model.containsObjectAt(agent1, SW));
-  // assertFalse(model.containsObjectAt(agent1, SE));
-  // assertFalse(model.containsObjectAt(null, null));
-  // assertTrue(model.equalPosition(agent1, agent1));
-  //
-  // model.followPath(agent1, new LinkedList<Point>(asList(SW, SE)), 5);
-  // assertEquals(new Point(5, 0), model.getPosition(agent1));
-  //
-  // RoadUser agent2 = new TestRoadUser();
-  // model.addObjectAtSamePosition(agent2, agent1);
-  // assertEquals(new Point(5, 0), model.getPosition(agent2));
-  // assertTrue(model.equalPosition(agent1, agent2));
-  // assertFalse(model.equalPosition(null, agent1));
-  // assertFalse(model.equalPosition(agent1, null));
-  //
-  // // rs.followPath(agent2, new
-  // LinkedList<Point>(rs.getShortestPathTo(agent2, agent1)), 5);
-  // }
 
   static boolean connectionEquals(Connection<?> conn,
       Point from, Point to) {

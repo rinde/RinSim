@@ -19,14 +19,23 @@ import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 
 /**
- * 
+ *
  * Ignores the model registration.
  * @author Bartosz Michalik
- * 
+ *
  */
 public class TrivialRoadUser implements MovingRoadUser {
 
   private RoadModel model;
+  private final double speed;
+
+  public TrivialRoadUser() {
+    this(1d);
+  }
+
+  public TrivialRoadUser(double spd) {
+    speed = spd;
+  }
 
   public RoadModel getRoadModel() {
     return model;
@@ -39,6 +48,6 @@ public class TrivialRoadUser implements MovingRoadUser {
 
   @Override
   public double getSpeed() {
-    return 1d;
+    return speed;
   }
 }

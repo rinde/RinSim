@@ -18,8 +18,8 @@ package com.github.rinde.rinsim.core.model.road;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Verify.verify;
 
-import java.util.Collection;
 import java.util.Queue;
+import java.util.Set;
 
 import javax.measure.quantity.Duration;
 import javax.measure.unit.Unit;
@@ -84,13 +84,15 @@ public class CollisionGraphRoadModelImpl
       throw e;
     } finally {
       // detects if the new location of the object occupies a node
-      final Loc loc = objLocs.get(object);
-      if (loc.isOnConnection()) {
-        if (loc.relativePos < vehicleLength + minDistance) {
-          verify(occupiedNodes.put(object, loc.conn.get().from()));
+      final Point loc = registry().getPosition(object);
+      if (registry().isOnConnection(object)) {
+        final Connection<?> conn = registry().getConnection(object);
+        final double relPos = registry().getRelativePosition(object);
+        if (relPos < vehicleLength + minDistance) {
+          verify(occupiedNodes.put(object, conn.from()));
         }
-        if (loc.relativePos > loc.connLength - vehicleLength - minDistance) {
-          occupiedNodes.put(object, loc.conn.get().to());
+        if (relPos > conn.getLength() - vehicleLength - minDistance) {
+          occupiedNodes.put(object, conn.to());
         }
       } else {
         occupiedNodes.put(object, loc);
@@ -100,26 +102,31 @@ public class CollisionGraphRoadModelImpl
   }
 
   @Override
-  protected double computeTravelableDistance(Loc from, Point to, double speed,
+  protected double computeTravelableDistance(Point from, Point to, double speed,
       long timeLeft, Unit<Duration> timeUnit) {
     double closestDist = Double.POSITIVE_INFINITY;
     if (!from.equals(to)) {
       final Connection<?> conn = getConnection(from, to);
       // check if the node is occupied
       if (occupiedNodes.containsValue(conn.to())) {
-        closestDist = (from.isOnConnection()
-          ? from.connLength - from.relativePos
+        closestDist = (registry().isOnConnection(from)
+          ? registry().getConnection(from).getLength()
+            - registry().getRelativePosition(from)
           : conn.getLength())
           - vehicleLength - minDistance;
       }
       // check if there is an obstacle on the connection
-      if (connMap.containsKey(conn)) {
+      if (registry().hasObjectOn(conn)) {
         // if yes, how far is it from 'from'
-        final Collection<RoadUser> potentialObstacles = connMap.get(conn);
+        final Set<RoadUser> potentialObstacles =
+          registry().getObjectsOn(conn);
         for (final RoadUser ru : potentialObstacles) {
-          final Loc loc = objLocs.get(ru);
-          if (loc.isOnConnection() && loc.relativePos > from.relativePos) {
-            final double dist = loc.relativePos - from.relativePos
+          final Point loc = registry().getPosition(ru);
+
+          if (registry().isOnConnection(loc) && registry()
+            .getRelativePosition(loc) > registry().getRelativePosition(from)) {
+            final double dist = registry().getRelativePosition(loc)
+              - registry().getRelativePosition(from)
               - vehicleLength - minDistance;
             if (dist < closestDist) {
               closestDist = dist;
@@ -134,13 +141,14 @@ public class CollisionGraphRoadModelImpl
   }
 
   @Override
-  protected void checkMoveValidity(Loc objLoc, Point nextHop) {
+  protected void checkMoveValidity(Point objLoc, Point nextHop) {
     super.checkMoveValidity(objLoc, nextHop);
     // check if there is a vehicle driving in the opposite direction
     if (!objLoc.equals(nextHop)) {
       final Connection<?> conn = getConnection(objLoc, nextHop);
       if (graph.hasConnection(conn.to(), conn.from())
-        && connMap.containsKey(graph.getConnection(conn.to(), conn.from()))) {
+        && registry()
+          .hasObjectOn(Connection.create(conn.to(), conn.from()))) {
         throw new DeadlockException(conn);
       }
     }

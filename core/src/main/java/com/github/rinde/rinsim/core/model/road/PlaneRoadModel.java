@@ -16,6 +16,7 @@
 package com.github.rinde.rinsim.core.model.road;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 import static java.lang.Math.min;
 import static java.util.Arrays.asList;
 
@@ -40,8 +41,8 @@ import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.AbstractGraph;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.ConnectionData;
-import com.github.rinde.rinsim.geom.Graphs;
 import com.github.rinde.rinsim.geom.GeomHeuristic;
+import com.github.rinde.rinsim.geom.Graphs;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -56,7 +57,7 @@ import com.google.common.math.DoubleMath;
  *
  * @author Rinde van Lon
  */
-public class PlaneRoadModel extends AbstractRoadModel<Point> {
+public class PlaneRoadModel extends AbstractRoadModel {
 
   /**
    * The minimum travelable distance.
@@ -86,10 +87,10 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
   public final double maxSpeed;
 
   private final RoadModelSnapshot snapshot;
-
   private final PlaneGraph<ConnectionData> planeGraph;
+  private final SpatialRegistry<RoadUser> registry;
 
-  PlaneRoadModel(RoadModelBuilders.PlaneRMB b) {
+  PlaneRoadModel(RoadModelBuilders.AbstractPlaneRMB<?, ?> b) {
     super(b.getDistanceUnit(), b.getSpeedUnit());
     min = b.getMin();
     max = b.getMax();
@@ -98,6 +99,12 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
     maxSpeed = unitConversion.toInSpeed(b.getMaxSpeed());
     snapshot = PlaneRoadModelSnapshot.create(this);
     planeGraph = new PlaneGraph<>();
+    registry = MapSpatialRegistry.create();
+  }
+
+  @Override
+  protected SpatialRegistry<RoadUser> registry() {
+    return registry;
   }
 
   @Override
@@ -120,7 +127,7 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
   protected MoveProgress doFollowPath(MovingRoadUser object, Queue<Point> path,
       TimeLapse time) {
     final long startTimeConsumed = time.getTimeConsumed();
-    Point loc = objLocs.get(object);
+    Point loc = registry().getPosition(object);
 
     double traveled = 0;
     final double speed = min(unitConversion.toInSpeed(object.getSpeed()),
@@ -141,38 +148,42 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
           + "plane");
 
       // distance in internal time unit that can be traveled with timeleft
-      final double travelDistance = speed
-        * unitConversion.toInTime(time.getTimeLeft(),
-          time.getTimeUnit());
-      final double stepLength = unitConversion.toInDist(Point
-        .distance(loc, path.peek()));
+      final double travelableDistance = computeTravelableDistance(loc,
+        path.peek(), speed, time.getTimeLeft(), time.getTimeUnit());
+      checkState(
+        travelableDistance >= 0d,
+        "Found a bug in computeTravelableDistance, return value must be >= 0,"
+          + " but is %s.",
+        travelableDistance);
 
-      if (travelDistance >= stepLength) {
+      final double stepLength = unitConversion.toInDist(
+        Point.distance(loc, path.peek()));
+
+      if (travelableDistance >= stepLength) {
         loc = path.remove();
         travelledNodes.add(loc);
 
         final long timeSpent = DoubleMath.roundToLong(
-          unitConversion.toExTime(stepLength / speed,
-            time.getTimeUnit()),
+          unitConversion.toExTime(stepLength / speed, time.getTimeUnit()),
           RoundingMode.HALF_DOWN);
         time.consume(timeSpent);
         traveled += stepLength;
       } else {
-        final Point diff = Point.diff(path.peek(), loc);
 
-        if (stepLength - travelDistance < DELTA) {
+        if (stepLength - travelableDistance < DELTA) {
           loc = path.peek();
           traveled += stepLength;
         } else {
-          final double perc = travelDistance / stepLength;
+          final Point diff = Point.diff(path.peek(), loc);
+          final double perc = travelableDistance / stepLength;
           loc = new Point(loc.x + perc * diff.x, loc.y + perc * diff.y);
-          traveled += travelDistance;
+          traveled += travelableDistance;
         }
         time.consumeAll();
 
       }
     }
-    objLocs.put(object, loc);
+    registry().addAt(object, loc);
 
     // convert to external units
     final Measure<Double, Length> distTraveled = unitConversion
@@ -180,6 +191,36 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
     final Measure<Long, Duration> timeConsumed = Measure.valueOf(
       time.getTimeConsumed() - startTimeConsumed, time.getTimeUnit());
     return MoveProgress.create(distTraveled, timeConsumed, travelledNodes);
+  }
+
+  /**
+   * Computes the distance that can be traveled between <code>from</code> and
+   * <code>to</code> at the specified <code>speed</code> and using the available
+   * <code>time</code>. This method can optionally be overridden to change the
+   * move behavior of the model. The return value of the method is interpreted
+   * in the following way:
+   * <ul>
+   * <li><code>if travelableDistance &lt; distance(from,to)</code> then there is
+   * either:
+   * <ul>
+   * <li>not enough time left to travel the whole distance</li>
+   * <li>another reason (e.g. an obstacle on the way) that prevents traveling
+   * the whole distance</li>
+   * </ul>
+   * <li><code>if travelableDistance &ge; distance(from,to)</code> then it is
+   * possible to travel the whole distance at once.</li>
+   * </ul>
+   *
+   * @param from The start position for this travel.
+   * @param to The destination position for this travel.
+   * @param speed The travel speed.
+   * @param timeLeft The time available for traveling.
+   * @param timeUnit Unit in which <code>timeLeft</code> is expressed.
+   * @return The distance that can be traveled, must be &ge; 0.
+   */
+  protected double computeTravelableDistance(Point from, Point to,
+      double speed, long timeLeft, Unit<Duration> timeUnit) {
+    return speed * unitConversion.toInTime(timeLeft, timeUnit);
   }
 
   @Override
@@ -215,16 +256,6 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
       "Cannot evaluate the distance of a path with less than two points.");
     return Measure.valueOf(Graphs.pathLength(pathAsList),
       getDistanceUnit());
-  }
-
-  @Override
-  protected Point locObj2point(Point locObj) {
-    return locObj;
-  }
-
-  @Override
-  protected Point point2LocObj(Point point) {
-    return point;
   }
 
   /**

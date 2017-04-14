@@ -27,7 +27,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.LengthData;
 import com.github.rinde.rinsim.geom.MultimapGraph;
@@ -68,34 +67,6 @@ public class PointsEqualityTest {
     assertEquals(p1, PointTestUtil.duplicate(p2));
   }
 
-  @Test
-  public void midPointsEqual() {
-    final GraphRoadModelImpl.Loc p1 = GraphRoadModelImpl.asLoc(new Point(0.2, 10000));
-    final Connection<?> conn = Connection.create(
-      new Point(0.2, 10000),
-      new Point(0.2, 10000));
-    final GraphRoadModelImpl.Loc p2 = GraphRoadModelImpl.newLoc(conn, 10);
-
-    assertEquals(p1, p1);
-    assertEquals(p2, p2);
-    assertEquals(p1, p2);
-    assertEquals(p1, PointTestUtil.duplicate(p1));
-    assertEquals(p1, PointTestUtil.duplicate(p2));
-  }
-
-  @Test
-  public void mixedPointsEqual() {
-    final Point p1 = new Point(5, 0.20101);
-    final GraphRoadModelImpl.Loc p2 = GraphRoadModelImpl.asLoc(new Point(5, 0.20101));
-
-    assertEquals(p1, p1);
-    assertEquals(p2, p2);
-    assertEquals(p1, p2);
-
-    assertEquals(p1, PointTestUtil.duplicate(p1));
-    assertEquals(p1, PointTestUtil.duplicate(p2));
-  }
-
   /**
    * Check consistency wrt. handling value objects
    */
@@ -118,9 +89,8 @@ public class PointsEqualityTest {
     Aa = new Point(0, 0);
     Bb = PointTestUtil.duplicate(B);
 
-    final GraphRoadModelImpl.Loc Cc = GraphRoadModelImpl.asLoc(new Point(13, 17));
-    final GraphRoadModelImpl.Loc Dd = GraphRoadModelImpl.newLoc(
-      graph.getConnection(B, D), 100);
+    final Point Cc = PointTestUtil.duplicate(C);
+    final Point Dd = PointTestUtil.duplicate(D);
 
     checkAssertions(Aa, Bb, C, D);
     checkAssertions(A, B, Cc, Dd);

@@ -26,6 +26,7 @@ import javax.measure.unit.Unit;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
+import com.github.rinde.rinsim.core.model.time.Clock;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.ListenableGraph;
@@ -164,9 +165,6 @@ public final class RoadModelBuilders {
   public abstract static class AbstractGraphRMB<T extends GraphRoadModel, S, G extends Graph<?>>
       extends AbstractRMB<T, S> {
 
-    /**
-     *
-     */
     private static final long serialVersionUID = -2141173156740097368L;
 
     /**
@@ -215,7 +213,7 @@ public final class RoadModelBuilders {
      * the specified {@link ListenableGraph}.
      * <p>
      * <b>Warning:</b> disabling this check may result in an inconsistent model,
-     * <i>without any exception thrown to indicate so</i>.
+     * <i>without any exception thrown to indicate so.</i>.
      * @param enabled <code>true</code> means enabled, <code>false</code> means
      *          disabled. Default: <code>true</code>.
      * @return A new builder instance.
@@ -231,22 +229,11 @@ public final class RoadModelBuilders {
     protected abstract boolean isModCheckEnabled();
   }
 
-  /**
-   * A builder for {@link PlaneRoadModel}. Instances can be obtained via
-   * {@link #plane()}.
-   * @author Rinde van Lon
-   */
-  @AutoValue
-  public abstract static class PlaneRMB
-      extends AbstractRMB<PlaneRoadModel, PlaneRMB> {
+  public abstract static class AbstractPlaneRMB<T extends PlaneRoadModel, S>
+      extends AbstractRMB<T, S> {
     static final double DEFAULT_MAX_SPEED = 50d;
     static final Point DEFAULT_MIN_POINT = new Point(0, 0);
     static final Point DEFAULT_MAX_POINT = new Point(10, 10);
-    private static final long serialVersionUID = 8160700332762443917L;
-
-    PlaneRMB() {
-      setProvidingTypes(RoadModel.class, PlaneRoadModel.class);
-    }
 
     abstract Point getMin();
 
@@ -262,10 +249,7 @@ public final class RoadModelBuilders {
      * @return A new builder instance.
      */
     @CheckReturnValue
-    public PlaneRMB withMinPoint(Point minPoint) {
-      return create(getDistanceUnit(), getSpeedUnit(), minPoint, getMax(),
-        getMaxSpeed());
-    }
+    public abstract S withMinPoint(Point minPoint);
 
     /**
      * Returns a copy of this builder with the specified max point. The max
@@ -275,10 +259,7 @@ public final class RoadModelBuilders {
      * @return A new builder instance.
      */
     @CheckReturnValue
-    public PlaneRMB withMaxPoint(Point maxPoint) {
-      return create(getDistanceUnit(), getSpeedUnit(), getMin(), maxPoint,
-        getMaxSpeed());
-    }
+    public abstract S withMaxPoint(Point maxPoint);
 
     /**
      * Returns a copy of this builder with the specified maximum speed. The
@@ -288,10 +269,45 @@ public final class RoadModelBuilders {
      * @return A new builder instance.
      */
     @CheckReturnValue
-    public PlaneRMB withMaxSpeed(double maxSpeed) {
+    public abstract S withMaxSpeed(double maxSpeed);
+
+    void checkMaxSpeed(double maxSpeed) {
       checkArgument(maxSpeed > 0d,
         "Max speed must be strictly positive but is %s.",
         maxSpeed);
+    }
+  }
+
+  /**
+   * A builder for {@link PlaneRoadModel}. Instances can be obtained via
+   * {@link #plane()}.
+   * @author Rinde van Lon
+   */
+  @AutoValue
+  public abstract static class PlaneRMB
+      extends AbstractPlaneRMB<PlaneRoadModel, PlaneRMB> {
+
+    private static final long serialVersionUID = 8160700332762443917L;
+
+    PlaneRMB() {
+      setProvidingTypes(RoadModel.class, PlaneRoadModel.class);
+    }
+
+    @Override
+    public PlaneRMB withMinPoint(Point minPoint) {
+      return create(getDistanceUnit(), getSpeedUnit(), minPoint, getMax(),
+        getMaxSpeed());
+    }
+
+    @Override
+    public PlaneRMB withMaxPoint(Point maxPoint) {
+      return create(getDistanceUnit(), getSpeedUnit(), getMin(), maxPoint,
+        getMaxSpeed());
+    }
+
+    @Override
+    public PlaneRMB withMaxSpeed(double maxSpeed) {
+      checkMaxSpeed(maxSpeed);
       return create(getDistanceUnit(), getSpeedUnit(), getMin(), getMax(),
         maxSpeed);
     }
@@ -304,6 +320,11 @@ public final class RoadModelBuilders {
     @Override
     public PlaneRMB withSpeedUnit(Unit<Velocity> unit) {
       return create(getDistanceUnit(), unit, getMin(), getMax(), getMaxSpeed());
+    }
+
+    @CheckReturnValue
+    public CollisionPlaneRMB withCollisionAvoidance() {
+      return CollisionPlaneRMB.create(this);
     }
 
     @Override
@@ -330,6 +351,78 @@ public final class RoadModelBuilders {
         Point min, Point max, double maxSpeed) {
       return new AutoValue_RoadModelBuilders_PlaneRMB(distanceUnit, speedUnit,
         min, max, maxSpeed);
+    }
+  }
+
+  @AutoValue
+  public abstract static class CollisionPlaneRMB
+      extends AbstractPlaneRMB<CollisionPlaneRoadModel, CollisionPlaneRMB> {
+
+    static final double DEFAULT_OBJ_RADIUS = .1d;
+
+    CollisionPlaneRMB() {
+      setProvidingTypes(RoadModel.class, PlaneRoadModel.class,
+        CollisionPlaneRoadModel.class);
+      setDependencies(Clock.class);
+    }
+
+    abstract double getObjectRadius();
+
+    @Override
+    public CollisionPlaneRMB withMinPoint(Point minPoint) {
+      return create(getDistanceUnit(), getSpeedUnit(), minPoint, getMax(),
+        getMaxSpeed(), getObjectRadius());
+    }
+
+    @Override
+    public CollisionPlaneRMB withMaxPoint(Point maxPoint) {
+      return create(getDistanceUnit(), getSpeedUnit(), getMin(), maxPoint,
+        getMaxSpeed(), getObjectRadius());
+    }
+
+    @Override
+    public CollisionPlaneRMB withMaxSpeed(double maxSpeed) {
+      checkMaxSpeed(maxSpeed);
+      return create(getDistanceUnit(), getSpeedUnit(), getMin(), getMax(),
+        maxSpeed, getObjectRadius());
+    }
+
+    @Override
+    public CollisionPlaneRMB withDistanceUnit(Unit<Length> unit) {
+      return create(unit, getSpeedUnit(), getMin(), getMax(), getMaxSpeed(),
+        getObjectRadius());
+    }
+
+    @Override
+    public CollisionPlaneRMB withSpeedUnit(Unit<Velocity> unit) {
+      return create(getDistanceUnit(), unit, getMin(), getMax(), getMaxSpeed(),
+        getObjectRadius());
+    }
+
+    public CollisionPlaneRMB withObjectRadius(double radius) {
+      checkArgument(radius > 0);
+      return create(getDistanceUnit(), getSpeedUnit(), getMin(), getMax(),
+        getMaxSpeed(), radius);
+    }
+
+    @Override
+    public CollisionPlaneRoadModel build(
+        DependencyProvider dependencyProvider) {
+      final Clock clock = dependencyProvider.get(Clock.class);
+      return new CollisionPlaneRoadModel(this, clock);
+    }
+
+    static CollisionPlaneRMB create(AbstractPlaneRMB<?, ?> planeRmb) {
+      return create(planeRmb.getDistanceUnit(), planeRmb.getSpeedUnit(),
+        planeRmb.getMin(), planeRmb.getMax(), planeRmb.getMaxSpeed(),
+        DEFAULT_OBJ_RADIUS);
+    }
+
+    static CollisionPlaneRMB create(Unit<Length> distanceUnit,
+        Unit<Velocity> speedUnit,
+        Point min, Point max, double maxSpeed, double radius) {
+      return new AutoValue_RoadModelBuilders_CollisionPlaneRMB(distanceUnit,
+        speedUnit, min, max, maxSpeed, radius);
     }
   }
 
