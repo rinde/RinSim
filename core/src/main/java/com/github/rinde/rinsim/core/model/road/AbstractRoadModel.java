@@ -253,7 +253,7 @@ public abstract class AbstractRoadModel extends GenericRoadModel {
   }
 
   @Override
-  public boolean doRegister(RoadUser roadUser) {
+  protected boolean doRegister(RoadUser roadUser) {
     LOGGER.info("register {}", roadUser);
     roadUser.initRoadUser(self);
     return true;

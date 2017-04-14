@@ -165,9 +165,6 @@ public final class RoadModelBuilders {
   public abstract static class AbstractGraphRMB<T extends GraphRoadModel, S, G extends Graph<?>>
       extends AbstractRMB<T, S> {
 
-    /**
-     *
-     */
     private static final long serialVersionUID = -2141173156740097368L;
 
     /**
@@ -216,7 +213,7 @@ public final class RoadModelBuilders {
      * the specified {@link ListenableGraph}.
      * <p>
      * <b>Warning:</b> disabling this check may result in an inconsistent model,
-     * <i>without any exception thrown to indicate so</i>.
+     * <i>without any exception thrown to indicate so.</i>.
      * @param enabled <code>true</code> means enabled, <code>false</code> means
      *          disabled. Default: <code>true</code>.
      * @return A new builder instance.
@@ -325,6 +322,11 @@ public final class RoadModelBuilders {
       return create(getDistanceUnit(), unit, getMin(), getMax(), getMaxSpeed());
     }
 
+    @CheckReturnValue
+    public CollisionPlaneRMB withCollisionAvoidance() {
+      return CollisionPlaneRMB.create(this);
+    }
+
     @Override
     public PlaneRoadModel build(DependencyProvider dependencyProvider) {
       checkArgument(
@@ -353,71 +355,74 @@ public final class RoadModelBuilders {
   }
 
   @AutoValue
-  public abstract static class AerialRMB
-      extends AbstractPlaneRMB<AerialModel, AerialRMB> {
+  public abstract static class CollisionPlaneRMB
+      extends AbstractPlaneRMB<CollisionPlaneRoadModel, CollisionPlaneRMB> {
 
-    static final double DEFAULT_UAV_RADIUS = -1d;
+    static final double DEFAULT_OBJ_RADIUS = .1d;
 
-    AerialRMB() {
+    CollisionPlaneRMB() {
       setProvidingTypes(RoadModel.class, PlaneRoadModel.class,
-        AerialModel.class);
+        CollisionPlaneRoadModel.class);
       setDependencies(Clock.class);
     }
 
-    abstract double getUavRadius();
+    abstract double getObjectRadius();
 
     @Override
-    public AerialRMB withMinPoint(Point minPoint) {
+    public CollisionPlaneRMB withMinPoint(Point minPoint) {
       return create(getDistanceUnit(), getSpeedUnit(), minPoint, getMax(),
-        getMaxSpeed(), getUavRadius());
+        getMaxSpeed(), getObjectRadius());
     }
 
     @Override
-    public AerialRMB withMaxPoint(Point maxPoint) {
+    public CollisionPlaneRMB withMaxPoint(Point maxPoint) {
       return create(getDistanceUnit(), getSpeedUnit(), getMin(), maxPoint,
-        getMaxSpeed(), getUavRadius());
+        getMaxSpeed(), getObjectRadius());
     }
 
     @Override
-    public AerialRMB withMaxSpeed(double maxSpeed) {
+    public CollisionPlaneRMB withMaxSpeed(double maxSpeed) {
       checkMaxSpeed(maxSpeed);
       return create(getDistanceUnit(), getSpeedUnit(), getMin(), getMax(),
-        maxSpeed, getUavRadius());
+        maxSpeed, getObjectRadius());
     }
 
     @Override
-    public AerialRMB withDistanceUnit(Unit<Length> unit) {
+    public CollisionPlaneRMB withDistanceUnit(Unit<Length> unit) {
       return create(unit, getSpeedUnit(), getMin(), getMax(), getMaxSpeed(),
-        getUavRadius());
+        getObjectRadius());
     }
 
     @Override
-    public AerialRMB withSpeedUnit(Unit<Velocity> unit) {
+    public CollisionPlaneRMB withSpeedUnit(Unit<Velocity> unit) {
       return create(getDistanceUnit(), unit, getMin(), getMax(), getMaxSpeed(),
-        getUavRadius());
+        getObjectRadius());
     }
 
-    public AerialRMB withUavRadius(double radius) {
+    public CollisionPlaneRMB withObjectRadius(double radius) {
+      checkArgument(radius > 0);
       return create(getDistanceUnit(), getSpeedUnit(), getMin(), getMax(),
         getMaxSpeed(), radius);
     }
 
     @Override
-    public AerialModel build(DependencyProvider dependencyProvider) {
+    public CollisionPlaneRoadModel build(
+        DependencyProvider dependencyProvider) {
       final Clock clock = dependencyProvider.get(Clock.class);
-      return new AerialModel(this, clock);
+      return new CollisionPlaneRoadModel(this, clock);
     }
 
-    static AerialRMB create() {
-      return create(DEFAULT_DISTANCE_UNIT, DEFAULT_SPEED_UNIT,
-        DEFAULT_MIN_POINT, DEFAULT_MAX_POINT, DEFAULT_MAX_SPEED,
-        DEFAULT_UAV_RADIUS);
+    static CollisionPlaneRMB create(AbstractPlaneRMB<?, ?> planeRmb) {
+      return create(planeRmb.getDistanceUnit(), planeRmb.getSpeedUnit(),
+        planeRmb.getMin(), planeRmb.getMax(), planeRmb.getMaxSpeed(),
+        DEFAULT_OBJ_RADIUS);
     }
 
-    static AerialRMB create(Unit<Length> distanceUnit, Unit<Velocity> speedUnit,
+    static CollisionPlaneRMB create(Unit<Length> distanceUnit,
+        Unit<Velocity> speedUnit,
         Point min, Point max, double maxSpeed, double radius) {
-      return new AutoValue_RoadModelBuilders_AerialRMB(distanceUnit, speedUnit,
-        min, max, maxSpeed, radius);
+      return new AutoValue_RoadModelBuilders_CollisionPlaneRMB(distanceUnit,
+        speedUnit, min, max, maxSpeed, radius);
     }
   }
 

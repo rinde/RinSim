@@ -19,32 +19,39 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import java.util.Queue;
 
-import com.github.rinde.rinsim.core.model.road.RoadModelBuilders.AerialRMB;
+import javax.measure.quantity.Duration;
+import javax.measure.unit.Unit;
+
+import com.github.rinde.rinsim.core.model.road.RoadModelBuilders.CollisionPlaneRMB;
 import com.github.rinde.rinsim.core.model.time.Clock;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
+import com.google.common.collect.ImmutableSet;
 
-public class AerialModel extends PlaneRoadModel {
+public class CollisionPlaneRoadModel extends PlaneRoadModel {
 
   private final double deltaMax;
-  private final double uavRadius;
+  private final double objRadius;
 
-  AerialModel(AerialRMB b, Clock c) {
+  private final SpatialRegistry<MovingRoadUser> blockingRegistry;
+
+  CollisionPlaneRoadModel(CollisionPlaneRMB b, Clock c) {
     super(b);
-    uavRadius = b.getUavRadius();
+    objRadius = b.getObjectRadius();
     deltaMax = c.getTickLength() * maxSpeed;
-  }
 
-  // how to distinguish between Uav's and Parcels?
-  // two registries?
-  // do we need a Uav class/interface?
-  // MovingRoadUser vs RoadUser
+    blockingRegistry = MapSpatialRegistry.create();
+  }
 
   @Override
   public void addObjectAt(RoadUser obj, Point pos) {
     checkArgument(
-      registry().findObjectsWithinRadius(pos, 2 * uavRadius).isEmpty(),
-      "Cannot add an object on an occupied position.");
+      blockingRegistry.findObjectsWithinRadius(pos, 2 * objRadius).isEmpty(),
+      "Cannot add an object on an occupied position: %s.", pos);
+
+    if (obj instanceof MovingRoadUser) {
+      blockingRegistry.addAt((MovingRoadUser) obj, pos);
+    }
     super.addObjectAt(obj, pos);
   }
 
@@ -53,6 +60,19 @@ public class AerialModel extends PlaneRoadModel {
       TimeLapse time) {
 
     return super.doFollowPath(object, path, time);
+  }
+
+  @Override
+  protected double computeTravelableDistance(Point from, Point to, double speed,
+      long timeLeft, Unit<Duration> timeUnit) {
+    final ImmutableSet<MovingRoadUser> set =
+      blockingRegistry.findObjectsWithinRadius(to, 2 * objRadius);
+    if (set.isEmpty()) {
+      return super.computeTravelableDistance(from, to, speed, timeLeft,
+        timeUnit);
+    }
+    return 0d;
+
   }
 
 }

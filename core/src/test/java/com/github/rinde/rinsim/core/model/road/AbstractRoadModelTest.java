@@ -270,11 +270,11 @@ public abstract class AbstractRoadModelTest<T extends GenericRoadModel> {
 
   @Test
   public void getObjectsAt() {
-    final TestRoadUser agent1 = new TestRoadUser();
-    final TestRoadUser agent2 = new TestRoadUser();
-    final TestRoadUser agent3 = new TestRoadUser();
-    final TestRoadUser agent4 = new TestRoadUser();
-    final TestRoadUser agent5 = new TestRoadUser();
+    final NonMovingRoadUser agent1 = new NonMovingRoadUser();
+    final NonMovingRoadUser agent2 = new NonMovingRoadUser();
+    final NonMovingRoadUser agent3 = new NonMovingRoadUser();
+    final NonMovingRoadUser agent4 = new NonMovingRoadUser();
+    final NonMovingRoadUser agent5 = new NonMovingRoadUser();
 
     model.addObjectAt(agent1, SW);
     model.addObjectAt(agent2, NE);
@@ -282,9 +282,9 @@ public abstract class AbstractRoadModelTest<T extends GenericRoadModel> {
     model.addObjectAt(agent4, NE);
     model.addObjectAt(agent5, SE);
     assertTrue(Sets.difference(asSet(agent1),
-      model.getObjectsAt(agent1, TestRoadUser.class)).isEmpty());
+      model.getObjectsAt(agent1, NonMovingRoadUser.class)).isEmpty());
     assertTrue(Sets.difference(asSet(agent2, agent4),
-      model.getObjectsAt(agent2, TestRoadUser.class)).isEmpty());
+      model.getObjectsAt(agent2, NonMovingRoadUser.class)).isEmpty());
     assertTrue(model.getObjectsAt(agent2, SpeedyRoadUser.class).isEmpty());
   }
 
@@ -379,8 +379,8 @@ public abstract class AbstractRoadModelTest<T extends GenericRoadModel> {
 
   @Test
   public void testEqualPosition() {
-    final RoadUser agent1 = new TestRoadUser();
-    final RoadUser agent2 = new TestRoadUser();
+    final RoadUser agent1 = new NonMovingRoadUser();
+    final RoadUser agent2 = new NonMovingRoadUser();
 
     assertFalse(model.equalPosition(agent1, agent2));
     model.addObjectAt(agent1, SW);
@@ -444,21 +444,21 @@ public abstract class AbstractRoadModelTest<T extends GenericRoadModel> {
    */
   @Test
   public void testObjectOrder() {
-    final List<RoadUser> objects = new ArrayList<RoadUser>();
+    final List<RoadUser> objects = new ArrayList<>();
     final List<Point> positions = Arrays.asList(NE, SE, SW, NE);
     for (int i = 0; i < 100; i++) {
       RoadUser u;
       if (i % 2 == 0) {
-        u = new TestRoadUser();
+        u = new NonMovingRoadUser();
       } else {
-        u = new TestRoadUser2();
+        u = new NonMovingRoadUser2();
       }
       objects.add(u);
       model.addObjectAt(u, positions.get(i % positions.size()));
     }
 
     // checking whether the returned objects are in insertion order
-    final List<RoadUser> modelObjects = new ArrayList<RoadUser>(
+    final List<RoadUser> modelObjects = new ArrayList<>(
       model.getObjects());
     assertEquals(objects.size(), modelObjects.size());
     for (int i = 0; i < modelObjects.size(); i++) {
@@ -473,7 +473,7 @@ public abstract class AbstractRoadModelTest<T extends GenericRoadModel> {
 
     // check to see if the objects are still in insertion order, even after
     // removals
-    final List<RoadUser> modelObjects2 = new ArrayList<RoadUser>(
+    final List<RoadUser> modelObjects2 = new ArrayList<>(
       model.getObjects());
     assertEquals(objects.size(), modelObjects2.size());
     for (int i = 0; i < modelObjects2.size(); i++) {
@@ -481,7 +481,7 @@ public abstract class AbstractRoadModelTest<T extends GenericRoadModel> {
     }
 
     // make sure that the order is preserved, even when using a predicate
-    final List<RoadUser> modelObjects3 = new ArrayList<RoadUser>(
+    final List<RoadUser> modelObjects3 = new ArrayList<>(
       model.getObjects(new Predicate<RoadUser>() {
         @Override
         public boolean apply(RoadUser input) {
@@ -495,9 +495,8 @@ public abstract class AbstractRoadModelTest<T extends GenericRoadModel> {
 
     // make sure that the order of the objects is preserved, even in this
     // RoadUser, Point map
-    final List<Entry<RoadUser, Point>> modelObjects4 =
-      new ArrayList<Entry<RoadUser, Point>>(
-        model.getObjectsAndPositions().entrySet());
+    final List<Entry<RoadUser, Point>> modelObjects4 = new ArrayList<>(
+      model.getObjectsAndPositions().entrySet());
     assertEquals(objects.size(), modelObjects4.size());
     for (int i = 0; i < modelObjects4.size(); i++) {
       assertSame(modelObjects4.get(i).getKey(), objects.get(i));
@@ -505,12 +504,12 @@ public abstract class AbstractRoadModelTest<T extends GenericRoadModel> {
 
     // make sure that the order is preserved, even when using a type
     final List<RoadUser> modelObjects5 = new ArrayList<RoadUser>(
-      model.getObjectsOfType(TestRoadUser2.class));
+      model.getObjectsOfType(NonMovingRoadUser2.class));
     assertEquals(46, modelObjects5.size());
     int j = 0;
     for (int i = 0; i < modelObjects5.size(); i++) {
       // skip all other objects
-      while (!(objects.get(j) instanceof TestRoadUser2)) {
+      while (!(objects.get(j) instanceof NonMovingRoadUser2)) {
         j++;
       }
       assertSame(modelObjects5.get(i), objects.get(j));
@@ -584,6 +583,18 @@ class SpeedyRoadUser implements MovingRoadUser {
     return getClass().getSimpleName() + "(" + speed + ")";
   }
 
+}
+
+class NonMovingRoadUser implements RoadUser {
+
+  @Override
+  public void initRoadUser(RoadModel model) {}
+}
+
+class NonMovingRoadUser2 implements RoadUser {
+
+  @Override
+  public void initRoadUser(RoadModel model) {}
 }
 
 class TestRoadUser extends TrivialRoadUser {

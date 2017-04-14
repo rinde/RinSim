@@ -16,6 +16,7 @@
 package com.github.rinde.rinsim.core.model.road;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 import static java.lang.Math.min;
 import static java.util.Arrays.asList;
 
@@ -147,32 +148,36 @@ public class PlaneRoadModel extends AbstractRoadModel {
           + "plane");
 
       // distance in internal time unit that can be traveled with timeleft
-      final double travelDistance = speed
-        * unitConversion.toInTime(time.getTimeLeft(),
-          time.getTimeUnit());
-      final double stepLength = unitConversion.toInDist(Point
-        .distance(loc, path.peek()));
+      final double travelableDistance = computeTravelableDistance(loc,
+        path.peek(), speed, time.getTimeLeft(), time.getTimeUnit());
+      checkState(
+        travelableDistance >= 0d,
+        "Found a bug in computeTravelableDistance, return value must be >= 0,"
+          + " but is %s.",
+        travelableDistance);
 
-      if (travelDistance >= stepLength) {
+      final double stepLength = unitConversion.toInDist(
+        Point.distance(loc, path.peek()));
+
+      if (travelableDistance >= stepLength) {
         loc = path.remove();
         travelledNodes.add(loc);
 
         final long timeSpent = DoubleMath.roundToLong(
-          unitConversion.toExTime(stepLength / speed,
-            time.getTimeUnit()),
+          unitConversion.toExTime(stepLength / speed, time.getTimeUnit()),
           RoundingMode.HALF_DOWN);
         time.consume(timeSpent);
         traveled += stepLength;
       } else {
-        final Point diff = Point.diff(path.peek(), loc);
 
-        if (stepLength - travelDistance < DELTA) {
+        if (stepLength - travelableDistance < DELTA) {
           loc = path.peek();
           traveled += stepLength;
         } else {
-          final double perc = travelDistance / stepLength;
+          final Point diff = Point.diff(path.peek(), loc);
+          final double perc = travelableDistance / stepLength;
           loc = new Point(loc.x + perc * diff.x, loc.y + perc * diff.y);
-          traveled += travelDistance;
+          traveled += travelableDistance;
         }
         time.consumeAll();
 
@@ -186,6 +191,36 @@ public class PlaneRoadModel extends AbstractRoadModel {
     final Measure<Long, Duration> timeConsumed = Measure.valueOf(
       time.getTimeConsumed() - startTimeConsumed, time.getTimeUnit());
     return MoveProgress.create(distTraveled, timeConsumed, travelledNodes);
+  }
+
+  /**
+   * Computes the distance that can be traveled between <code>from</code> and
+   * <code>to</code> at the specified <code>speed</code> and using the available
+   * <code>time</code>. This method can optionally be overridden to change the
+   * move behavior of the model. The return value of the method is interpreted
+   * in the following way:
+   * <ul>
+   * <li><code>if travelableDistance &lt; distance(from,to)</code> then there is
+   * either:
+   * <ul>
+   * <li>not enough time left to travel the whole distance</li>
+   * <li>another reason (e.g. an obstacle on the way) that prevents traveling
+   * the whole distance</li>
+   * </ul>
+   * <li><code>if travelableDistance &ge; distance(from,to)</code> then it is
+   * possible to travel the whole distance at once.</li>
+   * </ul>
+   *
+   * @param from The start position for this travel.
+   * @param to The destination position for this travel.
+   * @param speed The travel speed.
+   * @param timeLeft The time available for traveling.
+   * @param timeUnit Unit in which <code>timeLeft</code> is expressed.
+   * @return The distance that can be traveled, must be &ge; 0.
+   */
+  protected double computeTravelableDistance(Point from, Point to,
+      double speed, long timeLeft, Unit<Duration> timeUnit) {
+    return speed * unitConversion.toInTime(timeLeft, timeUnit);
   }
 
   @Override
