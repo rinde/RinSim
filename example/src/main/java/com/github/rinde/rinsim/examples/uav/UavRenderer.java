@@ -46,18 +46,16 @@ final class UavRenderer extends AbstractCanvasRenderer {
         final Point p = entry.getValue();
         gc.setBackground(new Color(gc.getDevice(), 0, 0, 255));
         gc.fillOval(
-            (int) (vp.origin.x + (p.x - vp.rect.min.x) * vp.scale)
-                - (int) (rm.getObjectRadius() * vp.scale),
-            (int) (vp.origin.y + (p.y - vp.rect.min.y) * vp.scale)
-                - (int) (rm.getObjectRadius() * vp.scale),
+            (int) (vp.origin.x + (p.x - vp.rect.min.x) * vp.scale) - (int) (rm.getObjectRadius()
+                * vp.scale),
+            (int) (vp.origin.y + (p.y - vp.rect.min.y) * vp.scale) - (int) (rm.getObjectRadius()
+                * vp.scale),
             2 * (int) (rm.getObjectRadius() * vp.scale),
             2 * (int) (rm.getObjectRadius() * vp.scale));
 
         gc.setBackground(new Color(gc.getDevice(), RED, 0, 0));
-        gc.fillOval(
-            (int) (vp.origin.x + (p.x - vp.rect.min.x) * vp.scale) - radius,
-            (int) (vp.origin.y + (p.y - vp.rect.min.y) * vp.scale) - radius,
-            2 * radius,
+        gc.fillOval((int) (vp.origin.x + (p.x - vp.rect.min.x) * vp.scale) - radius,
+            (int) (vp.origin.y + (p.y - vp.rect.min.y) * vp.scale) - radius, 2 * radius,
             2 * radius);
       }
     }

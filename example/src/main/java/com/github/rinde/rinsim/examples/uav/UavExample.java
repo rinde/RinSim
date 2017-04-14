@@ -19,23 +19,20 @@ public final class UavExample {
 
   public static void main(String[] args) {
 
-    final Simulator sim =
-        Simulator.builder()
-            .addModel(
-                RoadModelBuilders.plane()
-                    .withCollisionAvoidance()
-                    .withObjectRadius(1000)
-                    .withMinPoint(MIN_POINT)
-                    .withMaxPoint(MAX_POINT)
-                    .withDistanceUnit(SI.METER)
-                    .withSpeedUnit(NonSI.KILOMETERS_PER_HOUR)
-                    .withMaxSpeed(MAX_SPEED))
-            .addModel(
-                View.builder()
-                    .with(PlaneRoadModelRenderer.builder())
-                    .with(UavRenderer.builder())
-                    .withSpeedUp(SPEED_UP))
-            .build();
+    final Simulator sim = Simulator.builder()
+        .addModel(RoadModelBuilders.plane()
+            .withCollisionAvoidance()
+            .withObjectRadius(1000)
+            .withMinPoint(MIN_POINT)
+            .withMaxPoint(MAX_POINT)
+            .withDistanceUnit(SI.METER)
+            .withSpeedUnit(NonSI.KILOMETERS_PER_HOUR)
+            .withMaxSpeed(MAX_SPEED))
+        .addModel(View.builder()
+            .with(PlaneRoadModelRenderer.builder())
+            .with(UavRenderer.builder())
+            .withSpeedUp(SPEED_UP))
+        .build();
 
     sim.register(new UavAgent(new Point(0, 0), new Point(3000, 3000)));
     sim.register(new UavAgent(new Point(5000, 5000), new Point(3000, 3000)));
