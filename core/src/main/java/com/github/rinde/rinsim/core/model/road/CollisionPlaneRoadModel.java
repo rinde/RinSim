@@ -46,6 +46,10 @@ public class CollisionPlaneRoadModel extends PlaneRoadModel {
     blockingRegistry = MapSpatialRegistry.create();
   }
 
+  public double getObjectRadius() {
+    return objRadius;
+  }
+
   @Override
   public void addObjectAt(RoadUser obj, Point pos) {
     checkArgument(
@@ -63,7 +67,10 @@ public class CollisionPlaneRoadModel extends PlaneRoadModel {
       TimeLapse time) {
     blockingRegistry.removeObject(object);
 
-    return super.doFollowPath(object, path, time);
+    final MoveProgress mp = super.doFollowPath(object, path, time);
+
+    blockingRegistry.addAt(object, getPosition(object));
+    return mp;
   }
 
   @Override
