@@ -33,6 +33,7 @@ import com.google.common.collect.ImmutableSet;
 
 public class CollisionPlaneRoadModel extends PlaneRoadModel {
 
+  private static final double DMAX_RAD_RATIO = .5;
   private final double deltaMax;
   private final double objRadius;
 
@@ -41,7 +42,14 @@ public class CollisionPlaneRoadModel extends PlaneRoadModel {
   CollisionPlaneRoadModel(CollisionPlaneRMB b, Clock c) {
     super(b);
     objRadius = b.getObjectRadius();
-    deltaMax = c.getTickLength() * maxSpeed;
+    deltaMax =
+      maxSpeed * unitConversion.toInTime(c.getTickLength(), c.getTimeUnit());
+    checkArgument(deltaMax <= DMAX_RAD_RATIO * objRadius,
+      "Incompatible parameters. The following condition should hold: deltaMax "
+        + "(%s) <= %s * objRadius (%s), where deltaMax = maxSpeed (%s %s) * "
+        + "tickLength (%s %s).",
+      deltaMax, DMAX_RAD_RATIO, objRadius, maxSpeed, getSpeedUnit(),
+      c.getTickLength(), c.getTimeUnit());
 
     blockingRegistry = MapSpatialRegistry.create();
   }

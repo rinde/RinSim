@@ -37,10 +37,11 @@ public class CollisionPlaneRoadModelTest {
   final TrivialRoadUser ru4 = new TrivialRoadUser();
   final TrivialRoadUser ru5 = new TrivialRoadUser();
 
+  private static final long tickLength = 250;
   CollisionPlaneRoadModel model;
 
   static TimeLapse tick() {
-    return TimeLapseFactory.create(0, 1000);
+    return TimeLapseFactory.create(0, tickLength);
   }
 
   @Before
@@ -51,10 +52,12 @@ public class CollisionPlaneRoadModelTest {
       .withMaxPoint(new Point(100, 100))
       .withDistanceUnit(SI.METER)
       .withSpeedUnit(SI.METERS_PER_SECOND)
-      .withMaxSpeed(2)
+      .withMaxSpeed(1)
       .withObjectRadius(.5d)
       .build(FakeDependencyProvider.builder()
-        .add(TimeModel.builder().withTickLength(1000)).build());
+        .add(TimeModel.builder()
+          .withTickLength(tickLength))
+        .build());
   }
 
   @Test
@@ -82,6 +85,20 @@ public class CollisionPlaneRoadModelTest {
       .isAtMost(PlaneRoadModel.DELTA);
     assertThat(mp.distance().doubleValue(SI.METER))
       .isWithin(PlaneRoadModel.DELTA).of(.5);
+
+    model.addObjectAt(ru3, new Point(3.5, 2));
+    model.moveTo(ru3, new Point(2.5, 1), tick());
+
+    assertThat(Point.distance(model.getPosition(ru3), model.getPosition(ru2)))
+      .isWithin(PlaneRoadModel.DELTA).of(1d);
+
+    final MoveProgress mp2 = model.moveTo(ru3, new Point(2.5, 1), tick());
+    assertThat(mp2.distance().doubleValue(SI.METER))
+      .isWithin(PlaneRoadModel.DELTA).of(0d);
+
+    assertThat(Point.distance(model.getPosition(ru3), model.getPosition(ru2)))
+      .isWithin(PlaneRoadModel.DELTA).of(1d);
+
   }
 
 }
