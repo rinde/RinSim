@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2011-2017 Rinde van Lon, imec-DistriNet, KU Leuven
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.github.rinde.rinsim.core.model.road;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -59,11 +74,14 @@ public class CollisionPlaneRoadModelTest {
   @Test
   public void moveToOccupiedPosition() {
     model.addObjectAt(ru1, new Point(1, 1));
-    model.addObjectAt(ru2, new Point(2, 1));
+    model.addObjectAt(ru2, new Point(2.5, 1));
 
-    model.moveTo(ru1, new Point(2, 1), tick());
+    final MoveProgress mp = model.moveTo(ru1, new Point(2, 1), tick());
 
-    System.out.println(model.getPosition(ru1));
+    assertThat(Point.distance(model.getPosition(ru1), new Point(1.5, 1)))
+      .isAtMost(PlaneRoadModel.DELTA);
+    assertThat(mp.distance().doubleValue(SI.METER))
+      .isWithin(PlaneRoadModel.DELTA).of(.5);
   }
 
 }

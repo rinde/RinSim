@@ -17,7 +17,10 @@ package com.github.rinde.rinsim.core.model.road;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Queue;
+import java.util.Set;
 
 import javax.measure.quantity.Duration;
 import javax.measure.unit.Unit;
@@ -58,21 +61,81 @@ public class CollisionPlaneRoadModel extends PlaneRoadModel {
   @Override
   protected MoveProgress doFollowPath(MovingRoadUser object, Queue<Point> path,
       TimeLapse time) {
+    blockingRegistry.removeObject(object);
 
     return super.doFollowPath(object, path, time);
   }
 
   @Override
   protected double computeTravelableDistance(Point from, Point to, double speed,
-      long timeLeft, Unit<Duration> timeUnit) {
+      long tLeft, Unit<Duration> tUnit) {
     final ImmutableSet<MovingRoadUser> set =
       blockingRegistry.findObjectsWithinRadius(to, 2 * objRadius);
-    if (set.isEmpty()) {
-      return super.computeTravelableDistance(from, to, speed, timeLeft,
-        timeUnit);
-    }
-    return 0d;
 
+    // find intersection of line from <-> to with any MovingRoadUser in the set.
+    final Set<Point> intersectionPoints = new LinkedHashSet<>();
+    for (final MovingRoadUser ru : set) {
+      intersectionPoints
+        .addAll(findIntersectionPoints(getPosition(ru), objRadius, from, to));
+    }
+
+    if (intersectionPoints.isEmpty()) {
+      return super.computeTravelableDistance(from, to, speed, tLeft, tUnit);
+    }
+
+    // find closest intersection
+    final Iterator<Point> it = intersectionPoints.iterator();
+    double closestDist = Point.distance(from, it.next());
+    while (it.hasNext()) {
+      final double dist = Point.distance(from, it.next());
+      if (dist < closestDist) {
+        closestDist = dist;
+      }
+    }
+
+    return Math.max(0, closestDist - objRadius);
+  }
+
+  // http://mathworld.wolfram.com/Circle-LineIntersection.html
+  static ImmutableSet<Point> findIntersectionPoints(Point circleCenter,
+      double circleRadius, Point lineFrom, Point lineTo) {
+
+    // translate points such that circle center is at origin (0,0)
+    final Point p1 =
+      new Point(lineFrom.x - circleCenter.x, lineFrom.y - circleCenter.y);
+    final Point p2 =
+      new Point(lineTo.x - circleCenter.x, lineTo.y - circleCenter.y);
+
+    final double dx = p2.x - p1.x;
+    final double dy = p2.y - p1.y;
+    final double drSquared = dx * dx + dy * dy;
+    final double d = p1.x * p2.y - p2.x * p1.y;
+
+    final double delta = circleRadius * circleRadius * drSquared - d * d;
+
+    if (delta < 0) {
+      return ImmutableSet.of();
+    }
+
+    final double xPart1 = d * dy;
+    final double xPart2 = sign(dy) * dx * Math.sqrt(delta);
+    final double yPart1 = -d * dx;
+    final double yPart2 = Math.abs(dy) * Math.sqrt(delta);
+
+    final double x1 = (xPart1 - xPart2) / drSquared + circleCenter.x;
+    final double y1 = (yPart1 - yPart2) / drSquared + circleCenter.y;
+    if (delta > 0) {
+      // two intersection points
+      final double x2 = (xPart1 + xPart2) / drSquared + circleCenter.x;
+      final double y2 = (yPart1 + yPart2) / drSquared + circleCenter.y;
+      return ImmutableSet.of(new Point(x1, y1), new Point(x2, y2));
+    }
+    // else: tangent, one intersection point
+    return ImmutableSet.of(new Point(x1, y1));
+  }
+
+  static double sign(double x) {
+    return x < 0 ? -1 : 1;
   }
 
 }
