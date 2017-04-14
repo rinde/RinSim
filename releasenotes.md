@@ -1,5 +1,10 @@
 # Release notes
 
+## v4.4.0
+ * Added support for using solvers in combination with graphs (thanks to [Vincent Van Gestel](https://github.com/VincentVanGestel)).
+ * Added support for dynamic speeds in graphs, including support in the scenario-util module (thanks to [Vincent Van Gestel](https://github.com/VincentVanGestel)).
+ * Many bugfixes and small additions (thanks to [Christof Luyten](https://github.com/christofluyten) for several bugfixes).
+
 ## v4.3.0
  * Refactored MeasurableSolver system, introduced Measurable interface.
  * Refactored PDPRoadModel system for compatibility with GraphRoadModel.
