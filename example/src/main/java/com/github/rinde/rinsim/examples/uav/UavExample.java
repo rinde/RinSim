@@ -15,18 +15,19 @@
  */
 package com.github.rinde.rinsim.examples.uav;
 
-import javax.measure.unit.SI;
-
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.ui.View;
 import com.github.rinde.rinsim.ui.renderers.PlaneRoadModelRenderer;
+import com.google.common.collect.ImmutableList;
+import org.apache.commons.math3.random.MersenneTwister;
+import org.apache.commons.math3.random.RandomGenerator;
 
-/**
- * @author Hoang Tung Dinh
- */
+import javax.measure.unit.SI;
+
+/** @author Hoang Tung Dinh */
 public final class UavExample {
 
   static final int SPEED_UP = 8;
@@ -38,24 +39,33 @@ public final class UavExample {
 
   public static void main(String[] args) {
 
-    final Simulator sim = Simulator.builder()
-      .addModel(TimeModel.builder().withTickLength(500))
-      .addModel(RoadModelBuilders.plane()
-        .withCollisionAvoidance()
-        .withObjectRadius(1000)
-        .withMinPoint(MIN_POINT)
-        .withMaxPoint(MAX_POINT)
-        .withDistanceUnit(SI.METER)
-        .withSpeedUnit(SI.METERS_PER_SECOND)
-        .withMaxSpeed(MAX_SPEED))
-      .addModel(View.builder()
-        .with(PlaneRoadModelRenderer.builder())
-        .with(UavRenderer.builder())
-        .withSpeedUp(SPEED_UP))
-      .build();
+    final Simulator sim =
+        Simulator.builder()
+            .addModel(TimeModel.builder().withTickLength(100))
+            .addModel(
+                RoadModelBuilders.plane()
+                    .withCollisionAvoidance()
+                    .withObjectRadius(300)
+                    .withMinPoint(MIN_POINT)
+                    .withMaxPoint(MAX_POINT)
+                    .withDistanceUnit(SI.METER)
+                    .withSpeedUnit(SI.METERS_PER_SECOND)
+                    .withMaxSpeed(MAX_SPEED))
+            .addModel(
+                View.builder()
+                    .with(PlaneRoadModelRenderer.builder())
+                    .with(UavRenderer.builder())
+                    .withSpeedUp(SPEED_UP))
+            .build();
 
-    sim.register(new UavAgent(new Point(0, 0), new Point(3000, 3000)));
-    sim.register(new UavAgent(new Point(5000, 5000), new Point(3000, 3000)));
+    final ImmutableList<Point> initialPositions =
+        ImmutableList.of(
+            new Point(0, 0), new Point(0, 6000), new Point(6000, 0), new Point(6000, 6000));
+
+    final RandomGenerator rng = new MersenneTwister(123);
+    for (final Point initPos : initialPositions) {
+      sim.register(new UavAgent(rng, initPos));
+    }
     sim.start();
   }
 }

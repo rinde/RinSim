@@ -22,19 +22,19 @@ import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Optional;
+import org.apache.commons.math3.random.RandomGenerator;
 
-/**
- * @author Hoang Tung Dinh
- */
+/** @author Hoang Tung Dinh */
 public final class UavAgent implements MovingRoadUser, TickListener {
 
+  private final RandomGenerator rng;
   private Optional<CollisionPlaneRoadModel> roadModel;
   private final Point initialPosition;
-  private final Point destination;
+  private Optional<Point> destination = Optional.absent();
 
-  UavAgent(Point initialPosition, Point destination) {
+  public UavAgent(RandomGenerator rng, Point initialPosition) {
+    this.rng = rng;
     this.initialPosition = initialPosition;
-    this.destination = destination;
   }
 
   @Override
@@ -50,7 +50,19 @@ public final class UavAgent implements MovingRoadUser, TickListener {
 
   @Override
   public void tick(TimeLapse timeLapse) {
-    roadModel.get().moveTo(this, destination, timeLapse);
+    if (!destination.isPresent()) {
+      nextDestination();
+    }
+
+    roadModel.get().moveTo(this, destination.get(), timeLapse);
+
+    if (roadModel.get().getPosition(this).equals(destination.get())) {
+      nextDestination();
+    }
+  }
+
+  private void nextDestination() {
+    destination = Optional.of(roadModel.get().getRandomPosition(rng));
   }
 
   @Override
