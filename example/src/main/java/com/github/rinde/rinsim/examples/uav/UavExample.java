@@ -6,7 +6,6 @@ import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.ui.View;
 import com.github.rinde.rinsim.ui.renderers.PlaneRoadModelRenderer;
 
-import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
 
 /** @author Hoang Tung Dinh */
@@ -26,7 +25,7 @@ public final class UavExample {
             .withMinPoint(MIN_POINT)
             .withMaxPoint(MAX_POINT)
             .withDistanceUnit(SI.METER)
-            .withSpeedUnit(NonSI.KILOMETERS_PER_HOUR)
+            .withSpeedUnit(SI.METERS_PER_SECOND)
             .withMaxSpeed(MAX_SPEED))
         .addModel(View.builder()
             .with(PlaneRoadModelRenderer.builder())
