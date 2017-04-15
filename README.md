@@ -1,11 +1,12 @@
-# RinSim 4.4.0-SNAPSHOT
+# RinSim 4.4.0
 
 RinSim is an extensible logistics simulator with support for (de)centralized algorithms for pickup and delivery problems and AGV routing. The simulator focuses on __simplicity__ and __consistency__ making it ideal for performing scientific simulations. Further, software quality is a priority resulting in an ever improving test suite and documentation.
 
 [![Javadocs](https://javadoc.io/badge/com.github.rinde/rinsim-core.svg?color=red)](https://javadoc.io/doc/com.github.rinde/rinsim-core)
 [![Build Status](https://travis-ci.org/rinde/RinSim.svg?branch=master)](https://travis-ci.org/rinde/RinSim) 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.rinde/rinsim-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.rinde/rinsim-core)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.192106.svg)](https://doi.org/10.5281/zenodo.192106)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.546203.svg)](https://doi.org/10.5281/zenodo.546203)
+[![Stackoverflow](https://img.shields.io/badge/stackoverflow-rinsim-orange.svg)](http://stackoverflow.com/questions/tagged/rinsim)
 
 <!-- ![PDPModel](docs/topbar.png) -->
 ![Taxi Demo](docs/taxi-demo.gif)
