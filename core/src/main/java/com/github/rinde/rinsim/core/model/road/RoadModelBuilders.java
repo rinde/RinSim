@@ -100,11 +100,6 @@ public final class RoadModelBuilders {
     return DynamicGraphRMB.create(g);
   }
 
-  public static RoadModelBuilders.CachedGraphRMB cachedGraph(
-      Supplier<? extends Graph<?>> graphSupplier) {
-    return CachedGraphRMB.create(graphSupplier);
-  }
-
   /**
    * Abstract builder for constructing subclasses of {@link RoadModel}.
    *
@@ -501,14 +496,6 @@ public final class RoadModelBuilders {
     public String toString() {
       return RoadModelBuilders.class.getSimpleName()
         + ".staticGraph().withCache()";
-    }
-
-    @SuppressWarnings("unchecked")
-    static CachedGraphRMB create(
-        Supplier<? extends Graph<?>> graphSupplier) {
-      return new AutoValue_RoadModelBuilders_CachedGraphRMB(
-        DEFAULT_DISTANCE_UNIT, DEFAULT_SPEED_UNIT,
-        (Supplier<Graph<?>>) graphSupplier);
     }
 
     @SuppressWarnings("unchecked")
