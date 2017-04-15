@@ -47,6 +47,7 @@ public class DynamicSpeedsTest {
 
   static final double DELTA = 0.0001;
   static final double TEN_KM_H_IN_M_MILLIS = 0.002777777777777778d;
+  static final double FIFTEEN_KM_H_IN_M_MILLIS = 0.004166666666666667d;
 
   @SuppressWarnings("null")
   Graph<MultiAttributeData> graph;
@@ -58,12 +59,21 @@ public class DynamicSpeedsTest {
   long scenarioLength;
 
   final long MINUTE = 60000;
+  final long SECOND = 1000;
 
   final Function<Double, Double> HALF = new Function<Double, Double>() {
 
     @Override
     public Double apply(@SuppressWarnings("null") Double t) {
       return 0.5;
+    }
+  };
+
+  final Function<Double, Double> ZERO = new Function<Double, Double>() {
+
+    @Override
+    public Double apply(@SuppressWarnings("null") Double t) {
+      return 0.00001d;
     }
   };
 
@@ -80,6 +90,13 @@ public class DynamicSpeedsTest {
     @Override
     public Double apply(@SuppressWarnings("null") Long input) {
       return TEN_KM_H_IN_M_MILLIS;
+    }
+  };
+
+  final Function<Long, Double> FIFTEEN_KM_H = new Function<Long, Double>() {
+    @Override
+    public Double apply(@SuppressWarnings("null") Long input) {
+      return FIFTEEN_KM_H_IN_M_MILLIS;
     }
   };
 
@@ -543,14 +560,78 @@ public class DynamicSpeedsTest {
     }
   }
 
+  /**
+   * A Test for the simulation of a traffic light. First the expanding shockwave
+   * starts dropping speed to zero. This shockwave will travel for 250 meters at
+   * a speed of 15 km/h. After 17 seconds, the traffic light switches again. The
+   * receding shockwave travels at 20.93 km/h (250 m in 43 seconds). Both
+   * shockwaves collide at the 250 meter mark.
+   */
   @Test
   public void shockwaveTrafficLightTest() {
-    // TODO
-  }
+    Point a, A, B, C, D, E, F, f;
+    a = new Point(-50, 0);
+    A = new Point(0, 0);
+    B = new Point(50, 0);
+    C = new Point(100, 0);
+    D = new Point(150, 0);
+    E = new Point(200, 0);
+    F = new Point(250, 0);
+    f = new Point(300, 0);
 
-  @Test
-  public void shockwaveSlipTest() {
-    // TODO
+    Connection<MultiAttributeData> conna, connA, connB, connC, connD, connE,
+        connF;
+    conna = Connection.create(A, a,
+      MultiAttributeData.builder().setMaxSpeed(50).build());
+    connA = Connection.create(B, A,
+      MultiAttributeData.builder().setMaxSpeed(50).build());
+    connB = Connection.create(C, B,
+      MultiAttributeData.builder().setMaxSpeed(50).build());
+    connC = Connection.create(D, C,
+      MultiAttributeData.builder().setMaxSpeed(50).build());
+    connD = Connection.create(E, D,
+      MultiAttributeData.builder().setMaxSpeed(50).build());
+    connE = Connection.create(F, E,
+      MultiAttributeData.builder().setMaxSpeed(50).build());
+    connF = Connection.create(f, F,
+      MultiAttributeData.builder().setMaxSpeed(50).build());
+
+    final Function<Long, Double> twentySomethingKmH =
+      new Function<Long, Double>() {
+        @Override
+        public Double apply(@SuppressWarnings("null") Long input) {
+          return 2.093 * TEN_KM_H_IN_M_MILLIS;
+        }
+      };
+
+    graph.addConnections(
+      Lists.newArrayList(conna, connA, connB, connC, connD, connE, connF));
+
+    final DynamicSpeedGenerator gen = builder.withGraph(graph)
+      .startConnections(StochasticSuppliers.constant(connA))
+      .shockwaveWaitForRecedeDurations(
+        StochasticSuppliers.constant(17 * SECOND))
+      .shockwaveBehaviour(StochasticSuppliers.constant(ZERO))
+      .shockwaveExpandingSpeed(StochasticSuppliers.constant(FIFTEEN_KM_H))
+      .shockwaveRecedingSpeed(StochasticSuppliers.constant(twentySomethingKmH))
+      .build();
+
+    final List<ChangeConnectionSpeedEvent> events = Lists.newArrayList(
+      gen.generate(123, scenarioLength));
+    events.sort(EVENT_COMPARATOR);
+
+    assertEquals(8, events.size());
+
+    /**
+     * expansion = 4,16667 meters per second recession = 5,8138889 meters per
+     * second
+     */
+    final long[] timings =
+      new long[] {12000, 24000, 25600, 34200, 36000, 42800, 48000, 51400};
+    for (int i = 0; i < events.size(); i++) {
+      final ChangeConnectionSpeedEvent event = events.get(i);
+      assertEquals(timings[i], event.getTime());
+    }
   }
 
   final class TimingComparator extends Ordering<ChangeConnectionSpeedEvent> {
