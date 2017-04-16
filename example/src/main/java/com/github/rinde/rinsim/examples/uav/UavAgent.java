@@ -15,6 +15,8 @@
  */
 package com.github.rinde.rinsim.examples.uav;
 
+import org.apache.commons.math3.random.RandomGenerator;
+
 import com.github.rinde.rinsim.core.model.road.CollisionPlaneRoadModel;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
@@ -22,7 +24,6 @@ import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Optional;
-import org.apache.commons.math3.random.RandomGenerator;
 
 /** @author Hoang Tung Dinh */
 public final class UavAgent implements MovingRoadUser, TickListener {
@@ -30,11 +31,13 @@ public final class UavAgent implements MovingRoadUser, TickListener {
   private final RandomGenerator rng;
   private Optional<CollisionPlaneRoadModel> roadModel;
   private final Point initialPosition;
-  private Optional<Point> destination = Optional.absent();
+  Optional<Point> destination = Optional.absent();
+  private final String name;
 
-  public UavAgent(RandomGenerator rng, Point initialPosition) {
+  public UavAgent(RandomGenerator rng, Point initialPosition, String nm) {
     this.rng = rng;
     this.initialPosition = initialPosition;
+    name = nm;
   }
 
   @Override
@@ -67,4 +70,9 @@ public final class UavAgent implements MovingRoadUser, TickListener {
 
   @Override
   public void afterTick(TimeLapse timeLapse) {}
+
+  @Override
+  public String toString() {
+    return "[" + getClass().getSimpleName() + " " + name + "]";
+  }
 }

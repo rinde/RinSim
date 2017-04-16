@@ -20,7 +20,6 @@ import static com.google.common.base.Verify.verifyNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newLinkedHashMap;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -37,6 +36,9 @@ import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 /**
@@ -191,7 +193,7 @@ public abstract class AbstractRoadModel extends GenericRoadModel {
   }
 
   @Override
-  public Map<RoadUser, Point> getObjectsAndPositions() {
+  public ImmutableMap<RoadUser, Point> getObjectsAndPositions() {
     return registry().getObjectsAndPositions();
   }
 
@@ -201,12 +203,12 @@ public abstract class AbstractRoadModel extends GenericRoadModel {
   }
 
   @Override
-  public Collection<Point> getObjectPositions() {
+  public ImmutableCollection<Point> getObjectPositions() {
     return getObjectsAndPositions().values();
   }
 
   @Override
-  public Set<RoadUser> getObjects() {
+  public ImmutableSet<RoadUser> getObjects() {
     return registry().getObjects();
   }
 

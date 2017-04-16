@@ -16,14 +16,21 @@
 package com.github.rinde.rinsim.core.model.road;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assert_;
 
+import java.util.List;
+
+import javax.annotation.Nullable;
 import javax.measure.unit.SI;
 
+import org.apache.commons.math3.random.RandomGenerator;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.FakeDependencyProvider;
+import com.github.rinde.rinsim.core.model.rand.RandomProvider;
+import com.github.rinde.rinsim.core.model.rand.RandomUser;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.model.time.TimeLapseFactory;
@@ -31,6 +38,7 @@ import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.util.TrivialRoadUser;
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
 
 public class CollisionPlaneRoadModelTest {
 
@@ -126,6 +134,7 @@ public class CollisionPlaneRoadModelTest {
         .withMaxSpeed(1000d))
       .addModel(TimeModel.builder().withTickLength(500))
       .build();
+    model = sim.getModelProvider().getModel(CollisionPlaneRoadModel.class);
 
     final UavAgent firstUav =
       new UavAgent(new Point(0, 0), new Point(3000, 3000));
@@ -134,9 +143,6 @@ public class CollisionPlaneRoadModelTest {
 
     sim.register(firstUav);
     sim.register(secondUav);
-
-    final CollisionPlaneRoadModel model = sim.getModelProvider()
-      .getModel(CollisionPlaneRoadModel.class);
 
     final double firstUavMaxDistancePerTick =
       firstUav.getSpeed() * sim.getTimeStep() / 1.0e3;
@@ -165,6 +171,112 @@ public class CollisionPlaneRoadModelTest {
 
       firstUavPositionBeforeTick = firstUavPositionAfterTick;
       secondUavPositionBeforeTick = secondUavPositionAfterTick;
+    }
+  }
+
+  @Test
+  public void randomWalkTest() {
+
+    final Simulator sim =
+      Simulator.builder()
+        .addModel(TimeModel.builder().withTickLength(100))
+        .addModel(
+          RoadModelBuilders.plane()
+            .withCollisionAvoidance()
+            .withObjectRadius(300)
+            .withMinPoint(new Point(0, 0))
+            .withMaxPoint(new Point(6000, 6000))
+            .withDistanceUnit(SI.METER)
+            .withSpeedUnit(SI.METERS_PER_SECOND)
+            .withMaxSpeed(1000))
+        .build();
+    model = sim.getModelProvider().getModel(CollisionPlaneRoadModel.class);
+
+    final ImmutableList<Point> initialPositions =
+      ImmutableList.of(
+        new Point(0, 0), new Point(0, 6000), new Point(6000, 0),
+        new Point(6000, 6000));
+
+    int count = 0;
+    for (final Point initPos : initialPositions) {
+      sim.register(new RandomWalkAgent(initPos, Integer.toString(count++)));
+    }
+
+    sim.addTickListener(new TickListener() {
+      @Override
+      public void tick(TimeLapse timeLapse) {
+        final List<RoadUser> list = model.getObjects().asList();
+
+        for (int i = 0; i < list.size(); i++) {
+          for (int j = i + 1; j < list.size(); j++) {
+
+            final Point p1 = model.getPosition(list.get(i));
+            final Point p2 = model.getPosition(list.get(j));
+            assert_()
+              .withFailureMessage("%s is too close to %s", list.get(i),
+                list.get(j))
+              .that(Point.distance(p1, p2))
+              .isAtLeast(599d);
+          }
+        }
+
+      }
+
+      @Override
+      public void afterTick(TimeLapse timeLapse) {}
+    });
+
+    sim.start();
+
+  }
+
+  static class RandomWalkAgent
+      implements MovingRoadUser, TickListener, RandomUser {
+    private Optional<CollisionPlaneRoadModel> roadModel;
+    private final Point initialPosition;
+    @Nullable
+    Point dest;
+    RandomGenerator randomGenerator;
+    final String name;
+
+    RandomWalkAgent(Point initPos, String n) {
+      initialPosition = initPos;
+      name = n;
+    }
+
+    @Override
+    public void initRoadUser(RoadModel model) {
+      roadModel = Optional.of((CollisionPlaneRoadModel) model);
+      roadModel.get().addObjectAt(this, initialPosition);
+    }
+
+    @Override
+    public void tick(TimeLapse timeLapse) {
+      if (dest == null) {
+        dest = roadModel.get().getRandomPosition(randomGenerator);
+      }
+      roadModel.get().moveTo(this, dest, timeLapse);
+      if (roadModel.get().getPosition(this).equals(dest)) {
+        dest = null;
+      }
+    }
+
+    @Override
+    public String toString() {
+      return "[RandomWalkAgent " + name + "]";
+    }
+
+    @Override
+    public void afterTick(TimeLapse timeLapse) {}
+
+    @Override
+    public double getSpeed() {
+      return 5;
+    }
+
+    @Override
+    public void setRandomGenerator(RandomProvider provider) {
+      randomGenerator = provider.newInstance();
     }
   }
 

@@ -129,6 +129,8 @@ public class PlaneRoadModel extends AbstractRoadModel {
     final long startTimeConsumed = time.getTimeConsumed();
     Point loc = registry().getPosition(object);
 
+    System.out.println("followPath " + object);
+
     double traveled = 0;
     final double speed = min(unitConversion.toInSpeed(object.getSpeed()),
       maxSpeed);
@@ -160,6 +162,9 @@ public class PlaneRoadModel extends AbstractRoadModel {
         Point.distance(loc, path.peek()));
 
       if (travelableDistance >= stepLength) {
+        System.out.println("****");
+        System.out.println(travelableDistance);
+        System.out.println(stepLength);
         loc = path.remove();
         travelledNodes.add(loc);
 
