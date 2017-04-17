@@ -15,39 +15,59 @@
  */
 package com.github.rinde.rinsim.examples.uav;
 
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Device;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.GC;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.road.CollisionPlaneRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadUser;
+import com.github.rinde.rinsim.examples.uav.UavRenderer.Builder.Opts;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.ui.renderers.CanvasRenderer.AbstractCanvasRenderer;
 import com.github.rinde.rinsim.ui.renderers.ViewPort;
 import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterators;
 
 /**
+ *
  * @author Hoang Tung Dinh
+ * @author Rinde van Lon
  */
 final class UavRenderer extends AbstractCanvasRenderer {
-  private static final int RED = 255;
+  private static final int FONT_SIZE = 10;
+
   private final CollisionPlaneRoadModel rm;
-
   private final Color red;
-  private final Color blue;
   private final Color black;
+  private final Color darkGray;
+  private final Font labelFont;
+  private final ImmutableSet<Opts> vizOptions;
+  private final Iterator<Integer> colors = Iterators.cycle(SWT.COLOR_BLUE,
+    SWT.COLOR_RED, SWT.COLOR_GREEN, SWT.COLOR_CYAN, SWT.COLOR_MAGENTA,
+    SWT.COLOR_YELLOW, SWT.COLOR_DARK_BLUE, SWT.COLOR_DARK_RED,
+    SWT.COLOR_DARK_GREEN, SWT.COLOR_DARK_CYAN, SWT.COLOR_DARK_MAGENTA,
+    SWT.COLOR_DARK_YELLOW);
 
-  UavRenderer(CollisionPlaneRoadModel r, Device d) {
+  private final Map<RoadUser, Color> colorMap;
+
+  UavRenderer(CollisionPlaneRoadModel r, Device d, ImmutableSet<Opts> opts) {
     rm = r;
     red = d.getSystemColor(SWT.COLOR_RED);
-    blue = d.getSystemColor(SWT.COLOR_BLUE);
     black = d.getSystemColor(SWT.COLOR_BLACK);
+    darkGray = d.getSystemColor(SWT.COLOR_GRAY);
+    labelFont = new Font(d, "arial", FONT_SIZE, SWT.NORMAL);
+    vizOptions = opts;
+    colorMap = new LinkedHashMap<>();
   }
 
   @Override
@@ -57,56 +77,67 @@ final class UavRenderer extends AbstractCanvasRenderer {
     synchronized (objects) {
       for (final Entry<RoadUser, Point> entry : objects.entrySet()) {
         final Point p = entry.getValue();
+        final UavAgent a = (UavAgent) entry.getKey();
         final double r = rm.getObjectRadius();
+        final Color c;
+        if (vizOptions.contains(Opts.DIFFERENT_COLORS)) {
+          if (!colorMap.containsKey(a)) {
+            colorMap.put(a, gc.getDevice().getSystemColor(colors.next()));
+          }
+          c = colorMap.get(a);
+        } else {
+          c = red;
+        }
 
         final int xpx = vp.toCoordX(p.x);
         final int ypx = vp.toCoordY(p.y);
-        gc.setBackground(blue);
+
+        if (vizOptions.contains(Opts.DESTINATION)) {
+          final Point dest = a.getDestination().orNull();
+          if (dest != null) {
+            gc.setForeground(c);
+            gc.setLineStyle(SWT.LINE_DOT);
+            gc.drawLine(vp.toCoordX(dest.x), vp.toCoordY(dest.y), xpx, ypx);
+            gc.setLineStyle(SWT.LINE_SOLID);
+          }
+        }
+
+        gc.setBackground(darkGray);
         gc.fillOval(
           xpx - vp.scale(r), ypx - vp.scale(r),
           2 * vp.scale(r), 2 * vp.scale(r));
 
-        gc.setForeground(blue);
+        gc.setForeground(c);
         gc.drawOval(
-          xpx - 2 * vp.scale(r), ypx - 2 * vp.scale(r),
-          4 * vp.scale(r), 4 * vp.scale(r));
+          xpx - vp.scale(r), ypx - vp.scale(r),
+          2 * vp.scale(r), 2 * vp.scale(r));
 
-        gc.setBackground(red);
-        gc.fillOval(
-          xpx - radius,
-          ypx - radius,
-          2 * radius,
-          2 * radius);
+        if (vizOptions.contains(Opts.NAME)) {
+          gc.setForeground(black);
+          gc.setFont(labelFont);
 
-        final Point dest = ((UavAgent) entry.getKey()).destination.orNull();
-        if (dest != null) {
-          gc.setForeground(red);
-          gc.drawLine(xpx, ypx, vp.toCoordX(dest.x), vp.toCoordY(dest.y));
+          final org.eclipse.swt.graphics.Point stringExtent =
+            gc.stringExtent(a.getName());
+          gc.drawText(a.getName(), xpx - stringExtent.x / 2,
+            ypx - stringExtent.y / 2, true);
+
+        } else {
+          gc.setBackground(c);
+          gc.fillOval(
+            xpx - radius,
+            ypx - radius,
+            2 * radius,
+            2 * radius);
         }
-        gc.setForeground(black);
-        gc.drawText(entry.getKey().toString(), xpx, ypx);
-
       }
     }
-  }
-
-  static Point pointInDir(Point value, double angle, double distance) {
-    final double x = Math.cos(angle) * distance;
-    final double y = Math.sin(angle) * distance;
-    return new Point(value.x + x, value.y + y);
-  }
-
-  static double angle(Point p1, Point p2) {
-    final double dx = p2.x - p1.x;
-    final double dy = p2.y - p1.y;
-    return Math.PI + Math.atan2(-dy, -dx);
   }
 
   @Override
   public void renderStatic(GC gc, ViewPort vp) {}
 
   static Builder builder() {
-    return new AutoValue_UavRenderer_Builder();
+    return Builder.create();
   }
 
   @AutoValue
@@ -114,15 +145,43 @@ final class UavRenderer extends AbstractCanvasRenderer {
       extends AbstractModelBuilder<UavRenderer, Void> {
     private static final long serialVersionUID = -5497962300581400051L;
 
+    enum Opts {
+      DESTINATION, NAME, DIFFERENT_COLORS;
+    }
+
     Builder() {
       setDependencies(CollisionPlaneRoadModel.class, Device.class);
+    }
+
+    abstract ImmutableSet<Opts> vizOptions();
+
+    public Builder withDestinationLines() {
+      return create(Opts.DESTINATION, vizOptions());
+    }
+
+    public Builder withName() {
+      return create(Opts.NAME, vizOptions());
+    }
+
+    public Builder withDifferentColors() {
+      return create(Opts.DIFFERENT_COLORS, vizOptions());
     }
 
     @Override
     public UavRenderer build(DependencyProvider dependencyProvider) {
       return new UavRenderer(
         dependencyProvider.get(CollisionPlaneRoadModel.class),
-        dependencyProvider.get(Device.class));
+        dependencyProvider.get(Device.class),
+        vizOptions());
+    }
+
+    static Builder create(Opts opt, ImmutableSet<Opts> opts) {
+      return new AutoValue_UavRenderer_Builder(
+        ImmutableSet.<Opts>builder().addAll(opts).add(opt).build());
+    }
+
+    static Builder create() {
+      return new AutoValue_UavRenderer_Builder(ImmutableSet.<Opts>of());
     }
   }
 }

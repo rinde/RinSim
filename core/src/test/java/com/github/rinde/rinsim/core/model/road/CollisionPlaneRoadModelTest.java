@@ -102,6 +102,13 @@ public class CollisionPlaneRoadModelTest {
     assertThat(mp2.distance().doubleValue(SI.METER))
       .isWithin(PlaneRoadModel.DELTA).of(.25);
 
+    // can't move any further due to collision
+    final MoveProgress mp1c = model.moveTo(ru1, new Point(2, 1), tick());
+    assertThat(Point.distance(model.getPosition(ru1), new Point(1.5, 1)))
+      .isAtMost(PlaneRoadModel.DELTA);
+    assertThat(mp1c.distance().doubleValue(SI.METER))
+      .isWithin(PlaneRoadModel.DELTA).of(0);
+
     model.addObjectAt(ru3, new Point(3.5, 2));
     model.moveTo(ru3, new Point(2.5, 1), tick());
 
@@ -118,6 +125,10 @@ public class CollisionPlaneRoadModelTest {
 
     assertThat(Point.distance(model.getPosition(ru3), model.getPosition(ru2)))
       .isWithin(PlaneRoadModel.DELTA).of(1d);
+
+    // let's try to move away in other direction
+    final MoveProgress mp4 = model.moveTo(ru1, new Point(1, 1), tick());
+    System.out.println(mp4);
 
   }
 
@@ -223,7 +234,11 @@ public class CollisionPlaneRoadModelTest {
       }
 
       @Override
-      public void afterTick(TimeLapse timeLapse) {}
+      public void afterTick(TimeLapse timeLapse) {
+        if (timeLapse.getTime() > 100000) {
+          sim.stop();
+        }
+      }
     });
 
     sim.start();

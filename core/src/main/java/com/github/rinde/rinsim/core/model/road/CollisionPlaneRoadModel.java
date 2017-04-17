@@ -24,12 +24,26 @@ import java.util.Set;
 import javax.measure.quantity.Duration;
 import javax.measure.unit.Unit;
 
+import org.apache.commons.math3.random.RandomGenerator;
+
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders.CollisionPlaneRMB;
 import com.github.rinde.rinsim.core.model.time.Clock;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.collect.ImmutableSet;
 
+/**
+ * Adds collision detection to the {@link PlaneRoadModel}. All
+ * {@link MovingRoadUser}s are considered to be circular objects with the same
+ * radius (e.g. an unmanned aerial vehicle, UAV). {@link RoadUser}s that do not
+ * implement the {@link MovingRoadUser} interface are considered to be
+ * non-blocking objects (e.g. an object on the ground such as a parcel).
+ * <p>
+ * This model handles collisions between {@link MovingRoadUser}s by stopping
+ * their movements.
+ *
+ * @author Rinde van Lon
+ */
 public class CollisionPlaneRoadModel extends PlaneRoadModel {
 
   private static final double DMAX_RAD_RATIO = .5;
@@ -38,7 +52,7 @@ public class CollisionPlaneRoadModel extends PlaneRoadModel {
 
   private final SpatialRegistry<MovingRoadUser> blockingRegistry;
 
-  CollisionPlaneRoadModel(CollisionPlaneRMB b, Clock c) {
+  protected CollisionPlaneRoadModel(CollisionPlaneRMB b, Clock c) {
     super(b);
     objRadius = b.getObjectRadius();
     deltaMax =
@@ -57,10 +71,31 @@ public class CollisionPlaneRoadModel extends PlaneRoadModel {
     return objRadius;
   }
 
+  /**
+   * Checks whether the specified {@link Point} is occupied or not. A
+   * {@link Point} is considered occupied if a {@link MovingRoadUser} cannot be
+   * added at that location without colliding with an existing
+   * {@link MovingRoadUser}.
+   * @param pos The position to check.
+   * @return <code>true</code> indicates that the position is occupied,
+   *         <code>false</code> indicates that the position is not occupied.
+   */
+  public boolean isOccupied(Point pos) {
+    return !blockingRegistry.findObjectsWithinRadius(pos, 2 * objRadius)
+      .isEmpty();
+  }
+
+  public Point getRandomUnoccupiedPosition(RandomGenerator rng) {
+    Point pos;
+    do {
+      pos = getRandomPosition(rng);
+    } while (isOccupied(pos));
+    return pos;
+  }
+
   @Override
   public void addObjectAt(RoadUser obj, Point pos) {
-    checkArgument(
-      blockingRegistry.findObjectsWithinRadius(pos, 2 * objRadius).isEmpty(),
+    checkArgument(!isOccupied(pos),
       "Cannot add an object on an occupied position: %s.", pos);
 
     if (obj instanceof MovingRoadUser) {
@@ -94,45 +129,46 @@ public class CollisionPlaneRoadModel extends PlaneRoadModel {
     final ImmutableSet<MovingRoadUser> set =
       blockingRegistry.findObjectsWithinRadius(destDuringTick, 4 * objRadius);
 
-    System.out.println("closeby: " + set.size());
     // find intersection of line [from <-> to] with any MovingRoadUser in the
     // set.
-    final Set<Point> centerIntersectionPoints = new LinkedHashSet<>();
-
-    // final double angle = angle(from, destDuringTick);
-    // final Set<Point> leftIntersectionPoints = new LinkedHashSet<>();
-    // final Point leftFrom = pointInDir(from, angle - .5 * Math.PI, objRadius);
-    // final Point leftDest =
-    // pointInDir(destDuringTick, angle - .5 * Math.PI, objRadius);
-    //
-    // final Set<Point> rightIntersectionPoints = new LinkedHashSet<>();
-    // final Point rightFrom = pointInDir(from, angle + .5 * Math.PI,
-    // objRadius);
-    // final Point rightDest =
-    // pointInDir(destDuringTick, angle + .5 * Math.PI, objRadius);
+    final Set<Point> intersectPoints = new LinkedHashSet<>();
+    // indicates whether we are currently colliding
+    boolean hit = false;
     for (final MovingRoadUser ru : set) {
       final Point pos = getPosition(ru);
       if (Point.distance(pos, from) <= objRadius * 2) {
-        return 0d;
+        hit = true;
       }
-      centerIntersectionPoints
-        .addAll(
-          findIntersectionPoints(pos, 2 * objRadius, from, destDuringTick));
-      // leftIntersectionPoints
-      // .addAll(findIntersectionPoints(pos, objRadius, leftFrom, leftDest));
-      // rightIntersectionPoints
-      // .addAll(findIntersectionPoints(pos, objRadius, rightFrom, rightDest));
+
+      final Set<Point> pts =
+        findIntersectionPoints(pos, 2 * objRadius, from, destDuringTick);
+
+      // destination is invalid
+      if (Point.distance(pos, destDuringTick) <= objRadius * 2) {
+        intersectPoints.addAll(pts);
+      } else {
+        // destination is valid, this means we can ignore any intersection
+        // points that are within DELTA of our current position (as this is how
+        // we can stop colliding with another object)
+        for (final Point p : pts) {
+          // only include points on the travelline and whom are not too close to
+          // origin
+          if (isBetween(from, destDuringTick, p)
+            && Point.distance(from, p) > DELTA) {
+            intersectPoints.add(p);
+          }
+        }
+      }
     }
 
-    if (centerIntersectionPoints.isEmpty()) {
-      // && leftIntersectionPoints.isEmpty()
-      // && rightIntersectionPoints.isEmpty())
-
+    if (intersectPoints.isEmpty()) {
       return travelableDistance;
+    } else if (hit) {
+      return 0d;
     }
 
     // find closest intersection
-    final double minDist = findMinDist(from, centerIntersectionPoints);
+    final double minDist = findMinDist(from, intersectPoints);
     return Math.min(travelableDistance, Math.max(0, minDist));
   }
 
@@ -187,16 +223,9 @@ public class CollisionPlaneRoadModel extends PlaneRoadModel {
     return x < 0 ? -1 : 1;
   }
 
-  static Point pointInDir(Point value, double angle, double distance) {
-    final double x = Math.cos(angle) * distance;
-    final double y = Math.sin(angle) * distance;
-    return new Point(value.x + x, value.y + y);
+  static boolean isBetween(Point from, Point to, Point pointOnLine) {
+    return Math.abs(
+      Point.distance(from, pointOnLine) + Point.distance(pointOnLine, to)
+        - Point.distance(from, to)) < DELTA;
   }
-
-  static double angle(Point p1, Point p2) {
-    final double dx = p2.x - p1.x;
-    final double dy = p2.y - p1.y;
-    return Math.PI + Math.atan2(-dy, -dx);
-  }
-
 }

@@ -15,46 +15,40 @@
  */
 package com.github.rinde.rinsim.examples.uav;
 
-import static com.google.common.base.Preconditions.checkState;
-
-import java.util.List;
-
 import javax.measure.unit.SI;
-
-import org.apache.commons.math3.random.MersenneTwister;
-import org.apache.commons.math3.random.RandomGenerator;
 
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.road.CollisionPlaneRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
-import com.github.rinde.rinsim.core.model.road.RoadUser;
-import com.github.rinde.rinsim.core.model.time.TickListener;
-import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.ui.View;
 import com.github.rinde.rinsim.ui.renderers.PlaneRoadModelRenderer;
-import com.google.common.collect.ImmutableList;
 
-/** @author Hoang Tung Dinh */
+/**
+ * @author Hoang Tung Dinh
+ * @author Rinde van Lon
+ */
 public final class UavExample {
 
-  static final int SPEED_UP = 8;
+  static final double PLANE_SIZE = 25;
   static final Point MIN_POINT = new Point(0, 0);
-  static final Point MAX_POINT = new Point(6000, 6000);
-  static final double MAX_SPEED = 1000d;
+  static final Point MAX_POINT = new Point(PLANE_SIZE, PLANE_SIZE);
+  static final double MAX_SPEED = 1;
+  static final double UAV_RADIUS = .5;
+  static final long TICK_LENGTH = 250;
+  static final int NUM_UAVS = 12;
 
   private UavExample() {}
 
   public static void main(String[] args) {
-
     final Simulator sim =
       Simulator.builder()
-        .addModel(TimeModel.builder().withTickLength(100))
+        .addModel(TimeModel.builder().withTickLength(TICK_LENGTH))
         .addModel(
           RoadModelBuilders.plane()
             .withCollisionAvoidance()
-            .withObjectRadius(300)
+            .withObjectRadius(UAV_RADIUS)
             .withMinPoint(MIN_POINT)
             .withMaxPoint(MAX_POINT)
             .withDistanceUnit(SI.METER)
@@ -63,45 +57,22 @@ public final class UavExample {
         .addModel(
           View.builder()
             .with(PlaneRoadModelRenderer.builder())
-            .with(UavRenderer.builder())
-            .withAutoPlay()
-            .withSpeedUp(SPEED_UP))
+            .with(UavRenderer.builder()
+            // Several visualization options are available:
+            // .withDestinationLines()
+            // .withDifferentColors()
+            // .withName()
+            )
+            .withAutoPlay())
         .build();
-
-    final ImmutableList<Point> initialPositions =
-      ImmutableList.of(
-        new Point(0, 0), new Point(0, 6000), new Point(6000, 0),
-        new Point(6000, 6000));
 
     final CollisionPlaneRoadModel model =
       sim.getModelProvider().getModel(CollisionPlaneRoadModel.class);
-
-    sim.addTickListener(new TickListener() {
-      @Override
-      public void tick(TimeLapse timeLapse) {
-        final List<RoadUser> list = model.getObjects().asList();
-
-        for (int i = 0; i < list.size(); i++) {
-          for (int j = i + 1; j < list.size(); j++) {
-
-            final Point p1 = model.getPosition(list.get(i));
-            final Point p2 = model.getPosition(list.get(j));
-            final double dist = Point.distance(p1, p2);
-            checkState(dist > 599, "%s is too close to %s, %s",
-              list.get(i), list.get(j), dist);
-          }
-        }
-
-      }
-
-      @Override
-      public void afterTick(TimeLapse timeLapse) {}
-    });
-
-    final RandomGenerator rng = new MersenneTwister(123);
     int counter = 0;
-    for (final Point initPos : initialPositions) {
-      sim.register(new UavAgent(rng, initPos, Integer.toString(counter++)));
+    for (int i = 0; i < NUM_UAVS; i++) {
+      final Point pos =
+        model.getRandomUnoccupiedPosition(sim.getRandomGenerator());
+      sim.register(new UavAgent(pos, Integer.toString(counter++), MAX_SPEED));
     }
     sim.start();
   }

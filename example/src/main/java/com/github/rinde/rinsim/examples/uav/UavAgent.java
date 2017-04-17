@@ -17,7 +17,10 @@ package com.github.rinde.rinsim.examples.uav;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
+import com.github.rinde.rinsim.core.model.rand.RandomProvider;
+import com.github.rinde.rinsim.core.model.rand.RandomUser;
 import com.github.rinde.rinsim.core.model.road.CollisionPlaneRoadModel;
+import com.github.rinde.rinsim.core.model.road.MoveProgress;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.time.TickListener;
@@ -25,19 +28,30 @@ import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Optional;
 
-/** @author Hoang Tung Dinh */
-public final class UavAgent implements MovingRoadUser, TickListener {
+/**
+ * @author Hoang Tung Dinh
+ * @author Rinde van Lon
+ */
+public final class UavAgent
+    implements MovingRoadUser, TickListener, RandomUser {
 
-  private final RandomGenerator rng;
+  static final int MAX_STUCK_TICK_COUNT = 10;
+
+  private Optional<Point> destination = Optional.absent();
+  private Optional<RandomGenerator> rng;
   private Optional<CollisionPlaneRoadModel> roadModel;
   private final Point initialPosition;
-  Optional<Point> destination = Optional.absent();
   private final String name;
+  private final double speed;
+  private int stuckTickCount;
 
-  public UavAgent(RandomGenerator rng, Point initialPosition, String nm) {
-    this.rng = rng;
-    this.initialPosition = initialPosition;
+  UavAgent(Point initPos, String nm, double uavSpeed) {
+    initialPosition = initPos;
     name = nm;
+    speed = uavSpeed;
+    roadModel = Optional.absent();
+    destination = Optional.absent();
+    rng = Optional.absent();
   }
 
   @Override
@@ -48,7 +62,15 @@ public final class UavAgent implements MovingRoadUser, TickListener {
 
   @Override
   public double getSpeed() {
-    return 5;
+    return speed;
+  }
+
+  Optional<Point> getDestination() {
+    return destination;
+  }
+
+  String getName() {
+    return name;
   }
 
   @Override
@@ -57,15 +79,22 @@ public final class UavAgent implements MovingRoadUser, TickListener {
       nextDestination();
     }
 
-    roadModel.get().moveTo(this, destination.get(), timeLapse);
+    final MoveProgress mp =
+      roadModel.get().moveTo(this, destination.get(), timeLapse);
 
-    if (roadModel.get().getPosition(this).equals(destination.get())) {
+    if (roadModel.get().getPosition(this).equals(destination.get())
+      || stuckTickCount >= MAX_STUCK_TICK_COUNT) {
       nextDestination();
+      stuckTickCount = 0;
+    } else if (mp.distance().getValue().doubleValue() == 0d) {
+      stuckTickCount++;
+    } else {
+      stuckTickCount = 0;
     }
   }
 
   private void nextDestination() {
-    destination = Optional.of(roadModel.get().getRandomPosition(rng));
+    destination = Optional.of(roadModel.get().getRandomPosition(rng.get()));
   }
 
   @Override
@@ -73,6 +102,11 @@ public final class UavAgent implements MovingRoadUser, TickListener {
 
   @Override
   public String toString() {
-    return "[" + getClass().getSimpleName() + " " + name + "]";
+    return String.format("[%s %s]", getClass().getSimpleName(), name);
+  }
+
+  @Override
+  public void setRandomGenerator(RandomProvider provider) {
+    rng = Optional.of(provider.newInstance());
   }
 }

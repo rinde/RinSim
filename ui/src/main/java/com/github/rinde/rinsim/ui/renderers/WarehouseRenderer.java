@@ -274,6 +274,8 @@ public final class WarehouseRenderer extends AbstractCanvasRenderer {
   public abstract static class Builder extends
       AbstractModelBuilder<WarehouseRenderer, Void> {
 
+    private static final long serialVersionUID = 2640504685565091840L;
+
     Builder() {
       setDependencies(CollisionGraphRoadModel.class);
     }
