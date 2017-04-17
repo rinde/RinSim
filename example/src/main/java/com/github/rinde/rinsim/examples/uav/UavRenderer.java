@@ -30,7 +30,6 @@ import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.road.CollisionPlaneRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadUser;
-import com.github.rinde.rinsim.examples.uav.UavRenderer.Builder.Opts;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.ui.renderers.CanvasRenderer.AbstractCanvasRenderer;
 import com.github.rinde.rinsim.ui.renderers.ViewPort;
@@ -140,14 +139,14 @@ final class UavRenderer extends AbstractCanvasRenderer {
     return Builder.create();
   }
 
+  enum Opts {
+    DESTINATION, NAME, DIFFERENT_COLORS;
+  }
+
   @AutoValue
   abstract static class Builder
       extends AbstractModelBuilder<UavRenderer, Void> {
-    private static final long serialVersionUID = -5497962300581400051L;
-
-    enum Opts {
-      DESTINATION, NAME, DIFFERENT_COLORS;
-    }
+    private static final long serialVersionUID = 701437750634453331L;
 
     Builder() {
       setDependencies(CollisionPlaneRoadModel.class, Device.class);
