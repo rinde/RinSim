@@ -183,12 +183,15 @@ public class DynamicSpeedsTest {
     assertEquals(8, events.size());
 
     /**
-     * Shockwave travels at 10 Km/h, the total distance if 1 Km. every 1.5
-     * minute, a connection is crossed
+     * Shockwave travels at 10 Km/h, the total distance if 1 Km. First
+     * connection is crossed at 0.75 minute. every 1.5 minute later, the next
+     * connection is crossed
      */
-    final long[] timings = new long[] {(long) (1.5 * MINUTE), 3 * MINUTE,
-      (long) (4.5 * MINUTE), 6 * MINUTE,
-      (long) (11.5 * MINUTE), 13 * MINUTE, (long) (14.5 * MINUTE), 16 * MINUTE};
+    final long[] timings =
+      new long[] {(long) (0.75 * MINUTE), (long) (2.25 * MINUTE),
+        (long) (3.75 * MINUTE), (long) (5.25 * MINUTE),
+        (long) (10.75 * MINUTE), (long) (12.25 * MINUTE),
+        (long) (13.75 * MINUTE), (long) (15.25 * MINUTE)};
     /**
      * Expanding shockwave halves the speed, receding shockwave doubles
      */
@@ -338,9 +341,9 @@ public class DynamicSpeedsTest {
      * can.
      */
     final long[] timings =
-      new long[] {(long) (1.5 * MINUTE), (long) (3.5 * MINUTE),
-        (long) (7.1 * MINUTE),
-        13 * MINUTE, 19 * MINUTE};
+      new long[] {(long) (0.75 * MINUTE), (long) (2.5 * MINUTE),
+        (long) (5.3 * MINUTE),
+        (long) (11.5 * MINUTE), 16 * MINUTE};
     /**
      * Shockwave moves from connD -> connA
      */
@@ -409,9 +412,10 @@ public class DynamicSpeedsTest {
      * Shockwave speed remains at 10 Km/h, but duration limits shockwave to 5
      * minutes
      */
-    final long[] timings = new long[] {(long) (1.5 * MINUTE), 3 * MINUTE,
-      (long) (4.5 * MINUTE),
-      (long) (6.5 * MINUTE), 8 * MINUTE, (long) (9.5 * MINUTE)};
+    final long[] timings =
+      new long[] {(long) (0.75 * MINUTE), (long) (2.25 * MINUTE),
+        (long) (3.75 * MINUTE),
+        (long) (5.75 * MINUTE), (long) (7.25 * MINUTE), (long) (8.75 * MINUTE)};
     /**
      * Shockwave moves from connD -> connA
      */
@@ -484,15 +488,20 @@ public class DynamicSpeedsTest {
 
     /**
      * Shockwave travels at 10 Km/h, the total distance if 1 Km. every 1.5
-     * minute, a connection is crossed. After connD, it branches into a cycle
+     * minute, a connection is crossed (starting at 0.75). After connD, it
+     * branches into a cycle
      */
     final long[] timings =
-      new long[] {(long) (1.5 * MINUTE), 3 * MINUTE, 3 * MINUTE,
-        (long) (4.5 * MINUTE), (long) (4.5 * MINUTE), 6 * MINUTE, 6 * MINUTE,
+      new long[] {(long) (0.75 * MINUTE), (long) (2.25 * MINUTE),
+        (long) (2.25 * MINUTE),
+        (long) (3.75 * MINUTE), (long) (3.75 * MINUTE), (long) (5.25 * MINUTE),
+        (long) (5.25 * MINUTE),
 
-        (long) (11.5 * MINUTE), 13 * MINUTE, 13 * MINUTE,
-        (long) (14.5 * MINUTE), (long) (14.5 * MINUTE), 16 * MINUTE,
-        16 * MINUTE};
+        (long) (10.75 * MINUTE), (long) (12.25 * MINUTE),
+        (long) (12.25 * MINUTE),
+        (long) (13.75 * MINUTE), (long) (13.75 * MINUTE),
+        (long) (15.25 * MINUTE),
+        (long) (15.25 * MINUTE)};
     /**
      * Expanding shockwave halves the speed, receding shockwave doubles
      */
@@ -539,7 +548,7 @@ public class DynamicSpeedsTest {
     assertEquals(2, events.size());
 
     final long[] timings =
-      new long[] {(long) (1.5 * MINUTE), (long) (11.5 * MINUTE)};
+      new long[] {(long) (0.75 * MINUTE), (long) (10.75 * MINUTE)};
     /**
      * Expanding shockwave halves the speed, receding shockwave doubles
      */
@@ -621,14 +630,15 @@ public class DynamicSpeedsTest {
       gen.generate(123, scenarioLength));
     Collections.sort(events, EVENT_COMPARATOR);
 
-    assertEquals(8, events.size());
+    assertEquals(10, events.size());
 
     /**
      * expansion = 4,16667 meters per second recession = 5,8138889 meters per
      * second
      */
     final long[] timings =
-      new long[] {12000, 24000, 25600, 34200, 36000, 42800, 48000, 51400};
+      new long[] {6000, 18000, 21300, 29900, 30000, 38500, 42000, 47100, 54000,
+        55700};
     for (int i = 0; i < events.size(); i++) {
       final ChangeConnectionSpeedEvent event = events.get(i);
       assertEquals(timings[i], event.getTime());

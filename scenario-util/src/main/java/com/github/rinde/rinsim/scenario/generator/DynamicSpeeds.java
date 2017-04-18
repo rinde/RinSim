@@ -496,6 +496,11 @@ public final class DynamicSpeeds {
             (long) (actualRecedingTimestamp + conn.getLength() / recedingSpeed);
         }
 
+        final long exJump =
+          (nextActualExTimestamp - actualExpandingTimestamp) / 2;
+        final long reJump =
+          (nextActualReTimestamp - actualRecedingTimestamp) / 2;
+
         // Check Stop conditions
         // Stop if shockwave has no effect (factor == 1)
         // OR if shockwave burned out (speed == 0)
@@ -505,7 +510,8 @@ public final class DynamicSpeeds {
         if (factor == 1 || forwardSpeed == 0
           || nextRelExTimestamp >= eventDurationSupplier
             .get(rng.nextLong())
-          || nextActualExTimestamp >= nextActualReTimestamp
+          || actualExpandingTimestamp + exJump >= actualRecedingTimestamp
+            + reJump
           || expansionMap.containsKey(conn)) {
           // Origin was last affected node
           leafNodes.add(origin);
@@ -514,7 +520,7 @@ public final class DynamicSpeeds {
 
           // Add conn
           final ChangeConnectionSpeedEvent newExEvent =
-            ChangeConnectionSpeedEvent.create(nextActualExTimestamp,
+            ChangeConnectionSpeedEvent.create(actualExpandingTimestamp + exJump,
               conn, factor);
           events.add(newExEvent);
 
@@ -538,7 +544,8 @@ public final class DynamicSpeeds {
           if (recedingSpeed != 0) {
             // Remove conn
             final ChangeConnectionSpeedEvent newReEvent =
-              ChangeConnectionSpeedEvent.create(nextActualReTimestamp,
+              ChangeConnectionSpeedEvent.create(
+                actualRecedingTimestamp + reJump,
                 conn, factorInverse);
             events.add(newReEvent);
           }
