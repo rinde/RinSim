@@ -26,6 +26,7 @@ import com.github.rinde.rinsim.examples.core.SimpleExample;
 import com.github.rinde.rinsim.examples.core.taxi.TaxiExample;
 import com.github.rinde.rinsim.examples.experiment.ExperimentExample;
 import com.github.rinde.rinsim.examples.pdptw.gradientfield.GradientFieldExample;
+import com.github.rinde.rinsim.examples.uav.UavExample;
 import com.github.rinde.rinsim.examples.warehouse.WarehouseExample;
 import com.github.rinde.rinsim.testutil.GuiTests;
 
@@ -95,5 +96,13 @@ public class ExamplesTest {
   @Test
   public void experimentExample() {
     ExperimentExample.main(new String[] {"speedup", "64"});
+  }
+
+  /**
+   * Runs the UAV example.
+   */
+  @Test
+  public void uavExample() {
+    UavExample.run(true);
   }
 }

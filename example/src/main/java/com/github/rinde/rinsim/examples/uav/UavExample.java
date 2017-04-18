@@ -26,11 +26,11 @@ import com.github.rinde.rinsim.ui.View;
 import com.github.rinde.rinsim.ui.renderers.PlaneRoadModelRenderer;
 
 /**
+ * Example showcasing the {@link CollisionPlaneRoadModel}.
  * @author Hoang Tung Dinh
  * @author Rinde van Lon
  */
 public final class UavExample {
-
   static final double PLANE_SIZE = 25;
   static final Point MIN_POINT = new Point(0, 0);
   static final Point MAX_POINT = new Point(PLANE_SIZE, PLANE_SIZE);
@@ -39,9 +39,40 @@ public final class UavExample {
   static final long TICK_LENGTH = 250;
   static final int NUM_UAVS = 12;
 
+  static final int TESTING_SPEEDUP = 16;
+  static final long TESTING_END_TIME = 180000L;
+
   private UavExample() {}
 
+  /**
+   * @param args No args.
+   */
   public static void main(String[] args) {
+    run(false);
+  }
+
+  /**
+   * Runs the example.
+   * @param testing If <code>true</code> the example will run in testing mode,
+   *          automatically starting and stopping itself such that it can be run
+   *          from a unit test.
+   */
+  public static void run(boolean testing) {
+    View.Builder viewBuilder = View.builder()
+      .with(PlaneRoadModelRenderer.builder())
+      .with(UavRenderer.builder()
+        // Several visualization options are available, see UavRenderer for
+        // details.
+        .withDifferentColors())
+      .withAutoPlay()
+      .withTitleAppendix("UAV Example");
+
+    if (testing) {
+      viewBuilder = viewBuilder.withAutoClose()
+        .withSimulatorEndTime(TESTING_END_TIME)
+        .withSpeedUp(TESTING_SPEEDUP);
+    }
+
     final Simulator sim =
       Simulator.builder()
         .addModel(TimeModel.builder().withTickLength(TICK_LENGTH))
@@ -54,16 +85,7 @@ public final class UavExample {
             .withDistanceUnit(SI.METER)
             .withSpeedUnit(SI.METERS_PER_SECOND)
             .withMaxSpeed(MAX_SPEED))
-        .addModel(
-          View.builder()
-            .with(PlaneRoadModelRenderer.builder())
-            .with(UavRenderer.builder()
-            // Several visualization options are available:
-            // .withDestinationLines()
-            // .withDifferentColors()
-            // .withName()
-            )
-            .withAutoPlay())
+        .addModel(viewBuilder)
         .build();
 
     final CollisionPlaneRoadModel model =

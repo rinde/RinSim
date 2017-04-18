@@ -39,8 +39,8 @@ import com.google.common.collect.ImmutableSet;
  * implement the {@link MovingRoadUser} interface are considered to be
  * non-blocking objects (e.g. an object on the ground such as a parcel).
  * <p>
- * This model handles collisions between {@link MovingRoadUser}s by stopping
- * their movements.
+ * This model handles collisions between {@link MovingRoadUser}s by stopping the
+ * movements of colliding objects.
  *
  * @author Rinde van Lon
  */
@@ -52,6 +52,11 @@ public class CollisionPlaneRoadModel extends PlaneRoadModel {
 
   private final SpatialRegistry<MovingRoadUser> blockingRegistry;
 
+  /**
+   * Constructs a new instance.
+   * @param b The builder with configuration options.
+   * @param c A reference to the clock.
+   */
   protected CollisionPlaneRoadModel(CollisionPlaneRMB b, Clock c) {
     super(b);
     objRadius = b.getObjectRadius();
@@ -67,6 +72,9 @@ public class CollisionPlaneRoadModel extends PlaneRoadModel {
     blockingRegistry = MapSpatialRegistry.create();
   }
 
+  /**
+   * @return The radius of all {@link MovingRoadUser} in the model.
+   */
   public double getObjectRadius() {
     return objRadius;
   }
@@ -85,6 +93,14 @@ public class CollisionPlaneRoadModel extends PlaneRoadModel {
       .isEmpty();
   }
 
+  /**
+   * Finds a random unoccupied position.
+   * <p>
+   * <b>Warning</b>, if there are no unoccupied positions, this method will not
+   * return.
+   * @param rng The random number generator to use for drawing random numbers.
+   * @return A random unoccupied position.
+   */
   public Point getRandomUnoccupiedPosition(RandomGenerator rng) {
     Point pos;
     do {
