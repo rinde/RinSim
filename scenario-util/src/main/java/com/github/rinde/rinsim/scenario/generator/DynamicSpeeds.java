@@ -74,6 +74,7 @@ public final class DynamicSpeeds {
   static final double TEN_KM_H = 0.002777777777777778d;
   static final double FIVE_KM = 5000d;
   static final long ONE_AND_A_HALF_HOUR = 5400000L;
+  static final long THREE_HOUR = 10800000L;
 
   /**
    * The default number of shockwaves is 1.
@@ -115,9 +116,15 @@ public final class DynamicSpeeds {
   static final StochasticSupplier<Function<Long, Double>> DEFAULT_RELATIVE_EXPANDING_SPEED =
     constant(DEFAULT_SPEED_FUNCTION);
   /**
-   * 1.5 Hours.
+   * 3 Hours.
    */
   static final StochasticSupplier<Long> DEFAULT_DURATION =
+    constant(THREE_HOUR);
+
+  /**
+   * 1.5 Hours.
+   */
+  static final StochasticSupplier<Long> DEFAULT_WAIT_FOR_RECEDE_DURATION =
     constant(ONE_AND_A_HALF_HOUR);
 
   private static final DynamicSpeedGenerator ZERO_EVENT_GENERATOR =
@@ -175,6 +182,7 @@ public final class DynamicSpeeds {
     StochasticSupplier<Long> eventTimesSupplier;
     StochasticSupplier<Function<Double, Double>> behaviourSupplier;
     StochasticSupplier<Long> eventDurationSupplier;
+    StochasticSupplier<Long> recedeWaitDurationSupplier;
     StochasticSupplier<Function<Long, Double>> expandingSpeedSupplier;
     StochasticSupplier<Function<Long, Double>> recedingSpeedSupplier;
 
@@ -185,6 +193,7 @@ public final class DynamicSpeeds {
       graph = Optional.absent();
       behaviourSupplier = DEFAULT_BEHAVIOUR;
       eventDurationSupplier = DEFAULT_DURATION;
+      recedeWaitDurationSupplier = DEFAULT_WAIT_FOR_RECEDE_DURATION;
       expandingSpeedSupplier = DEFAULT_RELATIVE_EXPANDING_SPEED;
       recedingSpeedSupplier = DEFAULT_RELATIVE_RECEDING_SPEED;
     }
@@ -286,7 +295,19 @@ public final class DynamicSpeeds {
      * @param times The supplier from which to draw times.
      * @return This, as per the builder pattern.
      */
-    public Builder shockwaveDurations(StochasticSupplier<Long> times) {
+    public Builder shockwaveWaitForRecedeDurations(
+        StochasticSupplier<Long> times) {
+      recedeWaitDurationSupplier = times;
+      return this;
+    }
+
+    /**
+     * Sets the total duration an expanding shockwave is allowed to last.
+     * Default value: 10800000L, which is 3 hours.
+     * @param times The supplier from which to draw times.
+     * @return This, as per the builder pattern.
+     */
+    public Builder shockwaveEventDurations(StochasticSupplier<Long> times) {
       eventDurationSupplier = times;
       return this;
     }
@@ -322,6 +343,7 @@ public final class DynamicSpeeds {
     private final StochasticSupplier<Long> eventTimesSupplier;
     private final StochasticSupplier<Function<Double, Double>> behaviourSupplier;
     private final StochasticSupplier<Long> eventDurationSupplier;
+    private final StochasticSupplier<Long> recedeWaitDurationSupplier;
     private final StochasticSupplier<Function<Long, Double>> expandingSpeedSupplier;
     private final StochasticSupplier<Function<Long, Double>> recedingSpeedSupplier;
     private final RandomGenerator rng;
@@ -331,8 +353,6 @@ public final class DynamicSpeeds {
     private Graph<MultiAttributeData> affectedGraph;
     private Set<Connection<MultiAttributeData>> leafNodes;
 
-    private int iteration;
-
     DefaultDynamicSpeedGenerator(Builder b) {
       numberOfShockwaves = b.numberOfShockwaves;
       startingConnectionSupplier = b.startingConnectionSupplier;
@@ -340,6 +360,7 @@ public final class DynamicSpeeds {
       graph = b.graph;
       behaviourSupplier = b.behaviourSupplier;
       eventDurationSupplier = b.eventDurationSupplier;
+      recedeWaitDurationSupplier = b.recedeWaitDurationSupplier;
       expandingSpeedSupplier = b.expandingSpeedSupplier;
       recedingSpeedSupplier = b.recedingSpeedSupplier;
       rng = new MersenneTwister();
@@ -356,7 +377,6 @@ public final class DynamicSpeeds {
         "The numberOfShockwaves supplier must generate values > 0, found %s.",
         numShockwaves);
       for (int i = 0; i < numShockwaves; i++) {
-        iteration = i + 1;
         final Connection<MultiAttributeData> conn;
 
         if (startingConnectionSupplier.isPresent()) {
@@ -374,16 +394,9 @@ public final class DynamicSpeeds {
 
         final Queue<ShockwaveSimulation> shockwave = new LinkedList<>();
         shockwave.offer(
-          new ShockwaveSimulation(shockwave, conn, conn, 0, startingTime, 0,
+          new ShockwaveSimulation(shockwave, conn, conn, 0, 0, startingTime,
+            startingTime + recedeWaitDurationSupplier.get(rng.nextLong()), 0,
             scenarioLength));
-
-        while (!shockwave.isEmpty()) {
-          builder.addAll(shockwave.poll().simulateExpandingShockwave());
-        }
-        shockwave.offer(new ShockwaveSimulation(shockwave, conn, conn, 0,
-          startingTime + eventDurationSupplier.get(rng.nextLong()),
-          0,
-          scenarioLength));
 
         while (!shockwave.isEmpty()) {
           builder.addAll(shockwave.poll().simulateForwardRecedingShockwave());
@@ -398,198 +411,167 @@ public final class DynamicSpeeds {
       private final Queue<ShockwaveSimulation> shockwave;
       private final Connection<MultiAttributeData> origin;
       private final Connection<MultiAttributeData> conn;
-      private final long relTimestamp;
-      private final long actualTimestamp;
+      private final long relExpandingTimestamp;
+      private final long relRecedingTimestamp;
+      private final long actualExpandingTimestamp;
+      private final long actualRecedingTimestamp;
       private final double distance;
       private final long scenarioLength;
 
+      /**
+       * @param shockwaveQueue The queue of shockwaves steps, while this is non
+       *          empty, more simulation steps should be done. An empty queue
+       *          indicates that both the expanding and the receding shockwave
+       *          have died.
+       * @param originConn The previous connection to be handled.
+       * @param currentConn The current connection to handle in this shockwave
+       *          simulation step.
+       * @param relativeExpandingTimestamp The time of the shockwave before
+       *          expanding over the current connection.
+       * @param relativeRecedingTimestamp The time of the shockwave before
+       *          receding over the current connection.
+       * @param currentExpandingTimestamp The time of the simulation before
+       *          expanding over current connection.
+       * @param currentRecedingTimestamp The time of the simulation before
+       *          receding over the current connection.
+       * @param totalDistance Total distance travelled.
+       * @param totalScenarioLength Total duration of the scenario.
+       */
       ShockwaveSimulation(Queue<ShockwaveSimulation> shockwaveQueue,
           Connection<MultiAttributeData> originConn,
-          Connection<MultiAttributeData> currentConn, long relativeTimestamp,
-          long currentTimestamp, double totalDistance,
+          Connection<MultiAttributeData> currentConn,
+          long relativeExpandingTimestamp,
+          long relativeRecedingTimestamp, long currentExpandingTimestamp,
+          long currentRecedingTimestamp, double totalDistance,
           long totalScenarioLength) {
         this.shockwave = shockwaveQueue;
         this.origin = originConn;
         this.conn = currentConn;
-        this.relTimestamp = relativeTimestamp;
-        this.actualTimestamp = currentTimestamp;
+        this.relExpandingTimestamp = relativeExpandingTimestamp;
+        this.relRecedingTimestamp = relativeRecedingTimestamp;
+        this.actualExpandingTimestamp = currentExpandingTimestamp;
+        this.actualRecedingTimestamp = currentRecedingTimestamp;
         this.distance = totalDistance;
         this.scenarioLength = totalScenarioLength;
       }
 
       /**
-       * Simulate the expanding shockwave. All events directly caused by the
-       * parameters stored in the current simulation step are returned. If other
-       * events still need to be calculated, then they are added to the
-       * shockwave queue.
-       * @param origin The previous connection
-       * @param conn The current connection
-       * @param relTimestamp The time of the shockwave after travelling origin
-       *          (before travelling current conn)
-       * @param actualTimestamp The time of the simulation before travelling
-       *          over current conn
-       * @param distance Total distance travelled
-       * @param scenarioLength Total duration of the scenario
+       * Simulates a shockwave expanding and receding from the head. All events
+       * directly caused by the parameters stored in the current simulation step
+       * are returned. If other events still need to be calculated, then they
+       * are added to the shockwave queue.
        * @return the events caused by this iteration of expansion.
        */
-      private List<ChangeConnectionSpeedEvent> simulateExpandingShockwave() {
-
+      private List<ChangeConnectionSpeedEvent> simulateForwardRecedingShockwave() {
         final List<ChangeConnectionSpeedEvent> events = new ArrayList<>();
         @Nonnull
-        final Double factor =
-          behaviourSupplier.get(rng.nextLong())
-            .apply(distance + conn.getLength() / 2);
+        final Double factor = behaviourSupplier.get(rng.nextLong())
+          .apply(distance + conn.getLength() / 2);
+        final Double factorInverse = 1 / factor;
         @Nonnull
-        final Double speed =
-          expandingSpeedSupplier.get(rng.nextLong()).apply(relTimestamp);
+        final Double forwardSpeed =
+          expandingSpeedSupplier.get(rng.nextLong())
+            .apply(relExpandingTimestamp);
+        @Nonnull
+        final Double recedingSpeed =
+          recedingSpeedSupplier.get(rng.nextLong()).apply(relRecedingTimestamp);
 
-        long nextRelTimestamp = 0L;
-        long nextActualTimestamp = 0L;
+        long nextRelExTimestamp = relExpandingTimestamp;
+        long nextActualExTimestamp = actualExpandingTimestamp;
 
-        if (speed != 0) {
-          nextRelTimestamp =
-            (long) (relTimestamp + conn.getLength() / speed);
-          nextActualTimestamp =
-            (long) (actualTimestamp + conn.getLength() / speed);
+        long nextRelReTimestamp = relRecedingTimestamp;
+        long nextActualReTimestamp = actualRecedingTimestamp;
+
+        if (forwardSpeed != 0) {
+          nextRelExTimestamp =
+            (long) (relExpandingTimestamp + conn.getLength() / forwardSpeed);
+          nextActualExTimestamp =
+            (long) (actualExpandingTimestamp + conn.getLength() / forwardSpeed);
         }
+
+        if (recedingSpeed != 0) {
+          nextRelReTimestamp =
+            (long) (relRecedingTimestamp + conn.getLength() / recedingSpeed);
+          nextActualReTimestamp =
+            (long) (actualRecedingTimestamp + conn.getLength() / recedingSpeed);
+        }
+
+        final long exJump =
+          (nextActualExTimestamp - actualExpandingTimestamp) / 2;
+        final long reJump =
+          (nextActualReTimestamp - actualRecedingTimestamp) / 2;
 
         // Check Stop conditions
         // Stop if shockwave has no effect (factor == 1)
         // OR if shockwave burned out (speed == 0)
         // OR if shockwave duration reached
-        // OR if next step if after scenario boundary
+        // OR if recede caught up
         // OR if cycle???
-        if (factor == 1 || speed == 0
-          || nextRelTimestamp >= eventDurationSupplier
+        if (factor == 1 || forwardSpeed == 0
+          || nextRelExTimestamp >= eventDurationSupplier
             .get(rng.nextLong())
-          || nextActualTimestamp >= scenarioLength
+          || actualExpandingTimestamp + exJump >= actualRecedingTimestamp
+            + reJump
           || expansionMap.containsKey(conn)) {
           // Origin was last affected node
           leafNodes.add(origin);
-          // Stop
-          return events;
-        }
-
-        // Add conn
-        final ChangeConnectionSpeedEvent newEvent =
-          ChangeConnectionSpeedEvent.create(nextActualTimestamp,
-            conn, factor);
-        events.add(newEvent);
-
-        // Keep track of events linked to connections
-        if (expansionMap.containsKey(conn)) {
-          // Cycle, add to existing list
-          final List<ChangeConnectionSpeedEvent> eventList =
-            expansionMap.get(conn);
-          eventList.add(newEvent);
-          expansionMap.put(conn, eventList);
         } else {
-          // New connection
-          expansionMap.put(conn, Lists.newArrayList(newEvent));
-          affectedGraph.addConnection(conn);
-        }
+          // EXPAND
 
-        // Branch out
-        final Collection<Point> nextFroms = graph.get()
-          .getIncomingConnections(conn.from());
-        // Check dead end -> no need to continue branching
-        if (nextFroms.isEmpty() || nextFroms.size() == 1
-          && nextFroms.iterator().next().equals(conn.to())) {
-          leafNodes.add(conn);
-          // LOGGER.info("~~ Expansion " + iteration + ": dead end reached");
-          return events;
-        }
-        // LOGGER.info("~~ Expansion " + iteration + ": Branching Factor " +
-        // next_froms.size());
-        for (final Point nextFrom : nextFroms) {
-          if (nextFrom.equals(conn.to())) {
-            // No backtracking in the other direction
-            continue;
+          // Add conn
+          final ChangeConnectionSpeedEvent newExEvent =
+            ChangeConnectionSpeedEvent.create(actualExpandingTimestamp + exJump,
+              conn, factor);
+          events.add(newExEvent);
+
+          // Keep track of events linked to connections
+          if (expansionMap.containsKey(conn)) {
+            // Cycle, add to existing list
+            final List<ChangeConnectionSpeedEvent> eventList =
+              expansionMap.get(conn);
+            eventList.add(newExEvent);
+            expansionMap.put(conn, eventList);
+          } else {
+            // New connection
+            expansionMap.put(conn, Lists.newArrayList(newExEvent));
+            affectedGraph.addConnection(conn);
           }
-          final Connection<MultiAttributeData> nextConn =
-            graph.get().getConnection(nextFrom, conn.from());
-          shockwave.offer(new ShockwaveSimulation(shockwave, conn, nextConn,
-            nextRelTimestamp, nextActualTimestamp,
-            distance + conn.getLength(), scenarioLength));
-        }
-        // LOGGER.info("~~ Expansion " + iteration + ": Closed Branch");
-        return events;
-      }
 
-      /**
-       * Simulate the receding shockwave. All events directly caused by the
-       * parameters stored in the current simulation step are returned. If other
-       * events still need to be calculated, then they are added to the
-       * shockwave queue.
-       * @param conn The connection being lifted
-       * @param actualTimestamp The timestamp before lifting event
-       * @param scenarioLength The total duration of the scenario
-       * @return the events caused by this iteration of the receding shockwave.
-       */
-      private List<ChangeConnectionSpeedEvent> simulateForwardRecedingShockwave() {
-        final List<ChangeConnectionSpeedEvent> events = new ArrayList<>();
-        @Nonnull
-        final Double factorInverse = behaviourSupplier.get(rng.nextLong())
-          .apply(distance + conn.getLength() / 2);
-        final Double factor = 1 / factorInverse;
-        @Nonnull
-        final Double speed =
-          recedingSpeedSupplier.get(rng.nextLong()).apply(relTimestamp);
+          // RECEDE
 
-        long nextRelTimestamp = 0L;
-        long nextActualTimestamp = 0L;
+          // Recede only if
+          // AND shockwave hasn't burned out (speed == 0)
+          if (recedingSpeed != 0) {
+            // Remove conn
+            final ChangeConnectionSpeedEvent newReEvent =
+              ChangeConnectionSpeedEvent.create(
+                actualRecedingTimestamp + reJump,
+                conn, factorInverse);
+            events.add(newReEvent);
+          }
 
-        if (speed != 0) {
-          nextRelTimestamp =
-            (long) (relTimestamp + conn.getLength() / speed);
-          nextActualTimestamp =
-            (long) (actualTimestamp + conn.getLength() / speed);
-        }
+          // BRANCH
 
-        // Check Stop conditions
-        // Stop if connection wasn't previously affected
-        // OR if shockwave burned out (speed == 0)
-        // OR if next step if after scenario boundary
-        if (!affectedGraph.hasConnection(conn) || speed == 0
-          || nextActualTimestamp >= scenarioLength) {
-          // Stop
-          return events;
-        }
-
-        // Remove conn
-        final ChangeConnectionSpeedEvent newEvent =
-          ChangeConnectionSpeedEvent.create(nextActualTimestamp,
-            conn, factor);
-        events.add(newEvent);
-
-        // Remove track of events linked to connections
-        if (expansionMap.get(conn).size() > 1) {
-          // Cycle, remove only 1
-          final List<ChangeConnectionSpeedEvent> eventList =
-            expansionMap.get(conn);
-          eventList.remove(0);
-          expansionMap.put(conn, eventList);
-        } else {
-          // Last occurrence
-          expansionMap.remove(conn);
-          affectedGraph.removeConnection(conn.from(), conn.to());
-        }
-
-        // Branch out
-        final Collection<Point> nextFroms = ImmutableList.copyOf(
-          affectedGraph.getIncomingConnections(conn.from()));
-        // Check dead end -> no need to continue branching
-        if (nextFroms.isEmpty()) {
-          return events;
-        }
-        for (final Point nextFrom : nextFroms) {
-          final Connection<MultiAttributeData> nextConn =
-            graph.get().getConnection(nextFrom, conn.from());
-          shockwave.offer(
-            new ShockwaveSimulation(shockwave, nextConn, nextConn,
-              nextRelTimestamp,
-              nextActualTimestamp,
+          final Collection<Point> nextFroms = graph.get()
+            .getIncomingConnections(conn.from());
+          // Check dead end -> no need to continue branching
+          if (nextFroms.isEmpty() || nextFroms.size() == 1
+            && nextFroms.iterator().next().equals(conn.to())) {
+            leafNodes.add(conn);
+            return events;
+          }
+          for (final Point nextFrom : nextFroms) {
+            if (nextFrom.equals(conn.to())) {
+              // No backtracking in the other direction
+              continue;
+            }
+            final Connection<MultiAttributeData> nextConn =
+              graph.get().getConnection(nextFrom, conn.from());
+            shockwave.offer(new ShockwaveSimulation(shockwave, conn, nextConn,
+              nextRelExTimestamp, nextRelReTimestamp, nextActualExTimestamp,
+              nextActualReTimestamp,
               distance + conn.getLength(), scenarioLength));
+          }
         }
         return events;
       }
