@@ -4,11 +4,7 @@
 	<parent>
 		<groupId>com.github.rinde</groupId>
 		<artifactId>rinsim-main</artifactId>
-<<<<<<< HEAD
 		<version>4.5.0-SNAPSHOT</version>
-=======
-		<version>4.4.1</version>
->>>>>>> master
 		<relativePath>..</relativePath>
 	</parent>
 
