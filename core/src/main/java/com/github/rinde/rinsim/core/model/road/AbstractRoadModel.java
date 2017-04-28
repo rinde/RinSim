@@ -32,12 +32,15 @@ import java.util.Queue;
 import java.util.Set;
 
 import javax.annotation.Nullable;
+import javax.measure.Measure;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.EventAPI;
+import com.github.rinde.rinsim.geom.GeomHeuristic;
+import com.github.rinde.rinsim.geom.GeomHeuristics;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Sets;
@@ -117,24 +120,40 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
   @Override
   public MoveProgress moveTo(MovingRoadUser object, Point destination,
       TimeLapse time) {
-    final Queue<Point> path;
-    if (objDestinations.containsKey(object)
-      && objDestinations.get(object).destination.equals(destination)) {
-      // is valid move? -> assume it is
-      path = objDestinations.get(object).path;
-    } else {
-      path = new LinkedList<>(getShortestPathTo(object, destination));
-      objDestinations.put(object, new DestinationPath(destination, path));
-    }
-    final MoveProgress mp = doFollowPath(object, path, time);
-    eventDispatcher.dispatchEvent(new MoveEvent(self, object, mp));
-    return mp;
+    return moveTo(object, destination, time, GeomHeuristics.euclidean());
   }
 
   @Override
   public MoveProgress moveTo(MovingRoadUser object, RoadUser destination,
       TimeLapse time) {
     return moveTo(object, getPosition(destination), time);
+  }
+
+  @Override
+  public MoveProgress moveTo(MovingRoadUser object, RoadUser destination,
+      TimeLapse time, GeomHeuristic heuristic) {
+    return moveTo(object, getPosition(destination), time, heuristic);
+  }
+
+  @Override
+  public MoveProgress moveTo(MovingRoadUser object, Point destination,
+      TimeLapse time, GeomHeuristic heuristic) {
+    final Queue<Point> path;
+    if (objDestinations.containsKey(object)
+      && objDestinations.get(object).destination.equals(destination)) {
+      // is valid move? -> assume it is
+      path = objDestinations.get(object).path;
+    } else {
+      path = new LinkedList<>(
+        getPathTo(object, destination, time.getTimeUnit(),
+          Measure.valueOf(unitConversion.toExSpeed(object.getSpeed()),
+            unitConversion.getExSpeedUnit()),
+          heuristic).getPath());
+      objDestinations.put(object, new DestinationPath(destination, path));
+    }
+    final MoveProgress mp = doFollowPath(object, path, time);
+    eventDispatcher.dispatchEvent(new MoveEvent(self, object, mp));
+    return mp;
   }
 
   /**

@@ -40,8 +40,8 @@ import com.github.rinde.rinsim.core.model.road.GraphRoadModelImpl.Loc;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.ConnectionData;
-import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.GeomHeuristic;
+import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.ImmutableGraph;
 import com.github.rinde.rinsim.geom.MultiAttributeData;
 import com.github.rinde.rinsim.geom.Point;
@@ -406,6 +406,32 @@ public class GraphRoadModelImpl extends AbstractRoadModel<Loc>
   }
 
   @Override
+  public RoadPath getPathTo(MovingRoadUser object, Point destination,
+      Unit<Duration> timeUnit, Measure<Double, Velocity> maxSpeed,
+      GeomHeuristic heuristic) {
+    final Optional<? extends Connection<?>> conn = getConnection(object);
+    if (conn.isPresent()) {
+      final double connectionPercentage =
+        Point.distance(getPosition(object), conn.get().to())
+          / Point.distance(conn.get().from(), conn.get().to());
+      final double cost =
+        heuristic.calculateCost(graph, conn.get().from(), conn.get().to())
+          * connectionPercentage;
+      final double travelTime =
+        heuristic.calculateTravelTime(graph, conn.get().from(), conn.get().to(),
+          getDistanceUnit(), maxSpeed, timeUnit)
+          * connectionPercentage;
+
+      final RoadPath path =
+        getPathTo(conn.get().to(), destination, timeUnit, maxSpeed, heuristic);
+      return RoadPath.create(path.getPath(), path.getValue() + cost,
+        path.getTravelTime() + travelTime);
+    }
+    return getPathTo(getPosition(object), destination, timeUnit, maxSpeed,
+      heuristic);
+  }
+
+  @Override
   public Measure<Double, Length> getDistanceOfPath(Iterable<Point> path)
       throws IllegalArgumentException {
     return snapshot.getDistanceOfPath(path);
@@ -552,4 +578,5 @@ public class GraphRoadModelImpl extends AbstractRoadModel<Loc>
       return conn.equals(l.conn);
     }
   }
+
 }

@@ -40,8 +40,8 @@ import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.AbstractGraph;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.ConnectionData;
-import com.github.rinde.rinsim.geom.Graphs;
 import com.github.rinde.rinsim.geom.GeomHeuristic;
+import com.github.rinde.rinsim.geom.Graphs;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -205,6 +205,14 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
       heuristic.calculateCost(planeGraph, from, to),
       heuristic.calculateTravelTime(planeGraph, from, to, getDistanceUnit(),
         speed, timeUnit));
+  }
+
+  @Override
+  public RoadPath getPathTo(MovingRoadUser object, Point destination,
+      Unit<Duration> timeUnit, Measure<Double, Velocity> speed,
+      GeomHeuristic heuristic) {
+    return getPathTo(getPosition(object), destination, timeUnit, speed,
+      heuristic);
   }
 
   @Override

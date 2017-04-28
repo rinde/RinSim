@@ -29,6 +29,7 @@ import javax.annotation.Nullable;
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
 import com.google.common.collect.Tables;
 
@@ -50,6 +51,17 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
     data = Tables.newCustomTable(
       new LinkedHashMap<Point, Map<Point, Connection<E>>>(),
       new LinkedHashMapFactory<Connection<E>>());
+  }
+
+  /**
+   * Create a new graph with initial data.
+   * @param table The table that is copied into the graph.
+   */
+  public TableGraph(Table<Point, Point, Connection<E>> table) {
+    data = Tables.newCustomTable(
+      new LinkedHashMap<Point, Map<Point, Connection<E>>>(),
+      new LinkedHashMapFactory<Connection<E>>());
+    data.putAll(table);
   }
 
   @Override
@@ -164,14 +176,34 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
     return new TableGraphSupplier<>();
   }
 
+  /**
+   * Instantiates a new graph supplier that will create {@link TableGraph}
+   * instances using the specified data.
+   * @param data The table that is copied into this new graph.
+   * @param <E> The type of connection data.
+   * @return A new supplier.
+   */
+  public static <E extends ConnectionData> Supplier<TableGraph<E>> supplier(
+      ImmutableTable<Point, Point, Connection<E>> data) {
+    return new TableGraphSupplier<>(data);
+  }
+
   private static class TableGraphSupplier<E extends ConnectionData>
       implements Supplier<TableGraph<E>> {
 
-    TableGraphSupplier() {}
+    private final ImmutableTable<Point, Point, Connection<E>> data;
+
+    TableGraphSupplier() {
+      this(ImmutableTable.<Point, Point, Connection<E>>of());
+    }
+
+    TableGraphSupplier(ImmutableTable<Point, Point, Connection<E>> d) {
+      data = d;
+    }
 
     @Override
     public TableGraph<E> get() {
-      return new TableGraph<>();
+      return new TableGraph<>(data);
     }
 
     @Override

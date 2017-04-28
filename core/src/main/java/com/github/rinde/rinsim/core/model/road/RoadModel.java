@@ -126,6 +126,82 @@ public interface RoadModel extends Model<RoadUser> {
       TimeLapse time);
 
   /**
+   * Moves the specified {@link MovingRoadUser} towards the specified
+   * <code>destination</code> using the path returned by
+   * {@link #getPathTo(Point, Point, Unit, Measure, GeomHeuristic)}. There must
+   * be time left in the provided {@link TimeLapse}. The
+   * {@link #getDestination(MovingRoadUser)} method will return the destination
+   * point as specified in the most recent invocation of this method.
+   * <p>
+   * <b>Speed</b><br>
+   * The {@link MovingRoadUser} has to define a speed with which it wants to
+   * travel. This method uses the {@link MovingRoadUser}s speed as an
+   * <i>upper</i> bound, it gives no guarantee about the lower bound (i.e. the
+   * object could stand still). The actual speed of the object depends on the
+   * model implementation. A model can define constraints such as speed limits
+   * or traffic jams which can slow down a {@link MovingRoadUser}.
+   * <p>
+   * <b>Time</b><br>
+   * The time that is specified as indicated by the {@link TimeLapse} object may
+   * or may not be consumed completely. Normally, this method will try to
+   * consume all time in the {@link TimeLapse} object. In case the destination
+   * is reached before all time is consumed (which depends on the object's
+   * <i>speed</i>, the distance to the <code>destination</code> and any speed
+   * constraints if available) there will be some time left in the
+   * {@link TimeLapse}.
+   * @param object The object that is moved.
+   * @param destination The destination position.
+   * @param time The time that is available for travel.
+   * @param heuristic The heuristic to use for path resolution.
+   * @return A {@link MoveProgress} instance which details: the distance
+   *         travelled, the actual time spent travelling and the nodes which
+   *         where travelled.
+   * @see #moveTo(MovingRoadUser, Point, TimeLapse)
+   * @see #followPath(MovingRoadUser, Queue, TimeLapse)
+   */
+  MoveProgress moveTo(MovingRoadUser object, RoadUser destination,
+      TimeLapse time,
+      GeomHeuristic heuristic);
+
+  /**
+   * Moves the specified {@link MovingRoadUser} towards the specified
+   * <code>destination</code> using the path returned by
+   * {@link #getPathTo(Point, Point, Unit, Measure, GeomHeuristic)}. There must
+   * be time left in the provided {@link TimeLapse}. The
+   * {@link #getDestination(MovingRoadUser)} method will return the destination
+   * point as specified in the most recent invocation of this method.
+   * <p>
+   * <b>Speed</b><br>
+   * The {@link MovingRoadUser} has to define a speed with which it wants to
+   * travel. This method uses the {@link MovingRoadUser}s speed as an
+   * <i>upper</i> bound, it gives no guarantee about the lower bound (i.e. the
+   * object could stand still). The actual speed of the object depends on the
+   * model implementation. A model can define constraints such as speed limits
+   * or traffic jams which can slow down a {@link MovingRoadUser}.
+   * <p>
+   * <b>Time</b><br>
+   * The time that is specified as indicated by the {@link TimeLapse} object may
+   * or may not be consumed completely. Normally, this method will try to
+   * consume all time in the {@link TimeLapse} object. In case the destination
+   * is reached before all time is consumed (which depends on the object's
+   * <i>speed</i>, the distance to the <code>destination</code> and any speed
+   * constraints if available) there will be some time left in the
+   * {@link TimeLapse}.
+   * @param object The object that is moved.
+   * @param destination The destination position.
+   * @param time The time that is available for travel.
+   * @param heuristic The heuristic to use for path resolution.
+   * @return A {@link MoveProgress} instance which details: the distance
+   *         travelled, the actual time spent travelling and the nodes which
+   *         where travelled.
+   * @see #moveTo(MovingRoadUser, RoadUser, TimeLapse)
+   * @see #followPath(MovingRoadUser, Queue, TimeLapse)
+   */
+  MoveProgress moveTo(MovingRoadUser object, Point destination,
+      TimeLapse time,
+      GeomHeuristic heuristic);
+
+  /**
    * Moves the specified {@link MovingRoadUser} using the specified path and
    * with the specified time. The provided <code>path</code> can not be empty
    * and there must be time left in the provided {@link TimeLapse}.
@@ -369,6 +445,23 @@ public interface RoadModel extends Model<RoadUser> {
       Measure<Double, Velocity> maxSpeed, GeomHeuristic heuristic);
 
   /**
+   * Finds a path that is optimal according to the given {@link GeomHeuristic}
+   * between current position of the <code>object</code> and its destination at
+   * point <code>destination</code>.
+   * @param object The road user.
+   * @param destination The ending point.
+   * @param timeUnit The time unit to use for the calculations.
+   * @param maxSpeed The speed of the {@link RoadUser} that requests the path.
+   * @param heuristic The heuristic to use to determine the optimal path.
+   * @return The path following the heuristic decorated with the heuristic value
+   *         for the path as well as its travel time with the given speed in the
+   *         given time unit.
+   */
+  RoadPath getPathTo(MovingRoadUser object, Point destination,
+      Unit<Duration> timeUnit, Measure<Double, Velocity> maxSpeed,
+      GeomHeuristic heuristic);
+
+  /**
    * Determines the distance of the given path, indicated by a list of
    * connecting points.
    * @param path The path to find the distance of.
@@ -404,4 +497,5 @@ public interface RoadModel extends Model<RoadUser> {
    * @return A snapshot of the current state of this road model.
    */
   RoadModelSnapshot getSnapshot();
+
 }

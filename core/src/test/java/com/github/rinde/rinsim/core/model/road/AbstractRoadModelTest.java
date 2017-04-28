@@ -93,10 +93,10 @@ public abstract class AbstractRoadModelTest<T extends GenericRoadModel> {
   protected final double EPSILON = 0.02;
 
   protected T model;
-  protected Point SW;
-  protected Point SE;
-  protected Point NE;
-  protected Point NW;
+  protected static Point SW = new Point(0, 0);;
+  protected static Point SE = new Point(10, 0);
+  protected static Point NE = new Point(10, 10);
+  protected static Point NW = new Point(0, 10);
 
   /**
    * must instantiate model and points
@@ -104,10 +104,10 @@ public abstract class AbstractRoadModelTest<T extends GenericRoadModel> {
    */
   @Before
   public void setUpPoints() throws Exception {
-    SW = new Point(0, 0);
-    SE = new Point(10, 0);
-    NE = new Point(10, 10);
-    NW = new Point(0, 10);
+    // SW = new Point(0, 0);
+    // SE = new Point(10, 0);
+    // NE = new Point(10, 10);
+    // NW = new Point(0, 10);
     doSetUp();
   }
 

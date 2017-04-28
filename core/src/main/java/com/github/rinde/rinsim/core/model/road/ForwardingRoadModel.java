@@ -100,6 +100,18 @@ public class ForwardingRoadModel<T extends GenericRoadModel>
   }
 
   @Override
+  public MoveProgress moveTo(MovingRoadUser object, RoadUser destination,
+      TimeLapse time, GeomHeuristic heuristic) {
+    return delegate().moveTo(object, destination, time, heuristic);
+  }
+
+  @Override
+  public MoveProgress moveTo(MovingRoadUser object, Point destination,
+      TimeLapse time, GeomHeuristic heuristic) {
+    return delegate().moveTo(object, destination, time, heuristic);
+  }
+
+  @Override
   public MoveProgress followPath(MovingRoadUser object, Queue<Point> path,
       TimeLapse time) {
     return delegate().followPath(object, path, time);
@@ -206,6 +218,14 @@ public class ForwardingRoadModel<T extends GenericRoadModel>
   public RoadPath getPathTo(Point from, Point to, Unit<Duration> timeUnit,
       Measure<Double, Velocity> speed, GeomHeuristic heuristic) {
     return delegate().getPathTo(from, to, timeUnit, speed, heuristic);
+  }
+
+  @Override
+  public RoadPath getPathTo(MovingRoadUser object, Point destination,
+      Unit<Duration> timeUnit, Measure<Double, Velocity> maxSpeed,
+      GeomHeuristic heuristic) {
+    return delegate().getPathTo(object, destination, timeUnit, maxSpeed,
+      heuristic);
   }
 
   @Override

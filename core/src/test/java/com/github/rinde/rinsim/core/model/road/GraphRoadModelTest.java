@@ -44,6 +44,7 @@ import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.road.GraphRoadModelImpl.Loc;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.ConnectionData;
+import com.github.rinde.rinsim.geom.GeomHeuristics;
 import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.Graphs;
 import com.github.rinde.rinsim.geom.LengthData;
@@ -53,32 +54,57 @@ import com.github.rinde.rinsim.geom.MultimapGraph;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.geom.TableGraph;
 import com.google.common.base.VerifyException;
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.ImmutableTable;
+import com.google.common.collect.Table;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  *
  */
 @RunWith(Parameterized.class)
-public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModelImpl> {
+public class GraphRoadModelTest
+    extends AbstractRoadModelTest<GraphRoadModelImpl> {
 
   protected Graph<? extends ConnectionData> graph;
   protected ModelBuilder<GraphRoadModelImpl, RoadUser> supplier;
 
   // TODO what about negative speeds? and what about negative speed limits?
 
-  public GraphRoadModelTest(ModelBuilder<GraphRoadModelImpl, RoadUser> supplier) {
+  public GraphRoadModelTest(
+      ModelBuilder<GraphRoadModelImpl, RoadUser> supplier) {
     this.supplier = supplier;
   }
 
   @Parameters
   public static Collection<Object[]> configs() {
+    // Graph should be constructed before model,
+    // since GraphRoadModelSnapshot should be consistent
+    // with the actual graph in a static case.
+    final ImmutableMultimap graphAsMap =
+      ImmutableMultimap.builder().put(SW, SE).put(SE, NE).put(NE, NW).build();
+
+    final Table<Point, Point, Connection<LengthData>> graphAsTable =
+      HashBasedTable.create();
+    graphAsTable.put(SW, SE, Connection.create(SW, SE, LengthData.create(10)));
+    graphAsTable.put(SE, NE, Connection.create(SE, NE, LengthData.create(10)));
+    graphAsTable.put(NE, NW, Connection.create(NE, NW, LengthData.create(10)));
+
     return Arrays.asList(new Object[][] {
-      {RoadModelBuilders.staticGraph(MultimapGraph.supplier())},
-      {RoadModelBuilders.staticGraph(MultimapGraph.supplier()).withCache()},
-      {RoadModelBuilders.staticGraph(TableGraph.supplier())},
-      {RoadModelBuilders.staticGraph(TableGraph.supplier()).withCache()},
+      {RoadModelBuilders.staticGraph(MultimapGraph.supplier(graphAsMap))},
+      {RoadModelBuilders.staticGraph(MultimapGraph.supplier(graphAsMap))
+        .withCache()},
+      {RoadModelBuilders
+        .staticGraph(TableGraph.<LengthData>supplier(ImmutableTable
+          .<Point, Point, Connection<LengthData>>copyOf(graphAsTable)))},
+      {RoadModelBuilders
+        .staticGraph(TableGraph.supplier(ImmutableTable
+          .<Point, Point, Connection<LengthData>>copyOf(graphAsTable)))
+        .withCache()},
       {RoadModelBuilders.dynamicGraph(ListenableGraph
-        .supplier(TableGraph.supplier()))}
+        .supplier(TableGraph.supplier(ImmutableTable
+          .<Point, Point, Connection<LengthData>>copyOf(graphAsTable))))}
     });
   }
 
@@ -87,9 +113,9 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModelImpl
     model = supplier.build(mock(DependencyProvider.class));
     graph = model.graph;
 
-    graph.addConnection(SW, SE);
-    graph.addConnection(SE, NE);
-    graph.addConnection(NE, NW);
+    // graph.addConnection(SW, SE);
+    // graph.addConnection(SE, NE);
+    // graph.addConnection(NE, NW);
 
     final Set<Point> points = graph.getNodes();
     assertEquals(4, points.size());
@@ -560,6 +586,41 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModelImpl
   }
 
   @Test
+  public void moveToHeuristicTest() {
+    final MovingRoadUser fastestPathAgent = new SpeedyRoadUser(10);
+    final MovingRoadUser shortestPathAgent = new SpeedyRoadUser(10);
+
+    final Point origin = new Point(0, 0);
+    final Point destination = new Point(0, 10);
+    final Point midway = new Point(5, 5);
+
+    // Graph with slow direct (shortest) route, but fast longer route.
+    final Graph<MultiAttributeData> graph = new TableGraph<>();
+    graph.addConnection(origin, destination,
+      MultiAttributeData.builder().setLength(10).setMaxSpeed(1).build());
+    graph.addConnection(origin, midway,
+      MultiAttributeData.builder().setLength(10).setMaxSpeed(10).build());
+    graph.addConnection(midway, destination,
+      MultiAttributeData.builder().setLength(10).setMaxSpeed(10).build());
+
+    final RoadModel moveModel = RoadModelBuilders.staticGraph(graph)
+      .withDistanceUnit(SI.KILOMETER).withSpeedUnit(NonSI.KILOMETERS_PER_HOUR)
+      .build(mock(DependencyProvider.class));
+    moveModel.addObjectAt(fastestPathAgent, origin);
+    moveModel.addObjectAt(shortestPathAgent, origin);
+    moveModel.moveTo(fastestPathAgent, destination, hour(1),
+      GeomHeuristics.time(10));
+    moveModel.moveTo(shortestPathAgent, destination, hour(1),
+      GeomHeuristics.euclidean());
+
+    // Agent chose speedy route
+    assertEquals(midway, moveModel.getPosition(fastestPathAgent));
+
+    // Agent chose shortest route
+    assertEquals(new Point(0, 1), moveModel.getPosition(shortestPathAgent));
+  }
+
+  @Test
   public void getConnectionTest() {
     final TestRoadUser driver = new TestRoadUser();
     model.addObjectAt(driver, SE);
@@ -629,7 +690,8 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModelImpl
 
     final Loc loc1 = GraphRoadModelImpl.newLoc(Connection.create(SW, SE), 3);
     final Loc loc2 = GraphRoadModelImpl.newLoc(Connection.create(SW, SE), 1);
-    final Loc loc3 = GraphRoadModelImpl.newLoc(Connection.create(SE, NE), 9.999999);
+    final Loc loc3 =
+      GraphRoadModelImpl.newLoc(Connection.create(SE, NE), 9.999999);
     final Loc loc4 = GraphRoadModelImpl.asLoc(SW);
     final Loc loc5 = GraphRoadModelImpl.newLoc(Connection.create(SE, SW), 1);
     final Loc loc6 = GraphRoadModelImpl.newLoc(Connection.create(NE, SW), 1);

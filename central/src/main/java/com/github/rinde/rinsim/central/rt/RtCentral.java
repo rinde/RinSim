@@ -51,6 +51,7 @@ import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.experiment.MASConfiguration;
+import com.github.rinde.rinsim.geom.GeomHeuristic;
 import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle;
@@ -160,6 +161,11 @@ public final class RtCentral {
 
   public static TimedEventHandler<AddVehicleEvent> vehicleHandler() {
     return VehicleCreator.INSTANCE;
+  }
+
+  public static TimedEventHandler<AddVehicleEvent> vehicleHandler(
+      GeomHeuristic heuristic) {
+    return new HeuristicVehicleCreator(heuristic);
   }
 
   enum Options {
@@ -297,6 +303,28 @@ public final class RtCentral {
       public String toString() {
         return Central.class.getName() + ".vehicleHandler()";
       }
+    };
+
+  }
+
+  static class HeuristicVehicleCreator
+      implements TimedEventHandler<AddVehicleEvent>, Serializable {
+
+    static GeomHeuristic heuristic;
+
+    HeuristicVehicleCreator(GeomHeuristic h) {
+      heuristic = h;
+    }
+
+    @Override
+    public void handleTimedEvent(AddVehicleEvent event, SimulatorAPI sim) {
+      sim.register(new RouteFollowingVehicle(event.getVehicleDTO(), true,
+        RouteFollowingVehicle.nopAdjuster(), heuristic));
+    }
+
+    @Override
+    public String toString() {
+      return Central.class.getName() + ".vehicleHandler()";
     }
   }
 
