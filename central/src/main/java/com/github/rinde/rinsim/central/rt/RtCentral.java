@@ -324,7 +324,8 @@ public final class RtCentral {
 
     @Override
     public String toString() {
-      return Central.class.getName() + ".vehicleHandler()";
+      return Central.class.getName() + ".vehicleHandler(" + heuristic.toString()
+        + ")";
     }
   }
 
