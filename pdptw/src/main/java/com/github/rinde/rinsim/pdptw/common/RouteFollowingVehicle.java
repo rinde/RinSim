@@ -142,7 +142,9 @@ public class RouteFollowingVehicle extends Vehicle {
    *          {@link #setRoute(Iterable)} method.
    * @param adjuster Allows to set a route adjuster to 'fix' routes if
    *          necessary.
-   * @param heuristic The {@link GeomHeuristic} to decide optimal routes.
+   * @param heuristic The {@link GeomHeuristic} is used for path finding, it
+   *          determines the property of the path that is minimized (e.g. travel
+   *          time, distance traveled, etc.).
    */
   public RouteFollowingVehicle(VehicleDTO dto,
       boolean allowDelayedRouteChanging, RouteAdjuster adjuster,
@@ -418,8 +420,8 @@ public class RouteFollowingVehicle extends Vehicle {
    */
   protected long computeTravelTimeTo(Point p, Unit<Duration> timeUnit) {
     return DoubleMath.roundToLong(
-      getRoadModel().getPathTo(this, p, timeUnit,
-        speed.get(), routeHeuristic).getTravelTime(),
+      getRoadModel().getPathTo(this, p, timeUnit, speed.get(), routeHeuristic)
+        .getTravelTime(),
       RoundingMode.CEILING);
   }
 

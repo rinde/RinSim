@@ -34,6 +34,7 @@ import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.geom.GeomHeuristic;
+import com.github.rinde.rinsim.geom.GeomHeuristics;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
@@ -47,8 +48,8 @@ import com.google.common.collect.ImmutableList;
  * <li>adding and removing objects</li>
  * <li>moving objects around</li>
  * </ul>
- * On top of that the RoadModel provides several functions for retrieving
- * objects and finding the shortest path. More utilities for working with
+ * Additionally, the RoadModel provides several methods for retrieving objects
+ * and finding the shortest path. More utilities for working with
  * {@link RoadModel}s are defined in {@link RoadModels}.
  * @author Rinde van Lon
  */
@@ -56,11 +57,13 @@ public interface RoadModel extends Model<RoadUser> {
 
   /**
    * Moves the specified {@link MovingRoadUser} towards the specified
-   * <code>destination</code> using the path returned by
-   * {@link #getShortestPathTo(RoadUser, Point)}. There must be time left in the
-   * provided {@link TimeLapse}. The {@link #getDestination(MovingRoadUser)}
-   * method will return the destination point as specified in the most recent
-   * invocation of this method.
+   * <code>destination</code> following the path returned by
+   * {@link #getPathTo(MovingRoadUser, Point, Unit, Measure, GeomHeuristic)}.
+   * The {@link GeomHeuristic} that is used by default is
+   * {@link GeomHeuristics#euclidean()}. There must be time left in the provided
+   * {@link TimeLapse}. The {@link #getDestination(MovingRoadUser)} method will
+   * return the destination point as specified in the most recent invocation of
+   * this method.
    * <p>
    * <b>Speed</b><br>
    * The {@link MovingRoadUser} has to define a speed with which it wants to
@@ -91,11 +94,12 @@ public interface RoadModel extends Model<RoadUser> {
 
   /**
    * Moves the specified {@link MovingRoadUser} towards the specified
-   * <code>destination</code> using the path returned by
-   * {@link #getShortestPathTo(RoadUser, RoadUser)}. There must be time left in
-   * the provided {@link TimeLapse}. The {@link #getDestination(MovingRoadUser)}
-   * method will return the destination point as specified in the most recent
-   * invocation of this method.
+   * <code>destination</code> following the path returned by
+   * {@link #getPathTo(MovingRoadUser, Point, Unit, Measure, GeomHeuristic)}.
+   * The {@link GeomHeuristic} that is used by default is
+   * {@link GeomHeuristics#euclidean()}. The
+   * {@link #getDestination(MovingRoadUser)} method will return the destination
+   * point as specified in the most recent invocation of this method.
    * <p>
    * <b>Speed</b><br>
    * The {@link MovingRoadUser} has to define a speed with which it wants to
@@ -127,11 +131,13 @@ public interface RoadModel extends Model<RoadUser> {
 
   /**
    * Moves the specified {@link MovingRoadUser} towards the specified
-   * <code>destination</code> using the path returned by
-   * {@link #getPathTo(Point, Point, Unit, Measure, GeomHeuristic)}. There must
-   * be time left in the provided {@link TimeLapse}. The
-   * {@link #getDestination(MovingRoadUser)} method will return the destination
-   * point as specified in the most recent invocation of this method.
+   * <code>destination</code> following the path returned by
+   * {@link #getPathTo(MovingRoadUser, Point, Unit, Measure, GeomHeuristic)}.
+   * The {@link GeomHeuristic} that is used can be specified via
+   * <code>heuristic</code>. There must be time left in the provided
+   * {@link TimeLapse}. The {@link #getDestination(MovingRoadUser)} method will
+   * return the destination point as specified in the most recent invocation of
+   * this method.
    * <p>
    * <b>Speed</b><br>
    * The {@link MovingRoadUser} has to define a speed with which it wants to
@@ -154,22 +160,23 @@ public interface RoadModel extends Model<RoadUser> {
    * @param time The time that is available for travel.
    * @param heuristic The heuristic to use for path resolution.
    * @return A {@link MoveProgress} instance which details: the distance
-   *         travelled, the actual time spent travelling and the nodes which
-   *         where travelled.
+   *         traveled, the actual time spent traveling and the nodes which where
+   *         traveled.
    * @see #moveTo(MovingRoadUser, Point, TimeLapse)
    * @see #followPath(MovingRoadUser, Queue, TimeLapse)
    */
   MoveProgress moveTo(MovingRoadUser object, RoadUser destination,
-      TimeLapse time,
-      GeomHeuristic heuristic);
+      TimeLapse time, GeomHeuristic heuristic);
 
   /**
    * Moves the specified {@link MovingRoadUser} towards the specified
-   * <code>destination</code> using the path returned by
-   * {@link #getPathTo(Point, Point, Unit, Measure, GeomHeuristic)}. There must
-   * be time left in the provided {@link TimeLapse}. The
-   * {@link #getDestination(MovingRoadUser)} method will return the destination
-   * point as specified in the most recent invocation of this method.
+   * <code>destination</code> following the path returned by
+   * {@link #getPathTo(MovingRoadUser, Point, Unit, Measure, GeomHeuristic)}.
+   * The {@link GeomHeuristic} that is used can be specified via
+   * <code>heuristic</code>. There must be time left in the provided
+   * {@link TimeLapse}. The {@link #getDestination(MovingRoadUser)} method will
+   * return the destination point as specified in the most recent invocation of
+   * this method.
    * <p>
    * <b>Speed</b><br>
    * The {@link MovingRoadUser} has to define a speed with which it wants to
@@ -192,17 +199,16 @@ public interface RoadModel extends Model<RoadUser> {
    * @param time The time that is available for travel.
    * @param heuristic The heuristic to use for path resolution.
    * @return A {@link MoveProgress} instance which details: the distance
-   *         travelled, the actual time spent travelling and the nodes which
-   *         where travelled.
+   *         traveled, the actual time spent traveling and the nodes which where
+   *         traveled.
    * @see #moveTo(MovingRoadUser, RoadUser, TimeLapse)
    * @see #followPath(MovingRoadUser, Queue, TimeLapse)
    */
-  MoveProgress moveTo(MovingRoadUser object, Point destination,
-      TimeLapse time,
+  MoveProgress moveTo(MovingRoadUser object, Point destination, TimeLapse time,
       GeomHeuristic heuristic);
 
   /**
-   * Moves the specified {@link MovingRoadUser} using the specified path and
+   * Moves the specified {@link MovingRoadUser} following the specified path and
    * with the specified time. The provided <code>path</code> can not be empty
    * and there must be time left in the provided {@link TimeLapse}.
    * <p>
@@ -281,7 +287,7 @@ public interface RoadModel extends Model<RoadUser> {
   void removeObject(RoadUser roadUser);
 
   /**
-   * Removes all objects on this RoadStructure instance.
+   * Removes all objects from this road model.
    */
   void clear();
 
@@ -419,7 +425,7 @@ public interface RoadModel extends Model<RoadUser> {
   List<Point> getShortestPathTo(RoadUser fromObj, Point to);
 
   /**
-   * Finds the shortest between <code>from</code> and <code>to</code>. The
+   * Finds the shortest path between <code>from</code> and <code>to</code>. The
    * definition of a <i>shortest</i> path is defined by the specific
    * implementation, possibilities include the shortest travel time and the
    * shortest distance.
@@ -430,8 +436,10 @@ public interface RoadModel extends Model<RoadUser> {
   List<Point> getShortestPathTo(Point from, Point to);
 
   /**
-   * Finds a path that is optimal according to the given {@link GeomHeuristic}
-   * between the points <code>from</code> and <code>to</code>.
+   * Finds a path between <code>from</code> and <code>to</code>. The path
+   * finding is directed by the specified {@link GeomHeuristic}, this heuristic
+   * determines the property of the path that is minimized (e.g. travel time,
+   * distance traveled, etc.).
    * @param from The starting point.
    * @param to The ending point.
    * @param timeUnit The time unit to use for the calculations.
@@ -445,9 +453,10 @@ public interface RoadModel extends Model<RoadUser> {
       Measure<Double, Velocity> maxSpeed, GeomHeuristic heuristic);
 
   /**
-   * Finds a path that is optimal according to the given {@link GeomHeuristic}
-   * between current position of the <code>object</code> and its destination at
-   * point <code>destination</code>.
+   * Finds a path between <code>object</code> and <code>destination</code>. The
+   * path finding is directed by the specified {@link GeomHeuristic}, this
+   * heuristic determines the property of the path that is minimized (e.g.
+   * travel time, distance traveled, etc.).
    * @param object The road user.
    * @param destination The ending point.
    * @param timeUnit The time unit to use for the calculations.

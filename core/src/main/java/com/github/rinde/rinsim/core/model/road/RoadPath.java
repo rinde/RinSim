@@ -22,9 +22,9 @@ import com.github.rinde.rinsim.geom.Point;
 import com.google.auto.value.AutoValue;
 
 /**
- * An immutable class containing a path with a certain heuristic value and
- * travel time. The heuristic value is the result of determining the value of
- * the path by a {@link GeomHeuristic}.
+ * A value object containing a path with a certain heuristic value and travel
+ * time. The heuristic value is the result of determining the value of the path
+ * by a {@link GeomHeuristic}.
  * @author Vincent Van Gestel
  */
 @AutoValue
