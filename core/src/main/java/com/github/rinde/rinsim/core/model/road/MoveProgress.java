@@ -31,9 +31,8 @@ import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 
 /**
- * Represents the distance traveled and time spent in
- * {@link RoadModel#followPath(MovingRoadUser, java.util.Queue, com.github.rinde.rinsim.core.model.time.TimeLapse)}
- * .
+ * Value object representing the distance traveled and time spent of a
+ * {@link MovingRoadUser}.
  * @author Bartosz Michalik
  * @author Rinde van Lon
  * @since 2.0

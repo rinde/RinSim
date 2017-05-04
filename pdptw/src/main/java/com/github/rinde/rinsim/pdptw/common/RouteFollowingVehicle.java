@@ -31,7 +31,6 @@ import java.util.Set;
 import javax.annotation.Nullable;
 import javax.measure.Measure;
 import javax.measure.quantity.Duration;
-import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
@@ -46,7 +45,6 @@ import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
-import com.github.rinde.rinsim.core.model.road.RoadModels;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
@@ -54,6 +52,8 @@ import com.github.rinde.rinsim.fsm.AbstractState;
 import com.github.rinde.rinsim.fsm.StateMachine;
 import com.github.rinde.rinsim.fsm.StateMachine.StateMachineEvent;
 import com.github.rinde.rinsim.fsm.StateMachine.StateTransitionEvent;
+import com.github.rinde.rinsim.geom.GeomHeuristic;
+import com.github.rinde.rinsim.geom.GeomHeuristics;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
@@ -118,6 +118,7 @@ public class RouteFollowingVehicle extends Vehicle {
   Optional<Depot> depot;
   Optional<TimeLapse> currentTime;
   boolean isDiversionAllowed;
+  GeomHeuristic routeHeuristic;
 
   private Optional<Measure<Double, Velocity>> speed;
   private final boolean allowDelayedRouteChanges;
@@ -141,6 +142,24 @@ public class RouteFollowingVehicle extends Vehicle {
    *          {@link #setRoute(Iterable)} method.
    * @param adjuster Allows to set a route adjuster to 'fix' routes if
    *          necessary.
+   * @param heuristic The {@link GeomHeuristic} is used for path finding, it
+   *          determines the property of the path that is minimized (e.g. travel
+   *          time, distance traveled, etc.).
+   */
+  public RouteFollowingVehicle(VehicleDTO dto,
+      boolean allowDelayedRouteChanging, RouteAdjuster adjuster,
+      GeomHeuristic heuristic) {
+    this(dto, allowDelayedRouteChanging, adjuster);
+    routeHeuristic = heuristic;
+  }
+
+  /**
+   * Initializes the vehicle.
+   * @param dto The {@link VehicleDTO} that defines this vehicle.
+   * @param allowDelayedRouteChanging This boolean changes the behavior of the
+   *          {@link #setRoute(Iterable)} method.
+   * @param adjuster Allows to set a route adjuster to 'fix' routes if
+   *          necessary.
    */
   public RouteFollowingVehicle(VehicleDTO dto,
       boolean allowDelayedRouteChanging, RouteAdjuster adjuster) {
@@ -152,6 +171,7 @@ public class RouteFollowingVehicle extends Vehicle {
     currentTime = Optional.absent();
     allowDelayedRouteChanges = allowDelayedRouteChanging;
     routeAdjuster = adjuster;
+    routeHeuristic = GeomHeuristics.euclidean();
 
     stateMachine = createStateMachine();
     waitState = stateMachine.getStateOfType(Wait.class);
@@ -399,12 +419,9 @@ public class RouteFollowingVehicle extends Vehicle {
    * @return The travel time in the used time unit.
    */
   protected long computeTravelTimeTo(Point p, Unit<Duration> timeUnit) {
-    final Measure<Double, Length> distance = Measure.valueOf(Point.distance(
-      getRoadModel().getPosition(this), p), getRoadModel()
-        .getDistanceUnit());
-
     return DoubleMath.roundToLong(
-      RoadModels.computeTravelTime(speed.get(), distance, timeUnit),
+      getRoadModel().getPathTo(this, p, timeUnit, speed.get(), routeHeuristic)
+        .getTravelTime(),
       RoundingMode.CEILING);
   }
 
@@ -675,7 +692,9 @@ public class RouteFollowingVehicle extends Vehicle {
       if (getRoadModel().equalPosition(context, cur)) {
         return DefaultEvent.ARRIVED;
       }
-      getRoadModel().moveTo(context, cur, currentTime.get());
+      getRoadModel().moveTo(context, cur,
+        currentTime.get(),
+        context.routeHeuristic);
       if (getRoadModel().equalPosition(context, cur)
         && currentTime.get().hasTimeLeft()) {
         return DefaultEvent.ARRIVED;

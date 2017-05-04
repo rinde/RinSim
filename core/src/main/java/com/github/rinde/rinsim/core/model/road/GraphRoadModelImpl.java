@@ -426,6 +426,32 @@ public class GraphRoadModelImpl extends AbstractRoadModel
   }
 
   @Override
+  public RoadPath getPathTo(MovingRoadUser object, Point destination,
+      Unit<Duration> timeUnit, Measure<Double, Velocity> maxSpeed,
+      GeomHeuristic heuristic) {
+    final Optional<? extends Connection<?>> conn = getConnection(object);
+    if (conn.isPresent()) {
+      final double connectionPercentage =
+        Point.distance(getPosition(object), conn.get().to())
+          / Point.distance(conn.get().from(), conn.get().to());
+      final double cost =
+        heuristic.calculateCost(graph, conn.get().from(), conn.get().to())
+          * connectionPercentage;
+      final double travelTime =
+        heuristic.calculateTravelTime(graph, conn.get().from(), conn.get().to(),
+          getDistanceUnit(), maxSpeed, timeUnit)
+          * connectionPercentage;
+
+      final RoadPath path =
+        getPathTo(conn.get().to(), destination, timeUnit, maxSpeed, heuristic);
+      return RoadPath.create(path.getPath(), path.getValue() + cost,
+        path.getTravelTime() + travelTime);
+    }
+    return getPathTo(getPosition(object), destination, timeUnit, maxSpeed,
+      heuristic);
+  }
+
+  @Override
   public Measure<Double, Length> getDistanceOfPath(Iterable<Point> path)
       throws IllegalArgumentException {
     return snapshot.getDistanceOfPath(path);
@@ -475,4 +501,5 @@ public class GraphRoadModelImpl extends AbstractRoadModel
   public RoadModelSnapshot getSnapshot() {
     return snapshot;
   }
+
 }

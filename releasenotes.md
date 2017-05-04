@@ -1,5 +1,8 @@
 # Release notes
 
+## v4.4.2
+ * Added support for GeomHeuristic in RouteFollowingVehicle (thanks to [Vincent Van Gestel](https://github.com/VincentVanGestel) for the implementation and [Christof Luyten](https://github.com/christofluyten) for finding the bug). 
+
 ## v4.4.1
  * Some small improvements in traffic generation system (thanks to [Vincent Van Gestel](https://github.com/VincentVanGestel)).
 

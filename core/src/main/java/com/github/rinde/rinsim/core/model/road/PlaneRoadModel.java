@@ -247,6 +247,14 @@ public class PlaneRoadModel extends AbstractRoadModel {
   }
 
   @Override
+  public RoadPath getPathTo(MovingRoadUser object, Point destination,
+      Unit<Duration> timeUnit, Measure<Double, Velocity> speed,
+      GeomHeuristic heuristic) {
+    return getPathTo(getPosition(object), destination, timeUnit, speed,
+      heuristic);
+  }
+
+  @Override
   public Measure<Double, Length> getDistanceOfPath(Iterable<Point> path)
       throws IllegalArgumentException {
     final List<Point> pathAsList = Lists.newArrayList(path);

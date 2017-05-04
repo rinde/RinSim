@@ -41,6 +41,8 @@ import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadUser;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
+import com.github.rinde.rinsim.geom.GeomHeuristic;
+import com.github.rinde.rinsim.geom.GeomHeuristics;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Joiner;
@@ -155,6 +157,13 @@ public class PDPRoadModel extends ForwardingRoadModel<GenericRoadModel>
   @Override
   public MoveProgress moveTo(MovingRoadUser object,
       RoadUser destinationRoadUser, TimeLapse time) {
+    return moveTo(object, destinationRoadUser, time,
+      GeomHeuristics.euclidean());
+  }
+
+  @Override
+  public MoveProgress moveTo(MovingRoadUser object,
+      RoadUser destinationRoadUser, TimeLapse time, GeomHeuristic heuristic) {
     final DestinationObject newDestinationObject;
     if (destinationRoadUser instanceof Parcel) {
       final Parcel dp = (Parcel) destinationRoadUser;
@@ -230,7 +239,8 @@ public class PDPRoadModel extends ForwardingRoadModel<GenericRoadModel>
         newDestinationObject.roadUser());
       destinationHistory.put(object, newDestinationObject);
     }
-    return delegate().moveTo(object, newDestinationObject.dest(), time);
+    return delegate().moveTo(object, newDestinationObject.dest(), time,
+      heuristic);
   }
 
   /**
