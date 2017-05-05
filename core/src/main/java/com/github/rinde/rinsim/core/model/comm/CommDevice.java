@@ -117,7 +117,7 @@ public final class CommDevice {
    * recipient. The actual sending of a message is done at the end of the
    * current tick. Based on the reliability, range and position it is determined
    * whether the message will be sent. Until a message is sent it lives in the
-   * {@link #getOutbox()} of the device.
+   * {@link #getOutbox() outbox} of the device.
    * <p>
    * <b>Reliability</b> If this device has a reliability of <code>p</code> there
    * is a probability of <code>1-p</code> that the message will not be sent. If
@@ -158,15 +158,15 @@ public final class CommDevice {
    * Attempts to broadcast a message with the specified contents. The actual
    * sending of a message is done at the end of the current tick. Based on the
    * reliability, range and position it is determined to whom a message will be
-   * sent. Until a message is sent it lives in the {@link #getOutbox()} of the
-   * device.
+   * sent. Until a message is sent it lives in the {@link #getOutbox() outbox}
+   * of the device.
    * <p>
    * <b>Reliability</b> If this device has a reliability of <code>p</code> there
    * is a probability of <code>1-p</code> that the message will not be send to a
    * particular receiver. If the receiving device has a reliability of
    * <code>r</code> there is a probability of <code>1-r</code> that the message
    * will not be received at the other end. This means that in practice the
-   * probability of a successful delivery is <code>(1-p) * (1-r)</code>.
+   * probability of an unsuccessful delivery is <code>(1-p) * (1-r)</code>.
    * <p>
    * <b>Range</b> If this device has a maximum range the message will only be
    * delivered to the recipients that are within that range <i>at the moment of
