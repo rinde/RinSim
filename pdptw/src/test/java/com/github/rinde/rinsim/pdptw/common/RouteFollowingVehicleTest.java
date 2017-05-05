@@ -16,6 +16,10 @@
 package com.github.rinde.rinsim.pdptw.common;
 
 import static com.github.rinde.rinsim.core.model.time.TimeLapseFactory.time;
+import static com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle.DefaultEvent.ARRIVED;
+import static com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle.DefaultEvent.DONE;
+import static com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle.DefaultEvent.GOTO;
+import static com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle.DefaultEvent.READY_TO_SERVICE;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
 import static com.google.common.truth.Truth.assertThat;
@@ -33,6 +37,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 
 import javax.measure.unit.SI;
 
@@ -1372,6 +1377,40 @@ public class RouteFollowingVehicleTest {
   @Test(expected = IllegalStateException.class)
   public void getpreviousDestinationFail() {
     d.gotoState.getPreviousDestination();
+  }
+
+  /**
+   * Tests that the statemachine dispatches the correct events in the correct
+   * order when there is no service time.
+   */
+  @Test
+  public void noServiceTime() {
+    final Parcel noServ = Parcel
+      .builder(new Point(1, 2), new Point(1, 4))
+      .pickupTimeWindow(TimeWindow.create(minute(5), minute(15)))
+      .deliveryTimeWindow(TimeWindow.create(minute(16), minute(30)))
+      .pickupDuration(minute(0))
+      .deliveryDuration(minute(0))
+      .build();
+
+    PDPTWTestUtil.register(rm, pm, noServ);
+
+    final List<DefaultEvent> expected =
+      new ArrayList<>(asList(GOTO, ARRIVED, READY_TO_SERVICE, DONE));
+    expected.addAll(expected);
+
+    final List<DefaultEvent> actual = new ArrayList<>();
+    d.stateMachine.getEventAPI().addListener(new Listener() {
+      @Override
+      public void handleEvent(Event e) {
+        actual.add((DefaultEvent) ((StateTransitionEvent) e).trigger);
+      }
+    }, StateMachineEvent.STATE_TRANSITION);
+
+    d.setRoute(asList(noServ, noServ));
+
+    tick(0, 100);
+    assertThat(actual).containsExactlyElementsIn(expected).inOrder();
   }
 
   static long minute(long minutes) {
