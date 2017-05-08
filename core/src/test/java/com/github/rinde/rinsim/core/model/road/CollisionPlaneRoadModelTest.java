@@ -39,6 +39,7 @@ import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.util.TrivialRoadUser;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 public class CollisionPlaneRoadModelTest {
 
@@ -86,6 +87,28 @@ public class CollisionPlaneRoadModelTest {
   }
 
   @Test
+  public void addRUatOccupiedPosition() {
+    final Point loc1 = new Point(1, 1);
+
+    model.addObjectAt(ru1, loc1);
+
+    final ParcelRU p1 = new ParcelRU();
+    final ParcelRU p2 = new ParcelRU();
+    final ParcelRU p3 = new ParcelRU();
+
+    model.addObjectAt(p1, loc1);
+    model.addObjectAt(p2, loc1);
+    model.addObjectAt(p3, loc1);
+
+    assertThat(model.getPosition(ru1)).isEqualTo(loc1);
+    assertThat(model.getPosition(p1)).isEqualTo(loc1);
+    assertThat(model.getPosition(p2)).isEqualTo(loc1);
+    assertThat(model.getPosition(p3)).isEqualTo(loc1);
+
+    assertThat(ImmutableSet.copyOf(model.getObjectPositions())).hasSize(1);
+  }
+
+  @Test
   public void moveToOccupiedPosition() {
     model.addObjectAt(ru1, new Point(1, 1));
     model.addObjectAt(ru2, new Point(2.5, 1));
@@ -128,7 +151,6 @@ public class CollisionPlaneRoadModelTest {
 
     // let's try to move away in other direction
     final MoveProgress mp4 = model.moveTo(ru1, new Point(1, 1), tick());
-    System.out.println(mp4);
 
   }
 
@@ -324,6 +346,13 @@ public class CollisionPlaneRoadModelTest {
 
     @Override
     public void afterTick(TimeLapse timeLapse) {}
+  }
+
+  static class ParcelRU implements RoadUser {
+
+    @Override
+    public void initRoadUser(RoadModel model) {}
+
   }
 
 }

@@ -111,10 +111,9 @@ public class CollisionPlaneRoadModel extends PlaneRoadModel {
 
   @Override
   public void addObjectAt(RoadUser obj, Point pos) {
-    checkArgument(!isOccupied(pos),
-      "Cannot add an object on an occupied position: %s.", pos);
-
     if (obj instanceof MovingRoadUser) {
+      checkArgument(!isOccupied(pos),
+        "Cannot add an object on an occupied position: %s.", pos);
       blockingRegistry.addAt((MovingRoadUser) obj, pos);
     }
     super.addObjectAt(obj, pos);
