@@ -246,6 +246,8 @@ public final class CommModel extends AbstractModel<CommUser>
     if (senderReliability == 1d && receiverReliability == 1d) {
       return true;
     }
+    // prob of success: senderR * receiverR
+    // prob of failure: 1 - (senderR * receiverR)
     return randomGenerator.nextDouble() < senderReliability
       * receiverReliability;
   }

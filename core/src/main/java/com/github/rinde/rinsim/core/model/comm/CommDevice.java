@@ -124,7 +124,7 @@ public final class CommDevice {
    * the receiving device has a reliability of <code>r</code> there is a
    * probability of <code>1-r</code> that the message will not be received at
    * the other end. This means that in practice the probability of an
-   * unsuccessful delivery is <code>(1-p) * (1-r)</code>.
+   * unsuccessful delivery is <code>1 - (p * r)</code>.
    * <p>
    * <b>Range</b> If this device has a maximum range the message will only be
    * delivered if the recipient is within that range <i>at the moment of sending
@@ -166,7 +166,7 @@ public final class CommDevice {
    * particular receiver. If the receiving device has a reliability of
    * <code>r</code> there is a probability of <code>1-r</code> that the message
    * will not be received at the other end. This means that in practice the
-   * probability of an unsuccessful delivery is <code>(1-p) * (1-r)</code>.
+   * probability of an unsuccessful delivery is <code>1 - (p * r)</code>.
    * <p>
    * <b>Range</b> If this device has a maximum range the message will only be
    * delivered to the recipients that are within that range <i>at the moment of
