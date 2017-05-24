@@ -15,6 +15,7 @@
  */
 package com.github.rinde.rinsim.core.model.comm;
 
+import static com.github.rinde.rinsim.core.model.comm.CommModel.checkRangeIsPositive;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Verify.verify;
@@ -203,10 +204,10 @@ public final class CommDevice {
    * will not be received at the other end. This means that in practice the
    * probability of an unsuccessful delivery is <code>1 - (p * r)</code>.
    * <p>
-   * <b>Range</b>A message will only be delivered to the recipients that are within
-   * the range specified <i>at the moment of the sending at the end of the tick.</i>
-   * If the given range exceeds the maximum range of the device, an exception will
-   * be thrown.
+   * <b>Range</b>A message will only be delivered to the recipients that are
+   * within the range specified <i>at the moment of the sending at the end of
+   * the tick.</i> If the given range exceeds the maximum range of the device,
+   * an exception will be thrown.
    * <p>
    * <b>Position</b> If the {@link CommUser} that owns this device has no
    * position ({@link CommUser#getPosition()} is absent) <i>and</i> this device
@@ -218,16 +219,17 @@ public final class CommDevice {
    * @param contents The contents to send as part of the message.
    * @param range The range of the broadcast.
    * @throws IllegalStateException If the device is no longer registered.
-   * @throws IllegalArgumentException If the range is negative or larger than the
-   * maximum range.
+   * @throws IllegalArgumentException If the range is negative or larger than
+   *           the maximum range.
    */
-  public void broadcast(MessageContents contents, double range){
+  public void broadcast(MessageContents contents, double range) {
     checkRegistered();
-    checkBroadcastRange(range);
-
-    Predicate<CommUser> rangePredicate = new RangePredicate(user, range);
-    outbox.add(Message.createBroadcast(user, contents, rangePredicate));
-
+    checkRangeIsPositive(range);
+    checkArgument(!maxRange.isPresent() || range <= maxRange.get(),
+      "Range must be smaller than %s, found %s.", maxRange, range);
+    final Predicate<CommUser> broadcastRangePred =
+      new RangePredicate(user, range);
+    outbox.add(Message.createBroadcast(user, contents, broadcastRangePred));
   }
 
   /**
@@ -278,18 +280,6 @@ public final class CommDevice {
     checkState(isRegistered(),
       "This CommDevice is unregistered and can therefore not be used.");
   }
-
-  void checkBroadcastRange(double range){
-    checkArgument(isValidBroadcastRange(range));
-  }
-
-  boolean isValidBroadcastRange(double range){
-    if (range < 0d) return false;
-    if (maxRange.isPresent() && range > maxRange.get()) return false;
-
-    return true;
-  }
-
 
   boolean isRegistered() {
     return registered;

@@ -264,8 +264,8 @@ public final class CommModel extends AbstractModel<CommUser>
       "Reliability must be 0 <= r <= 1, found %s.", reliability);
   }
 
-  static void checkMaxRange(double maxRange) {
-    checkArgument(maxRange >= 0d);
+  static void checkRangeIsPositive(double range) {
+    checkArgument(range >= 0d, "Range must be >= 0, found %s.", range);
   }
 
   /**
@@ -317,7 +317,7 @@ public final class CommModel extends AbstractModel<CommUser>
      */
     @CheckReturnValue
     public Builder withDefaultDeviceMaxRange(double maxRange) {
-      checkMaxRange(maxRange);
+      checkRangeIsPositive(maxRange);
       return new AutoValue_CommModel_Builder(defaultReliability(),
         Optional.of(maxRange));
     }

@@ -15,6 +15,7 @@
  */
 package com.github.rinde.rinsim.core.model.comm;
 
+import static com.github.rinde.rinsim.core.model.comm.CommModel.checkRangeIsPositive;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.base.Optional;
@@ -61,7 +62,7 @@ public final class CommDeviceBuilder {
    * @return This, as per the builder pattern.
    */
   public CommDeviceBuilder setMaxRange(double range) {
-    CommModel.checkMaxRange(range);
+    checkRangeIsPositive(range);
     deviceMaxRange = Optional.of(range);
     return this;
   }
