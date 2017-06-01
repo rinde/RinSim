@@ -674,6 +674,30 @@ public class MetricsTest {
       Metrics.computeHistogram(list2, .5));
   }
 
+  @Test
+  public void testExample() {
+    final List<Double> figA =
+      asList(.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5);
+    final List<Double> figB =
+      asList(.5, 1.2, 2.9, 3.3, 4.2, 5.1, 6.9, 7.3, 8.5, 9.9);
+    final List<Double> figC =
+      asList(.5, .7, .9, 3.3, 3.6, 4.1, 7.9, 8.3, 8.5, 9.9);
+    final List<Double> figD =
+      asList(.5, .7, .9, 1.3, 1.6, 8.1, 8.3, 8.4, 8.5, 9.9);
+
+    final List<Double> figE =
+      asList(4.1, 4.15, 4.2, 4.3, 4.32, 4.39, 4.43, 4.48, 4.6);
+    final List<Double> figF =
+      asList(1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1);
+
+    System.out.println("fig A = " + Metrics.measureDynamism(figA, 10) * 100);
+    System.out.println("fig B = " + Metrics.measureDynamism(figB, 10) * 100);
+    System.out.println("fig C = " + Metrics.measureDynamism(figC, 10) * 100);
+    System.out.println("fig D = " + Metrics.measureDynamism(figD, 10) * 100);
+    System.out.println("fig E = " + Metrics.measureDynamism(figE, 10) * 100);
+    System.out.println("fig F = " + Metrics.measureDynamism(figF, 10) * 100);
+  }
+
   /**
    * NaN is not accepted.
    */
