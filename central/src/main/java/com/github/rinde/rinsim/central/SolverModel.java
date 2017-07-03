@@ -17,7 +17,6 @@ package com.github.rinde.rinsim.central;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import java.io.Serializable;
 import java.util.Set;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
@@ -109,8 +108,7 @@ public final class SolverModel extends AbstractModel<SolverUser> {
    */
   @AutoValue
   public abstract static class Builder
-      extends AbstractModelBuilder<SolverModel, SolverUser>
-      implements Serializable {
+      extends AbstractModelBuilder<SolverModel, SolverUser> {
 
     private static final long serialVersionUID = -4369279105715776943L;
 

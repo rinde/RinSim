@@ -17,14 +17,33 @@ package com.github.rinde.rinsim.central;
 
 import com.google.auto.value.AutoValue;
 
+/**
+ * Value object of the time it took for a particular solver to compute a
+ * solution for a problem specified by a {@link GlobalStateObject}.
+ * @author Rinde van Lon
+ */
 @AutoValue
 public abstract class SolverTimeMeasurement {
+  /**
+   * @return The input {@link GlobalStateObject} that specifies the problem for
+   *         which a solution is computed.
+   */
   public abstract GlobalStateObject input();
 
+  /**
+   * @return The duration (wall clock time) in nanoseconds it took to compute a
+   *         solution.
+   */
   public abstract long durationNs();
 
-  public static SolverTimeMeasurement create(GlobalStateObject state,
+  /**
+   * Create a new instance.
+   * @param input The input problem as given to the solver.
+   * @param dur The duration it took to find a solution for the input.
+   * @return A new instance.
+   */
+  public static SolverTimeMeasurement create(GlobalStateObject input,
       long dur) {
-    return new AutoValue_SolverTimeMeasurement(state, dur);
+    return new AutoValue_SolverTimeMeasurement(input, dur);
   }
 }

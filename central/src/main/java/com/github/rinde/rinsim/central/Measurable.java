@@ -17,13 +17,16 @@ package com.github.rinde.rinsim.central;
 
 import java.util.List;
 
+import com.github.rinde.rinsim.central.rt.MeasurableRealtimeSolver;
+
 /**
- *
+ * Interface for making solver computations measurable.
  * @author Rinde van Lon
+ * @see MeasureableSolver
+ * @see MeasurableRealtimeSolver
  */
 public interface Measurable {
   /**
-   *
    * @return A list of {@link SolverTimeMeasurement}s.
    */
   List<SolverTimeMeasurement> getTimeMeasurements();

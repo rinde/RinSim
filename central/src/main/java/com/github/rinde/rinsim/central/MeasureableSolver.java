@@ -15,4 +15,8 @@
  */
 package com.github.rinde.rinsim.central;
 
+/**
+ * A {@link Solver} that is {@link Measurable}.
+ * @author Rinde van Lon
+ */
 public interface MeasureableSolver extends Solver, Measurable {}

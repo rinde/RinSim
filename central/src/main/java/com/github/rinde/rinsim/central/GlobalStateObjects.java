@@ -24,13 +24,19 @@ import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.google.common.collect.ImmutableSet;
 
 /**
- *
+ * Utility class for {@link GlobalStateObject}s.
  * @author Rinde van Lon
  */
 public final class GlobalStateObjects {
 
   private GlobalStateObjects() {}
 
+  /**
+   * Retrieves all {@link Parcel}s that are not assigned to any vehicle.
+   * @param state The {@link GlobalStateObject} that is used for retrieving the
+   *          unassigned parcels.
+   * @return All unassigned parcels.
+   */
   public static ImmutableSet<Parcel> unassignedParcels(
       GlobalStateObject state) {
     final Set<Parcel> set = newLinkedHashSet(state.getAvailableParcels());
@@ -38,6 +44,12 @@ public final class GlobalStateObjects {
     return ImmutableSet.copyOf(set);
   }
 
+  /**
+   * Retrieves all {@link Parcel}s.
+   * @param state The {@link GlobalStateObject} that is used for retrieving the
+   *          parcels.
+   * @return All parcels.
+   */
   public static ImmutableSet<Parcel> allParcels(GlobalStateObject state) {
     return ImmutableSet.<Parcel>builder()
       .addAll(state.getAvailableParcels())
