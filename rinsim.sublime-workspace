@@ -87,14 +87,6 @@
 	},
 	"buffers":
 	[
-		{
-			"file": "_includes/custom/sidebarconfigs.html",
-			"settings":
-			{
-				"buffer_size": 955,
-				"line_ending": "Unix"
-			}
-		}
 	],
 	"build_system": "",
 	"build_system_choices":
@@ -270,8 +262,13 @@
 		"side_bar_visible": true,
 		"status_bar_visible": true
 	},
+	"expanded_folders":
+	[
+		"/Users/rinde/RinSim-website"
+	],
 	"file_history":
 	[
+		"/Users/rinde/RinSim-website/_includes/custom/sidebarconfigs.html",
 		"/Users/rinde/workspace/RinSim/README.md",
 		"/Users/rinde/workspace/RinSim/docs/howtorun.md",
 		"/Users/rinde/Dropbox/runners log.txt",
@@ -398,8 +395,7 @@
 		"/Users/rinde/workspace/vanLon17-GPEM-code/.gitignore",
 		"/Users/rinde/workspace/vanLon17-GPEM-code/files/config/gpem17.params",
 		"/Users/rinde/Documents/KUL/Papers/2017-GPEM/pseudocode/stopcondition.tex",
-		"/Users/rinde/Documents/KUL/Papers/2017-GPEM/algorithms/stopcondition.tex",
-		"/Users/rinde/Documents/KUL/Papers/2017-GPEM/3a-pdp.tex"
+		"/Users/rinde/Documents/KUL/Papers/2017-GPEM/algorithms/stopcondition.tex"
 	],
 	"find":
 	{
@@ -630,46 +626,8 @@
 	"groups":
 	[
 		{
-			"selected": 0,
 			"sheets":
 			[
-				{
-					"buffer": 0,
-					"file": "_includes/custom/sidebarconfigs.html",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 955,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								531,
-								531
-							]
-						],
-						"settings":
-						{
-							"WordCount":
-							{
-								"changes": 0,
-								"count": 42,
-								"modified": false,
-								"selection": false,
-								"status": -1,
-								"syntax": "plain text"
-							},
-							"syntax": "Packages/HTML/HTML.sublime-syntax"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 0,
-					"type": "text"
-				}
 			]
 		}
 	],

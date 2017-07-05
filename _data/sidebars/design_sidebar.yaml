@@ -6,27 +6,13 @@ entries:
   version:
   folders:
 
-  - title: Overview
+  - title: Design
     output: web, pdf
     folderitems:
-      - title: Overview
-        url: /design/
-        output: web, pdf
-  - title: Core module
-    output: web, pdf
-    folderitems:
-      - title: Overview
+      - title: Core
         url: /design/core/
         output: web, pdf
-      - title: TimeModel
-        url: /design/core/timemodel/
+      - title: User Interface
+        url: /design/ui/
         output: web, pdf
-      - title: RoadModel
-        url: /design/core/roadmodel/
-        output: web, pdf
-  - title: User interface
-    output: web, pdf
-    folderitems:
-  - title: Cli
-    output: web, pdf
-    folderitems:
+  

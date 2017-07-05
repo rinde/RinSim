@@ -2,7 +2,7 @@
 title: Design
 keywords: [design]
 sidebar: design_sidebar
-toc: true
+toc: false
 permalink: /design/
 
 ---
@@ -12,9 +12,9 @@ RinSim has a modular design which means its configuration is flexible and is ver
 In the above example, RinSim is configured with a number of models that interact with each other. The ```MAS```, ```Solver```, and ```GUI``` components can also interact with these models (shown in the image as a single RinSim interface). In this example the ```MAS``` and ```Solver``` components represent algorithms that are using various RinSim APIs.
 
 
-The code is organized in a number of Maven modules
+The code is organized in a number of Maven modules:
 
-Main modules:
+__Main modules__:
 - Core
 - User Interface
 - PDPTW
@@ -23,28 +23,40 @@ Main modules:
 - Experiment
 - Central
 
-Auxiliary modules:
+__Auxiliary modules__:
 - CLI
 - Event
 - FSM
 - Geom
 - IO
 
-## lets
+## Main modules
 
-## try
 
-## creating
 
-# some
+### UI
 
-## subsections
+### PDPTW
 
-### that
+### Scenario
 
-#### are deep
+### Scenario Util
 
-### less deep
+### Experiment
+
+### Central
+
+## Auxiliary modules
+
+### CLI
+
+### Event
+
+### FSM
+
+### Geom
+
+### IO
 
 
 <!-- 
