@@ -6,13 +6,32 @@ entries:
   version:
   folders:
 
-  - title: Design
+  - title: Modules
     output: web, pdf
     folderitems:
+      - title: Overview
+        url: /design/
+        output: web, pdf
       - title: Core
         url: /design/core/
         output: web, pdf
       - title: User Interface
         url: /design/ui/
         output: web, pdf
+      - title: PDPTW
+        url: /design/pdptw/
+        output: web, pdf
+      - title: Scenario
+        url: /design/scenario/
+        output: web, pdf
+      - title: Scenario Utilities
+        url: /design/scenario-util/
+        output: web, pdf
+      - title: Experiment
+        url: /design/experiment/
+        output: web, pdf
+      - title: Central
+        url: /design/central/
+        output: web, pdf
+
   

@@ -6,6 +6,7 @@ permalink: /
 sidebar:
 toc: false
 ---
+<!-- https://deepnn.github.io/index.html -->
 [![Javadocs](https://javadoc.io/badge/com.github.rinde/rinsim-core.svg?color=red)](https://javadoc.io/doc/com.github.rinde/rinsim-core){:.no_icon} 
 [![Build Status](https://travis-ci.org/rinde/RinSim.svg?branch=master)](https://travis-ci.org/rinde/RinSim){:.no_icon} 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.rinde/rinsim-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.rinde/rinsim-core){:.no_icon} 

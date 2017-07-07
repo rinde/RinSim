@@ -1,37 +1,39 @@
 # This is your sidebar TOC. The sidebar code loops through sections here and provides the appropriate formatting.
 
 entries:
-- title: Examples
+- title: Learn
   product:
   version:
   folders:
 
-  - title: Examples
+  - title: Learn
     output: web, pdf
     folderitems:
       - title: Overview
-        url: /examples/
+        url: /learn/
         output: web, pdf
-
-  - title: Core examples
+  - title: Examples
     output: web, pdf
     folderitems:
       - title: Simple
-        url: /examples/core/simple/
+        url: /learn/examples/simple/
         output: web, pdf
       - title: Agent communication
-        url: /examples/core/agentcommunication/
+        url: /learn/examples/agentcommunication/
         output: web, pdf
       - title: Taxi
-        url: /examples/core/taxi/
+        url: /learn/examples/taxi/
         output: web, pdf
       - title: Warehouse
-        url: /examples/core/warehouse/
+        url: /learn/examples/warehouse/
         output: web, pdf
-  - title: Problem examples
+      - title: Gradient field
+        url: /learn/examples/gradientfield/
+        output: web, pdf
+  - title: Tutorials
     output: web, pdf
     folderitems:
-      - title: Gradient field
-        url: /examples/problem/gradientfield/
+      - title: How to implement your own model?
+        url: /learn/tutorials/model/
         output: web, pdf
 

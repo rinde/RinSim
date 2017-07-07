@@ -1,17 +1,17 @@
 ---
-title: Examples
-keywords: [examples]
-sidebar: examples_sidebar
+title: Learn
+keywords: [learn, examples, tutorials]
+sidebar: learn_sidebar
 toc: false
-permalink: /examples/
+permalink: /learn/
 ---
 
 RinSim comes with a number of examples, each example listed here can be run directly from the jar file. Instructions on how to run them can be found [here](/installation/).
 
-## Core examples
+## Examples
 These are examples showcasing functionality from the `RinSim-core` project.
 
- - [SimpleExample](src/main/java/com/github/rinde/rinsim/examples/core/SimpleExample.java) The RinSim 'hello world' example.
+ - [Simple example](/learn/examples/simple/) The RinSim 'hello world' example.
  - [AgentCommunicationExample](src/main/java/com/github/rinde/rinsim/examples/core/comm/AgentCommunicationExample.java) An example showing agent communication.
  - [TaxiExample](src/main/java/com/github/rinde/rinsim/examples/core/taxi/TaxiExample.java) Showcase of a dynamic pickup and delivery problem (PDP). New customers are continuosly placed on the map. The strategy each vehicle follows is: (1) goto closest customer, (2) pickup customer, (3) drive to destination, (4) deliver customer, go back to (1). In case multiple vehicles move to the same customer, the first one to arrive will pick the customer up, the others will have to change their destination.
   - [WarehouseExample](src/main/java/com/github/rinde/rinsim/examples/warehouse/WarehouseExample.java) An example showing AGVs driving around a warehouse.
@@ -22,7 +22,6 @@ These are examples showcasing functionality from the `RinSim-core` project.
 -->
 
 
-## Problem examples
 
 - [GradientFieldExample](src/main/java/com/github/rinde/rinsim/examples/pdptw/gradientfield/GradientFieldExample.java) example showing how the dataset from Gendreau et al. can be used in an experiment using a gradient field multi-agent approach.
 
@@ -36,3 +35,6 @@ These are examples showcasing functionality from the `RinSim-core` project.
  - VisualizationShowcase [TODO] example showing all available visualizations.
  - VisualizationExample [TODO] example showing how a custom visualization can be setup.
  -->
+
+## Tutorials
+ - [How to implement your own model?](/learn/tutorials/model/)

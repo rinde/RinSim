@@ -13,8 +13,8 @@ topnav:
     #   external_url: https://javadoc.io/doc/com.github.rinde/rinsim-core
     #- title: Tutorials
     #  url: /tutorials/
-    - title: Examples
-      url: /examples/
+    - title: Learn
+      url: /learn/
 
 
 # Topnav dropdowns

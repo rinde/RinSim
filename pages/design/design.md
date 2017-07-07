@@ -15,13 +15,13 @@ In the above example, RinSim is configured with a number of models that interact
 The code is organized in a number of Maven modules:
 
 __Main modules__:
-- Core
-- User Interface
-- PDPTW
-- Scenario Utilities
-- Scenario
-- Experiment
-- Central
+- [Core](/design/core/)
+- [User Interface](/design/ui/)
+- [PDPTW](/design/pdptw/)
+- [Scenario](/design/scenario/)
+- [Scenario Utilities](/design/scenario-util/)
+- [Experiment](/design/experiment/)
+- [Central](/design/central/)
 
 __Auxiliary modules__:
 - CLI
@@ -29,34 +29,6 @@ __Auxiliary modules__:
 - FSM
 - Geom
 - IO
-
-## Main modules
-
-
-
-### UI
-
-### PDPTW
-
-### Scenario
-
-### Scenario Util
-
-### Experiment
-
-### Central
-
-## Auxiliary modules
-
-### CLI
-
-### Event
-
-### FSM
-
-### Geom
-
-### IO
 
 
 <!-- 
