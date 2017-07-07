@@ -20,6 +20,14 @@ import javax.annotation.Nonnull;
 import com.google.common.reflect.TypeToken;
 
 /**
+ * A model in RinSim is a software entity that models something, usually a
+ * real-world concept (e.g. traveling over a road in the
+ * {@link com.github.rinde.rinsim.core.model.road.RoadModel RoadModel}), but a
+ * model can also be a simulation utility (e.g. generating random numbers in the
+ * {@link com.github.rinde.rinsim.core.model.rand.RandomModel RandomModel}).
+ * <p>
+ * A model should always be constructed via a {@link ModelBuilder}.
+ *
  * @author Bartosz Michalik
  * @author Rinde van Lon
  * @param <T> basic type of element supported by model
@@ -37,7 +45,7 @@ public interface Model<T> {
    * Unregister element from a model.
    * @param element the <code>! null</code> should be imposed
    * @return true if the unregistration changed the model (element was part of
-   *         the model and it was succesfully removed)
+   *         the model and it was successfully removed)
    */
   boolean unregister(T element);
 

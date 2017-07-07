@@ -21,7 +21,6 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newLinkedHashMap;
 import static java.util.Collections.unmodifiableSet;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -69,7 +68,13 @@ import com.google.common.collect.Multimap;
  * {@link Parcel}s can be added on any node in the {@link RoadModel}.
  * {@link Depot}s have no real function in the current implementation.
  *
- *
+ * <p>
+ * <b>Model properties</b>
+ * <ul>
+ * <li><i>Associated type:</i> {@link PDPObject}.</li>
+ * <li><i>Provides:</i> {@link PDPModel}.</li>
+ * <li><i>Dependencies:</i> {@link RoadModel}.</li>
+ * </ul>
  *
  * @author Rinde van Lon
  */
@@ -679,8 +684,7 @@ public final class DefaultPDPModel extends PDPModel {
    */
   @AutoValue
   public abstract static class Builder
-      extends AbstractModelBuilder<DefaultPDPModel, PDPObject>
-      implements Serializable {
+      extends AbstractModelBuilder<DefaultPDPModel, PDPObject> {
 
     private static final long serialVersionUID = 165944940216903075L;
 

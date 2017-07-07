@@ -352,6 +352,8 @@ public final class Simulator implements SimulatorAPI {
   abstract static class SimulatorModelBuilder extends
       AbstractModelBuilder<SimulatorModel, SimulatorUser> {
 
+    private static final long serialVersionUID = -2639242259656135434L;
+
     SimulatorModelBuilder() {
       setProvidingTypes(SimulatorAPI.class);
     }
