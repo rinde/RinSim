@@ -8,3 +8,8 @@ vendor/
 pdf/
 pdfconfigs/
 licenses/
+*.aux
+*.fdb_latexmk
+*.log
+*.synctex.gz
+*.pdf

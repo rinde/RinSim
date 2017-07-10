@@ -73,6 +73,8 @@ The header comment of each ``Model`` implementation should contain the following
 
 RinSim is a discrete time simulator. Add figures from paper here about ticks, real-time, etc.
 
+{% include image.html file="design/ticks.png" alt="Simple example" caption="This is a screenshot of the simple example." %}
+
 ## _rinsim.core.model.comm_
 
 ## _rinsim.core.model.pdp_

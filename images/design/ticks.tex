@@ -1,0 +1,86 @@
+\documentclass[crop,tikz,convert={density=600,size=700x400,outext=.png}]{standalone}
+\usetikzlibrary{patterns}
+
+\begin{document}
+%!TEX root = ../main.tex
+\begin{tikzpicture}[scale=1,every node/.style={font=\scriptsize}, square/.style={regular polygon,regular polygon sides=4}]
+\tikzset{>=latex}
+
+\def\numTicks{2}
+\def\tickWidth{4}
+
+% \draw (0,0) to (1.5+\numTicks*\tickWidth,0);
+% \node at (-.25,0) [left] {Time (ms)};
+% \foreach \i in {0,...,5} {
+%   \draw (\i*\tickWidth,.25) to (\i*\tickWidth,-.25);
+  
+%   \node at (\i*\tickWidth,-.25) [below] {\pgfmathparse{\i*250}\pgfmathprintnumber[1000 sep={}]{\pgfmathresult}};
+% }
+
+\node at (1,5) [left] {Ticks};
+\node at (1,4) [left] {\texttt{TickListener} 1};
+\node at (1,3) [left] {\texttt{TickListener} 2};
+\node at (1,2) [left] {\texttt{TickListener} n};
+
+\foreach \i in {1,...,\numTicks} {
+  % \draw[fill=white] (\i*\tickWidth-\tickWidth,4.75) rectangle (\i*\tickWidth-\tickWidth+.5,5.25);  
+  \node at (\tickWidth*.5+\i*\tickWidth-\tickWidth,5) [square,draw,fill=white] {$t_{\i}$};
+
+  \foreach \j in {2,3,4}{
+    \node at (\tickWidth*.5+\i*\tickWidth-\tickWidth, \j) [square,draw,fill=white] (\i\j) {\texttt{tick(..)}};
+  }
+
+  \foreach \j in {3,4}{
+    \pgfmathtruncatemacro{\tmp}{\j-1}
+    \draw[->] (\i\j) to (\i\tmp);
+  }
+
+  \foreach \j in {2,3,4}{
+    \node at (\tickWidth+\i*\tickWidth-\tickWidth, \j) [square,draw,fill=white] (a\i\j) {\texttt{afterTick(..)}};
+  }
+  \foreach \j in {3,4}{
+    \pgfmathtruncatemacro{\tmp}{\j-1}
+    \draw[->] (a\i\j) to (a\i\tmp);
+  }
+  
+}
+
+\draw (12) to (2, 1.5);
+% (a14);
+
+
+
+% \draw[fill=white] (6,.75) rectangle (7.5,1.25);
+% \foreach \i in {5,...,7} {
+  %\def\vara{\pgfmathparse{\i-5}\pgfmathprintnumber[fixed]{\pgfmathresult}}
+  %\node at (0,0) {\pgfmathparse{\i-5}\pgfmathprintnumber[fixed]{\pgfmathresult}}
+  %\def\vara{\i-5}
+  %\draw (3.5+\i*0.5,.75) rectangle (3.5+\i*.5+.5,1.25);
+%   \node at (3.5+\i*.5-0.07,1) [right] {$t_{\i}$};
+% }
+% \draw (6.5,.75) to (6.5,1.25);
+% \draw (7,.75) to (7,1.25);
+
+
+% \node at (-.25,2) [left] {\texttt{RtSolverModel} thread 0};
+
+% \draw[fill=white] (.4,1.75) rectangle (2.5,2.25); 
+% \draw[pattern=north west lines] (.4,1.75) rectangle (2.5,2.25); 
+% \draw[->] (.4,1.25) to (.4,1.75);
+
+% \draw[fill=white] (3.3,1.75) rectangle (4.1,2.25);  
+% \draw[pattern=north west lines] (3.3,1.75) rectangle (4.1,2.25);  
+% \draw[->] (3.3,1.25) to (3.3,1.75);
+
+% \node at (-.25,3) [left] {\texttt{RtSolverModel} thread 1};
+
+% \draw[fill=white] (.3,2.75) rectangle (4.4,3.25); 
+% \draw[pattern=north west lines] (.3,2.75) rectangle (4.4,3.25); 
+% \draw[->] (.3,1.25) to (.3,2.75);
+
+%\draw[pattern=north west lines] (7.6,2.75) rectangle (9.5,3.25); 
+
+
+
+\end{tikzpicture}
+\end{document}
