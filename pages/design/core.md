@@ -71,9 +71,68 @@ The header comment of each ``Model`` implementation should contain the following
 
 ## _rinsim.core.model.time_
 
-RinSim is a discrete time simulator. Add figures from paper here about ticks, real-time, etc.
+RinSim is a discrete time simulator, this means that time is sliced into fixed-length intervals called 'ticks'. [TimeModel](https://github.com/rinde/RinSim/blob/master/core/src/main/java/com/github/rinde/rinsim/core/model/time/TimeModel.java) is the model that is responsible for the advancing of time. Its associated type is [TickListener](https://github.com/rinde/RinSim/blob/master/core/src/main/java/com/github/rinde/rinsim/core/model/time/TickListener.java). On every tick, all registered `TickListener`s will be called in the order in which they are registered in the model. `TickListener`s can be registered [by calling the register(..) method of the Simulator](#rinsimcore) The figure below shows the order of execution of the `tick(..)` and `afterTick(..)` methods of the registered `TickListener`s.
 
-{% include image.html file="design/ticks.png" alt="Simple example" caption="This is a screenshot of the simple example." %}
+{% include image.html file="design/ticks.png" alt="RinSim ticks" caption="This is a graphical depiction of what happens in a RinSim tick." %}
+
+Implementing a `TickListener` allows you to receive ticks and receive a [TimeLapse](https://github.com/rinde/RinSim/blob/master/core/src/main/java/com/github/rinde/rinsim/core/model/time/TimeLapse.java) reference, e.g.:
+```java
+class MyTickListener implements TickListener {
+  
+  public void tick(TimeLapse timeLapse){
+
+  }
+
+  public void afterTick(TimeLapse timeLapse){
+
+  }
+}
+```
+
+A `TimeLapse` is a _consumable_ interval of time: `[start, end)`. The difference between `start` and `end` is the tick length, which is constant within a simulation (it can be configured). The `TimeLapse` can be consumed, which means that it can be used as credit to spend on actions that require time. For example, moving over the [RoadModel](#rinsimcoremodelroad) requires time and can therefore only be done from within a `tick(..)` method, using the available time inside the `TimeLapse`. Since the travel distance is proportional to the amount of time available (among others), this mechanism allows RinSim to enforce time consistency for time dependent actions. Note that in the `afterTick(..)` method, the `TimeLapse` is always empty (can not be consumed), regardless of whether it was consumed in the `tick(..)` method.
+
+{% include important.html content="Never store a reference to `TimeLapse` as it is mutable. Internally, there is just a single instance which is used for all `TickListener`s during the entire simulation." %}
+
+Note that adding and removing a `TickListener` from within a `tick(..)` or `afterTick(..)`  only has effect _after all_ `tick(..)` or `afterTick(..)` invocations have been executed, respectively. For example, if you remove `TickListener` __A__ from within a `tick(..)` (could be from within the `tick(..)` of __A__ itself), the last call that __A__ receives is `tick(..)`, it will not receive its `afterTick(..)`.
+
+
+{% include note.html content="The provided types of `TimeModel` are [Clock](https://github.com/rinde/RinSim/blob/master/core/src/main/java/com/github/rinde/rinsim/core/model/time/Clock.java) and [ClockController](https://github.com/rinde/RinSim/blob/master/core/src/main/java/com/github/rinde/rinsim/core/model/time/ClockController.java)" %}
+
+
+
+### configuration
+
+Since the `TimeModel` is such a central component to the simulator, it is added by default as a model in `Simulator`. This means that it can be configured via two different ways. Using the default `TimeModel`, via the `Simulator`:
+
+```java
+Simulator.builder()
+         .setTimeUnit(..)    // allows to change the time unit e.g.: 
+                             // SI.MILLI(SI.SECOND) or NonSI.MINUTE.
+         .setTickLength(..)  // allows to change the length of the tick
+
+```
+Or by creating and adding the `TimeModel` manually:
+```java
+Simulator.builder()
+         .addModel(
+            TimeModel.builder()
+                     .setTimeUnit(..).setTickLength(..) // same as above
+                     .withRealTime() // only when needed, see real-time section below 
+         )
+
+```
+
+### real-time
+_Parts of the following text have been adapted from [van Lon, R.R.S. & Holvoet, T. (2017)](http://dx.doi.org/10.1007/s10458-017-9371-y) (section 3.1)._
+
+The standard Java virtual machine (JVM) has no built-in support for real-time execution. However, with a careful software design, the standard JVM can be used to obtain soft real-time behavior. Soft real-time, as opposed to hard real-time, allows occasional deviations from the desired execution timing. 
+
+When simulating without real-time constraints, the `TimeModel` will compute all ticks as fast as possible. In a real-time simulator the interval between the start of two ticks should be the tick length (e.g. 250 ms). Since the JVM doesn’t allow precise control over the timings of threads it is generally impossible to guarantee hard real-time constraints. In real-time mode, RinSim uses a dedicated thread for executing the ticks. If computations need to be done that are expected to last longer than a tick, they must be done in a different thread. RinSim provides a separate model for running solvers in a separate thread called `RtSolverModel` (see [this section](/design/central/#rtsolvermodel) for more information). This minimizes interference of `RtSolverModel` computations with the advancing of time in the simulated world as executed by the `TimeModel`. Additionally, the processor affinity of the threads are set at the operating system level. Setting the processor affinity to a Java thread instructs the operating system to use one processor exclusively for executing that thread. In practice, the actual scheduling of threads on processors depends on the number of available processors and the operating system. Informal tests on a multi core processor running Linux have shown that different threads are indeed run on different processor cores, exactly as specified. By setting the processor affinity of the `TimeModel` thread, deviations from the desired execution timing are minimized.
+
+{% include note.html content="When simulating in real-time the `TimeModel` has an additional provided type: [RealtimeClockController](https://github.com/rinde/RinSim/blob/master/core/src/main/java/com/github/rinde/rinsim/core/model/time/RealtimeClockController.java)." %}
+
+
+{% include tuto.html content="[How to simulate in real-time?](/learn/tutorials/real-time/)" %}
 
 ## _rinsim.core.model.comm_
 
@@ -82,5 +141,18 @@ RinSim is a discrete time simulator. Add figures from paper here about ticks, re
 ## _rinsim.core.model.rand_
 
 ## _rinsim.core.model.road_
+
+Instances can be obtained via [RoadModelBuilders](https://github.com/rinde/RinSim/blob/master/core/src/main/java/com/github/rinde/rinsim/core/model/road/RoadModelBuilders.java)
+
+* [RoadModel](https://github.com/rinde/RinSim/blob/master/core/src/main/java/com/github/rinde/rinsim/core/model/road/RoadModel.java)
+  * PlaneRoadModel
+    * CollisionPlaneRoadModel
+  * GraphRoadModel
+    * DynamicGraphRoadModel
+      * CollisionGraphRoadModel
+
+Associated types:
+* RoadUser
+  * MovingRoadUser
 
 ## _rinsim.util_

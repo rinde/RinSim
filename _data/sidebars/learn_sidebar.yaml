@@ -36,4 +36,7 @@ entries:
       - title: How to implement your own model?
         url: /learn/tutorials/model/
         output: web, pdf
+      - title: How to simulate in real-time?
+        url: /learn/tutorials/real-time/
+        output: web, pdf
 

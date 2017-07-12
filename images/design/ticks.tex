@@ -3,7 +3,7 @@
 
 \begin{document}
 %!TEX root = ../main.tex
-\begin{tikzpicture}[scale=1,every node/.style={font=\scriptsize}, square/.style={regular polygon,regular polygon sides=4}]
+\begin{tikzpicture}[scale=1,every node/.style={font=\scriptsize}]
 \tikzset{>=latex}
 
 \def\numTicks{2}
@@ -24,7 +24,7 @@
 
 \foreach \i in {1,...,\numTicks} {
   % \draw[fill=white] (\i*\tickWidth-\tickWidth,4.75) rectangle (\i*\tickWidth-\tickWidth+.5,5.25);  
-  \node at (\tickWidth*.5+\i*\tickWidth-\tickWidth,5) [square,draw,fill=white] {$t_{\i}$};
+  \node at (\tickWidth*.5+\i*\tickWidth-\tickWidth,5) [square,draw,fill=white] (n\i) {$t_{\i}$};
 
   \foreach \j in {2,3,4}{
     \node at (\tickWidth*.5+\i*\tickWidth-\tickWidth, \j) [square,draw,fill=white] (\i\j) {\texttt{tick(..)}};
@@ -45,7 +45,16 @@
   
 }
 
-\draw (12) to (2, 1.5);
+\draw[->] (n1) to (14);
+\draw[->] (12) to (2, 1.5) to (2.85, 1.5) to (2.85, 4.5) to (4, 4.5) to (a14);
+\draw[->] (a12) to (4, 1.5) to (5.15, 1.5) to (5.15, 5.5) to (6, 5.5) to (n2);
+\draw[->] (n2) to (24);
+\draw[->] (22) to (6, 1.5) to (6.85, 1.5) to (6.85, 4.5) to (8, 4.5) to (a24);
+\draw[->,dashed] (a22) to (8, 1.5) to (9, 1.5);
+
+\useasboundingbox ([shift={(0,-3\pgflinewidth)}]current 
+bounding box.south west) -- (current bounding box.north east);
+
 % (a14);
 
 
