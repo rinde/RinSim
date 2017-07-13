@@ -45,4 +45,7 @@ entries:
       - title: How to simulate macroscopic traffic in a RoadModel?
         url: /learn/tutorials/traffic/
         output: web, pdf
+      - title: How to implement a renderer?
+        url: /learn/tutorials/renderer/
+        output: web, pdf
 
