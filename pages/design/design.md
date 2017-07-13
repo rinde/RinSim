@@ -27,7 +27,7 @@ __Auxiliary modules__:
 - CLI
 - Event
 - FSM
-- Geom
+- [Geom](/design/geom/)
 - IO
 
 

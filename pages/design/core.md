@@ -14,7 +14,7 @@ There are generally two classes that can be used to configure RinSim:
  - [rinsim.core.Simulator](https://github.com/rinde/RinSim/blob/master/core/src/main/java/com/github/rinde/rinsim/core/Simulator.java), a simple and direct way to interact with the simulator. This is the recommended way to learn how RinSim works. Explained in this section.
  - [rinsim.experiment.Experiment](https://github.com/rinde/RinSim/blob/master/experiment/src/main/java/com/github/rinde/rinsim/experiment/Experiment.java), a more advanced interface that encapsulates Simulator, it is specifically designed for (scientific) experiments. Explained in the [Experiment section](/design/experiment/).
 
-## _rinsim.core_
+## _core_
 
 The simulator is in essence a collection of models. When configuring the simulator, using ``Simulator.builder()``, the desired models can be added. For ease of use, the simulator contains a ``TimeModel`` and a ``RandomModel`` by default. The configuration phase is concluded by calling ``build()`` of the ``Simulator.Builder`` class which returns a ``Simulator`` instance.
 
@@ -27,10 +27,10 @@ Simulator sim = Simulator.builder()
 
 The ``Simulator`` object provides several methods for controlling the simulation. It also has a ``register()`` method that allows to register simulation entities into the simulator. Typically, a simulation entity interacts with one or more models that are configured in the simulator. A common way for a simulation entity to interact with a model is to implement an [_associated type_](#rinsimcoremodel) of a model.
 
-{% include tip.html content="The [simple example](/examples/simple/) shows how a simple simulation with two models can be configured." %}
+{% include tip.html content="The [simple example](/learn/examples/simple/) shows how a simple simulation with two models can be configured." %}
 
 
-## _rinsim.core.model_
+## _model_
 
 A _model_ in RinSim is a software entity that models something, usually a real-world concept (e.g. traveling over a road in the ``RoadModel``), but a model can also be a simulation utility (e.g. generating random numbers in the ``RandomModel``). A [Model](https://github.com/rinde/RinSim/blob/master/core/src/main/java/com/github/rinde/rinsim/core/model/Model.java) has a generic type ``T`` that is called the _associated type_ (or _supported type_) of a ``Model``. A model that is part of a simulator, automatically receives all instances of its associated type that are added to the simulator. Using this mechanism it is also possible to implement [dependency injection](https://en.wikipedia.org/wiki/Dependency_injection) of a model into its associated type. An example:
 
@@ -69,7 +69,7 @@ The header comment of each ``Model`` implementation should contain the following
 
 {% include tuto.html content="[How to implement your own model?](/learn/tutorials/model/)" %}
 
-## _rinsim.core.model.time_
+## _model.time_
 
 RinSim is a discrete time simulator, this means that time is sliced into fixed-length intervals called 'ticks'. [TimeModel](https://github.com/rinde/RinSim/blob/master/core/src/main/java/com/github/rinde/rinsim/core/model/time/TimeModel.java) is the model that is responsible for the advancing of time. Its associated type is [TickListener](https://github.com/rinde/RinSim/blob/master/core/src/main/java/com/github/rinde/rinsim/core/model/time/TickListener.java). On every tick, all registered `TickListener`s will be called in the order in which they are registered in the model. `TickListener`s can be registered [by calling the register(..) method of the Simulator](#rinsimcore) The figure below shows the order of execution of the `tick(..)` and `afterTick(..)` methods of the registered `TickListener`s.
 
@@ -134,25 +134,109 @@ When simulating without real-time constraints, the `TimeModel` will compute all 
 
 {% include tuto.html content="[How to simulate in real-time?](/learn/tutorials/real-time/)" %}
 
-## _rinsim.core.model.comm_
+## _model.road_
 
-## _rinsim.core.model.pdp_
+The `road` package contains the `RoadModel`, a model that simulates traveling over roads. The associated type is [RoadUser](https://github.com/rinde/RinSim/blob/master/core/src/main/java/com/github/rinde/rinsim/core/model/road/RoadUser.java), a `RoadUser` can be added to the `RoadModel` at a certain position but it cannot move. [MovingRoadUser](https://github.com/rinde/RinSim/blob/master/core/src/main/java/com/github/rinde/rinsim/core/model/road/MovingRoadUser.java)s (a subtype of `RoadUser`) can move over the `RoadModel`.
 
-## _rinsim.core.model.rand_
+There are five different `RoadModel` variants:
 
-## _rinsim.core.model.road_
 
-Instances can be obtained via [RoadModelBuilders](https://github.com/rinde/RinSim/blob/master/core/src/main/java/com/github/rinde/rinsim/core/model/road/RoadModelBuilders.java)
+| Name                                                                                                                                    | Type                                      | Example     |
+| ---                       | ---                                       | ---     |
+|[RoadModel](https://github.com/rinde/RinSim/blob/master/core/src/main/java/com/github/rinde/rinsim/core/model/road/RoadModel.java)                             | Super interface.                          | NA      | 
+|[PlaneRoadModel](https://github.com/rinde/RinSim/blob/master/core/src/main/java/com/github/rinde/rinsim/core/model/road/PlaneRoadModel.java)                   | Based on a Euclidean plane. | [Simple example](/learn/examples/simple/) | 
+|[CollisionPlaneRoadModel](https://github.com/rinde/RinSim/blob/master/core/src/main/java/com/github/rinde/rinsim/core/model/road/CollisionPlaneRoadModel.java) | Based on a Euclidean plane and has basic collision detection. | [UAV example](/learn/examples/uav/)       | 
+|[GraphRoadModel](https://github.com/rinde/RinSim/blob/master/core/src/main/java/com/github/rinde/rinsim/core/model/road/GraphRoadModel.java)                   | Uses a graph-based road layout. | [Taxi example](/learn/examples/taxi/)     | 
+|[DynamicGraphRoadModel](https://github.com/rinde/RinSim/blob/master/core/src/main/java/com/github/rinde/rinsim/core/model/road/DynamicGraphRoadModel.java)     | Uses a modifiable graph-based road layout. | [AGV example](/learn/examples/agv/) | 
+|[CollisionGraphRoadModel](https://github.com/rinde/RinSim/blob/master/core/src/main/java/com/github/rinde/rinsim/core/model/road/CollisionGraphRoadModel.java) | Uses a modifiable graph-based road layout and has basic collision detection. | [AGV example](/learn/examples/agv/)       | 
 
-* [RoadModel](https://github.com/rinde/RinSim/blob/master/core/src/main/java/com/github/rinde/rinsim/core/model/road/RoadModel.java)
-  * PlaneRoadModel
-    * CollisionPlaneRoadModel
-  * GraphRoadModel
-    * DynamicGraphRoadModel
-      * CollisionGraphRoadModel
 
-Associated types:
-* RoadUser
-  * MovingRoadUser
+`RoadModel`s can be configured via [RoadModelBuilders](https://github.com/rinde/RinSim/blob/master/core/src/main/java/com/github/rinde/rinsim/core/model/road/RoadModelBuilders.java), for example:
 
-## _rinsim.util_
+```java
+RoadModelBuilders.plane(); // constructs PlaneRoadModel
+
+RoadModelBuilders.plane()
+                 .withCollisionAvoidance(); // constructs CollisionPlaneRoadModel
+
+RoadModelBuilders.staticGraph(g); // constructs GraphRoadModel
+
+RoadModelBuilders.dynamicGraph(g); // constructs DynamicGraphRoadModel
+
+RoadModelBuilders.dynamicGraph(g)
+                 .withCollisionAvoidance(); // constructs CollisionGraphRoadModel
+```
+
+For the graph based `RoadModel`s, an graph is needed, see the [geom module](/design/geom/) for more information about graphs. For all road models it is also possible to change the default distance unit (km) and default speed unit (kmh):
+```java
+RoadModelBuilders.plane()
+                 .withDistanceUnit(SI.KILOMETER) // or e.g.: SI.METER, NonSI.MILE
+                 .withSpeedUnit(NonSI.KILOMETERS_PER_HOUR); // or e.g.: SI.METERS_PER_SECOND
+```
+
+
+{% include tip.html content="The [RoadModels](https://github.com/rinde/RinSim/blob/master/core/src/main/java/com/github/rinde/rinsim/core/model/road/RoadModels.java) class contains many utility functions for working with road models." %}
+
+{% include tuto.html content="[How to simulate macroscopic traffic in a RoadModel?](/learn/tutorials/traffic/)" %}
+
+## _model.comm_
+The [CommModel](https://github.com/rinde/RinSim/blob/master/core/src/main/java/com/github/rinde/rinsim/core/model/comm/CommModel.java) allows simulating message-based communication between objects in the simulator.
+
+| __CommModel__ |
+|Associated type: | `CommUser`          |
+|Provides:        | `CommModel`         |
+|Dependency:      | `RandomProvider` (see [the section about rand](#modelrand)) |
+
+Classes that implement [CommUser](https://github.com/rinde/RinSim/blob/master/core/src/main/java/com/github/rinde/rinsim/core/model/comm/CommUser.java) can construct a `CommDevice` that can be used to send and receive messages between `CommUser`s. Both broadcasting as well as direct messaging is supported.
+
+The actual sending of messages is done in the `afterTick(..)` of the model, this means that recipients will be able to see new messages in the `afterTick(..)`.
+
+{% include tip.html content="The [communication example](/learn/examples/communication/) shows how the `CommModel` can be used." %}
+
+## _model.pdp_
+
+The [PDPModel](https://github.com/rinde/RinSim/blob/master/core/src/main/java/com/github/rinde/rinsim/core/model/pdp/PDPModel.java) is a model that simulates the pickup and delivery of parcels.
+
+| __DefaultDPModel__ |
+|Associated type: | [PDPObject](https://github.com/rinde/RinSim/blob/master/core/src/main/java/com/github/rinde/rinsim/core/model/pdp/PDPObject.java). Subclasses: [Vehicle](https://github.com/rinde/RinSim/blob/master/core/src/main/java/com/github/rinde/rinsim/core/model/pdp/Vehicle.java), [Parcel](https://github.com/rinde/RinSim/blob/master/core/src/main/java/com/github/rinde/rinsim/core/model/pdp/Parcel.java), and [Depot](https://github.com/rinde/RinSim/blob/master/core/src/main/java/com/github/rinde/rinsim/core/model/pdp/Depot.java). |
+|Provides:        | `PDPModel`         |
+|Dependency:      | `RoadModel` (see [the section about road](#modelroad)) |
+
+There are three important types in this model:
+ - `Vehicle` (abstract), needs to be subclassed in order to add moving logic. A vehicle is both a `TickListener` as well as a `MovingRoadUser`.
+ - `Parcel`, the object to be transported. Can be used directly or can be subclassed for customization. Instances can be obtained via `Parcel.builder(..)`.
+ - `Depot`, basic implementation, it is nothing more than a marker on the map. It is typically used to indicate the starting point of vehicles. Can be extended to add constraints.
+
+{% include tip.html content="The [taxi example](/learn/examples/taxi/) shows how the `PDPModel` can be used." %}
+  
+
+## _model.rand_
+
+Random numbers are often needed in simulations. Scientific experiments require reproducible simulations, therefore the [RandomModel](https://github.com/rinde/RinSim/blob/master/core/src/main/java/com/github/rinde/rinsim/core/model/rand/RandomModel.java) provides a systematic way for using random numbers in RinSim.
+
+| __RandomModel__ |
+|Associated type: | [RandomUser](https://github.com/rinde/RinSim/blob/master/core/src/main/java/com/github/rinde/rinsim/core/model/rand/RandomUser.java) |
+|Provides:        | [RandomProvider](https://github.com/rinde/RinSim/blob/master/core/src/main/java/com/github/rinde/rinsim/core/model/rand/RandomProvider.java)         |
+|Dependency:      | none |
+
+There are two ways in which the `RandomModel` can be configured. Either in the simulator:
+```java
+Simulator.builder()
+         .setRandomSeed(..)
+         .setRandomGenerator(..)
+```
+Or by configuring and adding the model manually:
+```java
+Simulator.builder()
+         .addModel(
+            RandomModel.builder()
+                       .withSeed(..)
+                       .withRandomGenerator(..) 
+         )
+```
+
+## _util_
+
+This is a package that contains several utilities that have proven very useful but are too small to deserve their own package. There are two notable classes here:
+- [StochasticSupplier](https://github.com/rinde/RinSim/blob/master/core/src/main/java/com/github/rinde/rinsim/util/StochasticSupplier.java) this is a generic factory type that requires a random number as input to instantiate an object. Also check [StochasticSuppliers](https://github.com/rinde/RinSim/blob/master/core/src/main/java/com/github/rinde/rinsim/util/StochasticSuppliers.java) for many standard implementations.
+- [TimeWindow](https://github.com/rinde/RinSim/blob/master/core/src/main/java/com/github/rinde/rinsim/util/TimeWindow.java), a value object representing an interval.

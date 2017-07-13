@@ -5,7 +5,8 @@
             "path": ".",
             "name": "RinSim documentation",
             "folder_exclude_patterns": ["vendor","_site"],
-            "file_exclude_patterns": ["*.log", "*.aux", "*.synctex.gz", "*.fdb_latexmk", "*.pdf"]
+            "file_exclude_patterns": ["*.log", "*.aux", "*.synctex.gz", "*.fdb_latexmk", "*.pdf"],
+            "spell_check": true
         }
     ],
 }

@@ -163,7 +163,11 @@ table > thead:first-child > tr:first-child > td {
 }
 
 table > tbody > tr:nth-of-type(odd) {
-    background-color: #f9f9f9;
+    background-color: #FFFFFF;
+}
+
+table > tbody > tr:nth-of-type(even) {
+    background-color: #f3f3f3;
 }
 
 table col[class*="col-"] {

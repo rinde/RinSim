@@ -18,14 +18,17 @@ entries:
       - title: Simple
         url: /learn/examples/simple/
         output: web, pdf
-      - title: Agent communication
-        url: /learn/examples/agentcommunication/
+      - title: Communication
+        url: /learn/examples/communication/
         output: web, pdf
       - title: Taxi
         url: /learn/examples/taxi/
         output: web, pdf
-      - title: Warehouse
-        url: /learn/examples/warehouse/
+      - title: Autonomous guided vehicles
+        url: /learn/examples/agv/
+        output: web, pdf
+      - title: Unmanned aerial vehicles
+        url: /learn/examples/uav/
         output: web, pdf
       - title: Gradient field
         url: /learn/examples/gradientfield/
@@ -38,5 +41,8 @@ entries:
         output: web, pdf
       - title: How to simulate in real-time?
         url: /learn/tutorials/real-time/
+        output: web, pdf
+      - title: How to simulate macroscopic traffic in a RoadModel?
+        url: /learn/tutorials/traffic/
         output: web, pdf
 
