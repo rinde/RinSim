@@ -225,6 +225,7 @@ public final class View
      * The default window size: 800x600.
      */
     public static final Point DEFAULT_WINDOW_SIZE = new Point(800, 600);
+    private static final long serialVersionUID = -955386603340399937L;
 
     Builder() {
       setDependencies(ClockController.class);

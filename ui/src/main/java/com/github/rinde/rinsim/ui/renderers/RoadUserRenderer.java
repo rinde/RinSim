@@ -149,6 +149,11 @@ public final class RoadUserRenderer extends AbstractCanvasRenderer {
       return create(true, useTextLabel(), colorMap(), imageMap());
     }
 
+    /**
+     * Adds a label displaying the result of calling <code>toString()</code>
+     * near all objects.
+     * @return A new builder instance.
+     */
     @CheckReturnValue
     public Builder withToStringLabel() {
       return create(useEncirclement(), true, colorMap(), imageMap());

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.examples.warehouse;
+package com.github.rinde.rinsim.examples.agv;
 
 import static com.google.common.collect.Lists.newArrayList;
 
@@ -42,14 +42,14 @@ import com.google.common.collect.Table;
  * {@link WarehouseRenderer} and {@link AGVRenderer}.
  * @author Rinde van Lon
  */
-public final class WarehouseExample {
+public final class AgvExample {
 
   private static final double VEHICLE_LENGTH = 2d;
   private static final int NUM_AGVS = 20;
   private static final long TEST_END_TIME = 10 * 60 * 1000L;
   private static final int TEST_SPEED_UP = 16;
 
-  private WarehouseExample() {}
+  private AgvExample() {}
 
   /**
    * @param args - No args.
@@ -91,7 +91,7 @@ public final class WarehouseExample {
       .build();
 
     for (int i = 0; i < NUM_AGVS; i++) {
-      sim.register(new AGVAgent(sim.getRandomGenerator()));
+      sim.register(new AgvAgent(sim.getRandomGenerator()));
     }
 
     sim.start();

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.examples.warehouse;
+package com.github.rinde.rinsim.examples.agv;
 
 import java.util.LinkedList;
 import java.util.Queue;
@@ -28,13 +28,13 @@ import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Optional;
 
-class AGVAgent implements TickListener, MovingRoadUser {
+class AgvAgent implements TickListener, MovingRoadUser {
   private final RandomGenerator rng;
   private Optional<CollisionGraphRoadModelImpl> roadModel;
   private Optional<Point> destination;
   private Queue<Point> path;
 
-  AGVAgent(RandomGenerator r) {
+  AgvAgent(RandomGenerator r) {
     rng = r;
     roadModel = Optional.absent();
     destination = Optional.absent();

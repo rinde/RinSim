@@ -54,7 +54,7 @@ import com.google.common.collect.Sets;
  * <p>
  * <b>Requires:</b> a {@link GraphRoadModel} in the
  * {@link com.github.rinde.rinsim.core.Simulator}.
- * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
+ * @author Rinde van Lon
  */
 public final class GraphRoadModelRenderer extends AbstractCanvasRenderer {
 
@@ -89,7 +89,7 @@ public final class GraphRoadModelRenderer extends AbstractCanvasRenderer {
 
     if (showRelativeSpeedDynamic) {
       try {
-        ((ListenableGraph) grm.getGraph())
+        ((ListenableGraph<?>) grm.getGraph())
           .getEventAPI()
           .addListener(new Listener() {
             @Override

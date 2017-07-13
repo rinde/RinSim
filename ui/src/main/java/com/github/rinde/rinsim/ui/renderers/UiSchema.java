@@ -73,7 +73,7 @@ public class UiSchema {
   /**
    * Associate a {@link RGB} to a {@link Class}. Note that this color
    * association works through super classes as well. An example: <br>
-   * consider the following class hierarcy<br>
+   * consider the following class hierarchy<br>
    * <code>class A{}</code><br>
    * <code>class AA extends A{}</code><br>
    * <code>class AAA extends AA{}</code><br>
