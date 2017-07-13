@@ -79,8 +79,8 @@ public abstract class TimeModel extends AbstractModel<TickListener>
     eventDispatcher = new EventDispatcher(allEventTypes);
 
     // time lapse is reused in a Flyweight kind of style
-    timeLapse = new TimeLapse(builder.getTimeUnit(), 0L,
-      builder.getTickLength());
+    timeLapse =
+      new TimeLapse(builder.getTimeUnit(), 0L, builder.getTickLength());
   }
 
   /**

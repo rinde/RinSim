@@ -53,7 +53,7 @@ import com.google.common.collect.Maps;
  * <b>Model properties</b>
  * <ul>
  * <li><i>Associated type:</i> {@link CommUser}.</li>
- * <li><i>Provides:</i> none.</li>
+ * <li><i>Provides:</i> {@link CommModel}.</li>
  * <li><i>Dependency:</i> {@link RandomProvider}.</li>
  * </ul>
  * See {@link ModelBuilder} for more information about model properties.

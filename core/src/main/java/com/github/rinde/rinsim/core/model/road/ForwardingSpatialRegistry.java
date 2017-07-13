@@ -19,6 +19,12 @@ import com.github.rinde.rinsim.geom.Point;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
+/**
+ * A {@link SpatialRegistry} that forwards all its method calls to another
+ * {@link SpatialRegistry}. Useful for creating decorators and adapters.
+ * @author Rinde van Lon
+ * @param <T> The type of the elements in the datastructure.
+ */
 public abstract class ForwardingSpatialRegistry<T>
     implements SpatialRegistry<T> {
 

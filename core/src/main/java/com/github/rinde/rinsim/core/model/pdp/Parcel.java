@@ -42,6 +42,13 @@ public class Parcel extends PDPObjectImpl implements IParcel {
     this(parcelDto, null);
   }
 
+  /**
+   * Create a new parcel.
+   * @param parcelDto The {@link ParcelDTO} detailing all immutable information
+   *          of a parcel.
+   * @param toString A string with which the {@link #toString()} method can
+   *          optionally be overridden.
+   */
   public Parcel(ParcelDTO parcelDto, @Nullable String toString) {
     dto = parcelDto;
     setStartPosition(dto.getPickupLocation());
@@ -141,16 +148,26 @@ public class Parcel extends PDPObjectImpl implements IParcel {
    * destination locations.
    * @param from The pickup location.
    * @param to The delivery location.
-   * @return A {@link Parcel.Builder} instance.
+   * @return A {@link Builder} instance.
    */
   public static Parcel.Builder builder(Point from, Point to) {
     return new Parcel.Builder(from, to);
   }
 
+  /**
+   * Copying builder.
+   * @param dto The data to use in the builder.
+   * @return A {@link Builder} instance.
+   */
   public static Parcel.Builder builder(ParcelDTO dto) {
     return new Parcel.Builder(dto);
   }
 
+  /**
+   * Copying builder.
+   * @param parcel The data to use in the builder.
+   * @return A {@link Builder} instance.
+   */
   public static Parcel.Builder builder(Parcel parcel) {
     return builder(parcel.getDto());
   }

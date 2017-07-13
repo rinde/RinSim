@@ -229,11 +229,19 @@ public final class RoadModelBuilders {
     public abstract boolean isModCheckEnabled();
   }
 
+  /**
+   * Abstract builder for constructing subclasses of {@link PlaneRoadModel}.
+   * @author Rinde van Lon
+   * @param <T> The type of the model that the builder is constructing.
+   * @param <S> The builder type itself, necessary to make a inheritance-based
+   *          builder.
+   */
   public abstract static class AbstractPlaneRMB<T extends PlaneRoadModel, S>
       extends AbstractRMB<T, S> {
     static final double DEFAULT_MAX_SPEED = 50d;
     static final Point DEFAULT_MIN_POINT = new Point(0, 0);
     static final Point DEFAULT_MAX_POINT = new Point(10, 10);
+    private static final long serialVersionUID = -6317743647129161242L;
 
     abstract Point getMin();
 
@@ -322,6 +330,11 @@ public final class RoadModelBuilders {
       return create(getDistanceUnit(), unit, getMin(), getMax(), getMaxSpeed());
     }
 
+    /**
+     * Will return a new builder that constructs {@link CollisionPlaneRoadModel}
+     * instances instead of {@link PlaneRoadModel} instances.
+     * @return A new {@link CollisionPlaneRMB} instance.
+     */
     @CheckReturnValue
     public CollisionPlaneRMB withCollisionAvoidance() {
       return CollisionPlaneRMB.create(this);
@@ -354,11 +367,16 @@ public final class RoadModelBuilders {
     }
   }
 
+  /**
+   * A builder for constructing {@link CollisionPlaneRoadModel} instances.
+   * @author Rinde van Lon
+   */
   @AutoValue
   public abstract static class CollisionPlaneRMB
       extends AbstractPlaneRMB<CollisionPlaneRoadModel, CollisionPlaneRMB> {
 
     static final double DEFAULT_OBJ_RADIUS = .1d;
+    private static final long serialVersionUID = -4530691576699175212L;
 
     CollisionPlaneRMB() {
       setProvidingTypes(RoadModel.class, PlaneRoadModel.class,
@@ -399,6 +417,12 @@ public final class RoadModelBuilders {
         getObjectRadius());
     }
 
+    /**
+     * Each {@link MovingRoadUser} in the {@link CollisionPlaneRoadModel} has a
+     * fixed radius that can be set with this method.
+     * @param radius The radius for each {@link MovingRoadUser}.
+     * @return A new builder instance.
+     */
     public CollisionPlaneRMB withObjectRadius(double radius) {
       checkArgument(radius > 0);
       return create(getDistanceUnit(), getSpeedUnit(), getMin(), getMax(),
