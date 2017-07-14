@@ -18,4 +18,4 @@
  * 
  */
 @javax.annotation.ParametersAreNonnullByDefault
-package com.github.rinde.rinsim.examples.core;
+package com.github.rinde.rinsim.examples.simple;

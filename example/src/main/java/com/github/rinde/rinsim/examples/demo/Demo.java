@@ -47,8 +47,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import com.github.rinde.rinsim.core.Simulator;
-import com.github.rinde.rinsim.examples.core.taxi.TaxiExample;
 import com.github.rinde.rinsim.examples.demo.factory.FactoryExample;
+import com.github.rinde.rinsim.examples.taxi.TaxiExample;
 import com.google.common.collect.ImmutableList;
 import com.google.common.math.DoubleMath;
 

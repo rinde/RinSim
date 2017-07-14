@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.examples.core.taxi;
+package com.github.rinde.rinsim.examples.taxi;
 
 import java.util.Map;
 import java.util.Map.Entry;

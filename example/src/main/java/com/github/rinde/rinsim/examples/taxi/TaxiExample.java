@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.examples.core.taxi;
+package com.github.rinde.rinsim.examples.taxi;
 
 import static com.google.common.collect.Maps.newHashMap;
 
@@ -38,7 +38,7 @@ import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.Listener;
-import com.github.rinde.rinsim.examples.core.taxi.TaxiRenderer.Language;
+import com.github.rinde.rinsim.examples.taxi.TaxiRenderer.Language;
 import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.MultiAttributeData;
 import com.github.rinde.rinsim.geom.Point;
@@ -186,7 +186,7 @@ public final class TaxiExample {
         .withImageAssociation(
           Customer.class, "/graphics/flat/person-red-32.png"))
       .with(TaxiRenderer.builder(Language.ENGLISH))
-      .withTitleAppendix("Taxi Demo");
+      .withTitleAppendix("Taxi example");
 
     if (testing) {
       view = view.withAutoClose()

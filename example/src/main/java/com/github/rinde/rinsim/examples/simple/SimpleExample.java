@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.examples.core;
+package com.github.rinde.rinsim.examples.simple;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
@@ -71,6 +71,7 @@ public final class SimpleExample {
     // dots.
     View.Builder viewBuilder = View.builder()
       .with(PlaneRoadModelRenderer.builder())
+      .withTitleAppendix("Simple example")
       .with(RoadUserRenderer.builder());
 
     if (testing) {
