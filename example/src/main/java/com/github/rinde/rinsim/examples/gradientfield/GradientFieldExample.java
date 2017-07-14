@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.examples.pdptw.gradientfield;
+package com.github.rinde.rinsim.examples.gradientfield;
 
 import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.pdp.Depot;
@@ -61,6 +61,7 @@ public final class GradientFieldExample {
    */
   public static void run(final boolean testing) {
     View.Builder viewBuilder = View.builder()
+      .withTitleAppendix("Gradient field example")
       .with(PlaneRoadModelRenderer.builder())
       .with(RoadUserRenderer.builder()
         .withImageAssociation(

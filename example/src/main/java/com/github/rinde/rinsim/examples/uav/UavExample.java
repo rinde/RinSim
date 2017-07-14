@@ -65,7 +65,7 @@ public final class UavExample {
         // details.
         .withDifferentColors())
       .withAutoPlay()
-      .withTitleAppendix("UAV Example");
+      .withTitleAppendix("UAV example");
 
     if (testing) {
       viewBuilder = viewBuilder.withAutoClose()

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.examples.pdptw.gradientfield;
+package com.github.rinde.rinsim.examples.gradientfield;
 
 import java.util.List;
 import java.util.Map;

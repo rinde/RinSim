@@ -24,7 +24,7 @@ import org.junit.experimental.categories.Category;
 import com.github.rinde.rinsim.examples.agv.AgvExample;
 import com.github.rinde.rinsim.examples.comm.CommExample;
 import com.github.rinde.rinsim.examples.experiment.ExperimentExample;
-import com.github.rinde.rinsim.examples.pdptw.gradientfield.GradientFieldExample;
+import com.github.rinde.rinsim.examples.gradientfield.GradientFieldExample;
 import com.github.rinde.rinsim.examples.simple.SimpleExample;
 import com.github.rinde.rinsim.examples.taxi.TaxiExample;
 import com.github.rinde.rinsim.examples.uav.UavExample;

@@ -78,7 +78,8 @@ public final class AgvExample {
         .withTitleAppendix("TESTING")
         .withSpeedUp(TEST_SPEED_UP);
     } else {
-      viewBuilder = viewBuilder.withTitleAppendix("Warehouse Example");
+      viewBuilder =
+        viewBuilder.withTitleAppendix("AGV example");
     }
 
     final Simulator sim = Simulator.builder()

@@ -18,4 +18,4 @@
  * 
  */
 @javax.annotation.ParametersAreNonnullByDefault
-package com.github.rinde.rinsim.examples.pdptw.gradientfield;
+package com.github.rinde.rinsim.examples.gradientfield;
