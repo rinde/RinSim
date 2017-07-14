@@ -12,9 +12,9 @@ RinSim comes with a number of examples, each example listed here can be run dire
 These are examples showcasing functionality from the `RinSim-core` project.
 
  - [Simple example](/learn/examples/simple/) The RinSim 'hello world' example.
- - [AgentCommunicationExample](/learn/examples/communication/) An example showing agent communication.
- - [TaxiExample](/learn/examples/taxi/) 
- - [WarehouseExample](src/main/java/com/github/rinde/rinsim/examples/warehouse/WarehouseExample.java) An example showing AGVs driving around a warehouse.
+ - [Communication example](/learn/examples/communication/) An example showing agent communication.
+ - [Taxi example](/learn/examples/taxi/) 
+ - [AGV example](/learn/examples/agv/) An example showing AGVs driving around a warehouse.
 
 <!-- 
  - ScenarioExample [TODO] example showing how a scenario can be created.

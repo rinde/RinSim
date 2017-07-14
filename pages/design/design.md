@@ -16,12 +16,15 @@ The code is organized in a number of Maven modules:
 
 __Main modules__:
 - [Core](/design/core/)
+
 - [User Interface](/design/ui/)
 - [PDPTW](/design/pdptw/)
+- [Central](/design/central/)
+
+__Experiment support modules__:
 - [Scenario](/design/scenario/)
 - [Scenario Utilities](/design/scenario-util/)
 - [Experiment](/design/experiment/)
-- [Central](/design/central/)
 
 __Auxiliary modules__:
 - CLI
@@ -30,6 +33,7 @@ __Auxiliary modules__:
 - [Geom](/design/geom/)
 - IO
 
+{% include links.html %}
 
 <!-- 
 Topics todo:

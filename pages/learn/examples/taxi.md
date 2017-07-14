@@ -6,7 +6,7 @@ toc: false
 permalink: /learn/examples/taxi/
 ---
 
-Showcase of a dynamic pickup and delivery problem (PDP).
+Showcase of a dynamic pickup and delivery problem (PDP) (see the paper of [Berbeglia et al. (2010)](https://doi.org/10.1016/j.ejor.2009.04.024) for an overview).
 {% include image.html file="examples/taxi-example.gif" alt="Taxi example" caption="This is an animation that shows the visualization of the taxi example in the city of Leuven. The persons are customers waiting for pickup, the number above a taxi indicates the number of customers that are onboard. The building indicates the depot." %}
 
 New customers are continuosly placed on the map. The strategy each [taxi](https://github.com/rinde/RinSim/blob/master/example/src/main/java/com/github/rinde/rinsim/examples/core/taxi/Taxi.java) follows is: 
