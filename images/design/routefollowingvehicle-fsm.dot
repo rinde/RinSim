@@ -1,0 +1,16 @@
+digraph stategraph {
+node0[label="WaitAtService"]
+node1[label="Service"]
+node2[label="Goto"]
+node3[label="Wait"]
+node4[label="",shape=point]
+node4 -> node3
+node3 -> node2[label="GOTO"]
+node2 -> node3[label="NOGO"]
+node2 -> node0[label="ARRIVED"]
+node2 -> node2[label="REROUTE"]
+node0 -> node2[label="REROUTE"]
+node0 -> node3[label="NOGO"]
+node0 -> node1[label="READY_TO_SERVICE"]
+node1 -> node3[label="DONE"]
+}

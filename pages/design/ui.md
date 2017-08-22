@@ -34,6 +34,8 @@ Since `Renderer`s are also `Model`s, dependencies can be requested similarly to 
 | [RoadUserRenderer](https://github.com/rinde/RinSim/blob/master/ui/src/main/java/com/github/rinde/rinsim/ui/renderers/RoadUserRenderer.java) | Allows to customize visualization of each `RoadUser`. | [Simple example](/learn/examples/simple/)
 | [WarehouseRenderer](https://github.com/rinde/RinSim/blob/master/ui/src/main/java/com/github/rinde/rinsim/ui/renderers/WarehouseRenderer.java) | Advanced graph visualization that draws a corridor for each connection. | [AGV example](/learn/examples/agv/) |
 
+Additional renderers and panels are defined in the [PDPTW module](/design/pdptw/#user-interface).
+
 Each of these renderers can be added using their respective builder. Many of them also have several options for changing the visualization, the best way to explore all options is to use the auto-complete feature of your favorite IDE. For example, Eclipse shows this:
 {% include image.html file="design/ui-builder-auto-complete.png" alt="RinSim ticks" caption="Auto-complete options as shown by Eclipse for WarehouseRenderer." %}
 
