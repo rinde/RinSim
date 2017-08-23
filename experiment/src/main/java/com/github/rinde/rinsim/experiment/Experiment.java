@@ -74,7 +74,7 @@ import com.google.common.collect.Sets;
  *
  * <pre>
  * {@code
- * Experiment.experiment(objFunc)
+ * Experiment.builder()
  *    .addConfiguration(config1)
  *    .addConfiguration(config2)
  *    .addScenario(scen1)
