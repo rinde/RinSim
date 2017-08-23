@@ -30,7 +30,7 @@ __Auxiliary modules__:
 - CLI
 - Event
 - FSM
-- [Geom](/design/geom/)
+- Geom
 - IO
 
 {% include links.html %}

@@ -33,8 +33,6 @@ entries:
       - title: Central
         url: /design/central/
         output: web, pdf
-      - title: Geom
-        url: /design/geom/
-        output: web, pdf
+
 
   
