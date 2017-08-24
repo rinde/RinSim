@@ -44,7 +44,7 @@ public class Depot extends ContainerImpl {
   public Depot(Point position, @Nullable String nm) {
     setStartPosition(position);
     if (nm == null) {
-      name = super.toString();
+      name = "";
     } else {
       name = nm;
     }
@@ -60,6 +60,9 @@ public class Depot extends ContainerImpl {
 
   @Override
   public String toString() {
+    if (name.length() == 0) {
+      return super.toString();
+    }
     return name;
   }
 }

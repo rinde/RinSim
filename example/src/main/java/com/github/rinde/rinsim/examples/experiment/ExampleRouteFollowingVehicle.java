@@ -43,6 +43,9 @@ class ExampleRouteFollowingVehicle extends RouteFollowingVehicle {
     getPDPModel().getEventAPI().addListener(new Listener() {
       @Override
       public void handleEvent(Event e) {
+        if (!(e instanceof PDPModelEvent)) {
+          return;
+        }
         final List<Parcel> route = new ArrayList<>(vehicle.getRoute());
         final Parcel newlyAddedParcel = ((PDPModelEvent) e).parcel;
         route.add(newlyAddedParcel);

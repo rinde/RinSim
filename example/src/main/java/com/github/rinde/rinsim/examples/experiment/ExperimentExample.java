@@ -112,7 +112,6 @@ public final class ExperimentExample {
   public static void main(String[] args) {
     int uiSpeedUp = 1;
     final int index = Arrays.binarySearch(args, "speedup");
-
     String[] arguments = args;
     if (index >= 0) {
       checkArgument(arguments.length > index + 1,
@@ -124,12 +123,9 @@ public final class ExperimentExample {
       list.remove(index);
       arguments = list.toArray(new String[] {});
     }
-
     final Optional<ExperimentResults> results;
-
     // Starts the experiment builder.
     results = Experiment.builder()
-
       // Adds a configuration to the experiment. A configuration configures an
       // algorithm that is supposed to handle or 'solve' a problem specified by
       // a scenario. A configuration can handle a scenario if it contains an
@@ -147,7 +143,6 @@ public final class ExperimentExample {
         // simulator.
         .addEventHandler(AddVehicleEvent.class, CustomVehicleHandler.INSTANCE)
         .addEventHandler(TimeOutEvent.class, TimeOutEvent.ignoreHandler())
-
         // Note: if you multi-agent system requires the aid of a model (e.g.
         // CommModel) it can be added directly in the configuration. Models that
         // are only used for the solution side should not be added in the
@@ -204,7 +199,6 @@ public final class ExperimentExample {
       .perform(System.out, arguments);
 
     if (results.isPresent()) {
-
       for (final SimulationResult sr : results.get().getResults()) {
         // The SimulationResult contains all information about a specific
         // simulation, the result object is the object created by the post

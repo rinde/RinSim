@@ -82,8 +82,6 @@ public class TaxiRenderer extends AbstractCanvasRenderer {
 
   @Override
   public void renderDynamic(GC gc, ViewPort vp, long time) {
-    // final Set<Taxi> taxis = roadModel.getObjectsOfType(Taxi.class);
-
     final Map<RoadUser, Point> map =
       Maps.filterEntries(roadModel.getObjectsAndPositions(), Pred.INSTANCE);
 
