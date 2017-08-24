@@ -85,8 +85,8 @@ import com.google.common.math.DoubleMath;
  */
 public class RouteFollowingVehicle extends Vehicle {
 
-  private static final Logger LOGGER = LoggerFactory
-    .getLogger(RouteFollowingVehicle.class);
+  static final Logger LOGGER =
+    LoggerFactory.getLogger(RouteFollowingVehicle.class);
 
   /**
    * The state machine that defines the states and the allowed transitions

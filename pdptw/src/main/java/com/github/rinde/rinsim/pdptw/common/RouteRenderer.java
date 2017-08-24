@@ -95,6 +95,8 @@ public class RouteRenderer extends AbstractCanvasRenderer {
   public abstract static class Builder extends
       AbstractModelBuilder<RouteRenderer, Void> {
 
+    private static final long serialVersionUID = 2467340977162967147L;
+
     Builder() {
       setDependencies(RoadModel.class, PDPModel.class);
     }
