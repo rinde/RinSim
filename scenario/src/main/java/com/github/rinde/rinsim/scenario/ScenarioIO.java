@@ -52,6 +52,7 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Splitter;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -74,6 +75,14 @@ import com.google.gson.stream.JsonWriter;
  */
 public final class ScenarioIO {
   static final Gson GSON = initialize();
+
+  // mapping from old name -> new name
+  static final ImmutableMap<String, String> REFACTORINGS_MAP =
+    ImmutableMap.<String, String>builder()
+      .put("com.github.rinde.rinsim.pdptw.common.StatisticsProvider",
+        "com.github.rinde.rinsim.pdptw.common.StatsProvider")
+      .build();
+
   private static final String VALUE_SEPARATOR = ",";
   private static final String VALUE = "value";
   private static final String CLAZZ = "class";
@@ -675,7 +684,11 @@ public final class ScenarioIO {
           JsonDeserializationContext context) {
         checkArgument(json.isJsonPrimitive());
         try {
-          return Class.forName(json.getAsString());
+          final String className = json.getAsString();
+          if (REFACTORINGS_MAP.containsKey(className)) {
+            return Class.forName(REFACTORINGS_MAP.get(className));
+          }
+          return Class.forName(className);
         } catch (final ClassNotFoundException e) {
           throw new IllegalArgumentException(e);
         }
