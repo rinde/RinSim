@@ -21,10 +21,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.eclipse.swt.graphics.RGB;
+
 import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
+import com.github.rinde.rinsim.core.model.pdp.Depot;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
+import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.experiment.Experiment;
@@ -35,15 +39,20 @@ import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.AddDepotEvent;
 import com.github.rinde.rinsim.pdptw.common.AddParcelEvent;
 import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
+import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
+import com.github.rinde.rinsim.pdptw.common.RoutePanel;
+import com.github.rinde.rinsim.pdptw.common.RouteRenderer;
+import com.github.rinde.rinsim.pdptw.common.StatsPanel;
 import com.github.rinde.rinsim.pdptw.common.StatsStopConditions;
+import com.github.rinde.rinsim.pdptw.common.StatsTracker;
 import com.github.rinde.rinsim.pdptw.common.TimeLinePanel;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.StopConditions;
 import com.github.rinde.rinsim.scenario.TimeOutEvent;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.ui.View;
-import com.github.rinde.rinsim.ui.renderers.PDPModelRenderer;
 import com.github.rinde.rinsim.ui.renderers.PlaneRoadModelRenderer;
+import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.common.base.Optional;
 
@@ -61,7 +70,7 @@ import com.google.common.base.Optional;
  */
 public final class ExperimentExample {
   // some constants used in the experiment
-  private static final Point RESOLUTION = new Point(800, 700);
+  private static final Point RESOLUTION = new Point(700, 600);
   private static final double VEHICLE_SPEED_KMH = 30d;
   private static final double MAX_VEHICLE_SPEED_KMH = 50d;
   private static final Point MIN_POINT = new Point(0, 0);
@@ -87,6 +96,10 @@ public final class ExperimentExample {
   private static final long M30 = 30 * 60 * 1000L;
   private static final long M40 = 40 * 60 * 1000L;
   private static final long M60 = 60 * 60 * 1000L;
+
+  private static final RGB GRAY = new RGB(200, 200, 200);
+  private static final RGB BLUE = new RGB(0, 0, 255);
+  private static final RGB PURPLE = new RGB(255, 0, 255);
 
   private ExperimentExample() {}
 
@@ -124,8 +137,11 @@ public final class ExperimentExample {
       // in this example contains four different events and registers an event
       // handler for each of them.
       .addConfiguration(MASConfiguration.builder()
-        .addEventHandler(AddDepotEvent.class, AddDepotEvent.defaultHandler())
-        .addEventHandler(AddParcelEvent.class, AddParcelEvent.defaultHandler())
+        // NOTE: this example uses 'namedHandler's for Depots and Parcels, while
+        // very useful for debugging these should not be used in production as
+        // these are not thread safe. Use the 'defaultHandler()' instead.
+        .addEventHandler(AddDepotEvent.class, AddDepotEvent.namedHandler())
+        .addEventHandler(AddParcelEvent.class, AddParcelEvent.namedHandler())
         // There is no default handle for vehicle events, here a non functioning
         // handler is added, it can be changed to add a custom vehicle to the
         // simulator.
@@ -136,6 +152,7 @@ public final class ExperimentExample {
         // CommModel) it can be added directly in the configuration. Models that
         // are only used for the solution side should not be added in the
         // scenario as they are not part of the problem.
+        .addModel(StatsTracker.builder())
         .build())
 
       // Adds the newly constructed scenario to the experiment. Every
@@ -165,14 +182,21 @@ public final class ExperimentExample {
       // Adds the GUI just like it is added to a Simulator object.
       .showGui(View.builder()
         .with(PlaneRoadModelRenderer.builder())
-        .with(PDPModelRenderer.builder())
+        .with(RoadUserRenderer.builder()
+          .withToStringLabel()
+          .withColorAssociation(Depot.class, GRAY)
+          .withColorAssociation(Parcel.class, BLUE)
+          .withColorAssociation(Vehicle.class, PURPLE))
         .with(TimeLinePanel.builder())
+        .with(RouteRenderer.builder())
+        .with(RoutePanel.builder().withPositionLeft())
+        .with(StatsPanel.builder())
         .withResolution((int) RESOLUTION.x, (int) RESOLUTION.y)
         .withAutoPlay()
         .withAutoClose()
         // For testing we allow to change the speed up via the args.
         .withSpeedUp(uiSpeedUp)
-        .withTitleAppendix("Experiments example"))
+        .withTitleAppendix("Experiment example"))
 
       // Starts the experiment, but first reads the command-line arguments
       // that are specified for this application. By supplying the '-h' option
@@ -249,10 +273,12 @@ public final class ExperimentExample {
       .scenarioLength(M60)
 
       // Adds a plane road model as this is part of the problem
-      .addModel(RoadModelBuilders.plane()
-        .withMinPoint(MIN_POINT)
-        .withMaxPoint(MAX_POINT)
-        .withMaxSpeed(MAX_VEHICLE_SPEED_KMH))
+      .addModel(
+        PDPRoadModel.builder(
+          RoadModelBuilders.plane()
+            .withMinPoint(MIN_POINT)
+            .withMaxPoint(MAX_POINT)
+            .withMaxSpeed(MAX_VEHICLE_SPEED_KMH)))
 
       // Adds the pdp model
       .addModel(
@@ -273,7 +299,9 @@ public final class ExperimentExample {
     INSTANCE {
       @Override
       public void handleTimedEvent(AddVehicleEvent event, SimulatorAPI sim) {
-        // add you own vehicle to the simulator here
+        // add your own vehicle to the simulator here
+        sim.register(
+          new ExampleRouteFollowingVehicle(event.getVehicleDTO(), true));
       }
     }
   }

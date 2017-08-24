@@ -15,6 +15,8 @@
  */
 package com.github.rinde.rinsim.core.model.pdp;
 
+import javax.annotation.Nullable;
+
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.geom.Point;
 
@@ -24,12 +26,28 @@ import com.github.rinde.rinsim.geom.Point;
  */
 public class Depot extends ContainerImpl {
 
+  private final String name;
+
   /**
    * Instantiate the depot at the provided position.
    * @param position The position where the depot will be located.
    */
   public Depot(Point position) {
+    this(position, null);
+  }
+
+  /**
+   * Instantiate the depot at the provided position.
+   * @param position The position where the depot will be located.
+   * @param nm The name of the depot, this overrides the toString value.
+   */
+  public Depot(Point position, @Nullable String nm) {
     setStartPosition(position);
+    if (nm == null) {
+      name = super.toString();
+    } else {
+      name = nm;
+    }
   }
 
   @Override
@@ -39,4 +57,9 @@ public class Depot extends ContainerImpl {
 
   @Override
   public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {}
+
+  @Override
+  public String toString() {
+    return name;
+  }
 }

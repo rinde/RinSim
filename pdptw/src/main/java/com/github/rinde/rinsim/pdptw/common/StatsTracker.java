@@ -62,29 +62,25 @@ import com.google.auto.value.AutoValue;
  * <p>
  * <b>Model properties</b>
  * <ul>
- * <li><i>Provides:</i> {@link StatisticsProvider}.</li>
+ * <li><i>Provides:</i> {@link StatsProvider}.</li>
  * <li><i>Dependencies:</i> {@link ScenarioController}, {@link Clock},
  * {@link RoadModel}, {@link PDPModel}.</li>
  * </ul>
  * @author Rinde van Lon
  */
 public final class StatsTracker extends AbstractModelVoid implements
-    StatisticsProvider {
+    StatsProvider {
   final EventDispatcher eventDispatcher;
   final TheListener theListener;
   final Clock clock;
   final RoadModel roadModel;
-
-  enum StatisticsEventType {
-    PICKUP_TARDINESS, DELIVERY_TARDINESS, ALL_VEHICLES_AT_DEPOT;
-  }
 
   StatsTracker(ScenarioController scenContr, Clock c, RoadModel rm,
       PDPModel pm) {
     clock = c;
     roadModel = rm;
 
-    eventDispatcher = new EventDispatcher(StatisticsEventType.values());
+    eventDispatcher = new EventDispatcher(StatsProvider.EventTypes.values());
     theListener = new TheListener();
     scenContr.getEventAPI().addListener(theListener, SCENARIO_STARTED,
       SCENARIO_FINISHED, SCENARIO_EVENT);
@@ -97,7 +93,8 @@ public final class StatsTracker extends AbstractModelVoid implements
         END_DELIVERY, NEW_PARCEL, NEW_VEHICLE);
   }
 
-  EventAPI getEventAPI() {
+  @Override
+  public EventAPI getEventAPI() {
     return eventDispatcher.getPublicEventAPI();
   }
 
@@ -218,7 +215,7 @@ public final class StatsTracker extends AbstractModelVoid implements
               clock.getCurrentTime());
             if (totalVehicles == lastArrivalTimeAtDepot.size()) {
               eventDispatcher.dispatchEvent(new Event(
-                StatisticsEventType.ALL_VEHICLES_AT_DEPOT, this));
+                StatsProvider.EventTypes.ALL_VEHICLES_AT_DEPOT, this));
             }
           }
         } else {
@@ -238,8 +235,8 @@ public final class StatsTracker extends AbstractModelVoid implements
         if (pme.time > latestBeginTime) {
           final long tardiness = pme.time - latestBeginTime;
           pickupTardiness += tardiness;
-          eventDispatcher.dispatchEvent(new StatisticsEvent(
-            StatisticsEventType.PICKUP_TARDINESS, this, p, v, tardiness,
+          eventDispatcher.dispatchEvent(new StatsEvent(
+            StatsProvider.EventTypes.PICKUP_TARDINESS, this, p, v, tardiness,
             pme.time));
         }
       } else if (e.getEventType() == PDPModelEventType.END_PICKUP) {
@@ -257,9 +254,9 @@ public final class StatsTracker extends AbstractModelVoid implements
         if (pme.time > latestBeginTime) {
           final long tardiness = pme.time - latestBeginTime;
           deliveryTardiness += tardiness;
-          eventDispatcher.dispatchEvent(new StatisticsEvent(
-            StatisticsEventType.DELIVERY_TARDINESS, this, p, v, tardiness,
-            pme.time));
+          eventDispatcher.dispatchEvent(new StatsEvent(
+            StatsProvider.EventTypes.DELIVERY_TARDINESS, this, p, v,
+            tardiness, pme.time));
         }
       } else if (e.getEventType() == PDPModelEventType.END_DELIVERY) {
         totalDeliveries++;
@@ -295,22 +292,6 @@ public final class StatsTracker extends AbstractModelVoid implements
     }
   }
 
-  static class StatisticsEvent extends Event {
-    final Parcel parcel;
-    final Vehicle vehicle;
-    final long tardiness;
-    final long time;
-
-    StatisticsEvent(Enum<?> type, Object pIssuer, Parcel p, Vehicle v,
-        long tar, long tim) {
-      super(type, pIssuer);
-      parcel = p;
-      vehicle = v;
-      tardiness = tar;
-      time = tim;
-    }
-  }
-
   /**
    * Builder for creating {@link StatsTracker} instance.
    * @author Rinde van Lon
@@ -325,7 +306,7 @@ public final class StatsTracker extends AbstractModelVoid implements
         Clock.class,
         RoadModel.class,
         PDPModel.class);
-      setProvidingTypes(StatisticsProvider.class);
+      setProvidingTypes(StatsProvider.class);
     }
 
     @Override

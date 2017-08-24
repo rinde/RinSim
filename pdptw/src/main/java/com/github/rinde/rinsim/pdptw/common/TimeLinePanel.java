@@ -301,6 +301,8 @@ public final class TimeLinePanel extends AbstractModelVoid implements
   public abstract static class Builder extends
       AbstractModelBuilder<TimeLinePanel, Void> {
 
+    private static final long serialVersionUID = -4141431737320267292L;
+
     Builder() {
       setDependencies(PDPModel.class);
     }

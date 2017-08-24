@@ -29,6 +29,7 @@ import java.util.Queue;
 import java.util.Set;
 
 import javax.annotation.Nullable;
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.measure.Measure;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Velocity;
@@ -344,6 +345,7 @@ public class RouteFollowingVehicle extends Vehicle {
       && r.iterator().next().equals(route.element());
   }
 
+  @OverridingMethodsMustInvokeSuper
   @Override
   public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {
     super.initRoadPDP(pRoadModel, pPdpModel);

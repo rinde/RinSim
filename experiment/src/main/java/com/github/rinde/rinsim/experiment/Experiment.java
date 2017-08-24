@@ -41,7 +41,7 @@ import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.experiment.LocalComputer.ExperimentRunner;
 import com.github.rinde.rinsim.experiment.PostProcessor.FailureStrategy;
 import com.github.rinde.rinsim.io.FileProvider;
-import com.github.rinde.rinsim.pdptw.common.StatisticsProvider;
+import com.github.rinde.rinsim.pdptw.common.StatsProvider;
 import com.github.rinde.rinsim.pdptw.common.StatsTracker;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.ScenarioController;
@@ -223,7 +223,7 @@ public final class Experiment {
   static boolean containsStatisticsProvider(
       Iterable<? extends ModelBuilder<?, ?>> mbs) {
     for (final ModelBuilder<?, ?> mb : mbs) {
-      if (mb.getProvidingTypes().contains(StatisticsProvider.class)) {
+      if (mb.getProvidingTypes().contains(StatsProvider.class)) {
         return true;
       }
     }

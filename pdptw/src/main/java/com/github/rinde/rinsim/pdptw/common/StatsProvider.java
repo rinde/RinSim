@@ -15,14 +15,43 @@
  */
 package com.github.rinde.rinsim.pdptw.common;
 
+import com.github.rinde.rinsim.event.EventAPI;
+
 /**
  * A provider of {@link StatisticsDTO} instances.
  * @author Rinde van Lon
  */
-public interface StatisticsProvider {
+public interface StatsProvider {
 
   /**
    * @return The current {@link StatisticsDTO} instance.
    */
   StatisticsDTO getStatistics();
+
+  /**
+   * @return The {@link EventAPI}, see {@link StatsEvent}.
+   */
+  EventAPI getEventAPI();
+
+  /**
+   * Event types.
+   * @author Rinde van Lon
+   */
+  enum EventTypes {
+    /**
+     * Indicates that there has been a pickup with tardiness &gt; 0.
+     */
+    PICKUP_TARDINESS,
+
+    /**
+     * Indicates that there has been a delivery with tardiness &gt; 0.
+     */
+    DELIVERY_TARDINESS,
+
+    /**
+     * Indicates that all vehicles have arrived at the depot.
+     */
+    ALL_VEHICLES_AT_DEPOT;
+  }
+
 }

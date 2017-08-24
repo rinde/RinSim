@@ -26,32 +26,33 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 
-import com.github.rinde.rinsim.core.model.time.TickListener;
-import com.github.rinde.rinsim.core.model.time.TimeLapse;
+import com.github.rinde.rinsim.core.model.DependencyProvider;
+import com.github.rinde.rinsim.core.model.Model.AbstractModelVoid;
+import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
-import com.github.rinde.rinsim.pdptw.common.StatsTracker.StatisticsEvent;
-import com.github.rinde.rinsim.pdptw.common.StatsTracker.StatisticsEventType;
 import com.github.rinde.rinsim.ui.renderers.PanelRenderer;
+import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
 
 /**
  * A UI panel that gives a live view of the current statistics of a simulation.
  * @author Rinde van Lon
  */
-final class StatsPanel implements PanelRenderer, TickListener {
+public final class StatsPanel extends AbstractModelVoid
+    implements PanelRenderer {
 
   private static final int PREFERRED_SIZE = 300;
 
   Optional<Table> statsTable;
-  private final StatsTracker statsTracker;
+  private final StatsProvider statsTracker;
 
   /**
    * Create a new instance using the specified {@link StatsTracker} which
    * supplies the statistics.
    * @param stats The tracker to use.
    */
-  StatsPanel(StatsTracker stats) {
+  StatsPanel(StatsProvider stats) {
     statsTracker = stats;
     statsTable = Optional.absent();
   }
@@ -105,8 +106,8 @@ final class StatsPanel implements PanelRenderer, TickListener {
     statsTracker.getEventAPI().addListener(new Listener() {
       @Override
       public void handleEvent(Event e) {
-        verify(e instanceof StatisticsEvent);
-        final StatisticsEvent se = (StatisticsEvent) e;
+        verify(e instanceof StatsEvent);
+        final StatsEvent se = (StatsEvent) e;
         if (eventList.getDisplay().isDisposed()) {
           return;
         }
@@ -114,13 +115,13 @@ final class StatsPanel implements PanelRenderer, TickListener {
           @Override
           public void run() {
             final TableItem ti = new TableItem(eventList, 0);
-            ti.setText(0, Long.toString(se.time));
-            ti.setText(1, Long.toString(se.tardiness));
+            ti.setText(0, Long.toString(se.getTime()));
+            ti.setText(1, Long.toString(se.getTardiness()));
           }
         });
       }
-    }, StatisticsEventType.PICKUP_TARDINESS,
-      StatisticsEventType.DELIVERY_TARDINESS);
+    }, StatsProvider.EventTypes.PICKUP_TARDINESS,
+      StatsProvider.EventTypes.DELIVERY_TARDINESS);
   }
 
   @Override
@@ -136,14 +137,6 @@ final class StatsPanel implements PanelRenderer, TickListener {
   @Override
   public String getName() {
     return "Statistics";
-  }
-
-  @Override
-  public void tick(TimeLapse timeLapse) {}
-
-  @Override
-  public void afterTick(TimeLapse timeLapse) {
-
   }
 
   @Override
@@ -172,5 +165,32 @@ final class StatsPanel implements PanelRenderer, TickListener {
       }
     });
 
+  }
+
+  /**
+   * @return A new {@link Builder}.
+   */
+  public static Builder builder() {
+    return new AutoValue_StatsPanel_Builder();
+  }
+
+  /**
+   * Builder for the {@link StatsPanel}.
+   * @author Rinde van Lon
+   */
+  @AutoValue
+  public abstract static class Builder
+      extends AbstractModelBuilder<StatsPanel, Void> {
+
+    private static final long serialVersionUID = 756808574424058913L;
+
+    Builder() {
+      setDependencies(StatsProvider.class);
+    }
+
+    @Override
+    public StatsPanel build(DependencyProvider dependencyProvider) {
+      return new StatsPanel(dependencyProvider.get(StatsProvider.class));
+    }
   }
 }

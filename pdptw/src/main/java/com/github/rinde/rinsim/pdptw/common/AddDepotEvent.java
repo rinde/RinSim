@@ -15,6 +15,8 @@
  */
 package com.github.rinde.rinsim.pdptw.common;
 
+import java.io.Serializable;
+
 import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.pdp.Depot;
 import com.github.rinde.rinsim.geom.Point;
@@ -55,6 +57,19 @@ public abstract class AddDepotEvent implements TimedEvent {
     return Handler.INSTANCE;
   }
 
+  /**
+   * {@link TimedEventHandler} that creates {@link Depot}s with an overridden
+   * toString implementation. The depots are called 'Depot X', where 'X' is a
+   * number.
+   * <p>
+   * <b>Warning:</b> This handler should only be used for debugging purposes and
+   * is not thread safe.
+   * @return A newly constructed handler.
+   */
+  public static TimedEventHandler<AddDepotEvent> namedHandler() {
+    return new NamedDepotCreator();
+  }
+
   enum Handler implements TimedEventHandler<AddDepotEvent> {
     INSTANCE {
       @Override
@@ -68,4 +83,25 @@ public abstract class AddDepotEvent implements TimedEvent {
       }
     };
   }
+
+  static class NamedDepotCreator
+      implements TimedEventHandler<AddDepotEvent>, Serializable {
+    private static final long serialVersionUID = 3888253170041895475L;
+
+    long counter;
+
+    NamedDepotCreator() {}
+
+    @Override
+    public void handleTimedEvent(AddDepotEvent event, SimulatorAPI simulator) {
+      counter++;
+      simulator.register(new Depot(event.getPosition(), "Depot " + counter));
+    }
+
+    @Override
+    public String toString() {
+      return AddDepotEvent.class.getSimpleName() + ".namedHandler()";
+    }
+  }
+
 }

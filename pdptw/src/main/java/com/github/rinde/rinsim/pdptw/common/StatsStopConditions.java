@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableSet;
 
 /**
  * This class contains default stop conditions that require a
- * {@link StatisticsProvider} in the simulator.
+ * {@link StatsProvider} in the simulator.
  * @author Rinde van Lon
  */
 public final class StatsStopConditions {
@@ -58,13 +58,13 @@ public final class StatsStopConditions {
     TIME_OUT_EVENT {
       @Override
       public boolean evaluate(TypeProvider provider) {
-        return provider.get(StatisticsProvider.class).getStatistics().simFinish;
+        return provider.get(StatsProvider.class).getStatistics().simFinish;
       }
     },
     VEHICLES_DONE_AND_BACK_AT_DEPOT {
       @Override
       public boolean evaluate(TypeProvider provider) {
-        final StatisticsDTO stats = provider.get(StatisticsProvider.class)
+        final StatisticsDTO stats = provider.get(StatsProvider.class)
           .getStatistics();
 
         return stats.totalVehicles == stats.vehiclesAtDepot
@@ -75,7 +75,7 @@ public final class StatsStopConditions {
     ANY_TARDINESS {
       @Override
       public boolean evaluate(TypeProvider provider) {
-        final StatisticsDTO stats = provider.get(StatisticsProvider.class)
+        final StatisticsDTO stats = provider.get(StatsProvider.class)
           .getStatistics();
         return stats.pickupTardiness > 0
           || stats.deliveryTardiness > 0;
@@ -84,7 +84,7 @@ public final class StatsStopConditions {
 
     @Override
     public ImmutableSet<Class<?>> getTypes() {
-      return ImmutableSet.<Class<?>>of(StatisticsProvider.class);
+      return ImmutableSet.<Class<?>>of(StatsProvider.class);
     }
   }
 }

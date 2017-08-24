@@ -18,6 +18,8 @@ package com.github.rinde.rinsim.pdptw.common;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.CheckReturnValue;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -33,7 +35,8 @@ import com.github.rinde.rinsim.ui.renderers.PanelRenderer;
 import com.google.auto.value.AutoValue;
 
 /**
- *
+ * A panel that contains a table that lists every {@link RouteFollowingVehicle}
+ * in the simulation and shows the route length and route contents.
  * @author Rinde van Lon
  */
 public class RoutePanel extends AbstractModel<RouteFollowingVehicle>
@@ -45,10 +48,12 @@ public class RoutePanel extends AbstractModel<RouteFollowingVehicle>
   RoadModel roadModel;
 
   List<RouteFollowingVehicle> list;
+  private final int preferredPosition;
 
-  RoutePanel(RoadModel rm) {
+  RoutePanel(RoadModel rm, int preferredPos) {
     roadModel = rm;
     list = new ArrayList<>();
+    preferredPosition = preferredPos;
   }
 
   @Override
@@ -81,7 +86,7 @@ public class RoutePanel extends AbstractModel<RouteFollowingVehicle>
 
   @Override
   public int getPreferredPosition() {
-    return SWT.RIGHT;
+    return preferredPosition;
   }
 
   @Override
@@ -125,22 +130,46 @@ public class RoutePanel extends AbstractModel<RouteFollowingVehicle>
     throw new UnsupportedOperationException();
   }
 
+  /**
+   * @return A new {@link Builder} instance.
+   */
   public static Builder builder() {
-    return new AutoValue_RoutePanel_Builder();
+    return Builder.create(SWT.RIGHT);
   }
 
+  /**
+   * A builder for {@link RoutePanel}.
+   * @author Rinde van Lon
+   */
   @AutoValue
   public abstract static class Builder
       extends AbstractModelBuilder<RoutePanel, RouteFollowingVehicle> {
+
+    private static final long serialVersionUID = -5277450398730005609L;
 
     Builder() {
       setDependencies(RoadModel.class);
     }
 
+    abstract int preferredPosition();
+
+    /**
+     * Will set the preferred position to left instead of the default (right).
+     * @return A new builder instance.
+     */
+    @CheckReturnValue
+    public Builder withPositionLeft() {
+      return create(SWT.LEFT);
+    }
+
     @Override
     public RoutePanel build(DependencyProvider dependencyProvider) {
-      return new RoutePanel(dependencyProvider.get(RoadModel.class));
+      return new RoutePanel(dependencyProvider.get(RoadModel.class),
+        preferredPosition());
+    }
+
+    static Builder create(int position) {
+      return new AutoValue_RoutePanel_Builder(position);
     }
   }
-
 }
