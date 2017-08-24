@@ -18,3 +18,5 @@ RinSim uses [Maven](http://maven.apache.org/) for managing its dependencies. The
 ```	
 
 The latest RinSim version is [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.rinde/rinsim-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.rinde/rinsim-core){: .no_icon}
+
+An overview of all available modules can be found [here](/design/).

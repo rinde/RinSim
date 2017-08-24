@@ -7,6 +7,9 @@ permalink: /design/core/
 
 ---
 {% include links.html %}
+
+__Maven artifactId:__ _rinsim-core_ 
+
 The core module contains the core simulation components. The core module is the entry point for getting to know the basics of RinSim. It also contains the most used models.
 
 There are generally two classes that can be used to configure RinSim:

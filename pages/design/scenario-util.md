@@ -7,6 +7,8 @@ permalink: /design/scenario-util/
 
 ---
 
+__Maven artifactId:__ _rinsim-scenario-util_ 
+
 This module consists of a number of [scenario](/design/scenario/) related packages.
 
 ### _scenario.generator_

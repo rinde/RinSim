@@ -6,6 +6,7 @@ toc: false
 permalink: /design/ui/
 
 ---
+__Maven artifactId:__ _rinsim-ui_ 
 
 The user interface module provides a set of standard UI components which can be used for configuring a graphical user interface. By adding the `View` to the simulator as follows, the `Simulator` will, when `start()` is called, launch the UI instead of starting the simulation.
 ```java

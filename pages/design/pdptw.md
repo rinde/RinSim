@@ -7,6 +7,8 @@ permalink: /design/pdptw/
 
 ---
 
+__Maven artifactId:__ _rinsim-pdptw_ 
+
 The PDPTW module contains implementations that support the simulation of the pickup-and-delivery problem with time windows (PDPTW).
 
 ### RouteFollowingVehicle
@@ -50,11 +52,11 @@ Via the `StatisticsProvider` instances of `StatisticsDTO` can be obtained which 
 
 The module provides several UI extensions that visualize functionality from this module:
 
-| Renderer / Panel       | What is rendered                          |
+| Renderer / Panel       | What is rendered                          | Example usage |
 | ---                                       | ---     |
-| [TimeLinePanel](https://github.com/rinde/RinSim/blob/master/pdptw/src/main/java/com/github/rinde/rinsim/pdptw/common/TimeLinePanel.java)  | A timeline indicating for each parcel, the pickup timewindow and the delivery timewindow.| |
-| [RoutePanel](https://github.com/rinde/RinSim/blob/master/pdptw/src/main/java/com/github/rinde/rinsim/pdptw/common/RoutePanel.java)        | Shows a table with a row per RouteFollowingVehicle detailing its route. | |
-| [StatsPanel](https://github.com/rinde/RinSim/blob/master/pdptw/src/main/java/com/github/rinde/rinsim/pdptw/common/StatsPanel.java)        | Presents a live view on the stats in a side panel. | |
-| [RouteRenderer](https://github.com/rinde/RinSim/blob/master/pdptw/src/main/java/com/github/rinde/rinsim/pdptw/common/RouteRenderer.java)  | Renders the current route for each RouteFollowingVehicle. | |
+| [TimeLinePanel](https://github.com/rinde/RinSim/blob/master/pdptw/src/main/java/com/github/rinde/rinsim/pdptw/common/TimeLinePanel.java)  | A timeline indicating for each parcel, the pickup timewindow and the delivery timewindow.| [Experiment example](/learn/examples/experiment/)|
+| [RoutePanel](https://github.com/rinde/RinSim/blob/master/pdptw/src/main/java/com/github/rinde/rinsim/pdptw/common/RoutePanel.java)        | Shows a table with a row per RouteFollowingVehicle detailing its route. | [Experiment example](/learn/examples/experiment/) |
+| [StatsPanel](https://github.com/rinde/RinSim/blob/master/pdptw/src/main/java/com/github/rinde/rinsim/pdptw/common/StatsPanel.java)        | Presents a live view on the stats in a side panel. | [Experiment example](/learn/examples/experiment/) |
+| [RouteRenderer](https://github.com/rinde/RinSim/blob/master/pdptw/src/main/java/com/github/rinde/rinsim/pdptw/common/RouteRenderer.java)  | Renders the current route for each RouteFollowingVehicle. | [Experiment example](/learn/examples/experiment/) |
 
 

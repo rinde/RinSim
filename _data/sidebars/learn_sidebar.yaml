@@ -33,6 +33,9 @@ entries:
       - title: Gradient field
         url: /learn/examples/gradientfield/
         output: web, pdf
+      - title: Experiment
+        url: /learn/examples/experiment/
+        output: web, pdf
   - title: Tutorials
     output: web, pdf
     folderitems:

@@ -6,7 +6,7 @@ toc: false
 permalink: /design/scenario/
 
 ---
-
+__Maven artifactId:__ _rinsim-scenario_ 
 
 The scenario module provides classes that allow to specify the problem side of a simulation as a ``Scenario``. A ``Scenario`` is mainly a list of events that describe what will happen when and a set of models that define parts of the problem. To use a scenario in a simulation, you can wrap it in a ``ScenarioController`` as follows:
 
