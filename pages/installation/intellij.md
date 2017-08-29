@@ -74,8 +74,8 @@ Note that by default Maven uses (the ancient) Java 1.5. Since RinSim requires at
 <img src="{{ "images/installation/intellij/9.png" | relative_url }}" width="500">
 
 12. You should now see the following window:<br/>
-![New]({{ "images/installation/eclipse/5e.png" | relative_url }})<br/>
+{% include image.html file="examples/simple-example.gif" alt="Simple example" caption="This is an animation of the simple example." url="/learn/examples/simple/" %}
 Congratulations, Your setup is complete, you can start working with RinSim!
-Click ``Control`` -> ``Play`` to start the simulation. For more information about the other available examples, click [here](../example/README.md).
+Click ``Control`` -> ``Play`` to start the simulation. For more information about the other available examples, click [here](/learn/).
 
 {% include tip.html content="you can download the sources of RinSim and all other dependencies by right clicking your project -> ``Maven`` -> ``Download Sources and Documentation``" %}

@@ -83,9 +83,9 @@ Check that the ``JRE System Library`` as shown by Eclipse is version 1.7 (or hig
 <br/><br/>
 
 11. You should now see the following window:<br/>
-![New]({{ "images/installation/eclipse/5e.png" | relative_url }})<br/>
-Congratualations, Your setup is complete, you can start working with RinSim!
-Click ``Control`` -> ``Play`` to start the simulation. For more information about the other available examples, click [here](../example/README.md).
+{% include image.html file="examples/simple-example.gif" alt="Simple example" caption="This is an animation of the simple example." url="/learn/examples/simple/" %}
+Congratulations, Your setup is complete, you can start working with RinSim!
+Click ``Control`` -> ``Play`` to start the simulation. For more information about the other available examples, click [here](/learn/).
 
 
 {% include tip.html content="you can download the sources of RinSim and all other dependencies by right clicking your project -> ``Maven`` -> ``Download Sources``" %}

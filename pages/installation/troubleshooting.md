@@ -1,5 +1,5 @@
 ---
-title: Installation troubleshooting
+title: RinSim troubleshooting
 keywords: [installation, eclipse]
 sidebar: installation_sidebar
 toc: false
@@ -7,6 +7,8 @@ permalink: /installation/troubleshooting/
 folder: installation
 ---
 
+
+- In case the following troubleshooting tips are not helping you with your issue, please ask you question at [StackOverflow using the RinSim tag](https://stackoverflow.com/questions/tagged/rinsim). This tag is actively monitored for new questions so you should normally get a response within several working days.
 - You might see this message in the console:
   ```
   SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".

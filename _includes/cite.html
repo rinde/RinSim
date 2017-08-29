@@ -1,6 +1,9 @@
-<div markdown="span" class="alert alert-warning" role="alert"><i class="fa fa-book"></i> {{include.authors}} ({{include.year}}). <i>{{include.title}}.</i> <b>{{include.venue}}</b>, {{include.details}}. [doi:{{include.doi}}](http://dx.doi.org/{{include.doi}}) 
+<div markdown="span" class="bs-callout bs-callout-success" role="alert"><i class="fa fa-book"></i> {{include.authors}} ({{include.year}}). <i>{{include.title}}.</i> <b>{{include.venue}}</b>{% if include.details %}, {{include.details}}{% endif %}. <a href="http://dx.doi.org/{{include.doi}}" data-toggle="tooltip" data-original-title="Digital object identifier (DOI)"><i class="fa fa-link"></i></a>{:.no_icon}
 {% if include.lirias %}
-[Lirias]({{include.lirias}})
+<a href="{{include.lirias}}" data-toggle="tooltip" data-original-title="Download open access PDF"><i class="fa fa-download"></i></a>{:.no_icon}
+{% endif %}
+{% if include.bibtex %}
+<a href="{{include.bibtex}}" data-toggle="tooltip" data-original-title="BibTeX"><i class="fa fa-university"></i></a>{:.no_icon}
 {% endif %}
 
  </div>

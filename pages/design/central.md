@@ -9,7 +9,7 @@ permalink: /design/central/
 __Maven artifactId:__ _rinsim-central_ 
 
 
-This module provides functionality for using solvers for the PDPTW. They can be used in a centralized (e.g. a single solver for all vehicles) as well as a decentralized (e.g. a solver per vehicle) fashion. There is a package for usage in simulated time as well as a package for usage in real-time.
+This module provides functionality for using solvers for the PDPTW. They can be used in a centralized fashion (e.g. a single solver for all vehicles) as well as a decentralized fashion (e.g. a solver per vehicle). There is a package for usage in simulated time as well as a package for usage in real-time.
 
 ### _central_
 
@@ -23,7 +23,7 @@ The `GlobalStateObject` is a value object that encodes the problem that needs to
 Usage:
  - __Centralized__: via `Central`, either using:
    - `Central.builder(..)` in case of using a regular `Simulator` instance.
-   - `Central.solverConfiguration(..)` in case of using the [experiment API](/design/experiment/) (recommended).
+   - or, `Central.solverConfiguration(..)` in case of using the [experiment API](/design/experiment/) (recommended).
  - __Decentralized__: via `SolverModel`. By adding `SolverModel` to the simulation, objects that implement the `SolverUser` interface can use a solver to solve their PDPTW instances. 
 
 
@@ -35,6 +35,8 @@ Usage:
 The structure of this package is very similar to the _central_ package, but the implementation details are more complicated. The reason is that in real-time, the solvers have to be asynchronous. The computation result therefore arrives in a callback and not in the return of the method.
 
 The [RealtimeSolver](https://github.com/rinde/RinSim/blob/master/central/src/main/java/com/github/rinde/rinsim/central/rt/RealtimeSolver.java) is the real-time equivalent of `Solver`.
+
+{% include warning.html content="The remainder of this section is still under construction." %}
 
 #### RtSolverModel
 
