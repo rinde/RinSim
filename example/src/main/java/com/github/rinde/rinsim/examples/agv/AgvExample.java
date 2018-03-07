@@ -38,7 +38,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Table;
 
 /**
- * Example showcasing the {@link CollisionGraphRoadModelImpl} with an
+ * Example showcasing the {@link CollisionGraphRoadModelImpl} with a
  * {@link WarehouseRenderer} and {@link AGVRenderer}.
  * @author Rinde van Lon
  */
