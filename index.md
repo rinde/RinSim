@@ -7,11 +7,18 @@ sidebar:
 toc: false
 ---
 <!-- https://deepnn.github.io/index.html -->
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+<a class="github-button" href="https://github.com/rinde/rinsim" data-size="large" data-show-count="true" aria-label="Star rinde/rinsim on GitHub">Star</a>
+<a class="github-button" href="https://github.com/rinde/rinsim/subscription" data-size="large" data-show-count="true" aria-label="Watch rinde/rinsim on GitHub">Watch</a>
+<a class="github-button" href="https://github.com/rinde/rinsim/fork" data-size="large" data-show-count="true" aria-label="Fork rinde/rinsim on GitHub">Fork</a>
+
 [![Javadocs](https://javadoc.io/badge/com.github.rinde/rinsim-core.svg?color=red)](https://javadoc.io/doc/com.github.rinde/rinsim-core){:.no_icon} 
 [![Build Status](https://travis-ci.org/rinde/RinSim.svg?branch=master)](https://travis-ci.org/rinde/RinSim){:.no_icon} 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.rinde/rinsim-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.rinde/rinsim-core){:.no_icon} 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.192106.svg)](https://doi.org/10.5281/zenodo.192106){:.no_icon} 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.571471.svg)](https://doi.org/10.5281/zenodo.571471){:.no_icon} 
 [![Stackoverflow](https://img.shields.io/badge/stackoverflow-rinsim-orange.svg)](http://stackoverflow.com/questions/tagged/rinsim){:.no_icon} 
+
+
 
 ![Taxi Demo](images/taxi-demo.gif)
 

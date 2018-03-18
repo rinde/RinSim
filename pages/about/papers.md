@@ -21,5 +21,7 @@ folder: about
 
 {% include cite.html authors="van Lon R.R.S., Holvoet T." title="Towards systematic evaluation of multi-agent systems in large scale and dynamic logistics" venue="PRIMA 2015: Principles and Practice of Multi-Agent Systems" details="Vol. 9387, (pp. 248-264)" year="2015" doi="10.1007/978-3-319-25524-8_16" lirias="https://lirias.kuleuven.be/bitstream/123456789/512404/1/van-Lon%2C-Holvoet-2015-Towards-systematic-evaluation-of-multi-agent-systems-in-large-scale-and-dynamic-logistics.pdf" bibtex="/pages/about/vanLon2015prima.bib" %}
 
+Want your paper listed here? [Create an issue on GitHub](https://github.com/rinde/RinSim/issues)
+
 
 
