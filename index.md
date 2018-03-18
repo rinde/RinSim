@@ -12,6 +12,8 @@ toc: false
 <a class="github-button" href="https://github.com/rinde/rinsim/subscription" data-size="large" data-show-count="true" aria-label="Watch rinde/rinsim on GitHub">Watch</a>
 <a class="github-button" href="https://github.com/rinde/rinsim/fork" data-size="large" data-show-count="true" aria-label="Fork rinde/rinsim on GitHub">Fork</a>
 
+RinSim is an extensible logistics simulator with support for (de)centralized algorithms for pickup and delivery problems and AGV routing. The simulator focuses on __simplicity__ and __consistency__ making it ideal for performing scientific simulations. Further, software quality is a priority resulting in an ever improving test suite and documentation.
+
 [![Javadocs](https://javadoc.io/badge/com.github.rinde/rinsim-core.svg?color=red)](https://javadoc.io/doc/com.github.rinde/rinsim-core){:.no_icon} 
 [![Build Status](https://travis-ci.org/rinde/RinSim.svg?branch=master)](https://travis-ci.org/rinde/RinSim){:.no_icon} 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.rinde/rinsim-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.rinde/rinsim-core){:.no_icon} 
@@ -21,8 +23,6 @@ toc: false
 
 
 ![Taxi Demo](images/taxi-demo.gif)
-
-RinSim is an extensible logistics simulator with support for (de)centralized algorithms for pickup and delivery problems and AGV routing. The simulator focuses on __simplicity__ and __consistency__ making it ideal for performing scientific simulations. Further, software quality is a priority resulting in an ever improving test suite and documentation.
 
 ## Features
 
