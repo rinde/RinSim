@@ -1,7 +1,8 @@
 language: java
 jdk:
+  # - oraclejdk9
   - oraclejdk8
-  - oraclejdk7
+  # - oraclejdk7
   - openjdk7
 
 # OpenJDK 7 buffer overflow workaround from https://github.com/travis-ci/travis-ci/issues/5227
@@ -29,4 +30,4 @@ cache:
 
 env:
   global:
-    secure: "BNmSL7eqM5T2U94LVDArWadTZxL9M5S9XZTDg5DA9pwZwZzH+7ZgTcAfhmBJ0ql9YdVm5usmHKCT1HXXMwL0EfUkYbDSZmfn+uoXSvjgWjNmlU9zV0P1La+lPle878bWjbUev3qgjwpd1zRF1RwADolGQwowj35D8jl+E8DPPSQ="
+    - secure: "BNmSL7eqM5T2U94LVDArWadTZxL9M5S9XZTDg5DA9pwZwZzH+7ZgTcAfhmBJ0ql9YdVm5usmHKCT1HXXMwL0EfUkYbDSZmfn+uoXSvjgWjNmlU9zV0P1La+lPle878bWjbUev3qgjwpd1zRF1RwADolGQwowj35D8jl+E8DPPSQ="
