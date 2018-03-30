@@ -37,8 +37,8 @@
 			<name>Rinde van Lon</name>
 			<email>rinde.vanlon@cs.kuleuven.be</email>
 			<url>http://rinde.nl/</url>
-			<organization>DistriNet - KU Leuven</organization>
-			<organizationUrl>http://distrinet.cs.kuleuven.be/people/rinde</organizationUrl>
+			<organization>RinSim</organization>
+			<organizationUrl>http://rinsim.rinde.nl/</organizationUrl>
 			<roles>
 				<role>architect</role>
 				<role>developer</role>
@@ -257,8 +257,8 @@
 				<configuration>
 					<header>LICENSE_HEADER</header>
 					<properties>
-						<owner>Rinde van Lon, imec-DistriNet, KU Leuven</owner>
-						<year>2017</year>
+						<owner>Rinde R.S. van Lon</owner>
+						<year>2018</year>
 					</properties>
 					<mapping>
 						<java>SLASHSTAR_STYLE</java>
