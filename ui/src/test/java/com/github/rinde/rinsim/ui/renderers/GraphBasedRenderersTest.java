@@ -48,7 +48,7 @@ public class GraphBasedRenderersTest {
    * Tests graph related renderers.
    */
   @Test
-  public void testRenderer() {
+  public void testGraphRenderers() {
     final ListenableGraph<LengthData> graph = new ListenableGraph<>(
       new TableGraph<LengthData>());
 
@@ -79,7 +79,8 @@ public class GraphBasedRenderersTest {
           .withAutoPlay()
           .withSimulatorEndTime(300 * 1000L)
           .withAutoClose()
-          .withSpeedUp(8))
+          .withSpeedUp(8)
+          .withTitleAppendix("testGraphRenderers()"))
 
       .build();
 
@@ -102,6 +103,96 @@ public class GraphBasedRenderersTest {
     for (int i = 0; i < 4; i++) {
       sim.register(new Agent(sim.getRandomGenerator()));
     }
+    sim.register(new TickListener() {
+      @Override
+      public void tick(TimeLapse timeLapse) {
+        if (timeLapse.getTime() == 100 * 1000L) {
+          graph.addConnection(new Point(22, 2), new Point(38, 2));
+        }
+      }
+
+      @Override
+      public void afterTick(TimeLapse timeLapse) {}
+    });
+
+    sim.start();
+
+  }
+
+  /**
+   * Tests whether the renderers update their views when the graph changes.
+   */
+  @Test
+  public void testGraphUpdates() {
+    final ListenableGraph<LengthData> graph = new ListenableGraph<>(
+      new TableGraph<LengthData>());
+
+    Graphs.addPath(graph, new Point(0, 0), new Point(10, 0), new Point(10,
+      10), new Point(0, 10), new Point(0, 0));
+
+    final Simulator sim = Simulator.builder()
+      .addModel(RoadModelBuilders.dynamicGraph(graph)
+        .withCollisionAvoidance()
+        .withDistanceUnit(SI.METER))
+      .addModel(
+        View.builder()
+          .with(WarehouseRenderer.builder()
+            .withMargin(0)
+            .withOneWayStreetArrows()
+            .withNodeOccupancy()
+            .withNodes())
+          .with(GraphRoadModelRenderer.builder()
+            .withDirectionArrows()
+            .withNodeCoordinates()
+            .withMargin(1)
+            .withNodeCircles())
+          .withAutoPlay()
+          .withAutoClose()
+          .withSpeedUp(8)
+          .withTitleAppendix("testGraphUpdates()"))
+
+      .build();
+
+    // when developing this test its probably easier to increase the following
+    // value so that there is time to inspect the changes.
+    final long timeMul = 6000L;
+
+    sim.register(new TickListener() {
+      @Override
+      public void tick(TimeLapse timeLapse) {
+        if (timeLapse.getTime() == 10 * timeMul) {
+          Graphs.addPath(graph, new Point(0, 10), new Point(0, 20),
+            new Point(20, 20), new Point(20, 0), new Point(10, 0));
+        } else if (timeLapse.getTime() == 16 * timeMul) {
+          Graphs.addBiPath(graph, new Point(20, 0), new Point(40, 0),
+            new Point(40, 20), new Point(20, 20));
+        } else if (timeLapse.getTime() == 20 * timeMul) {
+          Graphs.addBiPath(graph, new Point(20, 20), new Point(40, 35),
+            new Point(60, 20), new Point(60, 10), new Point(40, 20));
+        } else if (timeLapse.getTime() == 25 * timeMul) {
+          Graphs.addPath(graph, new Point(60, 10), new Point(60, 6),
+            new Point(56, 6), new Point(60, 2), new Point(40, 0));
+        } else if (timeLapse.getTime() == 30 * timeMul) {
+          Graphs.addBiPath(graph, new Point(20, 20), new Point(20, 30),
+            new Point(20, 40));
+        } else if (timeLapse.getTime() == 35 * timeMul) {
+          Graphs.addBiPath(graph, new Point(0, 0), new Point(-10, 0),
+            new Point(-10, -10), new Point(0, -10), new Point(0, 0));
+        } else if (timeLapse.getTime() == 40 * timeMul) {
+          graph.removeNode(new Point(0, 0));
+        } else if (timeLapse.getTime() == 45 * timeMul) {
+          graph.addConnection(new Point(20, 40), new Point(20, 400));
+        } else if (timeLapse.getTime() == 50 * 60000L) {
+          graph.removeConnection(new Point(20, 40), new Point(20, 400));
+        } else if (timeLapse.getTime() >= 55 * timeMul) {
+          sim.stop();
+        }
+      }
+
+      @Override
+      public void afterTick(TimeLapse timeLapse) {}
+    });
+
     sim.start();
 
   }

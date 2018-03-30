@@ -37,10 +37,14 @@ import org.eclipse.swt.graphics.GC;
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.road.CollisionGraphRoadModel;
+import com.github.rinde.rinsim.event.Event;
+import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.Graphs;
+import com.github.rinde.rinsim.geom.ListenableGraph;
 import com.github.rinde.rinsim.geom.Point;
+import com.github.rinde.rinsim.ui.RenderController;
 import com.github.rinde.rinsim.ui.renderers.CanvasRenderer.AbstractCanvasRenderer;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
@@ -86,7 +90,8 @@ public final class WarehouseRenderer extends AbstractCanvasRenderer {
   private final boolean showNodes;
   private final Point arrowDimensions;
 
-  WarehouseRenderer(Builder builder, CollisionGraphRoadModel m) {
+  WarehouseRenderer(Builder builder, CollisionGraphRoadModel m,
+      final RenderController renderController) {
     model = m;
     graph = model.getGraph();
     margin = builder.margin() + m.getVehicleLength() / 2d;
@@ -102,6 +107,16 @@ public final class WarehouseRenderer extends AbstractCanvasRenderer {
     arrowDimensions = new Point(
       ARROW_HEAD_REL_DIM.x * roadWidth,
       ARROW_HEAD_REL_DIM.y * roadWidth);
+
+    m.getGraph().getEventAPI().addListener(
+      new Listener() {
+        @Override
+        public void handleEvent(Event e) {
+          renderController.requestStaticRenderUpdate();
+        }
+      },
+      ListenableGraph.EventTypes.ADD_CONNECTION,
+      ListenableGraph.EventTypes.REMOVE_CONNECTION);
   }
 
   private Table<Point, Point, Connection<?>> filterConnections() {
@@ -277,7 +292,7 @@ public final class WarehouseRenderer extends AbstractCanvasRenderer {
     private static final long serialVersionUID = 2640504685565091840L;
 
     Builder() {
-      setDependencies(CollisionGraphRoadModel.class);
+      setDependencies(CollisionGraphRoadModel.class, RenderController.class);
     }
 
     abstract ImmutableSet<VizOptions> vizOptions();
@@ -328,7 +343,8 @@ public final class WarehouseRenderer extends AbstractCanvasRenderer {
     @Override
     public WarehouseRenderer build(DependencyProvider dependencyProvider) {
       return new WarehouseRenderer(this,
-        dependencyProvider.get(CollisionGraphRoadModel.class));
+        dependencyProvider.get(CollisionGraphRoadModel.class),
+        dependencyProvider.get(RenderController.class));
     }
 
     static Builder create() {

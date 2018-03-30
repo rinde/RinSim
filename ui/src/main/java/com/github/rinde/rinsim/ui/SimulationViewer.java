@@ -84,7 +84,7 @@ import com.google.common.collect.Multimap;
  */
 final class SimulationViewer extends Composite implements TickListener,
     ControlListener, PaintListener, SelectionListener, Model<Renderer>,
-    ModelReceiver {
+    ModelReceiver, RenderController {
   static final String SPACE = " ";
   static final org.eclipse.swt.graphics.Point START_SCREEN_SIZE =
     new org.eclipse.swt.graphics.Point(800, 500);
@@ -133,6 +133,8 @@ final class SimulationViewer extends Composite implements TickListener,
   private MenuItem playPauseMenuItem;
   // multiplier
   private double m;
+
+  private boolean requestStaticRenderUpdate;
 
   @Nullable
   private ScrollBar hBar;
@@ -472,14 +474,15 @@ final class SimulationViewer extends Composite implements TickListener,
     final GC gc = e.gc;
 
     final boolean wasFirstTime = firstTime;
-    if (firstTime) {
+    if (firstTime || requestStaticRenderUpdate) {
       calculateSizes();
       firstTime = false;
     }
 
-    if (image == null) {
+    if (image == null || requestStaticRenderUpdate) {
       image = renderStatic();
       updateScrollbars(false);
+      requestStaticRenderUpdate = false;
     }
 
     final org.eclipse.swt.graphics.Point center = getCenteredOrigin();
@@ -696,9 +699,18 @@ final class SimulationViewer extends Composite implements TickListener,
     modelProvider = mp;
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public <U> U get(Class<U> clazz) {
+    if (clazz == RenderController.class) {
+      return (U) this;
+    }
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void requestStaticRenderUpdate() {
+    requestStaticRenderUpdate = true;
   }
 
   static Builder builder(View.Builder vb) {
@@ -712,6 +724,7 @@ final class SimulationViewer extends Composite implements TickListener,
     Builder() {
       setDependencies(Shell.class, ClockController.class, SimulatorAPI.class,
         MainView.class);
+      setProvidingTypes(RenderController.class);
     }
 
     abstract View.Builder viewBuilder();
@@ -733,4 +746,5 @@ final class SimulationViewer extends Composite implements TickListener,
       return sv;
     }
   }
+
 }

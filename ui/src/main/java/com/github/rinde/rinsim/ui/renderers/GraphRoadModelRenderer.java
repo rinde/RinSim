@@ -42,6 +42,7 @@ import com.github.rinde.rinsim.geom.ListenableGraph.EventTypes;
 import com.github.rinde.rinsim.geom.ListenableGraph.GraphEvent;
 import com.github.rinde.rinsim.geom.MultiAttributeData;
 import com.github.rinde.rinsim.geom.Point;
+import com.github.rinde.rinsim.ui.RenderController;
 import com.github.rinde.rinsim.ui.renderers.CanvasRenderer.AbstractCanvasRenderer;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
@@ -75,7 +76,8 @@ public final class GraphRoadModelRenderer extends AbstractCanvasRenderer {
   private final boolean showRelativeSpeedDynamic;
   private final RenderHelper helper;
 
-  GraphRoadModelRenderer(GraphRoadModel grm, Builder b) {
+  GraphRoadModelRenderer(GraphRoadModel grm, Builder b,
+      final RenderController renderController) {
     model = grm;
     updatedConnections = new CopyOnWriteArrayList<>();
 
@@ -86,6 +88,18 @@ public final class GraphRoadModelRenderer extends AbstractCanvasRenderer {
     showRelativeSpeedStatic = b.vizOptions().contains(VizOptions.REL_SPEED_S);
     showRelativeSpeedDynamic = b.vizOptions().contains(VizOptions.REL_SPEED_D);
     helper = new RenderHelper();
+
+    if (grm.getGraph() instanceof ListenableGraph<?>) {
+      ((ListenableGraph<?>) grm.getGraph()).getEventAPI().addListener(
+        new Listener() {
+          @Override
+          public void handleEvent(Event e) {
+            renderController.requestStaticRenderUpdate();
+          }
+        },
+        ListenableGraph.EventTypes.ADD_CONNECTION,
+        ListenableGraph.EventTypes.REMOVE_CONNECTION);
+    }
 
     if (showRelativeSpeedDynamic) {
       try {
@@ -154,7 +168,6 @@ public final class GraphRoadModelRenderer extends AbstractCanvasRenderer {
         helper.drawArrow(f, t, ARROW_HEAD_SIZE, ARROW_HEAD_SIZE);
         color.dispose();
       }
-
     }
   }
 
@@ -218,7 +231,7 @@ public final class GraphRoadModelRenderer extends AbstractCanvasRenderer {
     private static final long serialVersionUID = -5509180917238606415L;
 
     Builder() {
-      setDependencies(GraphRoadModel.class);
+      setDependencies(GraphRoadModel.class, RenderController.class);
     }
 
     abstract int margin();
@@ -292,7 +305,9 @@ public final class GraphRoadModelRenderer extends AbstractCanvasRenderer {
     @Override
     public GraphRoadModelRenderer build(DependencyProvider dependencyProvider) {
       return new GraphRoadModelRenderer(
-        dependencyProvider.get(GraphRoadModel.class), this);
+        dependencyProvider.get(GraphRoadModel.class),
+        this,
+        dependencyProvider.get(RenderController.class));
     }
 
     static Builder create() {
