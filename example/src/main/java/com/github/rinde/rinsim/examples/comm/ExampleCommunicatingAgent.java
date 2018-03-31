@@ -33,7 +33,8 @@ import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Optional;
 
-class RandomBroadcastAgent implements MovingRoadUser, CommUser, TickListener {
+class ExampleCommunicatingAgent
+    implements MovingRoadUser, CommUser, TickListener {
   static final double MIN_RANGE = .2;
   static final double MAX_RANGE = 1.5;
   static final long LONELINESS_THRESHOLD = 10 * 1000;
@@ -49,7 +50,7 @@ class RandomBroadcastAgent implements MovingRoadUser, CommUser, TickListener {
   private final String name;
   private final Set<CommUser> knownAgents;
 
-  RandomBroadcastAgent(RandomGenerator r, String nm) {
+  ExampleCommunicatingAgent(RandomGenerator r, String nm) {
     rng = r;
     device = Optional.absent();
     roadModel = Optional.absent();

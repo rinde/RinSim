@@ -95,9 +95,9 @@ public final class CommExample {
     for (int i = 0; i < NUM_AGENTS; i++) {
       final String first = NAMES.get(i % NAMES.size());
       final String last = LAST_NAMES.get(i % LAST_NAMES.size());
-
       sim.register(
-        new RandomBroadcastAgent(sim.getRandomGenerator(), first + " " + last));
+        new ExampleCommunicatingAgent(sim.getRandomGenerator(),
+          first + " " + last));
     }
     sim.start();
   }
