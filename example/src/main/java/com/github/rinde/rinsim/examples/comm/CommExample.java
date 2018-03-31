@@ -21,6 +21,7 @@ import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.ui.View;
 import com.github.rinde.rinsim.ui.renderers.CommRenderer;
 import com.github.rinde.rinsim.ui.renderers.PlaneRoadModelRenderer;
+import com.google.common.collect.ImmutableList;
 
 /**
  * This example shows a possible use case of the {@link CommModel}. It is shown
@@ -44,6 +45,16 @@ public final class CommExample {
   private static final long TEST_STOP_TIME = 10 * 60 * 1000;
   private static final int NUM_AGENTS = 50;
 
+  private static final ImmutableList<String> NAMES =
+    ImmutableList.of("Tyrion", "Cersei", "Daenerys", "Jon", "Sansa", "Arya",
+      "Jaime", "Jorah", "Theon", "Samwell", "Petyr", "Varys", "Brienne",
+      "Davos", "Bran", "Bronn", "Missandei", "Sandor", "Pycelle", "Eddison",
+      "Podrick", "Melisandre", "Tormund", "Grey", "Tywin", "Margaery",
+      "Joffrey", "Catelyn", "Barristan");
+  private static final ImmutableList<String> LAST_NAMES =
+    ImmutableList.of("Flowers", "Hill", "Pyke", "Rivers", "Sand", "Snow",
+      "Stone", "Storm", "Waters");
+
   private CommExample() {}
 
   /**
@@ -65,6 +76,7 @@ public final class CommExample {
       .with(PlaneRoadModelRenderer.builder())
       .with(CommRenderer.builder()
         .withReliabilityColors()
+        .withToString()
         .withMessageCount());
 
     if (testing) {
@@ -81,7 +93,11 @@ public final class CommExample {
       .build();
 
     for (int i = 0; i < NUM_AGENTS; i++) {
-      sim.register(new RandomBroadcastAgent(sim.getRandomGenerator()));
+      final String first = NAMES.get(i % NAMES.size());
+      final String last = LAST_NAMES.get(i % LAST_NAMES.size());
+
+      sim.register(
+        new RandomBroadcastAgent(sim.getRandomGenerator(), first + " " + last));
     }
     sim.start();
   }

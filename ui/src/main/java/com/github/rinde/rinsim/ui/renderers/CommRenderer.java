@@ -28,6 +28,7 @@ import javax.annotation.CheckReturnValue;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
@@ -168,8 +169,12 @@ public final class CommRenderer extends AbstractTypedCanvasRenderer<CommUser> {
       gc.setAlpha(OPAQUE);
       helper.fillCircle(user.getPosition().get(), DOT_RADIUS);
 
+      if (viewOptions.contains(ViewOptions.TO_STRING)) {
+        final Point p = gc.textExtent(user.toString());
+        helper.drawString(user.toString(), user.getPosition().get(), true,
+          -p.x / 2, -p.y);
+      }
       final StringBuilder sb = new StringBuilder();
-
       if (viewOptions.contains(ViewOptions.MSG_COUNT)) {
         sb.append(device.getReceivedCount())
           .append('(')
@@ -181,7 +186,9 @@ public final class CommRenderer extends AbstractTypedCanvasRenderer<CommUser> {
           .append(String.format("%.2f", device.getReliability()));
       }
       if (sb.length() > 0) {
-        helper.drawString(sb.toString(), user.getPosition().get(), true);
+        final Point p = gc.textExtent(sb.toString());
+        helper.drawString(sb.toString(), user.getPosition().get(), true,
+          -p.x / 2, 0);
       }
     }
 
@@ -193,7 +200,7 @@ public final class CommRenderer extends AbstractTypedCanvasRenderer<CommUser> {
   }
 
   enum ViewOptions {
-    RELIABILITY_COLOR, MSG_COUNT, RELIABILITY_PERC;
+    RELIABILITY_COLOR, MSG_COUNT, RELIABILITY_PERC, TO_STRING;
   }
 
   /**
@@ -215,6 +222,16 @@ public final class CommRenderer extends AbstractTypedCanvasRenderer<CommUser> {
     abstract RGB unreliableColor();
 
     abstract ImmutableSet<ViewOptions> viewOptions();
+
+    /**
+     * Draws the toString() representation of the {@link CommUser} near its
+     * location.
+     * @return A new builder instance.
+     */
+    @CheckReturnValue
+    public Builder withToString() {
+      return create(this, ViewOptions.TO_STRING);
+    }
 
     /**
      * Shows the reliability as a percentage for every {@link CommDevice} on the

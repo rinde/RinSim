@@ -15,11 +15,16 @@
  */
 package com.github.rinde.rinsim.examples.comm;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.apache.commons.math3.random.RandomGenerator;
 
 import com.github.rinde.rinsim.core.model.comm.CommDevice;
 import com.github.rinde.rinsim.core.model.comm.CommDeviceBuilder;
 import com.github.rinde.rinsim.core.model.comm.CommUser;
+import com.github.rinde.rinsim.core.model.comm.Message;
 import com.github.rinde.rinsim.core.model.comm.MessageContents;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
@@ -41,13 +46,16 @@ class RandomBroadcastAgent implements MovingRoadUser, CommUser, TickListener {
   private final double range;
   private final double reliability;
   private final RandomGenerator rng;
+  private final String name;
+  private final Set<CommUser> knownAgents;
 
-  RandomBroadcastAgent(RandomGenerator r) {
+  RandomBroadcastAgent(RandomGenerator r, String nm) {
     rng = r;
     device = Optional.absent();
     roadModel = Optional.absent();
     destination = Optional.absent();
-
+    name = nm;
+    knownAgents = new HashSet<>();
     range = MIN_RANGE + rng.nextDouble() * (MAX_RANGE - MIN_RANGE);
     reliability = rng.nextDouble();
   }
@@ -86,14 +94,40 @@ class RandomBroadcastAgent implements MovingRoadUser, CommUser, TickListener {
       destination = Optional.absent();
     }
 
+    // check if we have messages
     if (device.get().getUnreadCount() > 0) {
       lastReceiveTime = timeLapse.getStartTime();
-      device.get().getUnreadMessages();
+      final List<Message> messages = device.get().getUnreadMessages();
+
+      // reading all unread messages
+      for (final Message message : messages) {
+
+        if (message.getContents() == Messages.WHO_ARE_YOU) {
+          // if someone asks us who we are, we give an polite answer
+          device.get().send(new MyNameIs(name), message.getSender());
+        } else if (message.getContents() instanceof MyNameIs) {
+          // if someone tells us their name, we remember who they are.
+          // cast the message to read the name
+          final String nameOfOther =
+            ((MyNameIs) message.getContents()).getName();
+          System.out.println("I, " + name + ", just met " + nameOfOther);
+          knownAgents.add(message.getSender());
+        }
+
+        if (!knownAgents.contains(message.getSender())) {
+          // if we don't know the sender, we ask who they are
+          device.get().send(Messages.WHO_ARE_YOU, message.getSender());
+        }
+      }
+      // when we have non-zero unread messages, we always broadcast "nice to
+      // meet you" to everyone within range.
       device.get().broadcast(Messages.NICE_TO_MEET_YOU);
     } else if (device.get().getReceivedCount() == 0) {
+      // our first message
       device.get().broadcast(Messages.HELLO_WORLD);
     } else if (timeLapse.getStartTime()
       - lastReceiveTime > LONELINESS_THRESHOLD) {
+      // when we haven't received anything for a while, we become anxious :(
       device.get().broadcast(Messages.WHERE_IS_EVERYBODY);
     }
   }
@@ -106,7 +140,24 @@ class RandomBroadcastAgent implements MovingRoadUser, CommUser, TickListener {
     return VEHICLE_SPEED_KMH;
   }
 
+  @Override
+  public String toString() {
+    return name;
+  }
+
   enum Messages implements MessageContents {
-    HELLO_WORLD, NICE_TO_MEET_YOU, WHERE_IS_EVERYBODY;
+    HELLO_WORLD, NICE_TO_MEET_YOU, WHERE_IS_EVERYBODY, WHO_ARE_YOU;
+  }
+
+  static class MyNameIs implements MessageContents {
+    private final String name;
+
+    MyNameIs(String nm) {
+      name = nm;
+    }
+
+    String getName() {
+      return name;
+    }
   }
 }
