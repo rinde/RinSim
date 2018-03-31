@@ -13,3 +13,4 @@ licenses/
 *.log
 *.synctex.gz
 *.pdf
+*.sublime-workspace
