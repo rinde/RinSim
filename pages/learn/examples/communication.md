@@ -15,4 +15,4 @@ Here you can see several agents randomly driving around. The color of each agent
 
 |-------|--------|
 | [CommExample](https://github.com/rinde/RinSim/blob/master/example/src/main/java/com/github/rinde/rinsim/examples/comm/CommExample.java) | Contains the main of the example. It configures the simulator models and visualization and adds several agents. |
-| [ExampleCommunicatingAgent](https://github.com/rinde/RinSim/blob/master/example/src/main/java/com/github/rinde/rinsim/examples/comm/RandomBroadcastAgent.java) | An example implementation of a `CommUser`. It shows how broadcasting and direct messaging works. Take a look at the `tick(..)` method for details. |
+| [ExampleCommunicatingAgent](https://github.com/rinde/RinSim/blob/master/example/src/main/java/com/github/rinde/rinsim/examples/comm/ExampleCommunicatingAgent.java) | An example implementation of a `CommUser`. It shows how broadcasting and direct messaging works. Take a look at the `tick(..)` method for details. |
