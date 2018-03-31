@@ -11,11 +11,11 @@ RinSim comes with a number of examples, each example listed here can be run dire
 ## Examples
 
 |-------|--------|---------|
-| {% include image.html file="examples/simple-example.gif" alt="Simple example" max-width=200 url="/learn/examples/simple/" %}  | {% include image.html file="examples/communication-example.gif" alt="Communication example" max-width=200 url="/learn/examples/communication/" %}  | {% include image.html file="examples/taxi-example.gif" alt="Taxi example" max-width=200 url="/learn/examples/taxi/" %} |
+| {% include image.html file="examples/simple-example.gif" alt="Simple example" max-width=200 url="/learn/examples/simple/" target="_self" %}  | {% include image.html file="examples/communication-example.gif" alt="Communication example" max-width=200 url="/learn/examples/communication/" target="_self" %}  | {% include image.html file="examples/taxi-example.gif" alt="Taxi example" max-width=200 url="/learn/examples/taxi/" target="_self" %} |
 | [Simple example](/learn/examples/simple/) | [Communication example](/learn/examples/communication/) | [Taxi example](/learn/examples/taxi/)
-| {% include image.html file="examples/agv-example.gif" alt="Autonomous guided vehicles example" max-width=200 url="/learn/examples/agv/" %} | {% include image.html file="examples/uav-example.gif" alt="Unmanned aerial vehicles example" max-width=200 url="/learn/examples/uav/" %} | {% include image.html file="examples/gradient-field-example.gif" alt="Gradient field example" max-width=200 url="/learn/examples/gradientfield/" %} |
+| {% include image.html file="examples/agv-example.gif" alt="Autonomous guided vehicles example" max-width=200 url="/learn/examples/agv/" target="_self" %} | {% include image.html file="examples/uav-example.gif" alt="Unmanned aerial vehicles example" max-width=200 url="/learn/examples/uav/" target="_self" %} | {% include image.html file="examples/gradient-field-example.gif" alt="Gradient field example" max-width=200 url="/learn/examples/gradientfield/" target="_self" %} |
 | [Autonomous guided vehicles example](/learn/examples/agv/) | [Unmanned aerial vehicles example](/learn/examples/uav/) | [Gradient field example](/learn/examples/gradientfield/)
-| {% include image.html file="examples/experiment-example.gif" alt="Experiment example" max-width=200 url="/learn/examples/experiment/" %} | | |
+| {% include image.html file="examples/experiment-example.gif" alt="Experiment example" max-width=200 url="/learn/examples/experiment/" target="_self" %} | | |
 | [Experiment example](/learn/examples/experiment/)|  |
 
 <!-- 
