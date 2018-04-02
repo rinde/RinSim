@@ -10,9 +10,6 @@ RinSim is an extensible logistics simulator with support for (de)centralized alg
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.571471.svg)](https://doi.org/10.5281/zenodo.571471)
 [![Stackoverflow](https://img.shields.io/badge/stackoverflow-rinsim-orange.svg)](http://stackoverflow.com/questions/tagged/rinsim)
 
-<!-- ![PDPModel](docs/topbar.png) -->
-![Taxi Demo](docs/taxi-demo.gif)
-
 ## Installation
 
 RinSim uses [Maven](http://maven.apache.org/) for managing its dependencies. RinSim can be added to your Maven project by including the following in your pom file, where x and y represents the preferred version number. 
