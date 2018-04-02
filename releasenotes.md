@@ -3,6 +3,7 @@
 ## v4.4.3
  * GraphRoadRenderer and WarehouseRenderer now update upon graph changes.
  * CommDevice.broadcast(MessageContents,double) added by [Tom Houben](https://github.com/tomhouben95).
+ * Added code of conduct and contributing docs.
  * Updated examples and documentation.
 
 ## v4.4.2
