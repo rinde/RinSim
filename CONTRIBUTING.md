@@ -1,5 +1,9 @@
 # Contributing to RinSim
 
+I'm really glad ❤ you're reading this, because RinSim is an open source project that relies on people like you to become better.
+
+Make sure you have read the [RinSim Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md).
+
 ##### Did you find a bug?
 
  - Ensure the bug was not already reported by searching on [GitHub Issues](https://github.com/rinde/RinSim/issues) and [StackOverflow](https://stackoverflow.com/questions/tagged/rinsim).
