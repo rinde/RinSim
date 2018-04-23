@@ -105,8 +105,10 @@ public abstract class AbstractGraph<E extends ConnectionData> implements
   protected abstract void doAddConnection(Point from, Point to,
       Optional<E> connData);
 
+  // CHECKSTYLE:OFF - hashCode can not be implemented here
   @Override
   public boolean equals(@Nullable Object other) {
+    // CHECKSTYLE:ON
     return Graphs.equal(this, other);
   }
 

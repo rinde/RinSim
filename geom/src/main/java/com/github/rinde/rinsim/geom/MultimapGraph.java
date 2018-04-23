@@ -218,8 +218,10 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
     lazyConnectionTable.remove(from, to);
   }
 
+  // CHECKSTYLE:OFF
   @Override
   public int hashCode() {
+    // CHECKSTYLE:ON
     return hash(multimap, deadEndNodes, lazyConnectionTable);
   }
 

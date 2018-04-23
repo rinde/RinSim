@@ -20,7 +20,6 @@
 		<property name="message" value="Space needed around ':' character." />
 	</module>
 
-
 	<module name="JavadocPackage" />
 
 	<module name="TreeWalker">
@@ -35,10 +34,8 @@
 
 		<!-- Checks for Javadoc comments. -->
 		<!-- See http://checkstyle.sf.net/config_javadoc.html -->
-		<!--<module name="JavadocType"> <property name="scope" value="protected" 
-			/> </module> <module name="JavadocMethod"> <property name="scope" value="protected" 
-			/> </module> <module name="JavadocVariable"> <property name="scope" value="protected" 
-			/> </module> -->
+		<!--<module name="JavadocType"> <property name="scope" value="protected" /> </module> <module name="JavadocMethod"> <property name="scope" value="protected" /> </module> <module name="JavadocVariable"> 
+			<property name="scope" value="protected" /> </module> -->
 		<module name="NonEmptyAtclauseDescription" />
 		<module name="JavadocStyle" />
 		<module name="SingleLineJavadoc" />
@@ -46,9 +43,7 @@
 			<property name="offset" value="2" />
 		</module>
 		<module name="AtclauseOrder">
-			<!-- <property name="tagOrder" value="@version, @param, @return, @throws, 
-				@exception, @see, @serial, @serialField, @serialData, @deprecated, @author, 
-				@since" /> -->
+			<!-- <property name="tagOrder" value="@version, @param, @return, @throws, @exception, @see, @serial, @serialField, @serialData, @deprecated, @author, @since" /> -->
 		</module>
 
 
@@ -79,11 +74,8 @@
 		<!-- See http://checkstyle.sf.net/config_sizes.html -->
 		<module name="LineLength">
 			<property name="max" value="80" />
-			<!-- Regular expression that ignores: variable, method and class declarations 
-				with at least two generic types, import statements, or comments with an @link 
-				statement -->
-			<property name="ignorePattern"
-				value="(^import|^.*>+.*(>+.*[;\(\{]$|$)|^ +\* +\{@link .*\}$)" />
+			<!-- Regular expression that ignores: variable, method and class declarations with at least two generic types, import statements, or comments with an @link statement -->
+			<property name="ignorePattern" value="(^import|^.*>+.*(>+.*[;\(\{]$|$)|^ +\* +\{@link .*\}$)" />
 		</module>
 		<module name="MethodLength" />
 		<!--module name="ParameterNumber"/ -->
@@ -181,11 +173,7 @@
 		<module name="TrailingComment" />
 		<module name="OuterTypeFilename" />
 		<module name="AvoidEscapedUnicodeCharacters" />
-
-		<!-- Enable suppression later -->
-		<module name="FileContentsHolder" />
+		
+		 <module name="SuppressionCommentFilter"/>
 	</module>
-
-	<!-- Allow suppression via comments -->
-	<module name="SuppressionCommentFilter" />
 </module>

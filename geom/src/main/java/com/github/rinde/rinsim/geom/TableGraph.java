@@ -163,8 +163,10 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
       data.put(from, to, Connection.create(from, to, connData))).data();
   }
 
+  // CHECKSTYLE:OFF
   @Override
   public int hashCode() {
+    // CHECKSTYLE:ON
     return hash(data);
   }
 
