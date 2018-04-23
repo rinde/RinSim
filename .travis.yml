@@ -3,7 +3,7 @@ jdk:
   # - oraclejdk9
   - oraclejdk8
   # - oraclejdk7
-  - openjdk7
+  #- openjdk7
 
 # OpenJDK 7 buffer overflow workaround from https://github.com/travis-ci/travis-ci/issues/5227
 before_install:
