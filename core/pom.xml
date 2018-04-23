@@ -109,6 +109,10 @@
 		</dependency>
 		<!-- test dependencies -->
 		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava-testlib</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>com.google.truth</groupId>
 			<artifactId>truth</artifactId>
 			<scope>test</scope>

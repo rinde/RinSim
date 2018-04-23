@@ -246,7 +246,7 @@ public class CollisionPlaneRoadModelTest {
             final Point p1 = model.getPosition(list.get(i));
             final Point p2 = model.getPosition(list.get(j));
             assert_()
-              .withFailureMessage("%s is too close to %s", list.get(i),
+              .withMessage("%s is too close to %s", list.get(i),
                 list.get(j))
               .that(Point.distance(p1, p2))
               .isAtLeast(599d);

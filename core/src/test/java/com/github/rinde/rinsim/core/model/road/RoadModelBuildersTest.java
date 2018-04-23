@@ -42,6 +42,7 @@ import com.github.rinde.rinsim.geom.MultimapGraph;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.geom.TableGraph;
 import com.github.rinde.rinsim.testutil.TestUtil;
+import com.google.common.testing.EqualsTester;
 
 /**
  * @author Rinde van Lon
@@ -85,6 +86,7 @@ public class RoadModelBuildersTest {
    * Tests that vehicle length and min distance are set correctly (important
    * because they are both doubles).
    */
+  @Test
   public void testCollisionGraphRMB() {
     final CollisionGraphRMB b = RoadModelBuilders
       .dynamicGraph(new ListenableGraph<>(
@@ -93,12 +95,16 @@ public class RoadModelBuildersTest {
       .withVehicleLength(78d)
       .withMinDistance(3d);
 
-    assertThat(b.getMinDistance()).isEqualTo(3d);
-    assertThat(b.getVehicleLength()).isEqualTo(78d);
+    final double precision = 0.0000001;
+    assertThat(b.getMinDistance()).isWithin(precision).of(3d);
+    assertThat(b.getVehicleLength()).isWithin(precision).of(78d);
 
-    final CollisionGraphRoadModel m = b.build(mock(DependencyProvider.class));
-    assertThat(m.getMinConnLength()).isEqualTo(b.getMinDistance());
-    assertThat(m.getVehicleLength()).isEqualTo(b.getVehicleLength());
+    final CollisionGraphRoadModel m =
+      b.build(mock(DependencyProvider.class));
+    assertThat(m.getMinConnLength()).isWithin(precision)
+      .of(b.getMinDistance());
+    assertThat(m.getVehicleLength()).isWithin(precision)
+      .of(b.getVehicleLength());
   }
 
   /**
@@ -131,7 +137,7 @@ public class RoadModelBuildersTest {
           assertThat(one).isEqualTo(another);
           assertThat(another).isEqualTo(one);
         }
-        assertThat(one).isEqualTo(one);
+        new EqualsTester().addEqualityGroup(one).testEquals();
       }
     }
 
@@ -152,7 +158,7 @@ public class RoadModelBuildersTest {
         .withCollisionAvoidance()
         .withDistanceUnit(NonSI.YARD));
 
-    assertThat((Iterable<?>) set).containsExactly(plane, stat, dynamic, coll,
+    assertThat(set).containsExactly(plane, stat, dynamic, coll,
       cach);
   }
 }

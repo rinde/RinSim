@@ -108,7 +108,7 @@ public class ModelManagerTest {
     assertThat(model.calledRegister).isEqualTo(2);
     assertThat(model.calledTypes).isEqualTo(1);
     assertThat(model2.calledRegister).isEqualTo(1);
-    assertThat((Iterable<?>) mm.getModels()).containsAllOf(model, model2);
+    assertThat(mm.getModels()).containsAllOf(model, model2);
   }
 
   /**
@@ -258,6 +258,7 @@ public class ModelManagerTest {
   /**
    * Tests for unregistering a previously registered object.
    */
+  @Test
   public void unregisterRegistered() {
     final OtherFooModel model = new OtherFooModel();
     final BarModel model2 = new BarModel();

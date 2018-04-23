@@ -478,7 +478,7 @@ public class RouteFollowingVehicleTest {
     }
     // assertTrue(exception2);
     assert_()
-      .withFailureMessage(
+      .withMessage(
         "diversion: " + diversionIsAllowed + ", delayed route changes: "
           + allowDelayedRouteChanges + ", routeAdjuster: " + routeAdjuster)
       .that(exception2)
@@ -1384,6 +1384,7 @@ public class RouteFollowingVehicleTest {
    * order when there is no service time.
    */
   @Test
+  @SuppressWarnings("ModifyingCollectionWithItself")
   public void noServiceTime() {
     final Parcel noServ = Parcel
       .builder(new Point(1, 2), new Point(1, 4))
@@ -1397,6 +1398,7 @@ public class RouteFollowingVehicleTest {
 
     final List<DefaultEvent> expected =
       new ArrayList<>(asList(GOTO, ARRIVED, READY_TO_SERVICE, DONE));
+
     expected.addAll(expected);
 
     final List<DefaultEvent> actual = new ArrayList<>();
