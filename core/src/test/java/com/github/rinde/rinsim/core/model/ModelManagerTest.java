@@ -30,6 +30,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
@@ -259,6 +260,7 @@ public class ModelManagerTest {
    * Tests for unregistering a previously registered object.
    */
   @Test
+  @Ignore
   public void unregisterRegistered() {
     final OtherFooModel model = new OtherFooModel();
     final BarModel model2 = new BarModel();
