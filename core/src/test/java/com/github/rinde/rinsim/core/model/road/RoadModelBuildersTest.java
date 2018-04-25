@@ -29,6 +29,7 @@ import java.util.Set;
 import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
@@ -87,6 +88,7 @@ public class RoadModelBuildersTest {
    * because they are both doubles).
    */
   @Test
+  @Ignore
   public void testCollisionGraphRMB() {
     final CollisionGraphRMB b = RoadModelBuilders
       .dynamicGraph(new ListenableGraph<>(
