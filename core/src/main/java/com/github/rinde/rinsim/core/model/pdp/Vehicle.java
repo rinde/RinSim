@@ -78,14 +78,14 @@ public abstract class Vehicle extends ContainerImpl implements MovingRoadUser,
   }
 
   @Override
-  public final double getSpeed() {
+  public double getSpeed() {
     return dto.getSpeed();
   }
 
   /**
    * @return The time window in which this vehicle is available.
    */
-  public final TimeWindow getAvailabilityTimeWindow() {
+  public TimeWindow getAvailabilityTimeWindow() {
     return dto.getAvailabilityTimeWindow();
   }
 

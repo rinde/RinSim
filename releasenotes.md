@@ -1,5 +1,8 @@
 # Release notes
 
+## v4.4.4
+ * Vehicle.getSpeed() is now non-final, allowing subclasses to specifiy variable speed.
+
 ## v4.4.3
  * GraphRoadRenderer and WarehouseRenderer now update upon graph changes.
  * CommDevice.broadcast(MessageContents,double) added by [Tom Houben](https://github.com/tomhouben95).
