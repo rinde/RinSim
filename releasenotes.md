@@ -2,6 +2,7 @@
 
 ## v4.4.4
  * Vehicle.getSpeed() is now non-final, allowing subclasses to specifiy variable speed.
+ * RinSim now requires JDK 8 or higher to be build, source code is still Java 7.
 
 ## v4.4.3
  * GraphRoadRenderer and WarehouseRenderer now update upon graph changes.
