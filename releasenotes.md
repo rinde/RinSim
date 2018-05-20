@@ -1,5 +1,8 @@
 # Release notes
 
+## v4.4.5
+ * Fixed bug in CommRenderer.
+
 ## v4.4.4
  * Vehicle.getSpeed() is now non-final, allowing subclasses to specifiy variable speed.
  * RinSim now requires JDK 8 or higher to be build, source code is still Java 7.
