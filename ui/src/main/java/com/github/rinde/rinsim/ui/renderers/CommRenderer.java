@@ -145,9 +145,12 @@ public final class CommRenderer extends AbstractTypedCanvasRenderer<CommUser> {
     }
 
     void update(GC gc, ViewPort vp, long time) {
-      if (!user.getPosition().isPresent()) {
+      final Optional<com.github.rinde.rinsim.geom.Point> maybe =
+        user.getPosition();
+      if (!maybe.isPresent()) {
         return;
       }
+      final com.github.rinde.rinsim.geom.Point userPos = maybe.get();
       if (!color.isPresent()
         && viewOptions.contains(ViewOptions.RELIABILITY_COLOR)) {
         final RGB rgb = ColorUtil.interpolate(unreliableColor, reliableColor,
@@ -156,22 +159,22 @@ public final class CommRenderer extends AbstractTypedCanvasRenderer<CommUser> {
       }
 
       if (device.getMaxRange().isPresent()) {
-        helper.drawCircle(user.getPosition().get(), device.getMaxRange().get());
+        helper.drawCircle(userPos, device.getMaxRange().get());
         if (color.isPresent()) {
           gc.setBackground(color.get());
         } else {
           helper.setBackgroundSysCol(SWT.COLOR_DARK_BLUE);
         }
         gc.setAlpha(SEMI_TRANSPARENT);
-        helper.fillCircle(user.getPosition().get(), device.getMaxRange().get());
+        helper.fillCircle(userPos, device.getMaxRange().get());
       }
 
       gc.setAlpha(OPAQUE);
-      helper.fillCircle(user.getPosition().get(), DOT_RADIUS);
+      helper.fillCircle(userPos, DOT_RADIUS);
 
       if (viewOptions.contains(ViewOptions.TO_STRING)) {
         final Point p = gc.textExtent(user.toString());
-        helper.drawString(user.toString(), user.getPosition().get(), true,
+        helper.drawString(user.toString(), userPos, true,
           -p.x / 2, -p.y);
       }
       final StringBuilder sb = new StringBuilder();
@@ -187,7 +190,7 @@ public final class CommRenderer extends AbstractTypedCanvasRenderer<CommUser> {
       }
       if (sb.length() > 0) {
         final Point p = gc.textExtent(sb.toString());
-        helper.drawString(sb.toString(), user.getPosition().get(), true,
+        helper.drawString(sb.toString(), userPos, true,
           -p.x / 2, 0);
       }
     }

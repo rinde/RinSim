@@ -1,4 +1,4 @@
-# RinSim 4.4.4
+# RinSim 4.4.5
 
 Detailed documentation is available at [the documentation website](http://rinsim.rinde.nl).
 
