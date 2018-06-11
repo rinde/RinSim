@@ -17,6 +17,7 @@ package com.github.rinde.rinsim.ui.renderers;
 
 import static com.github.rinde.rinsim.ui.renderers.WarehouseRenderer.VizOptions.DRAW_ONE_WAY_STREET_ARROWS;
 import static com.github.rinde.rinsim.ui.renderers.WarehouseRenderer.VizOptions.SHOW_NODES;
+import static com.github.rinde.rinsim.ui.renderers.WarehouseRenderer.VizOptions.SHOW_NODE_COORDINATES;
 import static com.github.rinde.rinsim.ui.renderers.WarehouseRenderer.VizOptions.SHOW_NODE_OCCUPANCY;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
@@ -88,6 +89,7 @@ public final class WarehouseRenderer extends AbstractCanvasRenderer {
   private final boolean drawOneWayStreetArrows;
   private final boolean showNodeOccupancy;
   private final boolean showNodes;
+  private final boolean showNodeCoordinates;
   private final Point arrowDimensions;
 
   WarehouseRenderer(Builder builder, CollisionGraphRoadModel m,
@@ -99,6 +101,7 @@ public final class WarehouseRenderer extends AbstractCanvasRenderer {
       DRAW_ONE_WAY_STREET_ARROWS);
     showNodeOccupancy = builder.vizOptions().contains(SHOW_NODE_OCCUPANCY);
     showNodes = builder.vizOptions().contains(SHOW_NODES);
+    showNodeCoordinates = builder.vizOptions().contains(SHOW_NODE_COORDINATES);
     adapter = new RenderHelper();
     vehicleLength = model.getVehicleLength();
     minDistance = model.getMinDistance();
@@ -180,6 +183,10 @@ public final class WarehouseRenderer extends AbstractCanvasRenderer {
       if (showNodes) {
         adapter.setBackgroundSysCol(SWT.COLOR_RED);
         adapter.fillCircle(p, 2);
+      }
+
+      if (showNodeCoordinates) {
+        adapter.drawString(p.toString(), p, true);
       }
 
       final Set<Point> conns = new LinkedHashSet<>();
@@ -278,7 +285,9 @@ public final class WarehouseRenderer extends AbstractCanvasRenderer {
   }
 
   enum VizOptions {
-    DRAW_ONE_WAY_STREET_ARROWS, SHOW_NODE_OCCUPANCY, SHOW_NODES;
+    DRAW_ONE_WAY_STREET_ARROWS, SHOW_NODE_OCCUPANCY, SHOW_NODES,
+
+    SHOW_NODE_COORDINATES;
   }
 
   /**
@@ -338,6 +347,15 @@ public final class WarehouseRenderer extends AbstractCanvasRenderer {
     @CheckReturnValue
     public Builder withNodes() {
       return create(margin(), SHOW_NODES, vizOptions());
+    }
+
+    /**
+     * Draws the coordinates for each node. By default this is not drawn.
+     * @return A new builder instance.
+     */
+    @CheckReturnValue
+    public Builder withNodeCoordinates() {
+      return create(margin(), SHOW_NODE_COORDINATES, vizOptions());
     }
 
     @Override
