@@ -474,10 +474,7 @@ public class GraphRoadModelImpl extends AbstractRoadModel
    */
   @Override
   public Optional<? extends Connection<?>> getConnection(RoadUser obj) {
-    if (registry().isOnConnection(obj)) {
-      return Optional.of(registry.getConnection(obj));
-    }
-    return Optional.absent();
+    return registry.getOptionalConnection(obj);
   }
 
   @Override

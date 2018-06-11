@@ -25,6 +25,7 @@ import javax.annotation.Nullable;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.auto.value.AutoValue;
+import com.google.common.base.Optional;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.SetMultimap;
 
@@ -131,6 +132,14 @@ public class GraphSpatialRegistry<T> extends ForwardingSpatialRegistry<T> {
 
   public Connection<?> getConnection(T ru) {
     return connLocMap.get(ru).connection();
+  }
+
+  public Optional<? extends Connection<?>> getOptionalConnection(T ru) {
+    final ConnLoc cl = connLocMap.get(ru);
+    if (cl == null) {
+      return Optional.absent();
+    }
+    return Optional.of(cl.connection());
   }
 
   public double getRelativePosition(Point p) {
