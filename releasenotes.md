@@ -1,5 +1,10 @@
 # Release notes
 
+## v4.4.6
+ * Fixed node occupancy bug related to a rounding error, first reported in this [SO thread](https://stackoverflow.com/questions/50608968/verifyexception-in-moveto-method?noredirect=1#comment88250629_50608968).
+ * Reduced NPE risk in GraphRoadModelImpl, related to problem reported in this [SO thread](https://stackoverflow.com/questions/50609720/rinsim-inconsistent-nullpointerexception-graphspatialregistry-in-sim-start).
+ * Added option to render node coordinates in WarehouseRenderer
+
 ## v4.4.5
  * Fixed bug in CommRenderer.
 
