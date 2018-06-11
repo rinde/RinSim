@@ -413,7 +413,6 @@
 					<dependency>
 						<groupId>com.google.errorprone</groupId>
 						<artifactId>error_prone_core</artifactId>
-						<!-- versions higher than 2.0.5 require JDK 8 which we do not want to force upon our users (yet) -->
 						<version>2.2.0</version>
 					</dependency>
 				</dependencies>
