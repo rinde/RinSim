@@ -101,8 +101,7 @@ public abstract class MoveProgress {
     }
 
     /**
-     * Attempts to add the point to the list of traveled nodes. It is added only
-     * if it is a node in the graph, otherwise nothing happens.
+     * Adds the point to the list of traveled nodes.
      * @param node The node to add.
      * @return This, as per the builder pattern.
      */

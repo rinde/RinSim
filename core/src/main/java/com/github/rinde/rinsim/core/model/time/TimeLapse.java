@@ -38,8 +38,9 @@ public final class TimeLapse {
   private long timeLeft;
 
   TimeLapse(Unit<Duration> unit, long start, long end) {
-    checkArgument(start >= 0, "time must be positive");
-    checkArgument(end > start, "end time must be after start time");
+    checkArgument(start >= 0, "time (%s) must be positive", start);
+    checkArgument(end > start, "end time (%s) must be after start time (%s).",
+      end, start);
     timeUnit = unit;
     startTime = start;
     endTime = end;

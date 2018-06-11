@@ -21,7 +21,9 @@ import static com.google.common.base.Verify.verify;
 import java.util.Queue;
 import java.util.Set;
 
+import javax.measure.Measure;
 import javax.measure.quantity.Duration;
+import javax.measure.quantity.Length;
 import javax.measure.unit.Unit;
 
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
@@ -77,7 +79,8 @@ public class CollisionGraphRoadModelImpl
     if (occupiedNodes.containsKey(object)) {
       occupiedNodes.removeAll(object);
     }
-    final MoveProgress mp;
+
+    MoveProgress mp = null;
     try {
       mp = super.doFollowPath(object, path, time);
     } catch (final IllegalArgumentException e) {
@@ -89,13 +92,37 @@ public class CollisionGraphRoadModelImpl
         final Connection<?> conn = registry().getConnection(object);
         final double relPos = registry().getRelativePosition(object);
         if (relPos < vehicleLength + minDistance) {
+          verify(!occupiedNodes.containsValue(conn.from()));
           verify(occupiedNodes.put(object, conn.from()));
         }
-        if (relPos > conn.getLength() - vehicleLength - minDistance) {
-          occupiedNodes.put(object, conn.to());
+
+        final double distToTo =
+          relPos - (conn.getLength() - vehicleLength - minDistance);
+
+        // if 'to' is already occupied and the current object has moved onto it
+        // but still within the DELTA margin, then we have to move it back as
+        // this is due to a rounding error.
+        if (occupiedNodes.containsValue(conn.to())
+          && distToTo > 0
+          && distToTo < DELTA) {
+
+          registry().addAt(object, conn, relPos - distToTo, DELTA);
+          if (mp != null) {
+            final double correctedDist =
+              unitConversion.toInDist(mp.distance().getValue().doubleValue())
+                - distToTo;
+            final Measure<Double, Length> distTraveled = unitConversion
+              .toExDistMeasure(correctedDist);
+            mp =
+              MoveProgress.create(distTraveled, mp.time(), mp.travelledNodes());
+          }
+        } else if (distToTo > 0) {
+          verify(!occupiedNodes.containsValue(conn.to()));
+          verify(occupiedNodes.put(object, conn.to()));
         }
       } else {
-        occupiedNodes.put(object, loc);
+        verify(!occupiedNodes.containsValue(loc));
+        verify(occupiedNodes.put(object, loc));
       }
     }
     return mp;

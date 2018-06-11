@@ -34,6 +34,7 @@ import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders.CollisionGraphRMB;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
+import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.Graphs;
 import com.github.rinde.rinsim.geom.LengthData;
 import com.github.rinde.rinsim.geom.ListenableGraph;
@@ -499,6 +500,54 @@ public class CollisionGraphRoadModelTest {
     assertFalse(model.isOccupied(SW));
     assertFalse(model.isOccupied(SSW));
     assertTrue(model.isOccupied(SSW2));
+  }
+
+  @Test
+  public void testRounding() {
+    final Point W = new Point(4, 0);
+    final Point C = new Point(8, 0);
+    final Point S = new Point(8, 4);
+
+    final Graph<LengthData> g = new TableGraph<>();
+    g.addConnection(W, C);
+    g.addConnection(S, C);
+
+    final MovingRoadUser agv1 = new TestRoadUser();
+    final MovingRoadUser agv2 = new TestRoadUser();
+
+    model = RoadModelBuilders.dynamicGraph(new ListenableGraph<>(g))
+      .withCollisionAvoidance()
+      .withDistanceUnit(SI.METER)
+      .withVehicleLength(2d)
+      .withMinDistance(.25)
+      .build(mock(DependencyProvider.class));
+
+    assertThat(model.isOccupied(W)).isFalse();
+    assertThat(model.isOccupied(C)).isFalse();
+    assertThat(model.isOccupied(S)).isFalse();
+
+    model.addObjectAt(agv1, W);
+    model.addObjectAt(agv2, S);
+
+    assertThat(model.isOccupied(W)).isTrue();
+    assertThat(model.isOccupied(C)).isFalse();
+    assertThat(model.isOccupied(S)).isTrue();
+
+    model.moveTo(agv1, C, meter(3));
+    assertThat(model.isOccupied(W)).isFalse();
+    assertThat(model.isOccupied(C)).isTrue();
+    assertThat(model.isOccupied(S)).isTrue();
+
+    model.moveTo(agv2, C, meter(1.5555555556));
+    assertThat(model.isOccupied(W)).isFalse();
+    assertThat(model.isOccupied(C)).isTrue();
+    assertThat(model.isOccupied(S)).isTrue();
+
+    model.moveTo(agv2, C, meter(10));
+    assertThat(model.isOccupied(W)).isFalse();
+    assertThat(model.isOccupied(C)).isTrue();
+    assertThat(model.isOccupied(S)).isTrue();
+    assertThat(model.getPosition(agv2)).isEqualTo(new Point(8, 2.25));
   }
 
   /**
