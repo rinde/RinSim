@@ -56,7 +56,7 @@ public class ScenarioControllerTest {
   @SuppressWarnings("null")
   ScenarioController controller;
   @SuppressWarnings("null")
-  Scenario scenario;
+  IScenario scenario;
 
   @SuppressWarnings("null")
   DependencyProvider dependencyProvider;
@@ -229,7 +229,7 @@ public class ScenarioControllerTest {
    */
   @Test
   public void testSetupEvents() {
-    final Scenario s = Scenario
+    final IScenario s = Scenario
       .builder()
       .addEvent(EventA.create(0))
       .addEvent(EventB.create(-1))

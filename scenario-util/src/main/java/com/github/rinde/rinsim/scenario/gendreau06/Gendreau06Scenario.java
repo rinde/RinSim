@@ -15,7 +15,10 @@
  */
 package com.github.rinde.rinsim.scenario.gendreau06;
 
+import static com.google.common.collect.Lists.newLinkedList;
+
 import java.util.List;
+import java.util.Queue;
 
 import javax.measure.Measure;
 import javax.measure.quantity.Velocity;
@@ -31,7 +34,7 @@ import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.pdptw.common.StatsStopConditions;
 import com.github.rinde.rinsim.pdptw.common.StatsTracker;
-import com.github.rinde.rinsim.scenario.Scenario;
+import com.github.rinde.rinsim.scenario.IScenario;
 import com.github.rinde.rinsim.scenario.StopCondition;
 import com.github.rinde.rinsim.scenario.StopConditions;
 import com.github.rinde.rinsim.scenario.TimedEvent;
@@ -55,7 +58,7 @@ import com.google.common.collect.ImmutableSet;
  * @author Rinde van Lon
  */
 @AutoValue
-public abstract class Gendreau06Scenario extends Scenario {
+public abstract class Gendreau06Scenario implements IScenario {
   static final Point MIN = new Point(0, 0);
   static final Point MAX = new Point(5, 5);
   static final Measure<Double, Velocity> MAX_SPEED = Measure.valueOf(
@@ -102,6 +105,11 @@ public abstract class Gendreau06Scenario extends Scenario {
 
   @Override
   public abstract GendreauProblemClass getProblemClass();
+
+  @Override
+  public Queue<TimedEvent> asQueue() {
+    return newLinkedList(getEvents());
+  }
 
   @Override
   public TimeWindow getTimeWindow() {

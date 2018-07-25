@@ -15,6 +15,10 @@
  */
 package com.github.rinde.rinsim.scenario.fabrirecht;
 
+import static com.google.common.collect.Lists.newLinkedList;
+
+import java.util.Queue;
+
 import javax.measure.quantity.Velocity;
 import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
@@ -28,7 +32,8 @@ import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.StatsStopConditions;
 import com.github.rinde.rinsim.pdptw.common.StatsTracker;
-import com.github.rinde.rinsim.scenario.Scenario;
+import com.github.rinde.rinsim.scenario.IScenario;
+import com.github.rinde.rinsim.scenario.Scenario.ProblemClass;
 import com.github.rinde.rinsim.scenario.StopCondition;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.util.TimeWindow;
@@ -41,8 +46,10 @@ import com.google.common.collect.ImmutableSet;
  * @author Rinde van Lon
  */
 @AutoValue
-public abstract class FabriRechtScenario extends Scenario {
+public abstract class FabriRechtScenario implements IScenario {
   static final double MAX_SPEED = 100d;
+
+  protected FabriRechtScenario() {}
 
   /**
    * @return Minimum position.
@@ -58,6 +65,11 @@ public abstract class FabriRechtScenario extends Scenario {
    * @return The default vehicle.
    */
   public abstract VehicleDTO getDefaultVehicle();
+
+  @Override
+  public Queue<TimedEvent> asQueue() {
+    return newLinkedList(getEvents());
+  }
 
   @Override
   public StopCondition getStopCondition() {

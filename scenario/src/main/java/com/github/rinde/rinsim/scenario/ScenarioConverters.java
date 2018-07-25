@@ -95,7 +95,7 @@ public final class ScenarioConverters {
       @Nonnull
       @Override
       public Scenario apply(@Nullable Scenario input) {
-        final Scenario in = verifyNotNull(input);
+        final IScenario in = verifyNotNull(input);
         return Scenario.builder(in)
           .clearEvents()
           .addEvents(
@@ -110,7 +110,7 @@ public final class ScenarioConverters {
       @Override
       @Nullable
       public Scenario apply(@Nullable Scenario input) {
-        final Scenario in = verifyNotNull(input);
+        final IScenario in = verifyNotNull(input);
 
         final Optional<TimeModel.AbstractBuilder<?>> timeModel =
           getTimeModel(in);
@@ -141,7 +141,7 @@ public final class ScenarioConverters {
       @Nullable
       @Override
       public Scenario apply(@Nullable Scenario input) {
-        final Scenario in = verifyNotNull(input);
+        final IScenario in = verifyNotNull(input);
         final Optional<TimeModel.AbstractBuilder<?>> timeModel =
           getTimeModel(in);
 
@@ -166,7 +166,7 @@ public final class ScenarioConverters {
     }
   }
 
-  static Optional<TimeModel.AbstractBuilder<?>> getTimeModel(Scenario scen) {
+  static Optional<TimeModel.AbstractBuilder<?>> getTimeModel(IScenario scen) {
     final List<TimeModel.AbstractBuilder<?>> timeModels = new ArrayList<>();
     for (final ModelBuilder<?, ?> mb : scen.getModelBuilders()) {
       if (mb instanceof TimeModel.AbstractBuilder) {

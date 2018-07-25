@@ -17,14 +17,14 @@ package com.github.rinde.rinsim.experiment;
 
 import java.util.Set;
 
-import com.github.rinde.rinsim.scenario.Scenario;
+import com.github.rinde.rinsim.scenario.IScenario;
 
 public enum SimulationProperty {
   CONFIG {
     @Override
     Set<? extends Object> select(
         Set<MASConfiguration> c,
-        Set<Scenario> scen,
+        Set<IScenario> scen,
         Set<Long> seeds,
         Set<Integer> reps) {
       return c;
@@ -34,7 +34,7 @@ public enum SimulationProperty {
     @Override
     Set<? extends Object> select(
         Set<MASConfiguration> c,
-        Set<Scenario> scen,
+        Set<IScenario> scen,
         Set<Long> seeds,
         Set<Integer> reps) {
       return scen;
@@ -44,7 +44,7 @@ public enum SimulationProperty {
     @Override
     Set<? extends Object> select(
         Set<MASConfiguration> c,
-        Set<Scenario> scen,
+        Set<IScenario> scen,
         Set<Long> seeds,
         Set<Integer> reps) {
       return seeds;
@@ -54,7 +54,7 @@ public enum SimulationProperty {
     @Override
     Set<? extends Object> select(
         Set<MASConfiguration> c,
-        Set<Scenario> scen,
+        Set<IScenario> scen,
         Set<Long> seeds,
         Set<Integer> reps) {
       return reps;
@@ -63,7 +63,7 @@ public enum SimulationProperty {
 
   abstract Set<? extends Object> select(
       Set<MASConfiguration> c,
-      Set<Scenario> scen,
+      Set<IScenario> scen,
       Set<Long> seeds,
       Set<Integer> reps);
 }

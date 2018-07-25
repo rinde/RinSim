@@ -69,7 +69,7 @@ public class ScenarioTest {
     assertThat(builder.getStopCondition())
       .isEqualTo(StopConditions.alwaysFalse());
 
-    final Scenario scenario = builder.build();
+    final IScenario scenario = builder.build();
 
     assertTrue(scenario.getModelBuilders().isEmpty());
     assertSame(Scenario.DEFAULT_PROBLEM_CLASS, scenario.getProblemClass());
@@ -89,7 +89,7 @@ public class ScenarioTest {
     final TimedEvent ev1 = EventB.create(205);
     final TimedEvent ev2 = EventB.create(7);
     final TimedEvent ev3 = EventB.create(203);
-    final Scenario scenario = Scenario
+    final IScenario scenario = Scenario
       .builder(Scenario.DEFAULT_PROBLEM_CLASS)
       .addEvent(ev0)
       .addEvent(ev1)
@@ -104,7 +104,7 @@ public class ScenarioTest {
   @Test
   public void testCustomProperties() {
     final ProblemClass problemClass = new FakeProblemClass();
-    final Scenario scenario = Scenario
+    final IScenario scenario = Scenario
       .builder(problemClass)
       .instanceId("crazyfast")
       .scenarioLength(7L)
@@ -133,10 +133,10 @@ public class ScenarioTest {
       .builder(Scenario.DEFAULT_PROBLEM_CLASS)
       .copyProperties(scenario);
 
-    final Scenario copiedScen = builder.build();
+    final IScenario copiedScen = builder.build();
     assertEquals(scenario, copiedScen);
 
-    final Scenario builderCopyScen = Scenario.builder(builder,
+    final IScenario builderCopyScen = Scenario.builder(builder,
       Scenario.DEFAULT_PROBLEM_CLASS)
       .build();
 
@@ -148,7 +148,7 @@ public class ScenarioTest {
    */
   @Test
   public void testNoArgConstructor() {
-    final Scenario scenario = new EmptyScenario();
+    final IScenario scenario = new EmptyScenario();
     assertTrue(scenario.getEvents().isEmpty());
   }
 
@@ -298,10 +298,10 @@ public class ScenarioTest {
     final List<EventA> events3 = asList(EventA.create(1));
     final List<EventA> events4 = asList(EventA.create(1), EventA.create(2));
 
-    final Scenario s1 = Scenario.builder().addEvents(events1).build();
-    final Scenario s2 = Scenario.builder().addEvents(events2).build();
-    final Scenario s3 = Scenario.builder().addEvents(events3).build();
-    final Scenario s4 = Scenario.builder().addEvents(events4).build();
+    final IScenario s1 = Scenario.builder().addEvents(events1).build();
+    final IScenario s2 = Scenario.builder().addEvents(events2).build();
+    final IScenario s3 = Scenario.builder().addEvents(events3).build();
+    final IScenario s4 = Scenario.builder().addEvents(events4).build();
 
     assertNotEquals(s1, new Object());
     assertEquals(s1, s2);
@@ -326,7 +326,7 @@ public class ScenarioTest {
     events.addAll(asList(A1, A2, B, C, D1, D2, E, F));
     Collections.reverse(events);
 
-    final Scenario s = Scenario.builder().addEvents(events).build();
+    final IScenario s = Scenario.builder().addEvents(events).build();
     final List<TimedEvent> res = newArrayList(s.getEvents());
     assertEquals(asList(A2, A1, B, C, D2, D1, E, F), res);
     assertFalse(res.equals(events));
@@ -338,7 +338,7 @@ public class ScenarioTest {
    */
   @Test
   public void testCreateScenarioByCopying() {
-    final Scenario s = Scenario.builder()
+    final IScenario s = Scenario.builder()
       .addEvent(AddObjectEvent.create(100, new Point(0, 0)))
       .addEvent(AddObjectEvent.create(200, new Point(0, 0)))
       .addEvent(AddObjectEvent.create(300, new Point(0, 0)))
@@ -346,7 +346,7 @@ public class ScenarioTest {
 
     assertEquals(3, s.getEvents().size());
 
-    final Scenario s2 = Scenario.builder(s).build();
+    final IScenario s2 = Scenario.builder(s).build();
 
     assertEquals(3, s.getEvents().size());
     assertEquals(3, s2.getEvents().size());

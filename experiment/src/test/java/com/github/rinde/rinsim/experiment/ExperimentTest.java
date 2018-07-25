@@ -35,6 +35,7 @@ import com.github.rinde.rinsim.experiment.Experiment.SimulationResult;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.ScenarioTestUtil;
 import com.github.rinde.rinsim.pdptw.common.StatsTracker;
+import com.github.rinde.rinsim.scenario.IScenario;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.testutil.TestUtil;
 import com.google.auto.value.AutoValue;
@@ -255,7 +256,7 @@ public class ExperimentTest {
     assertThat(fail).isTrue();
   }
 
-  static void assertSimRes(SimulationResult sr, Scenario s, MASConfiguration c,
+  static void assertSimRes(SimulationResult sr, IScenario s, MASConfiguration c,
       int r) {
     assertThat(sr.getSimArgs().getScenario()).isEqualTo(s);
     assertThat(sr.getSimArgs().getMasConfig()).isEqualTo(c);

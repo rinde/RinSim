@@ -22,7 +22,7 @@ import org.joda.time.format.PeriodFormat;
 
 import com.github.rinde.rinsim.experiment.Experiment.SimulationResult;
 import com.github.rinde.rinsim.experiment.PostProcessor.FailureStrategy;
-import com.github.rinde.rinsim.scenario.Scenario;
+import com.github.rinde.rinsim.scenario.IScenario;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 
@@ -51,7 +51,7 @@ public class CommandLineProgress implements ResultListener {
   @Override
   public void startComputing(int numberOfSimulations,
       ImmutableSet<MASConfiguration> configurations,
-      ImmutableSet<Scenario> scenarios,
+      ImmutableSet<IScenario> scenarios,
       int repetitions,
       int seedRepetitions) {
     startTime = System.currentTimeMillis();

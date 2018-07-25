@@ -30,6 +30,7 @@ import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.geom.Point;
+import com.github.rinde.rinsim.scenario.IScenario;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.ScenarioIO;
 import com.github.rinde.rinsim.scenario.StopConditions;
@@ -51,9 +52,9 @@ public class ScenarioTestUtil {
    * compares the equality of the serialized string.
    * @param input The scenario to test with IO.
    */
-  public static void assertScenarioIO(Scenario input) {
+  public static void assertScenarioIO(IScenario input) {
     final String serialized = ScenarioIO.write(input);
-    final Scenario parsed = ScenarioIO.read(serialized);
+    final IScenario parsed = ScenarioIO.read(serialized);
     final String serializedAgain = ScenarioIO.write(parsed);
     System.out.println(serialized);
     assertThat(input).isEqualTo(parsed);

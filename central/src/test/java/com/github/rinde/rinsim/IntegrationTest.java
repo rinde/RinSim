@@ -61,6 +61,7 @@ import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
 import com.github.rinde.rinsim.pdptw.common.StatsStopConditions;
 import com.github.rinde.rinsim.pdptw.common.TimeLinePanel;
+import com.github.rinde.rinsim.scenario.IScenario;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.ScenarioIO;
 import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06ObjectiveFunction;
@@ -114,7 +115,7 @@ public class IntegrationTest {
       .addModel(DefaultPDPModel.builder())
       .build();
 
-    final Scenario s = scenGen.generate(new MersenneTwister(123L), "test");
+    final IScenario s = scenGen.generate(new MersenneTwister(123L), "test");
     final String generatedJson = ScenarioIO.write(s);
 
     try {

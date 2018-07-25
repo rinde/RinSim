@@ -26,8 +26,6 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
-import javax.annotation.Nullable;
-
 import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
@@ -53,7 +51,7 @@ import com.google.common.collect.Iterables;
  * @author Bartosz Michalik
  */
 @AutoValue
-public abstract class Scenario {
+public abstract class Scenario implements IScenario {
   /**
    * The default {@link ProblemClass}.
    */
@@ -65,51 +63,10 @@ public abstract class Scenario {
    */
   protected Scenario() {}
 
-  /**
-   * Return a scenario as a list of (time sorted) events.
-   * @return the list of events.
-   */
-  public abstract ImmutableList<TimedEvent> getEvents();
-
-  /**
-   * @return A queue containing all events of this scenario.
-   */
+  @Override
   public Queue<TimedEvent> asQueue() {
     return newLinkedList(getEvents());
   }
-
-  /**
-   * @return Should return a list of {@link ModelBuilder}s which will be used
-   *         for creating the models for this scenario.
-   */
-  public abstract ImmutableSet<ModelBuilder<?, ?>> getModelBuilders();
-
-  /**
-   * @return The {@link TimeWindow} of the scenario indicates the start and end
-   *         of the scenario.
-   */
-  public abstract TimeWindow getTimeWindow();
-
-  /**
-   * @return The stop condition indicating when a simulation should end.
-   */
-  public abstract StopCondition getStopCondition();
-
-  /**
-   * @return The 'class' to which this scenario belongs.
-   */
-  public abstract ProblemClass getProblemClass();
-
-  /**
-   * @return The instance id of this scenario.
-   */
-  public abstract String getProblemInstanceId();
-
-  @Override
-  public abstract boolean equals(@Nullable Object other);
-
-  @Override
-  public abstract int hashCode();
 
   static Scenario create(
       Iterable<? extends TimedEvent> events,
@@ -139,7 +96,7 @@ public abstract class Scenario {
    * @param scenario The scenario from which properties will be copied.
    * @return A new {@link Builder} instance.
    */
-  public static Builder builder(Scenario scenario) {
+  public static Builder builder(IScenario scenario) {
     return builder(scenario.getProblemClass()).copyProperties(scenario);
   }
 
@@ -307,7 +264,7 @@ public abstract class Scenario {
     }
 
     @Override
-    public Builder copyProperties(Scenario scenario) {
+    public Builder copyProperties(IScenario scenario) {
       return super.copyProperties(scenario)
         .addEvents(scenario.getEvents())
         .problemClass(scenario.getProblemClass())
@@ -483,7 +440,7 @@ public abstract class Scenario {
      * @param scenario The scenario to copy the properties from.
      * @return This, as per the builder pattern.
      */
-    protected T copyProperties(Scenario scenario) {
+    protected T copyProperties(IScenario scenario) {
       timeWindow = scenario.getTimeWindow();
       stopCondition = scenario.getStopCondition();
       return self();

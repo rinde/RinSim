@@ -21,7 +21,7 @@ import org.junit.experimental.categories.Category;
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.pdp.RandomVehicle;
-import com.github.rinde.rinsim.scenario.Scenario;
+import com.github.rinde.rinsim.scenario.IScenario;
 import com.github.rinde.rinsim.scenario.ScenarioController;
 import com.github.rinde.rinsim.scenario.TimeOutEvent;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
@@ -43,7 +43,7 @@ public class TimeLinePanelTest {
    */
   @Test
   public void guiTest() {
-    final Scenario testScenario = ScenarioTestUtil.createRandomScenario(1730);
+    final IScenario testScenario = ScenarioTestUtil.createRandomScenario(1730);
 
     final Simulator sim = Simulator
       .builder()

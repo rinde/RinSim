@@ -22,7 +22,7 @@ import java.util.List;
 
 import com.github.rinde.rinsim.experiment.Experiment.Builder;
 import com.github.rinde.rinsim.experiment.Experiment.SimulationResult;
-import com.github.rinde.rinsim.scenario.Scenario;
+import com.github.rinde.rinsim.scenario.IScenario;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableSet;
 
@@ -42,7 +42,7 @@ public abstract class ExperimentResults {
   /**
    * @return The scenarios that were used in this experiment.
    */
-  public abstract ImmutableSet<Scenario> getScenarios();
+  public abstract ImmutableSet<IScenario> getScenarios();
 
   /**
    * @return Indicates whether the experiment was executed with or without the

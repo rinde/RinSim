@@ -16,7 +16,7 @@
 package com.github.rinde.rinsim.experiment;
 
 import com.github.rinde.rinsim.experiment.Experiment.SimulationResult;
-import com.github.rinde.rinsim.scenario.Scenario;
+import com.github.rinde.rinsim.scenario.IScenario;
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -37,7 +37,7 @@ public interface ResultListener {
    */
   void startComputing(int numberOfSimulations,
       ImmutableSet<MASConfiguration> configurations,
-      ImmutableSet<Scenario> scenarios,
+      ImmutableSet<IScenario> scenarios,
       int repetitions,
       int seedRepetitions);
 

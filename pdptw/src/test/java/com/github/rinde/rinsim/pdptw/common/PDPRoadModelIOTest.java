@@ -20,6 +20,7 @@ import javax.measure.unit.NonSI;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
+import com.github.rinde.rinsim.scenario.IScenario;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.Scenario.ProblemClass;
 
@@ -42,7 +43,7 @@ public class PDPRoadModelIOTest {
           .withMaxSpeed(7))
         .withAllowVehicleDiversion(true));
 
-    final Scenario s = sb.problemClass(TestProblemClass.TEST).build();
+    final IScenario s = sb.problemClass(TestProblemClass.TEST).build();
     ScenarioTestUtil.assertScenarioIO(s);
   }
 

@@ -36,6 +36,7 @@ import com.github.rinde.rinsim.core.model.pdp.ParcelDTO;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.AddParcelEvent;
 import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
+import com.github.rinde.rinsim.scenario.IScenario;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.scenario.generator.ScenarioGenerator;
@@ -66,11 +67,11 @@ public final class Metrics {
    *         <code> &ge; 0</code>. All time instances not included in the list
    *         are assumed to have load <code>0</code>.
    */
-  static ImmutableList<Double> measureLoad(Scenario s) {
+  static ImmutableList<Double> measureLoad(IScenario s) {
     return measureLoad(s, 1);
   }
 
-  static ImmutableList<Double> measureLoad(Scenario s, int numVehicles) {
+  static ImmutableList<Double> measureLoad(IScenario s, int numVehicles) {
     final TravelTimes tt = ScenarioGenerator.createTravelTimes(s);
     final ImmutableList.Builder<LoadPart> loadParts = ImmutableList.builder();
     for (final TimedEvent te : s.getEvents()) {
@@ -81,7 +82,7 @@ public final class Metrics {
     return sum(0, loadParts.build(), numVehicles);
   }
 
-  static ImmutableList<Double> measureRelativeLoad(Scenario s) {
+  static ImmutableList<Double> measureRelativeLoad(IScenario s) {
     final int numVehicles = getEventTypeCounts(s).count(AddVehicleEvent.class);
     return measureLoad(s, numVehicles);
   }
@@ -177,7 +178,7 @@ public final class Metrics {
    * @throws IllegalArgumentException if either: not all vehicles have the same
    *           speed, or there are no vehicles.
    */
-  public static double getVehicleSpeed(Scenario s) {
+  public static double getVehicleSpeed(IScenario s) {
     double vehicleSpeed = -1d;
     for (final TimedEvent te : s.getEvents()) {
       if (te instanceof AddVehicleEvent) {
@@ -200,7 +201,7 @@ public final class Metrics {
    * @param s The scenario to check.
    * @return A {@link ImmutableMultiset} of event types.
    */
-  public static ImmutableMultiset<Class<?>> getEventTypeCounts(Scenario s) {
+  public static ImmutableMultiset<Class<?>> getEventTypeCounts(IScenario s) {
     final Multiset<Class<?>> set = LinkedHashMultiset.create();
     for (final TimedEvent te : s.getEvents()) {
       set.add(te.getClass());
@@ -239,7 +240,7 @@ public final class Metrics {
    *
    * @param s The scenario to check.
    */
-  public static void checkTimeWindowStrictness(Scenario s) {
+  public static void checkTimeWindowStrictness(IScenario s) {
     final TravelTimes tt = ScenarioGenerator.createTravelTimes(s);
     for (final TimedEvent te : s.getEvents()) {
       if (te instanceof AddParcelEvent) {
@@ -284,7 +285,7 @@ public final class Metrics {
    * @param s The scenario.
    * @return {@link ImmutableList} containing event arrival times.
    */
-  public static ImmutableList<Long> getArrivalTimes(Scenario s) {
+  public static ImmutableList<Long> getArrivalTimes(IScenario s) {
     final ImmutableList.Builder<Long> builder = ImmutableList.builder();
     for (final TimedEvent te : s.getEvents()) {
       if (te instanceof AddParcelEvent) {
@@ -352,7 +353,7 @@ public final class Metrics {
    * @return A statistical summary of the urgency values in the specified
    *         scenario.
    */
-  public static StatisticalSummary measureUrgency(Scenario s) {
+  public static StatisticalSummary measureUrgency(IScenario s) {
     final List<Long> urgencyValues = FluentIterable.from(s.getEvents())
       .filter(AddParcelEvent.class)
       .transform(Urgency.PICKUP)
@@ -365,7 +366,7 @@ public final class Metrics {
    * @param s The scenario to measure.
    * @return A double in range [0,1].
    */
-  public static double measureDynamism(Scenario s) {
+  public static double measureDynamism(IScenario s) {
     return measureDynamism(s, s.getTimeWindow().end());
   }
 
@@ -376,7 +377,7 @@ public final class Metrics {
    * @param lengthOfDay The length of the day.
    * @return A double in range [0,1].
    */
-  public static double measureDynamism(Scenario s, long lengthOfDay) {
+  public static double measureDynamism(IScenario s, long lengthOfDay) {
     return measureDynamism(convert(getOrderArrivalTimes(s)),
       lengthOfDay);
   }
@@ -437,7 +438,7 @@ public final class Metrics {
    * @return A list containing all service points in order of occurrence in the
    *         scenario event list.
    */
-  public static ImmutableList<Point> getServicePoints(Scenario s) {
+  public static ImmutableList<Point> getServicePoints(IScenario s) {
     final ImmutableList.Builder<Point> builder = ImmutableList.builder();
     for (final TimedEvent se : s.getEvents()) {
       if (se instanceof AddParcelEvent) {
@@ -448,7 +449,7 @@ public final class Metrics {
     return builder.build();
   }
 
-  static ImmutableList<Long> getOrderArrivalTimes(Scenario s) {
+  static ImmutableList<Long> getOrderArrivalTimes(IScenario s) {
     final ImmutableList.Builder<Long> builder = ImmutableList.builder();
     for (final TimedEvent se : s.getEvents()) {
       if (se instanceof AddParcelEvent) {

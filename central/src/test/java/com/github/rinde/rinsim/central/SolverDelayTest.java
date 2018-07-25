@@ -38,6 +38,7 @@ import com.github.rinde.rinsim.pdptw.common.RouteRenderer;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
 import com.github.rinde.rinsim.pdptw.common.StatsStopConditions;
 import com.github.rinde.rinsim.pdptw.common.TimeLinePanel;
+import com.github.rinde.rinsim.scenario.IScenario;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.StopConditions;
 import com.github.rinde.rinsim.scenario.TimeOutEvent;
@@ -62,7 +63,7 @@ public class SolverDelayTest {
     Gendreau06ObjectiveFunction.instance(50d);
 
   @SuppressWarnings("null")
-  Scenario scenario;
+  IScenario scenario;
 
   @Before
   public void setUp() {

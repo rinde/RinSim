@@ -43,7 +43,7 @@ import com.github.rinde.rinsim.experiment.PostProcessor.FailureStrategy;
 import com.github.rinde.rinsim.io.FileProvider;
 import com.github.rinde.rinsim.pdptw.common.StatsProvider;
 import com.github.rinde.rinsim.pdptw.common.StatsTracker;
-import com.github.rinde.rinsim.scenario.Scenario;
+import com.github.rinde.rinsim.scenario.IScenario;
 import com.github.rinde.rinsim.scenario.ScenarioController;
 import com.github.rinde.rinsim.scenario.ScenarioIO;
 import com.github.rinde.rinsim.util.StochasticSupplier;
@@ -63,7 +63,7 @@ import com.google.common.collect.Sets;
 
 /**
  * Utility for defining and performing experiments. An experiment is composed of
- * a set of {@link Scenario}s and a set of {@link MASConfiguration} s. For
+ * a set of {@link IScenario}s and a set of {@link MASConfiguration} s. For
  * <b>each</b> combination of these a user configurable number of simulations is
  * performed. The number of used threads in the experiment can be set via
  * {@link Builder#withThreads(int)}.
@@ -142,7 +142,7 @@ public final class Experiment {
    * @param uic The UICreator to use.
    * @return The {@link SimulationResult} generated in the run.
    */
-  public static SimulationResult singleRun(Scenario scenario,
+  public static SimulationResult singleRun(IScenario scenario,
       MASConfiguration configuration, long seed, boolean showGui,
       PostProcessor<?> postProcessor, @Nullable ModelBuilder<?, ?> uic) {
 
@@ -161,12 +161,11 @@ public final class Experiment {
    * @return The {@link Simulator} instance.
    */
   @VisibleForTesting
-  static Simulator init(Scenario scenario, MASConfiguration config, long seed,
+  static Simulator init(IScenario scenario, MASConfiguration config, long seed,
       boolean showGui, Optional<ModelBuilder<?, ?>> uiCreator) {
 
     final ScenarioController.Builder scenContrBuilder =
-      ScenarioController.builder(
-        scenario)
+      ScenarioController.builder(scenario)
         .withIgnoreRedundantHandlers(true)
         .withEventHandlers(config.getEventHandlers());
 
@@ -243,9 +242,9 @@ public final class Experiment {
         SimulationProperty.SEED_REPS);
 
     final Set<MASConfiguration> configurationsSet;
-    final ImmutableSet.Builder<Scenario> scenariosBuilder;
+    final ImmutableSet.Builder<IScenario> scenariosBuilder;
     Optional<FileProvider.Builder> scenarioProviderBuilder;
-    Function<Path, ? extends Scenario> fileReader;
+    Function<Path, ? extends IScenario> fileReader;
     List<SimulationProperty> experimentOrdering;
 
     final List<ResultListener> resultListeners;
@@ -296,7 +295,7 @@ public final class Experiment {
 
     /**
      * Sets the number of repetitions for each combination of
-     * {@link MASConfiguration}, {@link Scenario} and <code>seed</code>. This
+     * {@link MASConfiguration}, {@link IScenario} and <code>seed</code>. This
      * allows to run exactly the same simulation twice, generally there are two
      * use cases for doing this:
      * <ol>
@@ -307,8 +306,8 @@ public final class Experiment {
      * can be evaluated.</li>
      * </ol>
      * @param times The number of times to repeat simulations with the same
-     *          {@link MASConfiguration}, {@link Scenario} and <code>seed</code>
-     *          .
+     *          {@link MASConfiguration}, {@link IScenario} and
+     *          <code>seed</code> .
      * @return This, as per the builder pattern.
      */
     public Builder repeatSeed(int times) {
@@ -455,7 +454,7 @@ public final class Experiment {
      * @param scenario The scenario to add.
      * @return This, as per the builder pattern.
      */
-    public Builder addScenario(Scenario scenario) {
+    public Builder addScenario(IScenario scenario) {
       scenariosBuilder.add(scenario);
       return this;
     }
@@ -465,7 +464,7 @@ public final class Experiment {
      * @param scenarios The scenarios to add.
      * @return This, as per the builder pattern.
      */
-    public Builder addScenarios(Iterable<? extends Scenario> scenarios) {
+    public Builder addScenarios(Iterable<? extends IScenario> scenarios) {
       scenariosBuilder.addAll(scenarios);
       return this;
     }
@@ -485,13 +484,13 @@ public final class Experiment {
 
     /**
      * Change the scenario reader which defines how {@link Path} instances are
-     * converted to {@link Scenario} instances. By default
+     * converted to {@link IScenario} instances. By default
      * {@link ScenarioIO#reader()} is used as a scenario reader.
      * @param reader The reader to use.
      * @return This, as per the builder pattern.
      */
     public Builder setScenarioReader(
-        Function<Path, ? extends Scenario> reader) {
+        Function<Path, ? extends IScenario> reader) {
       fileReader = reader;
       return this;
     }
@@ -657,7 +656,7 @@ public final class Experiment {
         "The GUI can not be shown when using more than one thread.");
       final List<Long> seeds = generateSeeds();
 
-      final ImmutableSet<Scenario> scenarios = getAllScenarios();
+      final ImmutableSet<IScenario> scenarios = getAllScenarios();
       final ImmutableSet<SimArgs> runners =
         createFactorialSetup(seeds, scenarios);
 
@@ -715,8 +714,8 @@ public final class Experiment {
       return computerType;
     }
 
-    ImmutableSet<Scenario> getAllScenarios() {
-      final Set<Scenario> scenarios = newLinkedHashSet(scenariosBuilder
+    ImmutableSet<IScenario> getAllScenarios() {
+      final Set<IScenario> scenarios = newLinkedHashSet(scenariosBuilder
         .build());
       if (scenarioProviderBuilder.isPresent()) {
         scenarios.addAll(scenarioProviderBuilder.get().build(fileReader).get());
@@ -725,7 +724,7 @@ public final class Experiment {
     }
 
     int getNumScenarios() {
-      final Set<Scenario> scenarios = scenariosBuilder.build();
+      final Set<IScenario> scenarios = scenariosBuilder.build();
       if (scenarioProviderBuilder.isPresent()) {
         return scenarios.size()
           + scenarioProviderBuilder.get().build().get().size();
@@ -734,7 +733,7 @@ public final class Experiment {
     }
 
     private ImmutableSet<SimArgs> createFactorialSetup(List<Long> seeds,
-        ImmutableSet<Scenario> scenarios) {
+        ImmutableSet<IScenario> scenarios) {
       final ImmutableSet<MASConfiguration> conf =
         ImmutableSet.copyOf(configurationsSet);
 
@@ -755,13 +754,13 @@ public final class Experiment {
       final Set<List<Object>> product = Sets.cartesianProduct(input);
 
       for (final List<Object> args : product) {
-        Scenario s = null;
+        IScenario s = null;
         MASConfiguration c = null;
         Optional<Long> seed = Optional.absent();
         Optional<Integer> rep = Optional.absent();
         for (final Object arg : args) {
-          if (arg instanceof Scenario) {
-            s = (Scenario) arg;
+          if (arg instanceof IScenario) {
+            s = (IScenario) arg;
           } else if (arg instanceof MASConfiguration) {
             c = (MASConfiguration) arg;
           } else if (arg instanceof Long) {
@@ -800,7 +799,7 @@ public final class Experiment {
     /**
      * @return the scenario
      */
-    public abstract Scenario getScenario();
+    public abstract IScenario getScenario();
 
     /**
      * @return the masConfig
@@ -868,7 +867,7 @@ public final class Experiment {
         .toString();
     }
 
-    static SimArgs create(Scenario s, MASConfiguration m, long seed,
+    static SimArgs create(IScenario s, MASConfiguration m, long seed,
         int repetition, boolean gui, PostProcessor<?> pp,
         @Nullable ModelBuilder<?, ?> uic) {
       return new AutoValue_Experiment_SimArgs(s, m, seed, repetition, gui, pp,
@@ -879,7 +878,7 @@ public final class Experiment {
       return ToConfig.INSTANCE;
     }
 
-    static Function<SimArgs, Scenario> toScenario() {
+    static Function<SimArgs, IScenario> toScenario() {
       return ToScenario.INSTANCE;
     }
 
@@ -901,11 +900,11 @@ public final class Experiment {
       }
     }
 
-    private enum ToScenario implements Function<SimArgs, Scenario> {
+    private enum ToScenario implements Function<SimArgs, IScenario> {
       INSTANCE {
         @Nullable
         @Override
-        public Scenario apply(@Nullable SimArgs input) {
+        public IScenario apply(@Nullable SimArgs input) {
           return verifyNotNull(input).getScenario();
         }
       }

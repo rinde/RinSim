@@ -48,6 +48,7 @@ import com.github.rinde.rinsim.geom.MultiAttributeData;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.AddDepotEvent;
 import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
+import com.github.rinde.rinsim.scenario.IScenario;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.Scenario.AbstractBuilder;
 import com.github.rinde.rinsim.scenario.Scenario.ProblemClass;
@@ -261,7 +262,7 @@ public final class ScenarioGenerator {
    * @return The travel times.
    */
   @SuppressWarnings("null")
-  public static TravelTimes createTravelTimes(Scenario s) {
+  public static TravelTimes createTravelTimes(IScenario s) {
     final Iterable<AddDepotEvent> depots = FluentIterable.from(s.getEvents())
       .filter(AddDepotEvent.class);
     final Iterable<AddVehicleEvent> vehicles = FluentIterable.from(

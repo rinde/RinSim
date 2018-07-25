@@ -45,6 +45,7 @@ import com.github.rinde.rinsim.experiment.Experiment.Builder;
 import com.github.rinde.rinsim.experiment.Experiment.SimArgs;
 import com.github.rinde.rinsim.experiment.Experiment.SimulationResult;
 import com.github.rinde.rinsim.experiment.PostProcessor.FailureStrategy;
+import com.github.rinde.rinsim.scenario.IScenario;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.ScenarioIO;
 import com.google.common.base.Joiner;
@@ -85,7 +86,7 @@ final class JppfComputer implements Computer {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     final IdMap<PostProcessor<?>> ppMap = new IdMap("p", PostProcessor.class);
-    final Map<String, Scenario> scenariosMap = new LinkedHashMap<>();
+    final Map<String, IScenario> scenariosMap = new LinkedHashMap<>();
 
     // create tasks
     final List<SimulationTask> tasks = new ArrayList<>();
@@ -172,7 +173,7 @@ final class JppfComputer implements Computer {
       IdMap<MASConfiguration> configMap,
       IdMap<ScenarioProvider> scenarioMap,
       IdMap<PostProcessor<?>> ppMap,
-      Map<String, Scenario> scenariosMap) {
+      Map<String, IScenario> scenariosMap) {
 
     for (final SimArgs args : inputs) {
       final String configId = configMap.storeAndGenerateId(
@@ -190,14 +191,14 @@ final class JppfComputer implements Computer {
   }
 
   static SimulationResult processResult(SimulationTask simTask,
-      final Map<String, Scenario> scenariosMap,
+      final Map<String, IScenario> scenariosMap,
       final Map<Task<?>, JPPFJob> jobMap) {
     checkNotNull(simTask);
     if (simTask.getThrowable() != null) {
       throw new IllegalArgumentException(simTask.getThrowable());
     }
     final Object result = simTask.getResult();
-    final Scenario scen = scenariosMap.get(simTask.getScenarioId());
+    final IScenario scen = scenariosMap.get(simTask.getScenarioId());
 
     final DataProvider dp = jobMap.get(simTask).getDataProvider();
     final MASConfiguration conf = dp.getParameter(simTask.getConfigurationId());
@@ -211,7 +212,7 @@ final class JppfComputer implements Computer {
 
   static class ResultsCollector implements TaskResultListener {
     private final ImmutableSet.Builder<SimulationResult> results;
-    private final Map<String, Scenario> scenariosMap;
+    private final Map<String, IScenario> scenariosMap;
     private final Map<Task<?>, JPPFJob> taskJobMap;
     private final List<ResultListener> listeners;
     private final int expectedNumResults;
@@ -219,7 +220,7 @@ final class JppfComputer implements Computer {
     private Optional<IllegalArgumentException> exception;
 
     ResultsCollector(int expectedNumberOfResults,
-        final Map<String, Scenario> scenMap,
+        final Map<String, IScenario> scenMap,
         final Map<Task<?>, JPPFJob> tjMap, List<ResultListener> list) {
       results = ImmutableSet.builder();
       scenariosMap = scenMap;
@@ -437,7 +438,7 @@ final class JppfComputer implements Computer {
       final PostProcessor<?> postProcessor = getDataProvider().getParameter(
         postProcessorId);
 
-      final Scenario s = scenario.get();
+      final IScenario s = scenario.get();
       final SimArgs simArgs =
         SimArgs.create(s, configuration, seed, repetition,
           false, postProcessor, null);

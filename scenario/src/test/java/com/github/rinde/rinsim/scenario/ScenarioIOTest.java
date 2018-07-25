@@ -73,7 +73,7 @@ public class ScenarioIOTest {
    */
   @Test
   public void testReaderAdapter() throws IOException {
-    final Scenario s = Scenario.builder()
+    final IScenario s = Scenario.builder()
       .addModel(TimeModel.builder().withTickLength(7L))
       .build();
 
@@ -81,8 +81,8 @@ public class ScenarioIOTest {
     final Path file = Paths.get(tmpDir.toString(), "test.scen");
     ScenarioIO.write(s, file);
 
-    final Scenario out = ScenarioIO.reader().apply(file);
-    final Scenario convertedOut =
+    final IScenario out = ScenarioIO.reader().apply(file);
+    final IScenario convertedOut =
       verifyNotNull(ScenarioIO.readerAdapter(ScenarioConverters.toRealtime())
         .apply(file));
 
@@ -115,7 +115,7 @@ public class ScenarioIOTest {
 
     DotGraphIO.getLengthGraphIO().write(g, p);
 
-    final Scenario s = Scenario.builder()
+    final IScenario s = Scenario.builder()
       .addModel(TimeModel.builder().withTickLength(7L))
       .addModel(RoadModelBuilders.staticGraph(
         DotGraphIO.getLengthDataGraphSupplier(p)))
@@ -124,7 +124,7 @@ public class ScenarioIOTest {
     final String serialized = ScenarioIO.write(s);
     assertThat(serialized).isEqualTo(ser);
 
-    final Scenario deserialized = ScenarioIO.read(serialized);
+    final IScenario deserialized = ScenarioIO.read(serialized);
     assertThat(s).isEqualTo(deserialized);
 
     final Simulator sim = Simulator.builder()
@@ -150,7 +150,7 @@ public class ScenarioIOTest {
     g.addConnection(new Point(0, 0), new Point(1, 0));
     g.addConnection(new Point(1, 1), new Point(1, 0));
 
-    final Scenario s = Scenario.builder()
+    final IScenario s = Scenario.builder()
       .addModel(TimeModel.builder().withTickLength(7L))
       .addModel(RoadModelBuilders.staticGraph(Suppliers.ofInstance(g)))
       .build();

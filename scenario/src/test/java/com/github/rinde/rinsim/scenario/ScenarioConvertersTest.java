@@ -50,7 +50,7 @@ public class ScenarioConvertersTest {
     final Scenario empty = Scenario.builder().build();
     assertThat(empty.getModelBuilders()).isEmpty();
 
-    final Scenario convertedEmpty =
+    final IScenario convertedEmpty =
       verifyNotNull(ScenarioConverters.toRealtime().apply(empty));
     assertThat(convertedEmpty.getModelBuilders())
       .contains(TimeModel.builder()
@@ -70,7 +70,7 @@ public class ScenarioConvertersTest {
       .addModel(CommModel.builder())
       .build();
 
-    final Scenario converted =
+    final IScenario converted =
       verifyNotNull(ScenarioConverters.toRealtime().apply(s));
     assertThat(converted.getModelBuilders())
       .contains(TimeModel.builder()

@@ -27,7 +27,7 @@ import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicie
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.pdptw.common.StatsStopConditions;
-import com.github.rinde.rinsim.scenario.Scenario;
+import com.github.rinde.rinsim.scenario.IScenario;
 import com.github.rinde.rinsim.scenario.Scenario.ProblemClass;
 import com.github.rinde.rinsim.scenario.ScenarioIO;
 import com.github.rinde.rinsim.scenario.StopConditions;
@@ -85,16 +85,16 @@ public class GeneratedScenarioIOTest {
           .withTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED))
       .build();
 
-    final Scenario scenario = generator
+    final IScenario scenario = generator
       .generate(new MersenneTwister(123), "id123");
 
     // if this call fails, something has changed in the scenario format.
-    final Scenario originalScenario = ScenarioIO.read(SERIALIZED_SCENARIO);
+    final IScenario originalScenario = ScenarioIO.read(SERIALIZED_SCENARIO);
     assertEquals("Change in scenario format detected.", originalScenario,
       scenario);
 
     final String output = ScenarioIO.write(scenario);
-    final Scenario converted = ScenarioIO.read(output);
+    final IScenario converted = ScenarioIO.read(output);
 
     assertEquals(scenario, converted);
   }

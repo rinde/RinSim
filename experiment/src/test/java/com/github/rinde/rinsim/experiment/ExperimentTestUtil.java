@@ -27,7 +27,7 @@ import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
 import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
-import com.github.rinde.rinsim.scenario.Scenario;
+import com.github.rinde.rinsim.scenario.IScenario;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -58,20 +58,20 @@ public final class ExperimentTestUtil {
       .build();
   }
 
-  public static Simulator init(Scenario scenario,
+  public static Simulator init(IScenario scenario,
       MASConfiguration config, long seed) {
     return Experiment.init(scenario, config, seed, false,
       Optional.<ModelBuilder<?, ?>>absent());
   }
 
-  public static Simulator init(Scenario scenario,
+  public static Simulator init(IScenario scenario,
       MASConfiguration config, long seed, boolean showGui,
       ModelBuilder<?, ?> guiBuilder) {
     return Experiment.init(scenario, config, seed, showGui,
       Optional.<ModelBuilder<?, ?>>of(guiBuilder));
   }
 
-  public static StatisticsDTO singleRun(Scenario scenario,
+  public static StatisticsDTO singleRun(IScenario scenario,
       MASConfiguration c, long seed, ObjectiveFunction objFunc,
       boolean showGui) {
     return (StatisticsDTO) Experiment

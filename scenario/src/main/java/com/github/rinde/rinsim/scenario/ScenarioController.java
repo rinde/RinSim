@@ -100,7 +100,7 @@ public final class ScenarioController extends AbstractModel<StopModel>
     SCENARIO_EVENT;
   }
 
-  final Scenario scenario;
+  final IScenario scenario;
   final Queue<TimedEvent> scenarioQueue;
   final EventDispatcher disp;
   final SimulatorAPI simulator;
@@ -113,7 +113,7 @@ public final class ScenarioController extends AbstractModel<StopModel>
   private EventType status;
   private int ticks;
 
-  ScenarioController(SimulatorAPI sim, ClockController c, Scenario s,
+  ScenarioController(SimulatorAPI sim, ClockController c, IScenario s,
       ImmutableMap<Class<? extends TimedEvent>, TimedEventHandler<?>> m,
       int t) {
     simulator = sim;
@@ -284,7 +284,7 @@ public final class ScenarioController extends AbstractModel<StopModel>
    * @param scenario The scenario to control.
    * @return A new {@link Builder}.
    */
-  public static Builder builder(Scenario scenario) {
+  public static Builder builder(IScenario scenario) {
     return Builder.create(scenario);
   }
 
@@ -345,7 +345,7 @@ public final class ScenarioController extends AbstractModel<StopModel>
       setDependencies(SimulatorAPI.class, ClockController.class);
     }
 
-    abstract Scenario getScenario();
+    abstract IScenario getScenario();
 
     abstract ImmutableMap<Class<? extends TimedEvent>, TimedEventHandler<?>> getEventHandlers();
 
@@ -487,7 +487,7 @@ public final class ScenarioController extends AbstractModel<StopModel>
       final ClockController clockController = dependencyProvider
         .get(ClockController.class);
 
-      final Scenario s = getScenario();
+      final IScenario s = getScenario();
       final Set<Class<?>> required = collectClasses(s.getEvents());
       final Map<Class<? extends TimedEvent>, TimedEventHandler<?>> m =
         newLinkedHashMap(getEventHandlers());
@@ -541,7 +541,7 @@ public final class ScenarioController extends AbstractModel<StopModel>
       }
     }
 
-    static Builder create(Scenario scen) {
+    static Builder create(IScenario scen) {
       final int ticks = scen.getTimeWindow().end() == Long.MAX_VALUE ? -1
         : (int) (scen.getTimeWindow().end() - scen.getTimeWindow().begin());
 
@@ -552,7 +552,7 @@ public final class ScenarioController extends AbstractModel<StopModel>
         StopModelBuilder.create(scen.getStopCondition()), false);
     }
 
-    static Builder create(Scenario scen,
+    static Builder create(IScenario scen,
         ImmutableMap<Class<? extends TimedEvent>, TimedEventHandler<?>> handlers,
         int ticks,
         StopModelBuilder stop, boolean ignoreRedundantHandlers) {

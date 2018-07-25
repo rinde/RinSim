@@ -125,7 +125,7 @@ public final class ScenarioIO {
    * @throws IOException In case anything went wrong during writing the
    *           scenario.
    */
-  public static void write(Scenario s, Path to) throws IOException {
+  public static void write(IScenario s, Path to) throws IOException {
     Files.write(to, Splitter.on(System.lineSeparator()).split(write(s)),
       Charsets.UTF_8);
   }
@@ -175,7 +175,7 @@ public final class ScenarioIO {
    * @param s The scenario.
    * @return The scenario as JSON.
    */
-  public static String write(Scenario s) {
+  public static String write(IScenario s) {
     return GSON.toJson(s);
   }
 
@@ -184,7 +184,7 @@ public final class ScenarioIO {
    * @param scenarioString The string to read.
    * @return A {@link Scenario} instance.
    */
-  public static Scenario read(String scenarioString) {
+  public static IScenario read(String scenarioString) {
     return read(scenarioString, AutoValue_Scenario.class);
   }
 
@@ -226,7 +226,7 @@ public final class ScenarioIO {
    * @param <T> The type of scenario.
    * @return A new reader instance.
    */
-  public static <T extends Scenario> Function<Path, T> reader(Class<T> clz) {
+  public static <T extends IScenario> Function<Path, T> reader(Class<T> clz) {
     return new DefaultScenarioReader<>(clz);
   }
 
@@ -253,7 +253,7 @@ public final class ScenarioIO {
     return new SafeNullIOAdapter<>(delegate);
   }
 
-  private static final class DefaultScenarioReader<T extends Scenario>
+  private static final class DefaultScenarioReader<T extends IScenario>
       implements Function<Path, T> {
     final Optional<Class<T>> clazz;
 
