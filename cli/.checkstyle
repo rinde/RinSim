@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <fileset-config file-format-version="1.2.0" simple-config="true" sync-formatter="false">
-  <local-check-config name="RinSim-style" location="/Users/rinde/workspace/RinSim/checkstyle.xml" type="external" description="">
-    <property name="checkstyle.cache.file" value="abc"/>
-    <additional-data name="protect-config-file" value="false"/>
-  </local-check-config>
   <local-check-config name="RinSim-checkstyle" location="/RinSim/checkstyle.xml" type="project" description="">
     <property name="checkstyle.cache.file" value="abc"/>
     <additional-data name="protect-config-file" value="false"/>
