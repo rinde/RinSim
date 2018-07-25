@@ -102,7 +102,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.google.auto.value</groupId>
-			<artifactId>auto-value</artifactId>
+			<artifactId>auto-value-annotations</artifactId>
 			<scope>provided</scope>
 		</dependency>
 		<!-- <dependency> <groupId>com.github.rinde</groupId> <artifactId>rinsim-scenario-util</artifactId> 
