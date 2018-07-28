@@ -126,9 +126,9 @@ public class GraphSpatialRegistry<T> extends ForwardingSpatialRegistry<T> {
     return connLocMap.containsKey(ru);
   }
 
-  public Connection<?> getConnection(Point p) {
-    return getConnection(posMap.get(p).iterator().next());
-  }
+  // public Connection<?> getConnection(Point p) {
+  // return getConnection(posMap.get(p).iterator().next());
+  // }
 
   public Connection<?> getConnection(T ru) {
     return connLocMap.get(ru).connection();

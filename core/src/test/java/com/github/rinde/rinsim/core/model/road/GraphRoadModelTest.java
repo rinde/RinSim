@@ -16,6 +16,7 @@
 package com.github.rinde.rinsim.core.model.road;
 
 import static com.google.common.collect.Lists.newLinkedList;
+import static com.google.common.truth.Truth.assertThat;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -82,13 +83,20 @@ public class GraphRoadModelTest
     // since GraphRoadModelSnapshot should be consistent
     // with the actual graph in a static case.
     final ImmutableMultimap graphAsMap =
-      ImmutableMultimap.builder().put(SW, SE).put(SE, NE).put(NE, NW).build();
+      ImmutableMultimap.builder().put(SW, SE).put(SE, NE).put(NE, NW)
+        .put(NW, NE).build();
+
+    // NW <-> NE
+    // .......^
+    // .......|
+    // SW ->- SE
 
     final Table<Point, Point, Connection<LengthData>> graphAsTable =
       HashBasedTable.create();
     graphAsTable.put(SW, SE, Connection.create(SW, SE, LengthData.create(10)));
     graphAsTable.put(SE, NE, Connection.create(SE, NE, LengthData.create(10)));
     graphAsTable.put(NE, NW, Connection.create(NE, NW, LengthData.create(10)));
+    graphAsTable.put(NW, NE, Connection.create(NW, NE, LengthData.create(10)));
 
     return Arrays.asList(new Object[][] {
       {RoadModelBuilders.staticGraph(MultimapGraph.supplier(graphAsMap))},
@@ -122,7 +130,7 @@ public class GraphRoadModelTest
     assertTrue(points.contains(SE));
     assertTrue(points.contains(NE));
 
-    assertEquals(3, graph.getNumberOfConnections());
+    assertEquals(4, graph.getNumberOfConnections());
     assertEquals(4, graph.getNumberOfNodes());
   }
 
@@ -781,6 +789,26 @@ public class GraphRoadModelTest
     model.addObjectAt(agent1, new Point(0, 0));
     model.addObjectAt(agent2, new Point(1, 0));// this location is not a
     // crossroad
+  }
+
+  @Test
+  public void samePositionOnDifferentConnections() {
+    final MovingRoadUser agent1 = new TestRoadUser();
+    final MovingRoadUser agent2 = new TestRoadUser();
+
+    model.addObjectAt(agent1, NE);
+    model.addObjectAt(agent2, NW);
+
+    // NW = (0,10)
+    // NE = (10,10)
+    model.moveTo(agent1, NW, hour(5));
+    model.moveTo(agent2, NE, hour(5));
+
+    assertThat(model.getPosition(agent1)).isEqualTo(model.getPosition(agent2));
+    assertThat(model.getPosition(agent1)).isEqualTo(new Point(5, 10));
+    model.moveTo(agent2, NW, hour(1));
+
+    assertThat(model.getPosition(agent2)).isEqualTo(new Point(4, 10));
   }
 
   static boolean connectionEquals(Connection<?> conn,

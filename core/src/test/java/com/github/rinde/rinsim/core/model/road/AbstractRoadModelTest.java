@@ -93,7 +93,7 @@ public abstract class AbstractRoadModelTest<T extends GenericRoadModel> {
   protected final double EPSILON = 0.02;
 
   protected T model;
-  protected static Point SW = new Point(0, 0);;
+  protected static Point SW = new Point(0, 0);
   protected static Point SE = new Point(10, 0);
   protected static Point NE = new Point(10, 10);
   protected static Point NW = new Point(0, 10);

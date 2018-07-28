@@ -227,7 +227,7 @@ public class GraphRoadModelImpl extends AbstractRoadModel
    * <code>nextHop</code>.
    * @param objLoc The current location.
    * @param nextHop The destination node.
-   * @throws IllegalArgumentException if it the proposed move is invalid.
+   * @throws IllegalArgumentException if the proposed move is invalid.
    */
   protected void checkMoveValidity(Point objLoc, Point nextHop) {
     // in case we start from a conn and our next destination is to go to
@@ -241,8 +241,9 @@ public class GraphRoadModelImpl extends AbstractRoadModel
       checkArgument(
         registry().isOnConnection(nextHop),
         "Illegal path for this object, from a position on a connection we can"
-          + " not jump to another connection or go back. From %s, to %s.",
-        objLoc, nextHop);
+          + " not jump to another connection or go back. From %s, to %s. The "
+          + "object is on %s.",
+        objLoc, nextHop, registry().getConnection(objLoc));
 
       // check for same conn
       final Connection<?> objConn = registry().getConnection(objLoc);
@@ -387,23 +388,50 @@ public class GraphRoadModelImpl extends AbstractRoadModel
 
   @Override
   public List<Point> getShortestPathTo(Point from, Point to) {
+    return doGetShortestPathTo(from, to);
+  }
+
+  @Override
+  public List<Point> getShortestPathTo(RoadUser fromObj, RoadUser toObj) {
+    checkArgument(registry().containsObject(fromObj),
+      "From RoadUser (%s) should be in RoadModel.", fromObj);
+
+    checkArgument(registry().containsObject(toObj),
+      "To RoadUser (%s) should be in RoadModel.", toObj);
+
     final List<Point> path = new ArrayList<>();
-    Point start = from;
-    if (registry().isOnConnection(from)) {
-      start = registry().getConnection(from).to();
-      path.add(from);
+    Point start = getPosition(fromObj);
+    if (registry().isOnConnection(fromObj)) {
+      path.add(start);
+      start = registry().getConnection(fromObj).to();
     }
 
-    Point end = to;
-    final boolean toIsOnConn = registry().isOnConnection(to);
+    Point end = getPosition(toObj);
+    final boolean toIsOnConn = registry().isOnConnection(toObj);
     if (toIsOnConn) {
-      end = registry().getConnection(to).from();
+      end = registry().getConnection(toObj).from();
     }
     path.addAll(doGetShortestPathTo(start, end));
     if (toIsOnConn) {
-      path.add(to);
+      path.add(getPosition(toObj));
     }
     return path;
+  }
+
+  @Override
+  public List<Point> getShortestPathTo(RoadUser fromObj, Point to) {
+    checkArgument(registry().containsObject(fromObj),
+      "From object (%s) should be in RoadModel.", fromObj);
+
+    if (registry().isOnConnection(fromObj)) {
+      final List<Point> path = new ArrayList<>();
+      Point start = getPosition(fromObj);
+      path.add(start);
+      start = registry().getConnection(fromObj).to();
+      path.addAll(getShortestPathTo(start, to));
+      return path;
+    }
+    return getShortestPathTo(getPosition(fromObj), to);
   }
 
   /**
