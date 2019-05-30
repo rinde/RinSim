@@ -39,6 +39,8 @@ import com.github.rinde.rinsim.event.EventDispatcher;
 import com.github.rinde.rinsim.util.LinkedHashBiMap;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.Maps;
@@ -88,7 +90,7 @@ public final class CommModel extends AbstractModel<CommUser>
   private final BiMap<CommUser, CommDevice> usersDevices;
   private ImmutableBiMap<CommUser, CommDevice> usersDevicesSnapshot;
   private final RandomGenerator randomGenerator;
-  private final BiMap<CommUser, CommDevice> unregisteredUsersDevices;
+  private final Cache<CommUser, CommDevice> unregisteredUsersDevices;
   private boolean usersHasChanged;
   private final EventDispatcher eventDispatcher;
 
@@ -98,10 +100,13 @@ public final class CommModel extends AbstractModel<CommUser>
     usersHasChanged = false;
     usersDevices = Maps.synchronizedBiMap(
       LinkedHashBiMap.<CommUser, CommDevice>create());
-    unregisteredUsersDevices = LinkedHashBiMap.<CommUser, CommDevice>create();
+    unregisteredUsersDevices = CacheBuilder.newBuilder()
+      .maximumSize(1000)
+      .build();
     usersDevicesSnapshot = ImmutableBiMap.of();
     eventDispatcher = new EventDispatcher(EventTypes.values());
     randomGenerator = rng;
+
   }
 
   /**
@@ -115,9 +120,9 @@ public final class CommModel extends AbstractModel<CommUser>
   @Override
   public boolean register(CommUser commUser) {
     checkArgument(!contains(commUser), "%s is already registered.", commUser);
-    if (unregisteredUsersDevices.containsKey(commUser)) {
+    if (unregisteredUsersDevices.getIfPresent(commUser) != null) {
       // re-register, reuse already created device
-      final CommDevice dev = unregisteredUsersDevices.remove(commUser);
+      final CommDevice dev = unregisteredUsersDevices.asMap().remove(commUser);
       dev.register();
       addDevice(dev, commUser);
     } else {
